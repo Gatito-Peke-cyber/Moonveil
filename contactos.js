@@ -84,6 +84,18 @@ const contacts = [
         { label:'¿Donde te ubicas?', reply:'Donde, buena pregunta.Ni yo se la verdad...Pero quien sabe, capaz ya nos vimos.' },
         { label:'E11-25', reply:'Uy! Tu sabes que es eso...' },
         { label:'¿E11-25?', reply:'No, la verdad del tema no tengo informacion...Debes creerme.' },
+        { label:'Esmeralda', reply:'Me gusta, me encanta.' },
+        { label:'JUgador', reply:'Pues es alguien, espera osea tu...' },
+        { label:'Hola', reply:'Pues hola, y que tal supongo.' },
+        { label:'Bien', reply:'Que bien, ahora me das esmeraldas.' },
+        { label:'Mal', reply:'Creo que tengo tu medicina, pues tradearme.' },
+        { label:'Sand Brill', reply:'Quien es, quiero conocerlo, parece una gran persona.' },
+        { label:'Y tu', reply:'Pues, esmeraldas, pero nada...' },
+        { label:'Lobo', reply:'Pues es bonito tener un lobito que se comporte como perro, no.' },
+        { label:'Octubre', reply:'Que miedo, pero mas miedo que no me tradeen...' },
+        { label:'Truco', reply:'Mi truco es persuadir' },
+        { label:'Trato', reply:'Si me das esmeraldas, hago tu trato de darte 1 pan, ves oferta y demanda...' },
+        { label:'Kevin', reply:'Shhh... JEJE, ni idea de quien es ese tipo...' }
       ]
     }
   },
@@ -271,7 +283,7 @@ const contacts = [
     avatar:'',
     mystery:true, gold:false, online:true, unread:1,
     kind:'cliche',
-    quickReplies:['K','-','9','3','G','D','P','E'],
+    quickReplies:['A','W','S','D','G','Q','P','E'],
     profile:{ correo:'konn.slate@moonveil.mv', seccion:'A-1', profesion:'████', pasatiempos:[''], mascotas:[], colorFav:'Verde Lima' },
     brain:{ cliches:['...','Ok','Z','Up','Down','Right','Left'] }
   },
@@ -311,6 +323,44 @@ const contacts = [
       ]
     }
   },
+  {
+    id:'c11',
+    name:'Guau!',
+    alias:'El mas perron',
+    desc:'Soy el perron de mi cuadra... Guau...',
+    avatar:'vill/photowolf.jpg',
+    mystery:false, gold:true, online:true, unread:99,
+    kind:'options',
+    quickReplies:['Guau','Guau?'],
+    profile:{
+      correo:'guau@moonveil.mv', seccion:'G-UAU', profesion:'Ser perron 😎',
+      pasatiempos:['Guauuuu','Guau','Guauauauau','Auuuuu!'],
+      mascotas:['Guau "Auuu"'],
+      colorFav:'Guau'
+    },
+    brain:{
+      prompt:'¿Guau?',
+      options:[
+        { label:'Guau', reply:'Hola! Guau.' },
+        { label:'Guau?', reply:'Guau?' },
+        { label:'Hola', reply:'Guau! 😸' },
+        { label:'Bien', reply:'Guauuuuuu...' },
+        { label:'Mal', reply:'Guau... 😿' },
+        { label:'Como estas', reply:'Guau...!' },
+        { label:'y tu', reply:'Guauuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu...!' },
+        { label:'Lobo', reply:'Guau...' },
+        { label:'Perro', reply:'Guau... 😎' },
+        { label:'Perron', reply:'Guau🎶' },
+        { label:'Tu eres el mas', reply:'Guau....!' },
+        { label:'Octubre', reply:'Auuuuu!!!' },
+        { label:'31', reply:'🐺' },
+        { label:'Truco', reply:'Guau?😸' },
+        { label:'Trato', reply:'Guau!🙀' },
+        { label:'Kevin', reply:'Guau...! 🙀' },
+        { label:'German', reply:'Guau...😸' }
+      ]
+    }
+  }
 ];
 
 /* =========================================================

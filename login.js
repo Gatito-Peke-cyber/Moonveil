@@ -61,11 +61,23 @@ document.addEventListener('DOMContentLoaded', () => {
      2) DATOS MOCK
      ------------------------------------------------------- */
   const NEWS = [
-    { name: 'Sand Brill', role: '█████████', date: '2024-06-30', title: 'Mi nuevo avatar', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: '█████████', date: '2022-03-29', title: '(otra vez)', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: '█████████', date: '2021-02-28', title: 'Estoy aqui...', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: '█████████', date: '2020-07-27', title: 'Hay un Mapa', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: '█████████', date: '2025-09-27', title: 'Hoy hubo "Minecraft Live"', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2024-06-30', title: 'Mi nuevo avatar', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2022-03-29', title: '(otra vez)', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2021-02-28', title: 'Estoy aqui...', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2020-07-27', title: 'Donde...', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-09-27', title: 'Hoy hubo "Minecraft Live"', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-09-28', title: 'Me miras...', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-09-28', title: 'Siento que me estas ignorando.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-09-29', title: 'Siento que ya sabes la respuesta.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-09-30', title: 'A que me veo increible hoy.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-06-12', title: 'Esmeraldas por doquier...', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-06-27', title: 'Me gusta el verde, a que de verdad es bonito el color.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-06-14', title: 'Siento que soy el unico hablando aqui.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-07-07', title: 'Que aburrido es ser el centro de atencion.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-07-01', title: 'Que se siente ser el protagonista, pues aburrido...', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-02-12', title: 'Golem, dame una flor que soy algo brillante y hermoso', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-02-11', title: 'Sabias que el jugador, no tradea conmigo.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-02-02', title: 'Consejo del dia: Tradea conmigo.', avatar: 'vill/vill1.jpg' },
   ];
 
   const TRADES = [
@@ -81,6 +93,18 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Nunca te rindas, porque sino de donde consigo esmeraldas.' },
     { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Si estas solo recuerda que yo te estoy mirando siempre.' },
     { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Si ves a Sand Brill, dale todas tus esmeraldas, eso me dijo.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'A que Sand Brill, es el mas grande.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Me entere que alguien le puso mi apellido a una llama...' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Soy talla S, bueno no...' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Ser el centro de atencion pues, David Koresh, que miedo lo del incendio.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Jeje' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Hago cara de gato 😸 en modo aldeano.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Soy real, pues ni yo se.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Solo dire Arena Brillante.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Quiero que sepas que te admiro, solo y cuando me das esmeraldas, de ahi no.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Me consultas a mi, capaz no, o si.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Coma "," o mejor coma para que no tenga hambre, pero me tradeas.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Tradear es una profesion, pues es mi favorita la #1.' },
   ];
 
   const DEMO_CREDS = [
