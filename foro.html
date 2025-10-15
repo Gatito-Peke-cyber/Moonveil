@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================================================
+       Moonveil Portal — Foro de Aldeanos
+       - Lectura cómoda, sin caja de publicar
+       - 12 hilos de ejemplo (mín. 10 pedidos)
+       - Tarjetas con: imagen, nombre, fecha, título, comentario
+       - Destacados dorados, misteriosos con "?"
+       - Modal de lectura + expandir comentarios
+       ========================================================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Foro</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet"/>
+
+  <!-- Favicon mínimo -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="foro.css" />
+  <meta name="description" content="Foro de Aldeanos en Moonveil: lee discusiones, comentarios y rumores con un diseño profesional y accesible." />
+</head>
+<body class="theme-auto">
+  <!-- Fondo decorativo -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="foro.html" class="active">Foro</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
+        <div class="hud-bar xp" data-val="67" aria-label="Experiencia 67%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Pergamino"><span class="i i-scroll" aria-hidden="true"></span></button>
+        <button class="slot" title="Pluma"><span class="i i-feather" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" role="region" aria-labelledby="title">
+    <div class="container hero__inner">
+      <div class="hero__text reveal">
+        <h1 id="title">Foro de <span>Aldeanos</span></h1>
+        <p class="lead">Lee discusiones, comparte hallazgos y revisa consejos. Esta sección está pensada para lectura cómoda y sin distracciones.</p>
+      </div>
+      <div class="hero__widgets reveal">
+        <div class="hero__widget">
+          <span class="w-title">Hilos</span>
+          <span class="w-val" id="wThreads">—</span>
+        </div>
+        <div class="hero__widget">
+          <span class="w-title">Comentarios</span>
+          <span class="w-val" id="wComments">—</span>
+        </div>
+        <div class="hero__widget">
+          <span class="w-title">Destacados</span>
+          <span class="w-val" id="wFeatured">—</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Controles -->
+  <section class="section controls" aria-labelledby="ctrl">
+    <div class="container">
+      <div class="controls__inner reveal">
+        <h2 id="ctrl">Explorar hilos</h2>
+        <div class="toolbar">
+          <div class="filters">
+            <div class="chip-group" id="chipType" role="group" aria-label="Filtrar por tipo">
+              <button class="chip is-on" data-type="all">Todos</button>
+              <button class="chip" data-type="destacados">Destacados</button>
+              <button class="chip" data-type="misterio">Misterio</button>
+              <button class="chip" data-type="recientes">Recientes</button>
+            </div>
+          </div>
+          <div class="search">
+            <input id="searchInput" type="search" placeholder="Buscar por título, autor o etiqueta…" aria-label="Buscar hilos" />
+            <button class="btn btn--ghost" id="clearSearch" aria-label="Limpiar búsqueda">Limpiar</button>
+          </div>
+        </div>
+        <div class="status">
+          <span>Modo lectura <span class="badge">sin editor</span></span>
+          <span class="legend"><span class="dot gold"></span> Destacado · <span class="dot mystery"></span> Misterio</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lista de foros -->
+  <main class="section" aria-labelledby="listTitle">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="listTitle">Hilos activos</h2>
+          <p class="muted">Haz clic en “Leer” para ver el hilo completo o expande comentarios rápidos.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="foroList">
+        <!-- Tarjetas generadas por JS -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal de lectura -->
+  <div class="modal" id="foroModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal__overlay" id="modalOverlay"></div>
+    <div class="modal__dialog" role="document">
+      <header class="modal__head">
+        <h3 id="modalTitle">—</h3>
+        <button class="icon-btn" id="modalClose" aria-label="Cerrar"><span class="i i-close"></span></button>
+      </header>
+      <section class="modal__body" id="modalBody">
+        <!-- Se inyecta con JS -->
+      </section>
+      <footer class="modal__foot">
+        <button class="btn btn--primary" id="modalAction">Marcar como leído</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JS -->
+  <script src="foro.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================================================
+       Moonveil Portal — Inicio / Bienvenida
+       - HUD estilo Minecraft (decorativo/funcional básico)
+       - Hero con parallax + partículas
+       - Descripción/ventajas
+       - Filtros + búsqueda + acciones (mezclar / ordenar)
+       - Galería 12 ítems (imagen, nombre, categoría, descripción)
+       - Lightbox accesible con teclado
+       - CTA + Footer
+       ========================================================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil Portal — Bienvenida</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <!-- Favicon pixel -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS principal -->
+  <link rel="stylesheet" href="inicio.css" />
+  <meta name="description" content="Moonveil Portal — Página de bienvenida con HUD tipo Minecraft, parallax, partículas, filtros y galería de 12 objetos con imagen, nombre, descripción y categoría." />
+</head>
+<body class="theme-auto">
+  <!-- Fondo global: partículas y capas parallax -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD + Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html" class="active">Inicio</a></li>
+        <li><a href="perfiles.html" tabindex="-1">Perfiles</a></li>
+        <li><a href="ranking.html" tabindex="-1">Ranking</a></li>
+        <li><a href="noticias.html" tabindex="-1">Noticias</a></li>
+        <li><a href="tradeos.html" aria-disabled="true" tabindex="-1">Tradeos</a></li>
+        <li><a href="tienda.html" tabindex="-1">Tienda</a></li>
+        <li><a href="eventos.html" tabindex="-1">Eventos</a></li>
+        <li><a href="foro.html" tabindex="-1">Foro</a></li>
+        <!--<li><a href="mapa.html" tabindex="-1">Mapa</a></li>-->
+        <li><a href="contactos.html" tabindex="-1">Contacto</a></li>
+        <li><a href="moon.html" tabindex="-1">Game</a></li>
+        <!--<li><a href="noticias.html" aria-disabled="true" tabindex="-1">█████</a></li>-->
+        <li><a href="aniversario.html" tabindex="-1">Anniversary!!</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores del jugador">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
+        <div class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
+        <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" role="region" aria-labelledby="heroTitle">
+    <div class="hero__inner">
+      <div class="hero__text reveal">
+        <h1 id="heroTitle">
+          ¡Bienvenido al <span>Reino de Moonveil</span>!
+        </h1>
+        <p class="lead">
+          Tu base central de aventuras: aldeanos expertos, biomas únicos y recursos — todo aqui.
+        </p>
+        <div class="hero__cta">
+          <a href="#desc" class="btn btn--primary">Conocer más</a>
+          <a href="#gallery" class="btn btn--ghost">Ir a la galería</a>
+        </div>
+      </div>
+      <div class="hero__art" aria-hidden="true">
+        <div class="vox vox--emerald"></div>
+        <div class="vox vox--chest"></div>
+        <div class="vox vox--torch"></div>
+      </div>
+    </div>
+    <div class="scroll-hint" aria-hidden="true">
+      <span>↓ Scroll</span>
+    </div>
+  </section>
+
+  <!-- Descripción -->
+  <section id="desc" class="section desc" aria-labelledby="descTitle">
+    <div class="container">
+      <div class="grid-2">
+        <div class="desc__text reveal">
+          <h2 id="descTitle">Moonveil en pocas palabras</h2>
+          <p>
+            Un espacio donde los aldeanos prosperan, los biomas cuentan historias y cada objeto impulsa tu estrategia.
+            Explora, descubre y comparte con una comunidad vibrante — todo con rendimiento y accesibilidad.
+          </p>
+          <ul class="benefits">
+            <li><span class="i i-shield"></span> Seguridad y rendimiento</li>
+            <li><span class="i i-star"></span> Experiencia inmersiva</li>
+            <li><span class="i i-map"></span> Parallax en biomas</li>
+            <li><span class="i i-craft"></span> Catálogo vivo</li>
+          </ul>
+        </div>
+        <aside class="desc__card reveal" aria-label="Resumen del mundo">
+          <header>
+            <h3>Resumen del mundo</h3>
+          </header>
+          <dl class="stats">
+            <div><dt>Aldeanos activos</dt><dd id="stVillagers">48</dd></div>
+            <div><dt>Trueques hoy</dt><dd id="stTrades">132</dd></div>
+            <div><dt>Biomas descubiertos</dt><dd id="stBiomes">7</dd></div>
+            <div><dt>Eventos activos</dt><dd id="stEvents">3</dd></div>
+          </dl>
+          <footer class="desc__actions">
+            <button class="btn btn--small btn--primary" id="btnBoost">Impulsar XP</button>
+            <button class="btn btn--small btn--ghost" id="btnSync">Sincronizar</button>
+          </footer>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- Herramientas de galería: filtros + búsqueda + acciones -->
+  <section class="section filters" aria-labelledby="filterTitle">
+    <div class="container">
+      <div class="filters__inner reveal">
+        <h2 id="filterTitle">Explora por categoría</h2>
+        <div class="chip-group" role="tablist" aria-label="Filtros de galería">
+          <button class="chip active" role="tab" aria-selected="true" data-filter="all">Todo</button>
+          <button class="chip" role="tab" aria-selected="false" data-filter="bloques">Bloques</button>
+          <button class="chip" role="tab" aria-selected="false" data-filter="armas">Armas</button>
+          <button class="chip" role="tab" aria-selected="false" data-filter="comida">Comida</button>
+          <button class="chip" role="tab" aria-selected="false" data-filter="decoración">Decoración</button>
+        </div>
+
+        <div class="tools">
+          <label class="search" for="q">
+            <input id="q" type="search" placeholder="Buscar por nombre o descripción…" aria-label="Buscar en la galería" />
+            <span class="i i-search" aria-hidden="true"></span>
+          </label>
+          <div class="actions">
+            <button class="btn btn--ghost" id="btnShuffle" title="Mezclar">Mezclar</button>
+            <button class="btn btn--ghost" id="btnSort" title="Ordenar A→Z">Ordenar</button>
+            <button class="btn btn--ghost" id="btnClear" title="Limpiar filtros">Limpiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Galería -->
+  <section id="gallery" class="section gallery" aria-labelledby="galleryTitle" aria-describedby="galleryDesc">
+    <div class="container">
+      <header class="gallery__head reveal">
+        <div>
+          <h2 id="galleryTitle">Colección destacada</h2>
+          <p id="galleryDesc" class="muted">Objetos con imagen, nombre, categoría y descripción. Clic para ampliar.</p>
+        </div>
+        <div class="gallery__info">
+          <span id="countVisible">12</span> / <span id="countTotal">12</span> visibles
+        </div>
+      </header>
+
+      <div class="cards" id="cards">
+        <!-- Tarjetas generadas por JS (inicio.js) -->
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA final -->
+  <section class="section cta" aria-labelledby="ctaTitle">
+    <div class="container">
+      <div class="cta__box reveal">
+        <div class="cta__text">
+          <h2 id="ctaTitle">¿Listo para comerciar como un maestro?</h2>
+          <p>Reúne esmeraldas, mejora tu equipo y domina el arte del trueque desde Moonveil Portal.</p>
+        </div>
+        <div class="cta__actions">
+          <a href="#" class="btn btn--primary" aria-disabled="true">(pronto)</a>
+          <a href="index.html" class="btn btn--ghost">Volver al Login</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Vista ampliada">
+    <button class="lightbox__close" id="lbClose" aria-label="Cerrar"><span class="i i-close"></span></button>
+    <figure class="lightbox__figure">
+      <img id="lbImg" alt="" />
+      <figcaption id="lbCaption"></figcaption>
+    </figure>
+    <button class="lightbox__nav prev" id="lbPrev" aria-label="Anterior"><span class="i i-left"></span></button>
+    <button class="lightbox__nav next" id="lbNext" aria-label="Siguiente"><span class="i i-right"></span></button>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand">
+        <span class="cube"></span>
+        <strong>Moonveil</strong> Portal
+      </div>
+      <nav class="foot__links" aria-label="Enlaces del sitio">
+        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+      </nav>
+      <p class="foot__copy">© <span id="y"></span> Moonveil. Hecho con bloques.</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JS principal -->
+  <script src="inicio.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================================================
+       Moonveil Portal — Perfiles de Aldeanos
+       - Tarjetas: foto, nombre, alias, correo, sección
+       - Estados: normal, misterioso (¿?), dorado (VIP)
+       - Filtros por sección/profesión + búsqueda + ordenar/mezclar
+       - Modal de detalles con información extendida
+       - HUD + Navbar consistentes con inicio
+       ========================================================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Perfiles de Aldeanos</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="perfiles.css" />
+
+  <meta name="description" content="Perfiles de Aldeanos — tarjetas con foto, nombre, alias, correo y sección; detalles ampliados en modal: profesión, libros, pasatiempos, mascotas, color favorito y más.">
+</head>
+<body class="theme-auto">
+  <!-- Fondo -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="perfiles.html" class="active">Perfiles</a></li>
+        <li><a href="#" aria-disabled="true" tabindex="-1">Ranking</a></li>
+        <li><a href="#" aria-disabled="true" tabindex="-1">Trueques</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="90" aria-label="Vida 90%"></div>
+        <div class="hud-bar xp" data-val="72" aria-label="Experiencia 72%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
+        <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero/Encabezado Perfiles -->
+  <section class="hero hero--small" role="region" aria-labelledby="title">
+    <div class="container hero__inner">
+      <div class="hero__text reveal">
+        <h1 id="title">Perfiles de <span>Aldeanos</span></h1>
+        <p class="lead">Encuentra a los expertos del Reino de Moonveil. Haz clic en <b>Ver más</b> para conocer su historia, profesión, libros, pasatiempos y mascotas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Controles -->
+  <section class="section controls" aria-labelledby="ctrlTitle">
+    <div class="container">
+      <div class="controls__inner reveal">
+        <h2 id="ctrlTitle">Explorar</h2>
+        <div class="toolbar">
+          <div class="chip-group" role="tablist" aria-label="Filtrar por sección">
+            <button class="chip active" role="tab" data-filter="all" aria-selected="true">Todas</button>
+            <button class="chip" role="tab" data-filter="A-1">A-1</button>
+            <button class="chip" role="tab" data-filter="A-2">A-2</button>
+            <button class="chip" role="tab" data-filter="B-1">B-1</button>
+            <button class="chip" role="tab" data-filter="B-2">B-2</button>
+            <button class="chip" role="tab" data-filter="C-3">C-3</button>
+          </div>
+          <div class="tools">
+            <label class="search" for="q">
+              <input id="q" type="search" placeholder="Buscar por nombre, alias o correo…" aria-label="Buscar" />
+              <span class="i i-search" aria-hidden="true"></span>
+            </label>
+            <div class="actions">
+              <button class="btn btn--ghost" id="btnShuffle">Mezclar</button>
+              <button class="btn btn--ghost" id="btnSort">Ordenar A→Z</button>
+              <button class="btn btn--ghost" id="btnClear">Limpiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="status reveal">
+        <span><b id="countVisible">0</b> / <b id="countTotal">0</b> visibles</span>
+        <span class="legend">
+          <span class="dot gold"></span> Dorado (élite) ·
+          <span class="dot mystery"></span> Misterioso
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grid de Aldeanos -->
+  <section class="section profiles" aria-labelledby="listTitle">
+    <div class="container">
+      <header class="profiles__head reveal">
+        <div>
+          <h2 id="listTitle">Aldeanos registrados</h2>
+          <p class="muted">Vista rápida: foto · nombre · alias · correo · sección. Detalles ampliados en modal.</p>
+        </div>
+      </header>
+
+      <div class="cards" id="cards">
+        <!-- Rellenado dinámico por JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal Detalles -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Detalles del aldeano">
+    <div class="modal__panel" role="document">
+      <button class="modal__close" id="mClose" aria-label="Cerrar"><span class="i i-close"></span></button>
+      <div class="modal__header">
+        <div class="avatar big" id="mAvatar" aria-hidden="true"></div>
+        <div class="m-headings">
+          <h3 id="mName">—</h3>
+          <p id="mAlias" class="muted">—</p>
+          <div class="badges">
+            <span class="badge" id="mSection">—</span>
+            <span class="badge badge--gold" id="mBadge" hidden>Élite</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal__content">
+        <div class="grid-2">
+          <section>
+            <h4>Información básica</h4>
+            <dl class="kv">
+              <div><dt>Correo</dt><dd id="mEmail">—</dd></div>
+              <div><dt>Fecha</dt><dd id="mDate">—</dd></div>
+              <div><dt>Profesión</dt><dd id="mJob">—</dd></div>
+              <div><dt>Color favorito</dt><dd><span id="mColorSwatch" class="swatch"></span><span id="mColor">—</span></dd></div>
+            </dl>
+          </section>
+          <section>
+            <h4>Intereses</h4>
+            <dl class="kv">
+              <div><dt>Pasatiempos</dt><dd id="mHobbies">—</dd></div>
+              <div><dt>Libros relacionados</dt><dd id="mBooksRel">—</dd></div>
+              <div><dt>Libros leídos</dt><dd id="mBooksRead">—</dd></div>
+            </dl>
+          </section>
+        </div>
+
+        <section>
+          <h4>Mascotas</h4>
+          <ul id="mPets" class="pets">
+            <!-- li generados -->
+          </ul>
+        </section>
+
+        <section>
+          <h4>Notas</h4>
+          <p id="mNotes" class="muted">—</p>
+        </section>
+      </div>
+
+      <footer class="modal__footer">
+        <button class="btn btn--primary" id="mAction" aria-label="Enviar mensaje" title="Enviar mensaje (demo)" disabled>Enviar mensaje (pronto)</button>
+        <button class="btn btn--ghost" id="mClose2">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand">
+        <span class="cube"></span>
+        <strong>Moonveil</strong> Portal
+      </div>
+      <nav class="foot__links" aria-label="Enlaces">
+        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+      </nav>
+      <p class="foot__copy">© <span id="y"></span> Moonveil. Hecho con ☕ + bloques.</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JS -->
+  <script src="perfiles.js" type="module"></script>
+</body>
+</html>

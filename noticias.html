@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================================================
+       Moonveil Portal — Noticias
+       Secciones:
+       1) Relevantes (carrusel)
+       2) Sección A
+       3) Sección B
+       4) Todas
+       5) Descubrimientos
+       6) Rumores y curiosidades
+       ========================================================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Noticias</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+  <!-- CSS -->
+  <link rel="stylesheet" href="noticias.css" />
+  <meta name="description" content="Noticias de Moonveil con relevantes, secciones A/B, descubrimientos y rumores. Tarjetas con imagen, descripción, fecha, categorias y modal de detalle." />
+</head>
+<body class="theme-auto">
+  <!-- Fondo -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="perfiles.html">Perfiles</a></li>
+        <li><a href="ranking.html">Ranking</a></li>
+        <li><a href="noticias.html" class="active">Noticias</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="92" aria-label="Vida 92%"></div>
+        <div class="hud-bar xp" data-val="74" aria-label="Experiencia 74%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Mapa"><span class="i i-map" aria-hidden="true"></span></button>
+        <button class="slot" title="Pluma"><span class="i i-feather" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" role="region" aria-labelledby="title">
+    <div class="container hero__inner">
+      <div class="hero__text reveal">
+        <h1 id="title">Noticias <span>de Moonveil</span></h1>
+        <p class="lead">Actualizaciones del mundo, hallazgos de aldeanos y rumores de taberna. Filtra, busca, navega y abre detalles.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel de Filtros -->
+  <section class="section controls" aria-labelledby="ctrl">
+    <div class="container">
+      <div class="controls__inner reveal">
+        <h2 id="ctrl">Explorar noticias</h2>
+        <div class="toolbar">
+          <div class="filters">
+            <div class="chip-group" id="chipSections" role="group" aria-label="Filtrar por segmento">
+              <button class="chip is-on" data-filter-section="all">Todas</button>
+              <button class="chip" data-filter-section="relevantes">Relevantes</button>
+              <button class="chip" data-filter-section="A">Sección A</button>
+              <button class="chip" data-filter-section="B">Sección B</button>
+              <button class="chip" data-filter-section="descubrimientos">Descubrimientos</button>
+              <button class="chip" data-filter-section="rumores">Rumores</button>
+            </div>
+            <div class="chip-group" id="chipCats" role="group" aria-label="Filtrar por categoría">
+              <button class="chip is-on" data-filter-cat="all">Todas</button>
+              <button class="chip" data-filter-cat="biomas">Biomas</button>
+              <button class="chip" data-filter-cat="pueblos">Pueblos</button>
+              <button class="chip" data-filter-cat="magia">Magia</button>
+              <button class="chip" data-filter-cat="combate">Combate</button>
+              <button class="chip" data-filter-cat="oficios">Oficios</button>
+              <button class="chip" data-filter-cat="exploración">Exploración</button>
+              <button class="chip" data-filter-cat="tesoros">Tesoros</button>
+            </div>
+          </div>
+          <div class="search">
+            <input id="searchInput" type="search" placeholder="Buscar por título, autor o categoría…" aria-label="Buscar noticias" />
+            <button class="btn btn--ghost" id="clearSearch" aria-label="Limpiar búsqueda">Limpiar</button>
+          </div>
+        </div>
+        <div class="status">
+          <span>Fuente: <span class="muted">datos de demostración (client-side)</span></span>
+          <span class="legend"> <span class="dot gold"></span> Top · <span class="dot mystery"></span> Misterio </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección 1: Relevantes (Carrusel) -->
+  <section class="section news-section" aria-labelledby="relev-title">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="relev-title">Relevantes</h2>
+          <p class="muted">Lo que está marcando el ritmo en Moonveil.</p>
+        </div>
+        <div class="carousel-ctrl">
+          <button class="icon-btn" id="relPrev" aria-label="Anterior"><span class="icon i-left"></span></button>
+          <button class="icon-btn" id="relNext" aria-label="Siguiente"><span class="icon i-right"></span></button>
+          <button class="icon-btn" id="relPause" aria-label="Pausar"><span class="icon i-pause"></span></button>
+        </div>
+      </header>
+
+      <div class="carousel reveal" id="relevCarousel" role="region" aria-roledescription="carrusel" aria-label="Noticias relevantes">
+        <div class="carousel-track" id="relevTrack">
+          <!-- Slides inyectados por JS -->
+        </div>
+        <div class="carousel-dots" id="relevDots" role="tablist" aria-label="Indicadores"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección 2: Sección A -->
+  <section class="section news-section" aria-labelledby="secA-title">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="secA-title">Sección A</h2>
+          <p class="muted">Reportes confirmados del ala A.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="listA">
+        <!-- Tarjetas inyectadas -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección 3: Sección B -->
+  <section class="section news-section" aria-labelledby="secB-title">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="secB-title">Sección B</h2>
+          <p class="muted">Reportes confirmados del ala B.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="listB"></div>
+    </div>
+  </section>
+
+  <!-- Sección 4: Todas -->
+  <section class="section news-section" aria-labelledby="all-title">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="all-title">Todas las noticias</h2>
+          <p class="muted">Explora el feed completo.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="listAll"></div>
+    </div>
+  </section>
+
+  <!-- Sección 5: Descubrimientos -->
+  <section class="section news-section" aria-labelledby="disc-title">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="disc-title">Descubrimientos recientes</h2>
+          <p class="muted">Hallazgos y arqueología de campo.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="listDiscoveries"></div>
+    </div>
+  </section>
+
+  <!-- Sección 6: Rumores -->
+  <section class="section news-section" aria-labelledby="rumor-title">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="rumor-title">Rumores y curiosidades</h2>
+          <p class="muted">Voces de taberna, por confirmar.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="listRumors"></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand">
+        <span class="cube"></span>
+        <strong>Moonveil</strong> Portal
+      </div>
+      <nav class="foot__links" aria-label="Enlaces">
+        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+      </nav>
+      <p class="foot__copy">© <span id="y"></span> Moonveil. Hecho con ☕ + bloques.</p>
+    </div>
+  </footer>
+
+  <!-- Modal Detalle -->
+  <div class="modal" id="newsModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal__overlay" id="modalOverlay"></div>
+    <div class="modal__dialog" role="document">
+      <header class="modal__head">
+        <h3 id="modalTitle">—</h3>
+        <button class="icon-btn" id="modalClose" aria-label="Cerrar"><span class="i i-close"></span></button>
+      </header>
+      <section class="modal__body" id="modalBody">
+        <!-- Contenido por JS -->
+      </section>
+      <footer class="modal__foot">
+        <button class="btn btn--primary" id="modalAction">Marcar como leído</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JS -->
+  <script src="noticias.js" type="module"></script>
+</body>
+</html>

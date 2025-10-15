@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================================================
+       Moonveil Portal — Ranking Épico
+       - 10 categorías
+       - HUD/Parallax/Partículas
+       - Tablas animadas + estados especiales (oro/plata/bronce)
+       - “CENSURADO” con glitch
+       ========================================================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Ranking</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="ranking.css" />
+
+  <meta name="description" content="Ranking de Moonveil: comida más vendida, arma más usada, mob más eliminado, alimento más consumido, aldeano más tradeado, y más. Con diseño pro, animaciones y datos dinámicos.">
+</head>
+<body class="theme-auto">
+  <!-- Fondo -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="ranking.html" class="active">Ranking</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="84" aria-label="Vida 84%"></div>
+        <div class="hud-bar xp" data-val="68" aria-label="Experiencia 68%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
+        <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero hero--small" role="region" aria-labelledby="title">
+    <div class="container hero__inner">
+      <div class="hero__text reveal">
+        <h1 id="title">Ranking <span>Épico</span></h1>
+        <p class="lead">Métricas vivas del Reino de Moonveil: ventas, combates, exploración, oficios y misterios. Los datos se actualizan de forma simulada para pruebas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Controles -->
+  <section class="section controls" aria-labelledby="ctrl">
+    <div class="container">
+      <div class="controls__inner reveal">
+        <h2 id="ctrl">Panel de control</h2>
+        <div class="toolbar">
+          <div class="hint">Actualización simulada cada <b id="refreshSec">12</b> s</div>
+          <div class="tools">
+            <button class="btn btn--ghost" id="btnRefresh">Actualizar ahora</button>
+            <button class="btn btn--ghost" id="btnPause">Pausar</button>
+            <button class="btn btn--ghost" id="btnResume" disabled>Reanudar</button>
+            <button class="btn btn--ghost" id="btnReset">Reiniciar</button>
+          </div>
+        </div>
+      </div>
+      <div class="status reveal">
+        <span>Fuente: <span class="muted">datos de demostración (client-side)</span></span>
+        <span class="legend">
+          <span class="dot gold"></span> Oro ·
+          <span class="dot silver"></span> Plata ·
+          <span class="dot bronze"></span> Bronce
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grilla de Rankings -->
+  <section class="section ranks" aria-labelledby="ranksTitle">
+    <div class="container">
+      <header class="profiles__head reveal">
+        <div>
+          <h2 id="ranksTitle">Clasificaciones en vivo</h2>
+          <p class="muted">Top 10 por categoría (valores y tendencias). Clic en columna para ordenar.</p>
+        </div>
+      </header>
+
+      <div class="rank-grid" id="rankGrid">
+        <!-- 1: Producto más vendido (Comida) -->
+        <article class="rank-card reveal" data-cat="foodSold">
+          <header class="rank-head">
+            <div class="rank-icon i-food"></div>
+            <div>
+              <h3>Producto más vendido <span class="muted">(Comida)</span></h3>
+              <small class="muted">Ventas totales (u.)</small>
+            </div>
+          </header>
+          <div class="rank-body">
+            <table class="rank-table" data-key="foodSold">
+              <thead>
+                <tr>
+                  <th data-sort="pos">#</th>
+                  <th data-sort="name">Producto</th>
+                  <th data-sort="cat">Categoría</th>
+                  <th data-sort="val">Ventas</th>
+                  <th data-sort="trend">Δ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- 2: Arma más usada -->
+        <article class="rank-card reveal" data-cat="weaponUsed">
+          <header class="rank-head">
+            <div class="rank-icon i-sword"></div>
+            <div>
+              <h3>Arma más usada</h3>
+              <small class="muted">Durabilidad consumida</small>
+            </div>
+          </header>
+          <div class="rank-body">
+            <table class="rank-table" data-key="weaponUsed">
+              <thead>
+                <tr>
+                  <th data-sort="pos">#</th>
+                  <th data-sort="name">Arma</th>
+                  <th data-sort="cat">Clase</th>
+                  <th data-sort="val">Uso</th>
+                  <th data-sort="trend">Δ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- 3: Mob más eliminado -->
+        <article class="rank-card reveal" data-cat="mobKilled">
+          <header class="rank-head">
+            <div class="rank-icon i-mob"></div>
+            <div>
+              <h3>Mob más eliminado</h3>
+              <small class="muted">Bajas totales</small>
+            </div>
+          </header>
+          <div class="rank-body">
+            <table class="rank-table" data-key="mobKilled">
+              <thead>
+                <tr>
+                  <th data-sort="pos">#</th>
+                  <th data-sort="name">Mob</th>
+                  <th data-sort="cat">Bioma</th>
+                  <th data-sort="val">Bajas</th>
+                  <th data-sort="trend">Δ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- 4: Alimento más consumido -->
+        <article class="rank-card reveal" data-cat="foodEaten">
+          <header class="rank-head">
+            <div class="rank-icon i-apple"></div>
+            <div>
+              <h3>Alimento más consumido</h3>
+              <small class="muted">Raciones</small>
+            </div>
+          </header>
+          <div class="rank-body">
+            <table class="rank-table" data-key="foodEaten">
+              <thead>
+                <tr>
+                  <th data-sort="pos">#</th>
+                  <th data-sort="name">Alimento</th>
+                  <th data-sort="cat">Tipo</th>
+                  <th data-sort="val">Consumo</th>
+                  <th data-sort="trend">Δ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- 5: Aldeano más tradeado -->
+        <article class="rank-card reveal" data-cat="villagerTraded">
+          <header class="rank-head">
+            <div class="rank-icon i-villager"></div>
+            <div>
+              <h3>Aldeano más tradeado</h3>
+              <small class="muted">Intercambios</small>
+            </div>
+          </header>
+          <div class="rank-body">
+            <table class="rank-table" data-key="villagerTraded">
+              <thead>
+                <tr>
+                  <th data-sort="pos">#</th>
+                  <th data-sort="name">Aldeano</th>
+                  <th data-sort="cat">Profesión</th>
+                  <th data-sort="val">Trueques</th>
+                  <th data-sort="trend">Δ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- 6: Clasificación CENSURADA -->
+        <article class="rank-card reveal censored" data-cat="censored">
+          <header class="rank-head">
+            <div class="rank-icon i-ban"></div>
+            <div>
+              <h3><span class="glitch" data-text="CLASIFICACIÓN CENSURADA">CLASIFICACIÓN CENSURADA</span></h3>
+              <small class="muted">No disponible por pérdida de registro</small>
+            </div>
+          </header>
+          <div class="rank-body">
+            <div class="censored-box">
+              <div class="censor-line"></div>
+              <div class="censor-line"></div>
+              <div class="censor-line"></div>
+              <p class="muted">Intentando reconstruir… <span class="dotty">• • •</span></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 7: Herramienta más desgastada -->
+        <article class="rank-card reveal" data-cat="toolWorn">
+          <header class="rank-head">
+            <div class="rank-icon i-pick"></div>
+            <div>
+              <h3>Herramienta más desgastada</h3>
+              <small class="muted">Golpes / uso</small>
+            </div>
+          </header>
+          <div class="rank-body">
+            <table class="rank-table" data-key="toolWorn">
+              <thead>
+                <tr>
+                  <th data-sort="pos">#</th>
+                  <th data-sort="name">Herramienta</th>
+                  <th data-sort="cat">Material</th>
+                  <th data-sort="val">Desgaste</th>
+                  <th data-sort="trend">Δ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- 8: Estructura más visitada -->
+        <article class="rank-card reveal" data-cat="structureVisited">
+          <header class="rank-head">
+            <div class="rank-icon i-castle"></div>
+            <div>
+              <h3>Estructura más visitada</h3>
+              <small class="muted">Visitas</small>
+            </div>
+          </header>
+          <div class="rank-body">
+            <table class="rank-table" data-key="structureVisited">
+              <thead>
+                <tr>
+                  <th data-sort="pos">#</th>
+                  <th data-sort="name">Estructura</th>
+                  <th data-sort="cat">Región</th>
+                  <th data-sort="val">Visitas</th>
+                  <th data-sort="trend">Δ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- 9: Mineral más minado -->
+        <article class="rank-card reveal" data-cat="oreMined">
+          <header class="rank-head">
+            <div class="rank-icon i-ore"></div>
+            <div>
+              <h3>Mineral más minado</h3>
+              <small class="muted">Bloques</small>
+            </div>
+          </header>
+          <div class="rank-body">
+            <table class="rank-table" data-key="oreMined">
+              <thead>
+                <tr>
+                  <th data-sort="pos">#</th>
+                  <th data-sort="name">Mineral</th>
+                  <th data-sort="cat">Profundidad</th>
+                  <th data-sort="val">Bloques</th>
+                  <th data-sort="trend">Δ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- 10: Libro encantado más popular -->
+        <article class="rank-card reveal" data-cat="bookPopular">
+          <header class="rank-head">
+            <div class="rank-icon i-book"></div>
+            <div>
+              <h3>Libro encantado más popular</h3>
+              <small class="muted">Uso en equipos</small>
+            </div>
+          </header>
+          <div class="rank-body">
+            <table class="rank-table" data-key="bookPopular">
+              <thead>
+                <tr>
+                  <th data-sort="pos">#</th>
+                  <th data-sort="name">Encantamiento</th>
+                  <th data-sort="cat">Nivel típico</th>
+                  <th data-sort="val">Aplicaciones</th>
+                  <th data-sort="trend">Δ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand">
+        <span class="cube"></span>
+        <strong>Moonveil</strong> Portal
+      </div>
+      <nav class="foot__links" aria-label="Enlaces">
+        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+      </nav>
+      <p class="foot__copy">© <span id="y"></span> Moonveil. Hecho con ☕ + bloques.</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JS -->
+  <script src="ranking.js" type="module"></script>
+</body>
+</html>

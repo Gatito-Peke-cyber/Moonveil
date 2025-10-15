@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================================================
+       Moonveil Portal — Contactos (Estilo WhatsApp)
+       - Lista de contactos + Chat
+       - Opciones, keywords, cliché y censura
+       - Responsive y accesible
+       ========================================================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Contactos</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="contactos.css" />
+
+  <meta name="description" content="Contactos estilo WhatsApp con respuestas por opciones, keywords, cliché o censura. Integrado con el diseño Moonveil Portal." />
+</head>
+<body class="theme-auto">
+  <!-- Fondo -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <!--<li><a href="perfiles.html">Perfiles</a></li>
+        <li><a href="ranking.html">Ranking</a></li>
+        <li><a href="noticias.html">Noticias</a></li>-->
+        <li><a href="contactos.html" class="active">Contactos</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
+        <div class="hud-bar xp" data-val="62" aria-label="Experiencia 62%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Mapa"><span class="i i-map" aria-hidden="true"></span></button>
+        <button class="slot" title="Pluma"><span class="i i-feather" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Shell -->
+  <main class="messenger" role="main">
+    <!-- Panel izquierdo: contactos -->
+    <aside class="panel panel--left" aria-label="Lista de contactos">
+      <header class="panel__head">
+        <div class="me">
+          <div class="avatar me__avatar" aria-hidden="true">
+            <img src="img/imper.jpg" alt="" />
+          </div>
+          <div class="me__info">
+            <strong>Jugador</strong>
+            <small class="muted">Aqui en mi World</small>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn" id="btnNewChat" title="Nuevo chat"><span class="icon i-plus"></span></button>
+          <button class="icon-btn" id="btnSettings" title="Ajustes"><span class="icon i-gear"></span></button>
+        </div>
+      </header>
+
+      <div class="search-wrap">
+        <input id="searchContacts" type="search" placeholder="Buscar contacto…" aria-label="Buscar contacto" />
+      </div>
+
+      <ul id="contactList" class="contacts" role="listbox" aria-label="Contactos">
+        <!-- Items generados por JS -->
+      </ul>
+    </aside>
+
+    <!-- Panel derecho: chat -->
+    <section class="panel panel--right" aria-label="Chat">
+      <!-- Header chat -->
+      <header class="chat__head" id="chatHead">
+        <div class="chat__peer">
+          <div class="avatar peer__avatar" id="peerAvatar" aria-hidden="true"></div>
+          <div class="peer__meta">
+            <strong id="peerName">Selecciona un contacto</strong>
+            <small id="peerStatus" class="muted">—</small>
+          </div>
+        </div>
+        <div class="chat__actions">
+          <button class="icon-btn" id="btnInfo" title="Info del contacto"><span class="icon i-info"></span></button>
+          <button class="icon-btn" id="btnPin" title="Anclar"><span class="icon i-pin"></span></button>
+          <button class="icon-btn" id="btnMute" title="Silenciar"><span class="icon i-bell"></span></button>
+        </div>
+      </header>
+
+      <!-- Thread -->
+      <div id="thread" class="chat__thread" role="log" aria-live="polite" aria-relevant="additions">
+        <!-- Mensajes renderizados por JS -->
+        <div class="empty-hint">
+          <h3>Bienvenido a Contactos</h3>
+          <p class="muted">Selecciona un contacto de la izquierda para empezar a chatear. Estilo W, con opciones y respuestas dinámicas.</p>
+        </div>
+      </div>
+
+      <!-- Quick replies -->
+      <div id="quickBar" class="chat__quick hidden" aria-label="Respuestas rápidas">
+        <!-- Botones generados por JS -->
+      </div>
+
+      <!-- Composer -->
+      <form id="composer" class="chat__composer" autocomplete="off" novalidate>
+        <button type="button" class="icon-btn" id="btnEmoji" title="Emojis"><span class="icon i-emoji"></span></button>
+        <button type="button" class="icon-btn" id="btnAttach" title="Adjuntar"><span class="icon i-clip"></span></button>
+
+        <input id="msgInput" name="message" type="text" placeholder="Escribe un mensaje…" aria-label="Escribir mensaje" />
+
+        <button type="submit" class="btn btn--primary" id="btnSend" aria-label="Enviar">
+          <span class="btn__content">
+            <span class="icon i-send"></span>
+            <span>Enviar</span>
+          </span>
+          <span class="btn__spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Modal info contacto -->
+  <div class="modal" id="contactModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal__overlay" id="modalOverlay"></div>
+    <div class="modal__dialog" role="document">
+      <header class="modal__head">
+        <h3 id="modalTitle">Contacto</h3>
+        <button class="icon-btn" id="modalClose" aria-label="Cerrar"><span class="i i-close"></span></button>
+      </header>
+      <section class="modal__body" id="modalBody">
+        <!-- Info generada por JS -->
+      </section>
+      <footer class="modal__foot">
+        <button class="btn btn--primary" id="modalAction">Aceptar</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JS -->
+  <script type="module" src="contactos.js"></script>
+</body>
+</html>

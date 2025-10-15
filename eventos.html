@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================================================
+       Moonveil Portal — Eventos
+       ========================================================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Eventos</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="eventos.css" />
+  <meta name="description" content="Agenda de eventos del reino: actuales, próximos y finalizados, con detalles, estados dinámicos y marco dorado para eventos únicos." />
+</head>
+<body class="theme-auto">
+  <!-- Fondo -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="perfiles.html">Perfiles</a></li>
+        <li><a href="ranking.html">Ranking</a></li>
+        <li><a href="noticias.html">Noticias</a></li>
+        <li><a class="active" href="eventos.html">Eventos</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
+        <div class="hud-bar xp" data-val="61" aria-label="Experiencia 61%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Accesos">
+        <button class="slot" title="Calendario"><span class="i i-calendar" aria-hidden="true"></span></button>
+        <button class="slot" title="Reloj"><span class="i i-clock" aria-hidden="true"></span></button>
+        <button class="slot" title="Trofeos"><span class="i i-trophy" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" role="region" aria-labelledby="title">
+    <div class="container hero__inner">
+      <div class="hero__text reveal">
+        <h1 id="title">Eventos <span>del Reino</span></h1>
+        <p class="lead">Explora festivales, desafíos y expediciones. Estados en tiempo real: <b>Actual</b>, <b>Próximamente</b> y <b>Finalizado</b>. Algunos son <span class="gold">Únicos</span> con marco dorado.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Controles -->
+  <section class="section controls" aria-labelledby="ctrl">
+    <div class="container">
+      <div class="controls__inner reveal">
+        <h2 id="ctrl">Explorar eventos</h2>
+        <div class="toolbar">
+          <div class="filters">
+            <div class="chip-group" id="chipState" role="group" aria-label="Filtrar por estado">
+              <button class="chip is-on" data-state="all">Todos</button>
+              <button class="chip" data-state="current">Actuales</button>
+              <button class="chip" data-state="upcoming">Próximos</button>
+              <button class="chip" data-state="ended">Finalizados</button>
+              <button class="chip" data-state="unique">Únicos</button>
+            </div>
+            <div class="chip-group" id="chipCats" role="group" aria-label="Filtrar por categoría">
+              <button class="chip is-on" data-cat="all">Todas</button>
+              <button class="chip" data-cat="festival">Festival</button>
+              <button class="chip" data-cat="combate">Combate</button>
+              <button class="chip" data-cat="exploración">Exploración</button>
+              <button class="chip" data-cat="oficios">Oficios</button>
+              <button class="chip" data-cat="magia">Magia</button>
+            </div>
+          </div>
+          <div class="search">
+            <input id="searchInput" type="search" placeholder="Buscar por nombre, lugar o categoría…" aria-label="Buscar eventos" />
+            <button class="btn btn--ghost" id="clearSearch" aria-label="Limpiar búsqueda">Limpiar</button>
+          </div>
+        </div>
+        <div class="status">
+          <span>Hoy es <span id="today"></span></span>
+          <span class="legend">
+            <span class="dot gold"></span> Único ·
+            <span class="dot live"></span> Actual ·
+            <span class="dot soon"></span> Próximamente ·
+            <span class="dot end"></span> Finalizado
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grid -->
+  <section class="section events" aria-labelledby="gridTitle">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="gridTitle">Calendario</h2>
+          <p class="muted">Tarjetas con imagen, fechas, estado y más detalles al hacer clic.</p>
+        </div>
+        <div class="view-opts">
+          <button id="viewGrid" class="icon-btn is-on" aria-label="Vista de grid"><span class="i i-grid"></span></button>
+          <button id="viewList" class="icon-btn" aria-label="Vista de lista"><span class="i i-list"></span></button>
+        </div>
+      </header>
+
+      <div class="events-grid reveal" id="eventsGrid" aria-live="polite" aria-busy="false">
+        <!-- Tarjetas inyectadas por JS -->
+      </div>
+
+      <!-- Paginación -->
+      <div class="pagination" id="pagination" role="navigation" aria-label="Paginación">
+        <button class="btn btn--ghost" id="pagePrev" disabled>Anterior</button>
+        <span id="pageInfo" class="muted">Página 1/1</span>
+        <button class="btn btn--ghost" id="pageNext" disabled>Siguiente</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand">
+        <span class="cube"></span>
+        <strong>Moonveil</strong> Portal
+      </div>
+      <nav class="foot__links" aria-label="Enlaces">
+        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+      </nav>
+      <p class="foot__copy">© <span id="y"></span> Moonveil. Hecho con ☕ + bloques.</p>
+    </div>
+  </footer>
+
+  <!-- Modal -->
+  <div class="modal" id="eventModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal__overlay" id="modalOverlay"></div>
+    <div class="modal__dialog" role="document">
+      <header class="modal__head">
+        <h3 id="modalTitle">—</h3>
+        <button class="icon-btn" id="modalClose" aria-label="Cerrar"><span class="i i-close"></span></button>
+      </header>
+      <section class="modal__body" id="modalBody">
+        <!-- Contenido dinámico -->
+      </section>
+      <footer class="modal__foot">
+        <button class="btn btn--primary" id="modalAction">Añadir al diario</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JS -->
+  <script src="eventos.js" type="module"></script>
+</body>
+</html>

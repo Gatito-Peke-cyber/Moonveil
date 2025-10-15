@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================================================
+       Moonveil Portal — Tienda
+       Secciones:
+       - Pases de temporada (fondo hero especial)
+       - Llaves
+       - Cosas interesantes
+       - Historia
+       - Materiales
+       - Pases de evento (fondo hero especial)
+       - Monedas del juego
+       ========================================================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Tienda</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="tienda.css" />
+  <meta name="description" content="Tienda Moonveil: Pases de temporada, llaves, objetos raros, historia, materiales, pases de evento y monedas. Stock dinámico y reabastecimiento automático." />
+</head>
+<body class="theme-auto">
+  <!-- Fondo global -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- Navbar + HUD -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="tienda.html" class="active">Tienda</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="96" aria-label="Vida 96%"></div>
+        <div class="hud-bar xp" data-val="67" aria-label="Experiencia 67%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Mapa"><span class="i i-map" aria-hidden="true"></span></button>
+        <button class="slot" title="Pluma"><span class="i i-feather" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero hero-store" role="region" aria-labelledby="title">
+    <div class="container hero__inner">
+      <div class="hero__text reveal">
+        <h1 id="title">Tienda <span>Moonveil</span></h1>
+        <p class="lead">El escaparate del reino: pases, llaves, artefactos y más. Sin saldo: compra directa sobre stock disponible. El agotado se repone automáticamente.</p>
+      </div>
+      <div class="hero__controls reveal">
+        <div class="chip-group" id="chipSections" role="group" aria-label="Filtrar por sección">
+          <button class="chip is-on" data-section="all">Todo</button>
+          <button class="chip" data-section="pases">Pases de temporada</button>
+          <button class="chip" data-section="llaves">Llaves</button>
+          <button class="chip" data-section="cosas">Cosas interesantes</button>
+          <button class="chip" data-section="historia">Historia</button>
+          <button class="chip" data-section="materiales">Materiales</button>
+          <button class="chip" data-section="eventos">Pases de evento</button>
+          <button class="chip" data-section="monedas">Monedas</button>
+        </div>
+        <div class="search">
+          <input id="searchInput" type="search" placeholder="Buscar por nombre, calidad o etiqueta…" aria-label="Buscar en tienda" />
+          <button class="btn btn--ghost" id="clearSearch" aria-label="Limpiar búsqueda">Limpiar</button>
+        </div>
+      </div>
+      <div class="legend reveal">
+        <span class="dot gold"></span> Destacado ·
+        <span class="dot out"></span> Agotado ·
+        <span class="dot restock"></span> Reabastece en 24h/7d/30d
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección: Pases de temporada -->
+  <section class="section section-pass season" aria-labelledby="seasonTitle">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="seasonTitle">Pases de temporada</h2>
+          <p class="muted">Acceso premium a retos, recompensas y cosméticos exclusivos.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="gridSeason"></div>
+    </div>
+  </section>
+
+  <!-- Sección: Llaves -->
+  <section class="section" aria-labelledby="keysTitle">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="keysTitle">Cofres</h2>
+          <p class="muted">Ábrelos y que la suerte te acompañe.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="gridKeys"></div>
+    </div>
+  </section>
+
+  <!-- Sección: Cosas interesantes -->
+  <section class="section" aria-labelledby="funTitle">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="funTitle">Libros</h2>
+          <p class="muted">Algunos libros, quien sabe que dira.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="gridFun"></div>
+    </div>
+  </section>
+
+  <!-- Sección: Historia -->
+  <section class="section" aria-labelledby="loreTitle">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="loreTitle">Historia</h2>
+          <p class="muted">Libros de lo que pasa en el mundo de Moonveil.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="gridLore"></div>
+    </div>
+  </section>
+
+  <!-- Sección: Materiales -->
+  <section class="section" aria-labelledby="matsTitle">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="matsTitle">Lote de Monedas</h2>
+          <p class="muted">Rebajado un 50% en los packs.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="gridMats"></div>
+    </div>
+  </section>
+
+  <!-- Sección: Pases de evento -->
+  <section class="section section-pass event" aria-labelledby="eventTitle">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="eventTitle">Pases de evento</h2>
+          <p class="muted">Eventos temporales con misiones y recompensas únicas.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="gridEvents"></div>
+    </div>
+  </section>
+
+  <!-- Sección: Monedas del juego -->
+  <section class="section" aria-labelledby="coinsTitle">
+    <div class="container">
+      <header class="section__head reveal">
+        <div>
+          <h2 id="coinsTitle">Pack de monedas</h2>
+          <p class="muted">Packs para comerciar.</p>
+        </div>
+      </header>
+      <div class="grid cards" id="gridCoins"></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand">
+        <span class="cube"></span>
+        <strong>Moonveil</strong> Portal
+      </div>
+      <nav class="foot__links" aria-label="Enlaces">
+        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+      </nav>
+      <p class="foot__copy">© <span id="y"></span> Moonveil. Hecho con ☕ + bloques.</p>
+    </div>
+  </footer>
+
+  <!-- Modal Producto -->
+  <div class="modal" id="productModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal__overlay" id="modalOverlay"></div>
+    <div class="modal__dialog" role="document">
+      <header class="modal__head">
+        <h3 id="modalTitle">—</h3>
+        <button class="icon-btn" id="modalClose" aria-label="Cerrar"><span class="i i-close"></span></button>
+      </header>
+      <section class="modal__body" id="modalBody"></section>
+      <footer class="modal__foot">
+        <button class="btn btn--primary" id="modalBuy">Comprar</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JS -->
+  <script type="module" src="tienda.js"></script>
+</body>
+</html>

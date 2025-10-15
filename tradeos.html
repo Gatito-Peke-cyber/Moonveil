@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================================================
+       Moonveil Portal — Tradeos
+       - 8 secciones (un aldeano por sección)
+       - 10 tradeos por aldeano (80 en total)
+       - Stock persistente + reset 24h / 7d / 30d por ítem
+       - Legendarios con marco dorado
+       - Misma estética y HUD del resto del sitio
+       ========================================================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Tradeos</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="tradeos.css" />
+
+  <meta name="description" content="Tradeos de Moonveil por aldeano: costos, rareza, stock, restablecimiento y canje persistente.">
+</head>
+<body class="theme-auto">
+  <!-- Fondo / Parallax -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="tradeos.html" class="active">Tradeos</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="92" aria-label="Vida 92%"></div>
+        <div class="hud-bar xp" data-val="61" aria-label="Experiencia 61%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Lingote"><span class="i i-ingot" aria-hidden="true"></span></button>
+        <button class="slot" title="Libro"><span class="i i-book" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" role="region" aria-labelledby="title">
+    <div class="container hero__inner">
+      <div class="hero__text reveal">
+        <h1 id="title">Tradeos <span>Moonveil</span></h1>
+        <p class="lead">Explora los trueques de cada aldeano. Canjea artículos, vigila el stock y revisa cuándo se restablecen. Los legendarios brillan con marco dorado ✨.</p>
+      </div>
+      <div class="hero__tools reveal">
+        <div class="searchbar">
+          <span class="i i-search" aria-hidden="true"></span>
+          <input id="searchInput" type="search" placeholder="Buscar por ítem, aldeano, categoría… (Enter)" aria-label="Buscar tradeos">
+          <button class="btn btn--ghost" id="btnClear">Limpiar</button>
+        </div>
+        <div class="filters">
+          <div class="filter-group" role="toolbar" aria-label="Filtros rápidos">
+            <button class="chip" data-chip="legendario">Legendario</button>
+            <button class="chip" data-chip="épico">Épico</button>
+            <button class="chip" data-chip="raro">Raro</button>
+            <button class="chip" data-chip="común">Común</button>
+            <button class="chip" data-chip="24h">24h</button>
+            <button class="chip" data-chip="7d">7d</button>
+            <button class="chip" data-chip="30d">30d</button>
+            <button class="chip" data-chip="alimentos">Alimentos</button>
+            <button class="chip" data-chip="armas">Armas</button>
+            <button class="chip" data-chip="utilidad">Utilidad</button>
+            <button class="chip" data-chip="encantados">Encantados</button>
+          </div>
+          <div class="sort">
+            <label for="sortBy">Ordenar por:</label>
+            <select id="sortBy">
+              <option value="name_asc">Nombre (A–Z)</option>
+              <option value="name_desc">Nombre (Z–A)</option>
+              <option value="cost_asc">Costo (menor)</option>
+              <option value="cost_desc">Costo (mayor)</option>
+              <option value="rarity_desc">Rareza</option>
+              <option value="stock_desc">Stock (mayor)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tabs Secciones -->
+  <section class="tabs" aria-label="Secciones de tradeos">
+    <div class="container">
+      <div class="tabs__bar reveal" role="tablist" aria-label="Cambiar aldeano">
+        <button class="tab is-active" role="tab" aria-selected="true" data-tab="sand">Sand Brill</button>
+        <button class="tab" role="tab" data-tab="lira">Lira Moon</button>
+        <button class="tab" role="tab" data-tab="orlin">Orlin Forge</button>
+        <button class="tab" role="tab" data-tab="rhea">Rhea Moss</button>
+        <button class="tab" role="tab" data-tab="konn">Konn Slate</button>
+        <button class="tab" role="tab" data-tab="mira">Mira Flint</button>
+        <button class="tab" role="tab" data-tab="arcano">Maestro Arcano</button>
+        <button class="tab" role="tab" data-tab="mister">Aldeano Misterioso</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Secciones / Grids -->
+  <main id="app" class="container" role="main">
+    <section class="trades-section reveal" data-section="sand" aria-labelledby="tSand">
+      <header class="section-head">
+        <h2 id="tSand">Trueques de Sand Brill</h2>
+        <p class="muted">Especialista en logística, alimentos y básicos de expedición.</p>
+      </header>
+      <div class="trades-grid" id="gridSand"></div>
+    </section>
+
+    <section class="trades-section reveal" data-section="lira" aria-labelledby="tLira" hidden>
+      <header class="section-head">
+        <h2 id="tLira">Trueques de Lira Moon</h2>
+        <p class="muted">Artículos refinados, utilitarios y cosméticos.</p>
+      </header>
+      <div class="trades-grid" id="gridLira"></div>
+    </section>
+
+    <section class="trades-section reveal" data-section="orlin" aria-labelledby="tOrlin" hidden>
+      <header class="section-head">
+        <h2 id="tOrlin">Trueques de Orlin Forge</h2>
+        <p class="muted">Armas, herramientas y piezas de metal forjado.</p>
+      </header>
+      <div class="trades-grid" id="gridOrlin"></div>
+    </section>
+
+    <section class="trades-section reveal" data-section="rhea" aria-labelledby="tRhea" hidden>
+      <header class="section-head">
+        <h2 id="tRhea">Trueques de Rhea Moss</h2>
+        <p class="muted">Herbolaria, pociones y suministros de campo.</p>
+      </header>
+      <div class="trades-grid" id="gridRhea"></div>
+    </section>
+
+    <section class="trades-section reveal" data-section="konn" aria-labelledby="tKonn" hidden>
+      <header class="section-head">
+        <h2 id="tKonn">Trueques de Konn Slate</h2>
+        <p class="muted">Minería, exploración subterránea y seguridad.</p>
+      </header>
+      <div class="trades-grid" id="gridKonn"></div>
+    </section>
+
+    <section class="trades-section reveal" data-section="mira" aria-labelledby="tMira" hidden>
+      <header class="section-head">
+        <h2 id="tMira">Trueques de Mira Flint</h2>
+        <p class="muted">Arqueología, mapas y reliquias curiosas.</p>
+      </header>
+      <div class="trades-grid" id="gridMira"></div>
+    </section>
+
+    <section class="trades-section reveal" data-section="arcano" aria-labelledby="tArc" hidden>
+      <header class="section-head">
+        <h2 id="tArc">Trueques del Maestro Arcano</h2>
+        <p class="muted">Encantamientos, grimorios y equipamiento místico.</p>
+      </header>
+      <div class="trades-grid" id="gridArc"></div>
+    </section>
+
+    <section class="trades-section reveal" data-section="mister" aria-labelledby="tMis" hidden>
+      <header class="section-head">
+        <h2 id="tMis">Trueques del Aldeano Misterioso</h2>
+        <p class="muted">Ofertas erráticas, rarezas y bienes velados.</p>
+      </header>
+      <div class="trades-grid" id="gridMis"></div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand">
+        <span class="cube"></span>
+        <strong>Moonveil</strong> Portal
+      </div>
+      <nav class="foot__links" aria-label="Enlaces">
+        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+      </nav>
+      <p class="foot__copy">© <span id="y"></span> Moonveil. Hecho con ☕ + bloques.</p>
+    </div>
+  </footer>
+
+  <!-- Modal Detalle -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__dialog" role="document">
+      <header class="modal__header">
+        <h3 id="mTitle">Detalle de tradeo</h3>
+        <button class="icon-btn close" title="Cerrar" aria-label="Cerrar" data-close>
+          <span class="i i-close" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="modal__body" id="mBody"></div>
+      <footer class="modal__footer">
+        <button class="btn btn--ghost" data-close>Cerrar</button>
+        <button class="btn btn--primary" id="btnShare">Compartir</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JS -->
+  <script src="tradeos.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- =========================================================
+       Moonveil Portal — MAPA (Semilla 3903589 · Bedrock-style)
+       - Canvas principal con tiles y capas
+       - UI de filtros, buscador, marcadores y HUD
+       - Diseño consistente con Inicio/Perfiles/Noticias
+       ========================================================= -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Mapa (3903589)</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <!-- Favicon pixel -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="mapa.css" />
+  <meta name="description" content="Mapa interactivo estilo Bedrock para la semilla 3903589: biomas, estructuras, cuadrícula y waypoints. Zoom, pan, minimapa y filtros." />
+</head>
+<body class="theme-auto">
+  <!-- Fondo -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax" aria-hidden="true">
+      <div class="layer sky"></div>
+      <div class="layer far"></div>
+      <div class="layer mid"></div>
+      <div class="layer near"></div>
+    </div>
+  </div>
+
+  <!-- HUD superior -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="perfiles.html">Perfiles</a></li>
+        <li><a href="ranking.html">Ranking</a></li>
+        <li><a href="noticias.html">Noticias</a></li>
+        <li><a href="mapa.html" class="active">Mapa</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
+        <div class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
+      </div>
+      <div class="hud__inv">
+        <button class="slot" title="Brújula"><span class="i i-compass"></span></button>
+        <button class="slot" title="Mapa"><span class="i i-map"></span></button>
+        <button class="slot" title="Bandera"><span class="i i-flag"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero__inner">
+      <div class="hero__text reveal">
+        <h1>Mapa del Reino <span>Semilla 3903589</span></h1>
+        <p class="lead">Explora biomas, aldeas y estructuras sobre una grilla por chunks. Usa zoom, pan, minimapa, filtros y crea tus waypoints.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel superior de controles -->
+  <section class="section controls" aria-label="Controles del mapa">
+    <div class="container">
+      <div class="controls__inner reveal">
+        <div class="toolbar">
+          <div class="filters">
+            <div class="chip-group" role="group" aria-label="Capas">
+              <button class="chip is-on" data-layer="biomes">Biomas</button>
+              <button class="chip is-on" data-layer="grid">Cuadrícula</button>
+              <button class="chip is-on" data-layer="structures">Estructuras</button>
+              <button class="chip is-on" data-layer="mobs">Calor de mobs</button>
+              <button class="chip" data-layer="height">Altitud</button>
+              <button class="chip" data-layer="heatmap">Densidad</button>
+            </div>
+            <div class="chip-group" role="group" aria-label="Marcadores">
+              <button class="chip is-on" data-layer="waypoints">Waypoints</button>
+              <button class="chip" data-action="export">Exportar</button>
+              <button class="chip" data-action="import">Importar</button>
+              <input id="importFile" type="file" accept="application/json" hidden />
+            </div>
+          </div>
+          <div class="search search--coords">
+            <input id="coordX" type="number" placeholder="X" aria-label="Coordenada X" />
+            <input id="coordZ" type="number" placeholder="Z" aria-label="Coordenada Z" />
+            <button class="btn btn--ghost" id="btnGo">Ir</button>
+            <button class="btn btn--ghost" id="btnHome" title="Ir al spawn (0,0)">Spawn</button>
+          </div>
+        </div>
+        <div class="status">
+          <span>Semilla: <strong id="seedLabel">3903589</strong> <span class="muted"> · modo demo client-side</span></span>
+          <span class="legend">
+            <span class="dot biome-ocean"></span> Océano
+            <span class="dot biome-plains"></span> Llanuras
+            <span class="dot biome-forest"></span> Bosque
+            <span class="dot biome-desert"></span> Desierto
+            <span class="dot biome-snow"></span> Nieve
+            <span class="dot biome-mountain"></span> Montaña
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contenedor principal del mapa -->
+  <main class="map-shell">
+    <div class="map-wrap">
+      <!-- Canvas de render -->
+      <canvas id="map" role="img" aria-label="Mapa estilo Bedrock renderizado por capas"></canvas>
+
+      <!-- Overlay UI -->
+      <div class="overlay">
+        <!-- HUD: coordenadas + zoom -->
+        <div class="hud hud--coords">
+          <span class="badge">X: <b id="hudX">0</b></span>
+          <span class="badge">Z: <b id="hudZ">0</b></span>
+          <span class="badge">Zoom: <b id="hudZoom">1.00x</b></span>
+        </div>
+
+        <!-- Minimapa -->
+        <div class="mini" id="mini">
+          <canvas id="miniCanvas" aria-hidden="true"></canvas>
+          <div class="mini__frame" id="miniFrame" aria-hidden="true"></div>
+        </div>
+
+        <!-- Controles rápidos -->
+        <div class="panel panel--quick">
+          <button class="icon-btn" id="zoomIn" title="Acercar"><span class="i i-plus"></span></button>
+          <button class="icon-btn" id="zoomOut" title="Alejar"><span class="i i-minus"></span></button>
+          <button class="icon-btn" id="resetView" title="Reiniciar vista"><span class="i i-reset"></span></button>
+          <button class="icon-btn" id="dropPin" title="Añadir waypoint aquí"><span class="i i-pin"></span></button>
+        </div>
+
+        <!-- Lista de Waypoints -->
+        <aside class="panel panel--waypoints" aria-label="Waypoints">
+          <header class="panel__head">
+            <h3>Waypoints</h3>
+            <button class="icon-btn" id="clearWp" title="Eliminar todos"><span class="i i-trash"></span></button>
+          </header>
+          <div class="panel__body" id="wpList">
+            <!-- items por JS -->
+          </div>
+        </aside>
+
+        <!-- Tooltip -->
+        <div id="tooltip" class="tooltip" role="tooltip" aria-hidden="true"></div>
+
+        <!-- Cursor crosshair -->
+        <div id="crosshair" class="crosshair" aria-hidden="true"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Detalle (modal) -->
+  <div class="modal" id="detailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="modal__overlay" id="detailOverlay"></div>
+    <div class="modal__dialog">
+      <header class="modal__head">
+        <h3 id="detailTitle">—</h3>
+        <button class="icon-btn" id="detailClose" aria-label="Cerrar"><span class="i i-close"></span></button>
+      </header>
+      <section class="modal__body" id="detailBody">
+        <!-- contenido por JS -->
+      </section>
+      <footer class="modal__foot">
+        <button id="detailFocus" class="btn btn--primary">Enfocar aquí</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand">
+        <span class="cube"></span>
+        <strong>Moonveil</strong> Portal
+      </div>
+      <nav class="foot__links" aria-label="Enlaces">
+        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+      </nav>
+      <p class="foot__copy">© <span id="y"></span> Moonveil. Hecho con ☕ + bloques.</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JS -->
+  <script src="mapa.js" type="module"></script>
+</body>
+</html>
