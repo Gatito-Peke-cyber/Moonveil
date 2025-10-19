@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Moonveil — Draw (Estudio)</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <!-- Estilos: tu CSS base (inicio.css) y este CSS específico -->
+  <link rel="stylesheet" href="inicio.css" />
+  <link rel="stylesheet" href="draw.css" />
+
+  <meta name="description" content="Moonveil Draw — Estudio para subir y gestionar tu galería local. Soporta GIF, PNG, JPG y WebP. Guardado local." />
+</head>
+<body class="theme-auto">
+
+  <!-- Fondo / parallax (usa markup del portal para coherencia) -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax" aria-hidden="true">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HEADER / HUD (mantener igual diseño del portal) -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="moon.html">Game</a></li>
+        <li><a href="#" class="active" aria-current="page">Draw</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores del jugador">
+      <div class="hud__bars">
+        <div id="hpBar" class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
+        <div id="xpBar" class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
+        <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main id="drawApp" class="draw-root container" role="main">
+
+    <!-- HERO -->
+    <section class="hero draw-hero" aria-labelledby="drawTitle">
+      <div class="hero__inner">
+        <div class="hero__meta">
+          <h1 id="drawTitle">Moonveil Draw — Estudio</h1>
+          <p class="lead">Sube tus imágenes (png, jpg, webp, gif), organízalas, edita título/descripcion y tenlas disponibles localmente en tu navegador. Lightbox con zoom y navegación.</p>
+
+          <div class="hero__cta" style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
+            <label class="btn btn--primary" id="btnUploadLabel" title="Subir imágenes">
+              Subir imágenes
+              <input id="fileInput" type="file" accept="image/*" multiple hidden />
+            </label>
+
+            <button id="btnClearAll" class="btn btn--ghost" title="Borrar todas las imágenes">Borrar todo</button>
+            <button id="btnExport" class="btn btn--ghost" title="Exportar backup JSON">Exportar backup</button>
+            <button id="btnImport" class="btn btn--ghost" title="Importar backup JSON">Importar backup</button>
+          </div>
+
+          <p class="small u-muted" style="margin-top:8px">Las imágenes quedan solo en tu navegador (localStorage). Los GIF se preservan animados (no se rasterizan).</p>
+        </div>
+
+        <div class="hero__img" aria-hidden="true">
+          <img id="heroPreview" alt="Placeholder" />
+        </div>
+      </div>
+    </section>
+
+    <!-- UPLOAD + OPTIONS -->
+    <section class="section upload-section">
+      <div class="upload-wrap card">
+        <div id="dropZone" class="dropzone" tabindex="0" role="button" aria-label="Arrastra y suelta imágenes aquí">
+          <div class="dropzone__inner">
+            <div class="drop-icon" aria-hidden="true">🖼️</div>
+            <div>
+              <strong>Arrastra y suelta</strong> o usa "Subir imágenes".
+              <div class="u-muted small">Soportado: png, jpg, webp, gif. Las imágenes se adaptan a cuadrados en miniatura (salvo GIF animados).</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="upload-controls" style="display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:12px">
+          <div class="left">
+            <label><input id="optCrop" type="checkbox" checked /> Crop a cuadrado (miniaturas)</label>
+            <label style="margin-left:12px"><input id="optResize" type="checkbox" checked /> Resize a 800px (max)</label>
+          </div>
+          <div class="right u-muted small">Imágenes guardadas: <strong id="countPics">0</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALLERY (grid compacto, miniaturas más pequeñas) -->
+    <section class="section gallery-section">
+      <div id="galleryGrid" class="gallery-grid" aria-live="polite"></div>
+    </section>
+
+    <!-- EDIT MODAL (in-page) -->
+    <div id="editModal" class="modal" role="dialog" aria-hidden="true" aria-modal="true">
+      <div class="modal__panel card">
+        <header style="display:flex;justify-content:space-between;align-items:center">
+          <h3 id="editTitle">Editar imagen</h3>
+          <button id="editClose" class="btn btn--ghost">Cerrar</button>
+        </header>
+        <div class="modal__body" style="margin-top:12px;display:grid;gap:8px">
+          <img id="editPreview" alt="" style="width:100%;max-height:300px;object-fit:contain;border-radius:8px" />
+          <label>Título <input id="editName" type="text" /></label>
+          <label>Descripción <textarea id="editDesc" rows="3"></textarea></label>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+            <button id="editSave" class="btn">Guardar</button>
+            <button id="editReplace" class="btn btn--ghost">Reemplazar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIGHTBOX -->
+    <div id="drawLightbox" class="lightbox" role="dialog" aria-hidden="true" aria-modal="true">
+      <button id="lbClose" class="lightbox__close" aria-label="Cerrar">✕</button>
+      <button id="lbPrev" class="lightbox__nav prev" aria-label="Anterior">‹</button>
+      <figure class="lightbox__figure">
+        <img id="lbImg" alt="" />
+        <figcaption id="lbCaption"></figcaption>
+      </figure>
+      <button id="lbNext" class="lightbox__nav next" aria-label="Siguiente">›</button>
+    </div>
+
+    <!-- INFO -->
+    <section class="section info-section">
+      <div class="card">
+        <h4>Notas</h4>
+        <p class="u-muted">El almacenamiento por localStorage es práctico y portable pero tiene límites. Si necesitas grandes cantidades o rendimiento superior, puedo adaptar el proyecto a IndexedDB.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand"><span class="cube"></span><strong>Moonveil</strong> Portal</div>
+      <nav class="foot__links" aria-label="Enlaces del sitio">
+        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+      </nav>
+      <p class="foot__copy">© <span id="yearFooter"></span> Moonveil. Hecho con bloques.</p>
+    </div>
+  </footer>
+
+  <!-- TOAST -->
+  <div id="drawToast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Script -->
+  <script type="module" src="draw.js"></script>
+  <script>
+    document.getElementById('yearFooter').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
