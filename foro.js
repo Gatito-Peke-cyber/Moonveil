@@ -476,3 +476,55 @@ function fmtDate(iso){
     return new Intl.DateTimeFormat('es-PE',{year:'numeric',month:'short',day:'2-digit'}).format(d);
   }catch{return iso}
 }
+
+
+
+
+
+
+
+// ---------- Música de fondo ----------
+const audio = document.getElementById("bg-music");
+const musicButton = document.querySelector(".floating-music");
+
+// Asegúrate de que el botón y el audio existan
+if (audio && musicButton) {
+  // Alternar música al hacer clic
+  musicButton.addEventListener("click", () => {
+    if (audio.paused) {
+      audio.play().then(() => {
+        musicButton.classList.add("active");
+        localStorage.setItem("music", "on");
+      }).catch(err => {
+        console.warn("No se pudo reproducir la música:", err);
+      });
+    } else {
+      audio.pause();
+      musicButton.classList.remove("active");
+      localStorage.setItem("music", "off");
+    }
+  });
+
+  // Revisar estado al cargar
+  window.addEventListener("DOMContentLoaded", () => {
+    const musicState = localStorage.getItem("music");
+    if (musicState === "on") {
+      // Solo reproducir si el usuario ya interactuó antes
+      audio.play().then(() => {
+        musicButton.classList.add("active");
+      }).catch(() => {
+        console.log("Esperando interacción del usuario para reproducir.");
+      });
+    }
+  });
+}
+
+
+
+
+
+
+
+
+
+

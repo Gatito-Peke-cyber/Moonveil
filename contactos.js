@@ -69,7 +69,7 @@ const contacts = [
     avatar:'vill/vill1.jpg',
     mystery:false, gold:true, online:true, unread:2,
     kind:'options',
-    quickReplies:['¿Hola?','Sabes de ███','¿Donde te ubicas?','E11-25','¿E11-25?'],
+    quickReplies:['¿Hola?','Sabes de ███','¿Donde te ubicas?','E11-25','¿E11-25?','audio'],
     profile:{
       correo:'sand.brill@moonveil.mv', seccion:'A-1', profesion:'█████████',
       pasatiempos:['Caminar','Dibujar','Pintar','Tradear'],
@@ -95,8 +95,15 @@ const contacts = [
         { label:'Octubre', reply:'Que miedo, pero mas miedo que no me tradeen...' },
         { label:'Truco', reply:'Mi truco es persuadir' },
         { label:'Trato', reply:'Si me das esmeraldas, hago tu trato de darte 1 pan, ves oferta y demanda...' },
-        { label:'Kevin', reply:'Shhh... JEJE, ni idea de quien es ese tipo...' }
-      ]
+        { label:'Kevin', reply:'Shhh... JEJE, ni idea de quien es ese tipo...' },
+        { label:'Foto', reply:{ type:'image', url:'vill/vill1.jpg' } },
+        { label:'Ajolote', reply:{ type:'image', url:'img/ajolote.gif' } },
+        { label:'PDF', reply:{ type:'pdf', url:'pdf/SecretSand.pdf' } },
+        { label:'Audio', reply:{ type:'audio', url:'music/1234.mp3' } },
+        { label:'Sand', reply:{ type:'audio', url:'ald/music1.mp3' } },
+        { label:'🐶', reply:'Runa!?...' },
+      ],
+      fallback: 'No entiendo pero, digamos que si, pero con esmeraldas se soluciona...'
     }
   },
   {   //    |     ,    |
@@ -230,7 +237,8 @@ const contacts = [
         {label:'1', reply:'Pues sale de un 2-1 ¿no?'},
         {label:'Tasks1', reply:'Entonces querias como algun encargo, pues la verdad no tengo ninguno, pero tal vez investigar sobre el caso M14.(Claim1)'},
         {label:'Claim1', reply:'Pues primero lo dejas en el lugar donde diga mi nombre esta detras de una puerta, y lo compensare con x6 cobre'},
-      ]
+      ],
+      fallback: '...'
     }
   },
   {
@@ -320,7 +328,8 @@ const contacts = [
         {label:'Game1', reply:'Este evento no tiene libro especifico, pero es algo sencillo de entender, esta en la web.'},
         {label:'93', reply:'...'},
         {label:'K', reply:'...'}
-      ]
+      ],
+      fallback: 'Puedes escribir ?'
     }
   },
   {
@@ -358,7 +367,8 @@ const contacts = [
         { label:'Trato', reply:'Guau!🙀' },
         { label:'Kevin', reply:'Guau...! 🙀' },
         { label:'German', reply:'Guau...😸' }
-      ]
+      ],
+      fallback: 'Guau!'
     }
   }
 ];
@@ -384,7 +394,7 @@ const peerName = $('#peerName');
 const peerStatus = $('#peerStatus');
 
 const composer = $('#composer');
-const msgInput = $('#msgInput');
+//const msgInput = $('#msgInput');
 
 const btnInfo = $('#btnInfo');
 const btnPin = $('#btnPin');
@@ -523,8 +533,61 @@ composer.addEventListener('submit', (e)=>{
   msgInput.value = '';
 });
 
-$('#btnEmoji')?.addEventListener('click', ()=> toast('😄 Emojis próximamente'));
-$('#btnAttach')?.addEventListener('click', ()=> toast('Adjuntar próximamente'));
+
+//emojis
+
+// === PANEL DE EMOJIS PROFESIONAL ===
+const emojiPanel = document.getElementById('emojiPanel');
+const emojiContent = document.getElementById('emojiContent');
+const btnEmoji = document.getElementById('btnEmoji');
+const msgInput = document.getElementById('msgInput');
+
+const emojis = {
+  smileys: ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','😉','😍','😘','😜','🤔','😎','😢','😭','😡','😱','💀'],
+  animals: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵'],
+  food: ['🍏','🍎','🍊','🍋','🍌','🍉','🍇','🍓','🍒','🍍','🥭','🍕','🍔','🍟','🌭','🍣','🍪'],
+  activity: ['⚽️','🏀','🏈','⚾️','🎾','🏐','🎱','🏓','🎮','🎲','🎤','🎧','🎬'],
+  hearts: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💖','💘','💝']
+};
+
+// Cargar emojis por categoría
+function loadEmojis(category) {
+  emojiContent.innerHTML = emojis[category]
+    .map(e => `<span>${e}</span>`)
+    .join('');
+  document.querySelectorAll('.emoji-header button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-category="${category}"]`).classList.add('active');
+}
+
+// Mostrar/ocultar panel
+btnEmoji?.addEventListener('click', () => {
+  emojiPanel.classList.toggle('hidden');
+  if (!emojiPanel.classList.contains('hidden')) loadEmojis('smileys');
+});
+
+// Insertar emoji seleccionado
+emojiContent?.addEventListener('click', e => {
+  if (e.target.tagName === 'SPAN') {
+    msgInput.value += e.target.textContent;
+    msgInput.focus();
+  }
+});
+
+// Cambiar categoría
+document.querySelectorAll('.emoji-header button').forEach(btn => {
+  btn.addEventListener('click', () => loadEmojis(btn.dataset.category));
+});
+
+// Cerrar al hacer clic fuera
+document.addEventListener('click', e => {
+  if (!emojiPanel.contains(e.target) && e.target !== btnEmoji) {
+    emojiPanel.classList.add('hidden');
+  }
+});
+
+
+
+$('#btnAttach')?.addEventListener('click', ()=> toast('Adjuntar - No se implementara 😸'));
 
 /* =========================================================
    Envío + respuesta
@@ -561,69 +624,92 @@ function sendMessage(text){
       return `${c.brain.reply}\n> ${escape(out)}`;
     }
    ========================================================= */
-function computeReply(c, text){
+function computeReply(c, text) {
   const t = text.toLowerCase();
 
   switch(c.kind){
-    case 'options':{
-      const opt = c.brain.options.find(o => o.label.toLowerCase() === t);
-      return opt ? opt.reply : `Opciones: ${c.brain.options.map(o=>o.label).join(' · ')}`;
+  case 'options':{
+    const opt = c.brain.options.find(o => o.label.toLowerCase() === t);
+
+    // 👇 Si no hay coincidencia, usa fallback o lista de opciones
+    if (!opt)
+      return c.brain.fallback || 
+             `Opciones: ${c.brain.options.map(o => o.label).join(' · ')}`;
+
+    // 🔹 Si el reply es texto, devuélvelo normal
+    if (typeof opt.reply === 'string') return opt.reply;
+
+    // 🔹 Si el reply es un objeto (imagen/pdf/audio)
+    if (typeof opt.reply === 'object' && opt.reply.type) {
+      return opt.reply;
     }
-    case 'keyword':{
+
+    return 'No entendí eso.';
+  }
+
+
+    case 'keyword': {
       const table = c.brain.keywords || {};
-      for (const pattern in table){
+      for (const pattern in table) {
         const re = new RegExp(`\\b(${pattern})\\b`, 'i');
         if (re.test(t)) return table[pattern];
       }
       return c.brain.fallback || 'No comprendí. Intenta otra vez.';
     }
-    case 'cliche':{
+
+    case 'cliche': {
       const arr = c.brain.cliches || ['No confirmo ni niego.'];
-      return arr[Math.floor(Math.random()*arr.length)];
+      return arr[Math.floor(Math.random() * arr.length)];
     }
-    case 'censored':{
+
+    case 'censored': {
       const banned = c.brain.banned || [];
       let out = text;
-      banned.forEach(w=>{
+      banned.forEach(w => {
         const re = new RegExp(w, 'ig');
         out = out.replace(re, '');
       });
       return `${c.brain.reply}\n ${escape(out)}`;
     }
-    case 'echo':{
+
+    case 'echo': {
       const tip = [
-        'Seguro que esto esta correcto ████...',
-        'Aveces la informacion de ███ puede estar equivocada.',
+        'Seguro que esto está correcto ████...',
+        'A veces la información de ███ puede estar equivocada.',
         'Seguro que el caso ████ es real.',
         'El secreto es de █████.',
-        'Y quien sabe el secreto, nada mas que █████.',
-        'Te resumo el secreto es sobre de █████ que esta █████ de █████.',
-        'Que paso con el caso █████.',
-        'El codigo E11-25 lo ha escrito █████.',
-        'El codigo A16-25 se lo llevo █████.',
-        'El del foro quien sera █████.',
-        'Siento que te ocultan algo en frente de tu cara █████.',
+        'Y quien sabe el secreto, nada más que █████.',
+        'Te resumo el secreto es sobre █████ que está █████ de █████.',
+        'Qué pasó con el caso █████.',
+        'El código E11-25 lo ha escrito █████.',
+        'El código A16-25 se lo llevó █████.',
+        'El del foro quién será █████.',
+        'Siento que te ocultan algo frente a tu cara █████.',
         'Esto va para el jugador, █████ te esconde un secreto.',
-        'A mi como tal no me encontro, pero tu jugador siempre █████ estuvo ahi...',
-        'Porque █████ esta aqui tambien.',
-        'Aqui son las █████, pero quien sabe si esto es real.',
-        'El escondite que esta debajo de la █████, es un lugar que deseo que averigues, por mi.',
-        'El profe █████ asesino a █████, se suponia que era un informante.',
+        'A mí como tal no me encontró, pero tu jugador siempre █████ estuvo ahí...',
+        'Porque █████ está aquí también.',
+        'Aquí son las █████, pero quién sabe si esto es real.',
+        'El escondite debajo de la █████... averígualo, por mí.',
+        'El profe █████ asesinó a █████, se suponía que era un informante.',
         'Estuvo siempre cerca █████, y como fuimos ciegos...',
         'Por favor, tengo miedo de █████...',
-        'El no puede saber que estas leendo esto el me █████.'
+        'Él no puede saber que estás leyendo esto, él me █████.'
       ];
-      return `${c.brain.preface||''}"${text}" — ${tip[Math.floor(Math.random()*tip.length)]}`;
+      return `${c.brain.preface || ''}"${text}" — ${
+        tip[Math.floor(Math.random() * tip.length)]
+      }`;
     }
+
     default:
       return 'Estoy pensando…';
   }
 }
 
+
 /* =========================================================
    Push de mensajes
    ========================================================= */
-function pushPeer(c, text){
+/*function pushPeer(c, text){
   const node = document.createElement('div');
   node.className = 'msg peer';
   node.innerHTML = `
@@ -637,7 +723,38 @@ function pushPeer(c, text){
   `;
   thread.appendChild(node);
   threadScrollToEnd();
+}*/
+
+
+function pushPeer(c, content){
+  const node = document.createElement('div');
+  node.className = 'msg peer';
+  let bubbleHTML = '';
+
+  if (typeof content === 'string') {
+    // Si es texto normal
+    bubbleHTML = `<div class="text">${formatText(content)}</div>`;
+  } else if (content.type === 'image') {
+    bubbleHTML = `<div class="text"><img src="${content.url}" alt="imagen" class="chat-image"></div>`;
+  } else if (content.type === 'pdf') {
+    bubbleHTML = `<div class="text"><a href="${content.url}" target="_blank" class="chat-file">📄 Ver PDF</a></div>`;
+  } else if (content.type === 'audio') {
+    bubbleHTML = `<div class="text"><audio controls src="${content.url}" class="chat-audio"></audio></div>`;
+  }
+
+  node.innerHTML = `
+    <div class="avatar ${c.mystery?'mystery':''}">
+      ${c.mystery ? '?' : `<img alt="Foto de ${escape(c.name)}" src="${escape(c.avatar)}">`}
+    </div>
+    <div class="bubble">
+      ${bubbleHTML}
+      <div class="meta">${timeNow()}</div>
+    </div>
+  `;
+  thread.appendChild(node);
+  threadScrollToEnd();
 }
+
 
 function pushMe(me, text){
   const node = document.createElement('div');

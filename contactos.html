@@ -127,20 +127,36 @@
         <!-- Botones generados por JS -->
       </div>
 
-      <!-- Composer -->
+      <!-- Composer - en el espacio entre los span va, el enviar pero por ahora no se usa letras -->
       <form id="composer" class="chat__composer" autocomplete="off" novalidate>
         <button type="button" class="icon-btn" id="btnEmoji" title="Emojis"><span class="icon i-emoji"></span></button>
         <button type="button" class="icon-btn" id="btnAttach" title="Adjuntar"><span class="icon i-clip"></span></button>
-
+        
         <input id="msgInput" name="message" type="text" placeholder="Escribe un mensaje…" aria-label="Escribir mensaje" />
 
         <button type="submit" class="btn btn--primary" id="btnSend" aria-label="Enviar">
           <span class="btn__content">
             <span class="icon i-send"></span>
-            <span>Enviar</span>
+            
+            <span>     </span>
           </span>
           <span class="btn__spinner" aria-hidden="true"></span>
         </button>
+
+        <!-- Panel de Emojis Profesional -->
+<div id="emojiPanel" class="emoji-panel hidden">
+  <div class="emoji-header">
+    <button data-category="smileys">😀</button>
+    <button data-category="animals">🐶</button>
+    <button data-category="food">🍕</button>
+    <button data-category="activity">⚽️</button>
+    <button data-category="hearts">❤️</button>
+  </div>
+  <div class="emoji-content" id="emojiContent">
+    <!-- emojis cargados por JS -->
+  </div>
+</div>
+
       </form>
     </section>
   </main>
