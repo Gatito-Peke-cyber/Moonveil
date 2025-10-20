@@ -69,7 +69,7 @@ const contacts = [
     avatar:'vill/vill1.jpg',
     mystery:false, gold:true, online:true, unread:2,
     kind:'options',
-    quickReplies:['¿Hola?','Sabes de ███','¿Donde te ubicas?','E11-25','¿E11-25?','audio'],
+    quickReplies:['¿Hola?','Sabes de ███','¿Donde te ubicas?','E11-25','¿E11-25?'],
     profile:{
       correo:'sand.brill@moonveil.mv', seccion:'A-1', profesion:'█████████',
       pasatiempos:['Caminar','Dibujar','Pintar','Tradear'],
