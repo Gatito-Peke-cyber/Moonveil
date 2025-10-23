@@ -304,7 +304,7 @@ const contacts = [
     mystery:false, gold:true, online:true, unread:0,
     kind:'options',
     quickReplies:['Ayuda','Palabra()','Estado','Reiniciar'],
-    profile:{ correo:'dew@moonveil.mv', seccion:'C-3', profesion:'Asistente', pasatiempos:['Ordenar cofres'], mascotas:[], colorFav:'Verde' },
+    profile:{ correo:'dew@moonveil.mv', seccion:'A-1', profesion:'Asistente', pasatiempos:[''], mascotas:[], colorFav:'' },
     brain:{
       prompt:'¿En que te puedo ayudar hoy?',
       options:[
@@ -370,7 +370,61 @@ const contacts = [
       ],
       fallback: 'Guau!'
     }
-  }
+  },
+  {
+    id:'c12',
+    name:'David Kal',
+    alias:'El Pequeñin',
+    desc:'Seremos grandes algun dia, colegita...',
+    avatar:'img/babyvillager.jpg',
+    mystery:false, gold:false, online:true, unread:1,
+    kind:'options',
+    quickReplies:['Hola','¿Estas Bien?'],
+    profile:{
+      correo:'da.vid@moonveil.mv', seccion:'C-3', profesion:'⌀',
+      pasatiempos:['Jugar', 'Dibujar'],
+      mascotas:['Lobo "Alex"'],
+      colorFav:'Verde'
+    },
+    brain:{
+      prompt:'Hola, colegita',
+      options:[
+        { label:'Hola', reply:'Hola, como estas...' },
+        { label:'Bien', reply:'Que bien colegita' },
+        { label:'Mal', reply:'No digas eso colegita, recuerda que todavia podemos seguir intentandolo hasta que salga...' },
+        { label:'¿Estas Bien?', reply:'Si, colegita, ¿y tu?' },
+        { label:'Daniel Morcombe', reply:'Colegita, no se quien sera, solo se que me respondio en un post del foro, nada mas...' },
+        { label:'PDF', reply:'Colegita, no tengo ningun pdf, perdon...' },
+        { label:'Amigo', reply:'Si colegita, eres increible tu, se mejor cada dia...' },
+        { label:'audio', reply:'Colegita no tengo ninguno, pero tengo uno, nose de quien sera, pero es vergonzoso...(Song)' },
+        { label:'imagen', reply:'Tampoco tengo ninguna imagen...' },
+        { label:'David', reply:'Si asi me llamo, pues la verdad asi es como me conocen o me conociste...' },
+        { label:'Tu eres el mas', reply:'Guau....!' },
+        { label:'Octubre', reply:'Si, de que te disfrasaras, colegita...' },
+        { label:'31', reply:'Pues es un dia que ya se acerca, pues no se que mas decirte...' },
+        { label:'Nose', reply:'Yo tampoco, jeje' },
+        { label:'Dibujo', reply:{ type:'image', url:'dav/happyg2.jpg' } },
+        { label:'Bonito', reply:'Gracias, es un dibujo mas.' },
+        { label:'Me gusta', reply:'Gracias, me esfuerzo mucho cada dia.' },
+        { label:'Kevin', reply:'¿Quien es?...' },
+        { label:'Song', reply:{ type:'audio', url:'ald/music1.mp3' } },
+        { label:'Dibujar', reply:'Sabes que hay un evento de dibujos, colegita... Sabes, puedes participar la verdad.' },
+        { label:'Adios', reply:'Hasta luego, porque nos veremos despues, a que si colegita...' },
+        { label:'Alex', reply:{ type:'image', url:'dav/alex1.jpg' } },
+        { label:'Steve', reply:{ type:'image', url:'dav/steve2.jpg' } },
+        { label:'cancion', reply:{ type:'audio', url:'dav/sleep.mp3' } },
+        { label:'Triste', reply:'Aveces uno no sabe que hacer, colegita no te rindas asi de facil, tu eres alguien increible, no lo olvides...(Song1)' },
+        { label:'Song1', reply:'Colegita, sabia que querias saber aqui esta (cancion)/(duracion), aunque colegita capaz cancion no te carge, pesa mucho pero puedes escribir (songlink)' },
+        { label:'Duracion', reply:'Pues la cancion dura casi como 3 horas colegita, no es necesario escucharla toda...' },
+        { label:'Donde estas', reply:'Colegita, estare ahi siempre que lo necesites, pero ahora... ni idea jeje' },
+        { label:'Quien', reply:'Gabriel?...' },
+        { label:'songlink', reply:'https://youtu.be/2AH5t_o7lmg?si=mApag20_haaBbZFI' },
+        { label:'jaja', reply:'Que chistoso verdad' },
+        { label:'Feliz', reply:'Pues estamos feliz, verdad... :D' },
+      ],
+      fallback: 'Colegita, no te entendi, pero trato...'
+    }
+  },
 ];
 
 /* =========================================================
