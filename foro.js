@@ -233,7 +233,69 @@ const threads = [
       {author:'Kevin Dew', text:'Rojo.', date:'2025-08-22'},
       {author:'German Moon', text:'😸', date:'2025-08-22'}
     ]
-  }
+  },
+  {
+    id:'t10',
+    title:'¿El Inicio del Final?',
+    author:'???',
+    date:'2022-01-10',
+    cover:'min/mine.png',
+    mystery:false,
+    featured:false,
+    excerpt:'Sera cierto, pero como te lo digo...',
+    tags:['exploración'],
+    comments:[
+      {author:'Eduard Moss', text:'Cuidado, estemos preparados y a salvo.', date:'2022-01-18'},
+      {author:'Sand Brill', text:'Con mi espada de madera me los elimino a todos.', date:'2022-01-19'},
+      {author:'Nox Vire', text:'Se volvia zombi...', date:'2022-01-20'},
+      {author:'Alex Xen', text:'😹', date:'2022-01-22'},
+      {author:'Robert Thei', text:'Y nadie gastaria su pocion y una manzana dorada para curarlo...', date:'2022-01-22'},
+      {author:'Alex Xen', text:'Exacto!!', date:'2022-01-22'},
+      {author:'Alex Xen', text:'Eduard Moss te doy toda la razon...', date:'2022-01-24'},
+      {author:'Robert Thei', text:'¿Y esa forma de cruz en la imagen?', date:'2022-01-24'},
+      {author:'Sand Brill', text:'Que tiene esa forma de cruz, tienes miedo o que...', date:'2022-01-25'},
+      {author:'Alex Xen', text:'No lo habia notado', date:'2022-01-26'},
+      {author:'Robert Thei', text:'Miedo? Yo, jajaj, bueno si...', date:'2022-01-26'},
+      {author:'Sand Brill', text:'Ya lo sabia, es que alguien como tu, obvio que tendra miedo, yo con mi espada con aspecto igneo, pues nadie me toca.', date:'2022-01-26'},
+      {author:'Usuario Reportado', text:'Se le rompia...😹😹😹😹😹😹😹😹', date:'2022-01-26'},
+      {author:'Alex Xen', text:'Yo con mi Golem debajo de mi manga...', date:'2022-01-28'},
+      {author:'Sand Brill', text:'Como se te atreves a decir eso de mi espadita, te voy a reportar.', date:'2022-01-28'},
+      {author:'Usuario Reportado', text:'Me reportaba, tenias miedo que te diga tus verdades...', date:'2022-01-28'},
+      {author:'Alex Xen', text:'Se pico...', date:'2022-01-29'},
+      {author:'Sand Brill', text:'Si se pico con fortuna e irrompibilidad III', date:'2022-01-29'}
+    ]
+  },
+  {
+    id:'t11',
+    title:'Mi dibujo',
+    author:'David Kal',
+    date:'2025-10-22',
+    cover:'dav/happyg.jpg',
+    mystery:false,
+    featured:false,
+    excerpt:'Que tal mi dibujo...',
+    tags:['biomas'],
+    comments:[
+      {author:'Eduard Moss', text:'Bonito chaval.', date:'2025-10-22'},
+      {author:'Sand Brill', text:'Pues concuerdo, si apareciera pues seria el dibujo mas increible.', date:'2025-20-22'},
+      {author:'Eduard Moss', text:'No, si aparecerias tu el dibujo se veria arruinado.', date:'2025-08-20'},
+      {author:'Sand Brill', text:'Que dijiste, no viste mi foto de perfil, es demasiada guapa...', date:'2025-10-22'},
+      {author:'Eduard Moss', text:'😹😹😹😹😹😹😹😹😹😹😹😹😹', date:'2025-10-22'},
+      {author:'Autor⁂', text:'Gracias, por sus comentarios, de que les guste. :D', date:'2025-10-22'},
+      {author:'?', text:'Esta increible, pero me ofendi, no creo que abra tanto la boca...', date:'2025-10-22'},
+      {author:'?', text:'jaja, abriendo asi la boca se entrara una abeja...😹😹😹😹', date:'2025-10-22'},
+      {author:'?', text:'Pero no estoy como tu, asustado como armadillo 😹😹', date:'2025-10-22'},
+      {author:'Sand Brill', text:'Y ustedes quienes son...Ummm', date:'2025-10-22'},
+      {author:'?', text:'Aldeano promedio 😹😹😹, quieres esmeraldas... Mas estafador eres...', date:'2025-10-22'},
+      {author:'Sand Brill', text:'Disculpe, que me acaba de decir...', date:'2025-10-22'},
+      {author:'Autor⁂', text:'Por favor aqui solo queria que opinen de mi dibujo, por favor no peleen.', date:'2025-10-22'},
+      {author:'Daniel Morcombe', text:'David, no te preocupes no les hagas caso, al final y acabo son adultos, y aveces no piensan en lo que hacen, pero me gustaria ser tu amigo David, si es que algun dia...', date:'⌀'},
+      {author:'Autor⁂', text:'Gracias Daniel, me gustaria...', date:'2025-10-22'},
+      {author:'Autor⁂', text:'Daniel?', date:'2025-10-25'},
+      {author:'Autor⁂', text:'...', date:'2025-10-28'},
+      {author:'⌀', text:'Oh vaya, de seguro no es conciente quien es...', date:'⌀'},
+    ]
+  },
 ];
 
 /* =========================================================
