@@ -1,0 +1,245 @@
+/* login.css
+   Moonveil Daily Login — Calendario de recompensas (con aura mágica animada)
+   Diseño: oscuro + esmeralda + dorado sutil, sin cofre feo
+*/
+
+/* Variables */
+:root {
+  --bg: #0c0f0d;
+  --panel: linear-gradient(180deg, #111612, #0b1210);
+  --card: #121713;
+  --muted: #a9b8ae;
+  --text: #e8f3ea;
+  --accent: #30d158;
+  --accent-2: #16a34a;
+  --gold: #ffd97f;
+  --radius: 12px;
+  --shadow: 0 18px 50px rgba(0, 0, 0, .6);
+  --speed: 320ms;
+  --bezier: cubic-bezier(.22, .61, .36, 1);
+}
+
+/* Base */
+* { box-sizing: border-box }
+body {
+  margin: 0;
+  font-family: Outfit, system-ui;
+  color: var(--text);
+  background: radial-gradient(1200px 800px at 70% -10%, #0d1511 0%, #0c0f0d 40%, #0a0d0a 100%);
+}
+.container { max-width: 1100px; margin: 18px auto; padding: 0 16px }
+.u-muted { color: var(--muted) }
+.lead { margin: 4px 0 0; font-size: 14px }
+
+/* Header */
+.login-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 18px;
+}
+.login-header h1 { font-size: 20px; margin: 0 }
+.login-meta { display: flex; align-items: center; gap: 12px }
+
+/* Streak */
+.streak {
+  background: linear-gradient(180deg, #0f1a14, #07110a);
+  padding: 8px 12px; border-radius: 12px;
+  border: 1px solid rgba(48, 209, 88, .08);
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 86px;
+}
+.streak__label { font-size: 12px; color: var(--muted) }
+.streak__value { font-weight: 700; font-size: 18px; color: var(--accent) }
+
+/* Month switch */
+.month-switch { display: flex; align-items: center; gap: 8px }
+.month-title {
+  font-weight: 700; padding: 6px 12px; border-radius: 10px;
+  background: linear-gradient(180deg, #0f1611, #07110a);
+  border: 1px solid rgba(255, 255, 255, .03);
+}
+
+/* Buttons */
+.btn {
+  height: 40px; padding: 0 12px; border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, .06);
+  cursor: pointer;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  color: #061009;
+}
+.btn--ghost {
+  background: linear-gradient(180deg, #151c17, #101613);
+  color: var(--text);
+}
+.btn--primary {
+  background: linear-gradient(180deg, #ffd97f, #ffc43d);
+  color: #061009;
+}
+
+/* Calendar shell */
+.calendar-shell {
+  background: var(--panel);
+  padding: 16px; border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, .04);
+  box-shadow: var(--shadow);
+}
+.weeknames {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 6px; margin-bottom: 8px;
+  color: var(--muted); font-size: 13px;
+}
+.calendar-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+/* Day cell */
+.day-cell {
+  background: linear-gradient(180deg, #0b1210, #06100902);
+  border-radius: 10px; padding: 8px; min-height: 86px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, .03);
+  transition: transform var(--speed) var(--bezier),
+              box-shadow var(--speed) var(--bezier),
+              border-color var(--speed);
+  cursor: default;
+}
+.day-cell:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,.65) }
+.day-number { font-weight: 700 }
+.day-reward {
+  font-size: 12px; color: var(--muted);
+  margin-top: 6px; display: flex; align-items: center; gap: 6px;
+}
+.reward-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: grid; place-items: center;
+  background: linear-gradient(180deg, #081712, #082312);
+  border: 1px solid rgba(255,255,255,.03);
+}
+
+/* Estados */
+.cell-future { opacity: .55 }
+.cell-claimed {
+  border: 1px solid rgba(48,209,88,.25);
+  box-shadow: 0 10px 30px rgba(48,209,88,.08);
+  background: linear-gradient(180deg,#07150f,#07110b);
+}
+.cell-lost {
+  opacity: .6; filter: grayscale(.1);
+  border: 1px solid rgba(255,80,80,.06);
+}
+.cell-today {
+  outline: 3px solid rgba(48,209,88,.12);
+  box-shadow: 0 10px 40px rgba(48,209,88,.06);
+}
+
+/* Badge states */
+.state-badge {
+  position: absolute; top: 8px; right: 8px;
+  padding: 4px 8px; border-radius: 999px; font-size: 12px;
+  background: rgba(255,255,255,.02); color: var(--muted);
+  border: 1px solid rgba(255,255,255,.03);
+}
+.state-badge.claimed {
+  background: linear-gradient(180deg, rgba(48,209,88,.1), transparent);
+  color: var(--accent); border-color: rgba(48,209,88,.12);
+}
+.state-badge.lost {
+  background: linear-gradient(180deg, rgba(255,80,80,.06), transparent);
+  color: #ffb3b3; border-color: rgba(255,80,80,.08);
+}
+.state-badge.available {
+  background: linear-gradient(180deg, rgba(255,255,255,.02), transparent);
+  color: var(--accent);
+}
+
+/* === Efecto mágico animado de recompensa (en lugar del cofre) === */
+.reward-visual {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(48,209,88,.25), transparent 70%);
+  position: relative;
+  box-shadow:
+    0 0 25px rgba(48,209,88,.25),
+    inset 0 0 30px rgba(48,209,88,.15);
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+.reward-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.15), transparent 60%);
+  animation: spinAura 8s linear infinite;
+  mix-blend-mode: overlay;
+}
+
+/* Animaciones */
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+@keyframes spinAura {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Footer */
+.calendar-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 12px; color: var(--muted); font-size: 13px;
+}
+
+/* Modal */
+.modal {
+  position: fixed; inset: 0; display: grid; place-items: center;
+  background: rgba(6,8,6,.6); opacity: 0; pointer-events: none;
+  transition: opacity .18s; z-index: 300;
+}
+.modal[aria-hidden="false"] { opacity: 1; pointer-events: auto }
+.modal__panel {
+  width: min(760px,96%); max-height: 86vh; background: var(--panel);
+  border-radius: 12px; box-shadow: 0 30px 80px rgba(0,0,0,.7);
+  padding: 18px; border: 1px solid rgba(255,255,255,.04);
+  overflow: auto; position: relative;
+}
+.modal__close {
+  position: absolute; top: 14px; right: 14px;
+  border: none; background: linear-gradient(180deg, #141a16, #101613);
+  color: var(--text); padding: 8px; border-radius: 8px; cursor: pointer;
+}
+
+/* Reward body */
+.reward-body { display: flex; gap: 18px; align-items: center; flex-wrap: wrap }
+.reward-content { flex: 1; min-width: 220px }
+.reward-title { font-size: 18px; font-weight: 700; margin-bottom: 8px }
+.reward-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap }
+
+/* History */
+.modal__content { color: var(--text) }
+.history-list { display: grid; gap: 8px; max-height: 56vh; overflow: auto; padding-right: 8px }
+.history-item {
+  padding: 8px; border-radius: 8px;
+  background: linear-gradient(180deg, #0e1711, #07110a);
+  border: 1px solid rgba(255,255,255,.03);
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 18px; left: 50%;
+  transform: translateX(-50%);
+  background: #121713; padding: 10px 14px;
+  border-radius: 12px; border: 1px solid rgba(255,255,255,.04);
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.toast.show { opacity: 1; pointer-events: auto }
+
+/* Responsive */
+@media (max-width:920px) {
+  .login-header { flex-direction: column; align-items: flex-start }
+  .reward-body { flex-direction: column }
+  .calendar-grid .day-cell { min-height: 96px }
+}

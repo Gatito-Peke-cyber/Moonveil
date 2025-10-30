@@ -425,6 +425,36 @@ const contacts = [
       fallback: 'Colegita, no te entendi, pero trato...'
     }
   },
+  {
+    id:'c13',
+    name:'Creaking',
+    alias:'Lo oscuridad del bosque',
+    desc:'Evento...',
+    avatar:'img-pass/crepitante.jpg',
+    mystery:false, gold:false, online:true, unread:0,
+    kind:'options',
+    quickReplies:['Event'],
+    profile:{
+      correo:'event@moonveil.mv', seccion:'', profesion:'',
+      pasatiempos:[''],
+      mascotas:[''],
+      colorFav:''
+    },
+    brain:{
+      prompt:'Creaking...',
+      options:[
+        { label:'Event', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'Hola', reply:'No hay tiempo para eso...' },
+        { label:'1', reply:'La parte 1 comienza desde el dia 25' },
+        { label:'2', reply:'La parte 2 comienza el dia 31' },
+        { label:'3', reply:'No hay parte 3...' },
+        { label:'Como estas', reply:'Algo tiene que ver con el evento?' },
+        { label:'creacion', reply:'Pues como tal no' },
+        { label:'Dibujo', reply:{ type:'image', url:'img-pass/crepitante.jpg' } },
+      ],
+      fallback: 'Guau!'
+    }
+  },
 ];
 
 /* =========================================================

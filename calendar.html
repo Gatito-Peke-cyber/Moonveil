@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Moonveil — Daily Login (Calendario de Recompensas)</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Base portal CSS (opcional) -->
+  <link rel="stylesheet" href="inicio.css" />
+
+  <!-- Login CSS -->
+  <link rel="stylesheet" href="calendar.css" />
+  <meta name="description" content="Moonveil Daily Login — Calendario interactivo mensual para reclamar recompensas diarias." />
+</head>
+<body class="theme-auto">
+
+  <!-- Background coherence with portal -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax" aria-hidden="true">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar (re-usable from portal) -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a class="active" aria-current="page">Daily Login</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores del jugador">
+      <div class="hud__bars">
+        <div id="hpBar" class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
+        <div id="xpBar" class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="login-root container" role="main" aria-labelledby="loginTitle">
+
+    <header class="login-header">
+      <div>
+        <h1 id="loginTitle">Moonveil — Calendario de Recompensas</h1>
+        <p class="lead u-muted" id="todayLabel">—</p>
+      </div>
+
+      <div class="login-meta">
+        <div class="streak">
+          <div class="streak__label">Racha</div>
+          <div id="streakCount" class="streak__value">0</div>
+        </div>
+
+        <div class="month-switch">
+          <button id="prevMonth" class="btn btn--ghost" aria-label="Mes anterior">◀</button>
+          <div id="monthTitle" class="month-title">—</div>
+          <button id="nextMonth" class="btn btn--ghost" aria-label="Mes siguiente">▶</button>
+        </div>
+
+        <div class="month-actions">
+          <button id="btnPreviewNext" class="btn btn--ghost">Previsualizar siguiente mes</button>
+          <button id="btnHistory" class="btn btn--ghost">Historial</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Calendar grid -->
+    <section class="calendar-shell" aria-label="Calendario de recompensas">
+      <div class="weeknames" aria-hidden="true">
+        <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+      </div>
+
+      <div id="calendarGrid" class="calendar-grid" role="grid" aria-label="Dias del mes">
+        <!-- Cells injected by JS -->
+      </div>
+
+      <div class="calendar-footer">
+        <div id="monthProgress" class="progress">0/0 reclamadas</div>
+        <div id="claimStatus" class="u-muted">—</div>
+      </div>
+    </section>
+
+    <!-- Reward modal (cofre / carta) -->
+    <div id="rewardModal" class="modal reward-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Recompensa">
+      <div class="modal__panel">
+        <button id="rewardClose" class="modal__close" aria-label="Cerrar">✕</button>
+
+        <div class="reward-body">
+          <div class="chest-wrap" id="chestWrap" aria-hidden="true">
+            <!-- chest animation -->
+            <div class="chest">
+              <div class="lid"></div>
+              <div class="box"></div>
+              <div class="sparkles"></div>
+            </div>
+          </div>
+
+          <div id="rewardContent" class="reward-content">
+            <!-- dynamically filled -->
+          </div>
+
+          <div class="reward-actions">
+            <button id="btnClaim" class="btn btn--primary">Reclamar</button>
+            <button id="btnCloseReward" class="btn btn--ghost">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History modal -->
+    <div id="historyModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Historial de recompensas">
+      <div class="modal__panel">
+        <button id="historyClose" class="modal__close" aria-label="Cerrar">✕</button>
+        <div id="historyContent" class="modal__content"></div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="loginToast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand"><span class="cube"></span><strong>Moonveil</strong> Portal</div>
+      <p class="foot__copy">© <span id="y-year"></span> Moonveil.</p>
+    </div>
+  </footer>
+
+  <!-- JS -->
+  <script type="module" src="calendar.js"></script>
+  <script>document.getElementById('y-year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

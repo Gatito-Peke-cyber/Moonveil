@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Moonveil — Updates</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- (Opcional) tu CSS base del portal -->
+  <link rel="stylesheet" href="inicio.css" />
+
+  <!-- CSS específico -->
+  <link rel="stylesheet" href="updates.css" />
+
+  <meta name="description" content="Moonveil Updates — novedades del mundo, changelog interactivo, previews, descargas y estados (Activo / En construcción / Próximamente)." />
+</head>
+<body class="theme-auto">
+
+  <!-- Fondo (reutiliza idea del portal) -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax" aria-hidden="true">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar (coherente con el portal) -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a class="active" aria-current="page">Updates</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div id="hpBar" class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
+        <div id="xpBar" class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
+        <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN: updates -->
+  <main class="updates-root container" role="main" aria-labelledby="updatesTitle">
+    <header class="updates-header">
+      <div>
+        <h1 id="updatesTitle">Moonveil — Actualizaciones</h1>
+        <p class="lead u-muted">Changelog visual y navegable. Busca, filtra y abre detalles de cada actualización.</p>
+      </div>
+
+      <div class="updates-controls">
+        <div class="stats small">
+          <span id="totalUpdates">0</span> actualizaciones
+          <span class="sep">•</span>
+          última: <strong id="lastUpdateDate">—</strong>
+        </div>
+
+        <div class="controls-row">
+          <label class="search" for="q">
+            <input id="q" type="search" placeholder="Buscar por título, categoría o texto..." aria-label="Buscar actualizaciones" />
+            <span class="i i-search" aria-hidden="true"></span>
+          </label>
+
+          <select id="filterCategory" aria-label="Filtrar por categoría">
+            <option value="all">Todas las categorías</option>
+          </select>
+
+          <select id="filterState" aria-label="Filtrar por estado">
+            <option value="all">Todos los estados</option>
+            <option value="active">Activo</option>
+            <option value="building">En construcción</option>
+            <option value="upcoming">Próximamente</option>
+          </select>
+
+          <button id="btnSort" class="btn btn--ghost" title="Ordenar">Orden: Más reciente</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Grid de tarjetas (lista continua, responsive) -->
+    <section id="updatesGrid" class="updates-grid" aria-live="polite"></section>
+
+    <!-- Modal de detalle -->
+    <div id="updateModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal__panel" role="document">
+        <button class="modal__close" id="modalClose" aria-label="Cerrar">✕</button>
+        <div id="modalContent" class="modal__content" tabindex="0"></div>
+      </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div id="updLightbox" class="lightbox" aria-hidden="true" role="dialog" aria-modal="true">
+      <button id="lbClose" class="lightbox__close" aria-label="Cerrar">✕</button>
+      <figure class="lightbox__figure">
+        <img id="lbImg" alt="">
+        <figcaption id="lbCaption"></figcaption>
+      </figure>
+    </div>
+
+    <div id="updToast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand"><span class="cube"></span><strong>Moonveil</strong> Portal</div>
+      <div class="foot__links u-muted small">Actualizaciones — Registro oficial</div>
+      <p class="foot__copy">© <span id="y-year"></span> Moonveil.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="updates.js"></script>
+  <script>document.getElementById('y-year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
