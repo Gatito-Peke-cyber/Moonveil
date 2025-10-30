@@ -34,7 +34,7 @@ function svgPlaceholder(title='Preview', w=800, h=400, accent='#30d158'){
 
 /* --------- UPDATES array (edítalo aquí) --------- */
 const UPDATES = [
-  {
+  /*{
     id: 'mv-4-0',
     title: 'Moonveil 4.0 — Shattered Realms',
     date: '2025-10-20',
@@ -45,8 +45,8 @@ const UPDATES = [
     media: [ svgPlaceholder('Shattered Realms', 1200, 640, '#30d158') ],
     links: [{ label: 'Notas 4.0', url: 'https://moonveil.portal/notes/4.0' }],
     pdf: true
-  },
-  {
+  },*/
+  /*{
     id: 'mv-3-8',
     title: 'Parche 3.8.2 — Optimización de render',
     date: '2025-08-05',
@@ -57,8 +57,8 @@ const UPDATES = [
     media: [ svgPlaceholder('Optimización', 1200, 640, '#60a5fa') ],
     links: [{ label: 'Benchmarks', url: 'https://moonveil.portal/benchmarks/3.8.2' }],
     pdf: false
-  },
-  {
+  },*/
+  /*{
     id: 'mv-festival-2025',
     title: 'Festival de la Luna — Próximamente',
     date: '2025-11-10',
@@ -69,17 +69,17 @@ const UPDATES = [
     media: [ svgPlaceholder('Festival de la Luna', 1200, 640, '#ff7ab6') ],
     links: [{ label: 'Página del evento', url: 'https://moonveil.portal/events/festival-luna' }],
     pdf: false
-  },
+  },*/
   {
     id: 'mv-shop-restock',
     title: 'Tienda: Restock programado',
     date: '2025-09-01',
     category: 'Tienda',
-    state: 'building',
+    state: 'active',
     excerpt: 'Restock por 24h / 7d / 30d y descuentos dinámicos.',
     body: `<p>Un nuevo motor de restock permitirá programar stock y descuentos por periodos: 24h, 7d y 30d. Mejora la predictibilidad de la tienda.</p>`,
     media: [ svgPlaceholder('Tienda — Restock', 1200, 640, '#ffd97f') ],
-    links: [{ label: 'Diseño del sistema', url: 'https://moonveil.portal/dev/shop-restock' }],
+    links: [{ label: 'Diseño del sistema', url: 'https://gatito-peke-cyber.github.io/Moonveil/tienda.html' }],
     pdf: false
   },
   {
@@ -91,10 +91,22 @@ const UPDATES = [
     excerpt: 'Nuevo sistema de misiones con 40 niveles y cooldowns 24h/7d/30d.',
     body: `<p>Se rediseñó la curva de XP y se introdujeron misiones con cooldowns diarios, semanales y mensuales.</p>`,
     media: [ svgPlaceholder('Misiones 40 lv', 1200, 640, '#9ae6b4') ],
-    links: [{ label: 'Guía de misiones', url: 'https://moonveil.portal/guide/missions' }],
-    pdf: true
+    links: [{ label: 'Guía de misiones', url: 'https://gatito-peke-cyber.github.io/Moonveil/moon.html' }],
+    pdf: false
   },
   {
+    id: 'mv-event',
+    title: 'Evento: Draw!',
+    date: '2025-12-13',
+    category: 'Gameplay',
+    state: 'building',
+    excerpt: 'El evento se estrenara dentro de pocos meses.',
+    body: `<p>Haz un increible trabajo.El arte hazlo brillar con tu esplendida creatividad.</p>`,
+    media: [ svgPlaceholder('Tienda — Restock', 1200, 640, '#ffd97f') ],
+    links: [{ label: 'Diseño del sistema', url: 'https://gatito-peke-cyber.github.io/Moonveil/draw.html' }],
+    pdf: false
+  },
+  /*{
     id: 'mv-ux-refresh',
     title: 'Interfaz: Refresh HUD & UX',
     date: '2025-04-18',
@@ -105,7 +117,7 @@ const UPDATES = [
     media: [ svgPlaceholder('HUD Refresh', 1200, 640, '#30d158') ],
     links: [{ label: 'Detalles UI', url: 'https://moonveil.portal/design/hud-refresh' }],
     pdf: false
-  }
+  }*/
   // Añade / modifica entradas directamente en este array.
 ];
 

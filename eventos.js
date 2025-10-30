@@ -90,8 +90,8 @@ const today = new Date();
 const events = [
   {
     id:'e1',
-    name:'La llegada de Miedo',
-    desc:'Se podra salir vivo de ahi...',
+    name:'La llegada de algo Desconocido',
+    desc:'Me podre salvar, y a...',
     img:'img-pass/crepitante.jpg',
     unique:true,
     start:'2025-10-25',
@@ -142,8 +142,8 @@ const events = [
     desc:'Dibuja y muestra tus obras.',
     img:'img-pass/draw.jpg',
     unique:true,
-    start:'2025-11-11',
-    end:'2025-12-01',
+    start:'2025-12-13',
+    end:'2025-12-29',
     place:'Mundo',
     categories:['festival'],
     rewards:['En el juego']
