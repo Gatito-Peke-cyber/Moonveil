@@ -663,3 +663,150 @@ a:hover{text-decoration:underline}
 .chat-audio {
   width: 180px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* -------------------------------
+   Botones pixelados PRO (verde tecnológico)
+-------------------------------- */
+.pixel-button {
+  display: inline-block;
+  padding: 12px 22px;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-family: 'Press Start 2P', cursive;
+  color: #fff;
+  background: linear-gradient(145deg, #00c853, #009624);
+  border: 4px solid #0a0a0a;
+  cursor: pointer;
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset -4px -4px 0px #007d33,
+    inset 4px 4px 0px #5efc82,
+    0 0 10px rgba(0, 255, 128, 0.3),
+    4px 4px 0px #000;
+  transition: all 0.15s ease;
+}
+
+/* Efecto de brillo animado recorriendo el borde */
+.pixel-button::before {
+  content: "";
+  position: absolute;
+  top: -2px; left: -2px;
+  right: -2px; bottom: -2px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  animation: glowMove 2.5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes glowMove {
+  0% { filter: drop-shadow(0 0 4px #00ff80); opacity: 0.6; }
+  50% { filter: drop-shadow(0 0 8px #a7ffeb); opacity: 1; }
+  100% { filter: drop-shadow(0 0 4px #00ff80); opacity: 0.6; }
+}
+
+.pixel-button:hover {
+  background: linear-gradient(145deg, #00e676, #5efc82);
+  color: #0a0a0a;
+  transform: translateY(-2px) scale(1.03);
+  box-shadow:
+    inset -4px -4px 0px #007d33,
+    inset 4px 4px 0px #a7ffeb,
+    0 0 15px rgba(95, 252, 130, 0.6),
+    6px 6px 0px #000;
+}
+
+.pixel-button:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow:
+    inset 4px 4px 0px #007d33,
+    inset -4px -4px 0px #00e676,
+    0 0 5px rgba(95, 252, 130, 0.5),
+    2px 2px 0px #000;
+}
+
+/* Pequeñas partículas pixel al hover */
+.pixel-button::after {
+  content: "";
+  position: absolute;
+  width: 6px; height: 6px;
+  background: #a7ffeb;
+  box-shadow:
+    12px 8px #5efc82,
+    -10px -6px #00e676,
+    16px -10px #b9ffcb;
+  opacity: 0;
+  filter: blur(0.5px);
+  transition: all 0.3s ease;
+}
+
+.pixel-button:hover::after {
+  opacity: 0.8;
+  animation: floatPixels 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes floatPixels {
+  from { transform: translateY(0); }
+  to { transform: translateY(-5px); }
+}
+
+/* --------------------------------
+   Botón flotante de música (versión PRO)
+-------------------------------- */
+.floating-music {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  background: linear-gradient(145deg, #00e676, #00c853);
+  color: #0a0a0a;
+  font-size: 10px;
+  padding: 12px 16px;
+  border: 4px solid #0a0a0a;
+  outline: 2px solid #fff;
+  box-shadow:
+    inset -3px -3px 0px #007d33,
+    inset 3px 3px 0px #a7ffeb,
+    0 0 10px rgba(0,255,128,0.4),
+    3px 3px 0px #000;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+}
+
+.floating-music:hover {
+  transform: scale(1.1);
+  background: linear-gradient(145deg, #5efc82, #00e676);
+  box-shadow:
+    inset -3px -3px 0px #009624,
+    inset 3px 3px 0px #b9ffcb,
+    0 0 15px rgba(95,252,130,0.6),
+    5px 5px 0px #000;
+}
+
+.floating-music.active {
+  background: linear-gradient(145deg, #00c853, #007d33);
+  color: #fff;
+  box-shadow:
+    inset -3px -3px 0px #004d1a,
+    inset 3px 3px 0px #5efc82,
+    0 0 15px rgba(0,255,128,0.7),
+    4px 4px 0px #000;
+}

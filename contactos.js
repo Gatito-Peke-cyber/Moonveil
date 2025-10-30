@@ -451,8 +451,10 @@ const contacts = [
         { label:'Como estas', reply:'Algo tiene que ver con el evento?' },
         { label:'creacion', reply:'Pues como tal no' },
         { label:'Dibujo', reply:{ type:'image', url:'img-pass/crepitante.jpg' } },
+        { label:'Evento', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'cancion', reply:{ type:'audio', url:'music/spooky.mp3' } },
       ],
-      fallback: 'Guau!'
+      fallback: '...'
     }
   },
 ];
@@ -984,3 +986,48 @@ setInterval(()=>{
   c.unread = Math.min(9, (c.unread||0) + 1);
   renderContacts();
 }, 12000 + Math.random()*8000);
+
+
+
+
+
+
+
+
+
+
+// ---------- Música de fondo ----------
+const audio = document.getElementById("bg-music");
+const musicButton = document.querySelector(".floating-music");
+
+// Asegúrate de que el botón y el audio existan
+if (audio && musicButton) {
+  // Alternar música al hacer clic
+  musicButton.addEventListener("click", () => {
+    if (audio.paused) {
+      audio.play().then(() => {
+        musicButton.classList.add("active");
+        localStorage.setItem("music", "on");
+      }).catch(err => {
+        console.warn("No se pudo reproducir la música:", err);
+      });
+    } else {
+      audio.pause();
+      musicButton.classList.remove("active");
+      localStorage.setItem("music", "off");
+    }
+  });
+
+  // Revisar estado al cargar
+  window.addEventListener("DOMContentLoaded", () => {
+    const musicState = localStorage.getItem("music");
+    if (musicState === "on") {
+      // Solo reproducir si el usuario ya interactuó antes
+      audio.play().then(() => {
+        musicButton.classList.add("active");
+      }).catch(() => {
+        console.log("Esperando interacción del usuario para reproducir.");
+      });
+    }
+  });
+}
