@@ -16,7 +16,11 @@
 /* ---------- Config / keys ---------- */
 const LS_KEY_PREFIX = 'mv_daily_'; // stored as mv_daily_YYYY-MM
 const LS_STREAK_KEY = 'mv_daily_streak'; // global best/active streak (optional)
-const TODAY = new Date(); // for initial display, can be overridden for testing
+//const TODAY = new Date(); // for initial display, can be overridden for testing - el anterior usado
+// Fecha local exacta (sin depender de UTC)
+const nowLocal = new Date();
+const TODAY = new Date(nowLocal.getFullYear(), nowLocal.getMonth(), nowLocal.getDate());
+
 
 /* ---------- Reward definitions (edit aquí) ----------
    Cada mes debe tener un array con objetos por día:
@@ -59,12 +63,38 @@ const MONTH_REWARDS = {
     { day:31, type:'badge', label:'Insignia: Completo', icon:'🏆', note:'Recompensa del mes (completa)' }
   ],
   // Next month example (November 2025) — previewable
-  '2025-11': Array.from({length:30}, (_,i)=>({
-    day: i+1,
-    type: (i%5===0)?'emerald': (i%3===0)?'xp':'coins',
-    label: (i%5===0)?`Esmeraldas x${(i%7)+3}`: (i%3===0)?`XP +${120 + (i*10)}`:`Monedas x${30 + (i*5)}`,
-    icon: (i%5===0)?'💚': (i%3===0)?'⭐':'🪙'
-  })),
+  '2025-11': [
+    { day:1, type:'emerald', label:'Esmeraldas x5', value:5, icon:'💚', note:'Recompensa bienvenida del mes' },
+    { day:2, type:'xp', label:'XP +150', value:150, icon:'⭐', note:'Pequeño impulso de XP' },
+    { day:3, type:'coins', label:'Monedas x50', value:50, icon:'🪙' },
+    { day:4, type:'item', label:'Pan', icon:'🍞', note:'Pan' },
+    { day:5, type:'badge', label:'1 Llave', icon:'🏅' },
+    { day:6, type:'emerald', label:'Esmeraldas x10', value:10, icon:'💚' },
+    { day:7, type:'xp', label:'XP +200', value:200, icon:'⭐' },
+    { day:8, type:'coins', label:'Monedas x75', value:75, icon:'🪙' },
+    { day:9, type:'item', label:'Antorcha', icon:'🔥' },
+    { day:10, type:'emerald', label:'Esmeraldas x3', value:3, icon:'💚' },
+    { day:11, type:'xp', label:'XP +120', value:120, icon:'⭐' },
+    { day:12, type:'coins', label:'Monedas x60', value:60, icon:'🪙' },
+    { day:13, type:'item', label:'Mapa', icon:'🗺️' },
+    { day:14, type:'emerald', label:'Esmeraldas x7', value:7, icon:'💚' },
+    { day:15, type:'xp', label:'XP +300', value:300, icon:'⭐' },
+    { day:16, type:'coins', label:'Monedas x100', value:100, icon:'🪙' },
+    { day:17, type:'item', label:'Cofre', icon:'📦' },
+    { day:18, type:'emerald', label:'Esmeraldas x4', value:4, icon:'💚' },
+    { day:19, type:'xp', label:'XP +180', value:180, icon:'⭐' },
+    { day:20, type:'coins', label:'Monedas x40', value:40, icon:'🪙' },
+    { day:21, type:'item', label:'Mapa', icon:'📜' },
+    { day:22, type:'emerald', label:'Esmeraldas x6', value:6, icon:'💚' },
+    { day:23, type:'xp', label:'XP +220', value:220, icon:'⭐' },
+    { day:24, type:'coins', label:'Monedas x80', value:80, icon:'🪙' },
+    { day:25, type:'item', label:'Poción', icon:'🧪' },
+    { day:26, type:'emerald', label:'Esmeraldas x12', value:12, icon:'💚' },
+    { day:27, type:'xp', label:'XP +260', value:260, icon:'⭐' },
+    { day:28, type:'coins', label:'Monedas x90', value:90, icon:'🪙' },
+    { day:29, type:'emerald', label:'Esmeraldas x20', value:20, icon:'💚' },
+    { day:30, type:'badge', label:'Insignia: Completo', icon:'🏆', note:'Recompensa del mes (completa)' }
+  ],
   '2025-12': Array.from({length:30}, (_,i)=>({
     day: i+1,
     type: (i%5===0)?'emerald': (i%3===0)?'xp':'coins',
@@ -96,7 +126,15 @@ function toast(msg, t=2000){ const tEl = $('#loginToast'); if(!tEl) { console.lo
 function ymKey(date){ const y = date.getFullYear(); const m = (date.getMonth()+1).toString().padStart(2,'0'); return `${y}-${m}`; }
 function daysInMonth(y,m){ return new Date(y,m,0).getDate(); } // m is 1..12 uses JS zero day trick
 function startWeekday(y,m){ return new Date(y,m-1,1).getDay(); } // 0 Sun .. 6 Sat (we'll map Mon..Sun)
-function toLocalDateKey(date){ return date.toISOString().slice(0,10); }
+//function toLocalDateKey(date){ return date.toISOString().slice(0,10); } - este fue usado antes ----
+// Devuelve clave de fecha local (YYYY-MM-DD)
+function toLocalDateKey(date){
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 
 /* Map JS weekday (Sun=0) to grid where Monday is first */
 function weekdayIndex(jsDay){ return jsDay === 0 ? 6 : jsDay - 1; } // returns 0..6 where 0=Mon
@@ -466,11 +504,21 @@ function bootMonth(){
 /* ---------- Boot app on DOM ready ---------- */
 document.addEventListener('DOMContentLoaded', ()=> {
   try{
+    // fuerza el mes actual (por si se quedó en octubre u otro)
+    const now = new Date();
+    viewDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // actualiza también la constante TODAY si la usas más adelante
+    TODAY.setFullYear(now.getFullYear());
+    TODAY.setMonth(now.getMonth());
+    TODAY.setDate(now.getDate());
+
     bootMonth();
   }catch(e){
     console.error('boot error', e);
   }
 });
+
 
 /* ---------- Utilities for author (expose) ---------- */
 window.MoonveilDaily = {
