@@ -457,6 +457,43 @@ const contacts = [
       fallback: '...'
     }
   },
+  {
+    id:'c14',
+    name:'News!!',
+    alias:'Aqui con nuestras grandes NEWS!!!!!',
+    desc:'Aqui informamos nosotros...',
+    avatar:'gif/news-villager.gif',
+    mystery:false, gold:false, online:true, unread:0,
+    kind:'options',
+    quickReplies:['News','Golem','Pan','Fin'],
+    profile:{
+      correo:'news-today@moonveil.mv', seccion:'', profesion:'',
+      pasatiempos:[''],
+      mascotas:[''],
+      colorFav:''
+    },
+    brain:{
+      prompt:'Aqui con las noticias, edicion matutina...',
+      options:[
+        { label:'News', reply:'Hmm… bienvenidos al informativo del día. Hoy hablaremos de lo que realmente importa: ¿por qué los jugadores nunca duermen y siempre abren cofres ajenos?' },
+        { label:'Parche', reply:'En el mundo de Minecraft, el parche 1.21.120 para la Edición Bedrock añadió mejoras gráficas importantes: mejores reflejos en el agua, nuevas texturas para el cobre, mejoras en la interfaz de usuario y corrección de errores para un mundo más fluido.' },
+        { label:'Golem', reply:'Hmm… emergencia en la aldea: el golem de hierro fue acusado de ignorar a un zombi. Dice que estaba en su día libre.' },
+        { label:'Granjero', reply:'Hmm… alerta en la aldea: granjero asegura que sus cultivos desaparecen por la noche. Sospechoso principal: el propio jugador.' },
+        { label:'steve', reply:'Hmm… descubrimiento asombroso: aldeano asegura haber visto a Steve durmiendo… los científicos aún no lo creen.' },
+        { label:'dragon', reply:'Hmm… noticia internacional: el Ender Dragon fue visto en terapia. Dice que solo quiere que lo comprendan.' },
+        { label:'Diamante', reply:'Hmm… gran confusión en el pueblo minero. Un joven jugador aseguró haber encontrado diamantes a simple vista. Sin embargo, tras revisar el área, los testigos confirmaron que era solo lapislázuli. El jugador fue trasladado al centro de rehabilitación para mineros desilusionados.' },
+        { label:'Pan', reply:'Hmm… comenzamos con una noticia alarmante: un aldeano reportó que un jugador entró a su casa, abrió todos los cofres, se comió su pan y salió como si nada. Las autoridades aldeanas están tras la pista del sospechoso, que según testigos, gritaba ‘¡solo exploraba!’ mientras huía.' },
+        { label:'Agricultura', reply:'Hmm… en noticias de agricultura: un aldeano perdió toda su cosecha después de invitar a un jugador a ayudar. En solo cinco minutos, el jugador saltó sobre los cultivos, rompió el suelo con una pala y dejó un hoyo del tamaño de su entusiasmo. El granjero aún se encuentra en shock' },
+        { label:'Aldeano', reply:'Hmm… y para cerrar, una historia inspiradora: un aldeano que no sabía comerciar logró aprender el arte del intercambio justo. Hoy, vende pan a tres esmeraldas y asegura que ‘si alguien paga, es justo’. El éxito del emprendimiento ha motivado a otros aldeanos a subir los precios sin razón.' },
+        { label:'1', reply:'Hmm… comenzamos con algo impactante. Un jugador fue sorprendido minando directamente hacia abajo. Los rescatistas encontraron solo su inventario y un mensaje en el chat que decía: ‘no debí hacerlo’. Los aldeanos ahora lo usan como ejemplo educativo' },
+        { label:'2', reply:'Hmm… escándalo en la aldea norte: un zombi fue visto intentando integrarse a la sociedad aldeana tras ser curado. Sin embargo, fue rechazado por ‘oler a noche’. El exzombi planea fundar su propio pueblo, llamado Zombivilla.' },
+        { label:'3', reply:'Hmm… gran expectativa por el estreno de la nueva obra teatral ‘Romeo y Julieta del Nether’. Los críticos dicen que termina con fuego, explosiones y muchas lágrimas… principalmente de lava.' },
+        { label:'Fin', reply:'Hmm… y así termina otra emisión de Aldeanos al Día. Recuerden: la vida puede tener esquinas, pero aquí, ¡todo es en bloques! Hasta la próxima, y cuiden sus cultivos.' },
+        { label:'Panda', reply:{ type:'image', url:'gif/news-minecraft.gif' } },
+      ],
+      fallback: 'No tenemos esa noticia.'
+    }
+  },
 ];
 
 /* =========================================================
