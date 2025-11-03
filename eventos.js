@@ -207,7 +207,31 @@ const events = [
     place:'Pradera A-3',
     categories:['oficios','festival'],
     rewards:['En el juego']
-  }
+  },
+  {
+    id:'e11',
+    name:'Save the Panda Day',
+    desc:'🐼✨ Celebremos a este adorable guardián del bambú, símbolo de paz, amistad y naturaleza. Comparte su ternura, cuida el planeta y deja que el espíritu panda te inspire a vivir con calma y amor por la vida. 💖🎋',
+    img:'imagen/pandaparty.jpg',
+    unique:true,
+    start:'2026-03-13',
+    end:'2026-03-21',
+    place:'Jungla',
+    categories:['festival'],
+    rewards:['En el juego']
+  },
+  {
+    id:'e12',
+    name:'Desafío del Dia de la Fotografia',
+    desc:'“La fotografía es el único lenguaje que puede ser entendido y comprendido en todo el mundo.” — Bruno Barbey',
+    img:'img-pass/draw.jpg',
+    unique:false,
+    start:'2026-08-15',
+    end:'2026-08-23',
+    place:'Mundo',
+    categories:['festival'],
+    rewards:['En el juego']
+  },
 ];
 
 /* =========================================================

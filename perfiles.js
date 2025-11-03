@@ -282,7 +282,7 @@ const VILLAGERS = [
     section: 'C-3',
     date: '2022-01-01',
     job: 'Tradear',
-    img: 'vill/tradervill.jpg',
+    img: 'gif/villager1.gif',
     booksRelated: [''],
     booksRead: [''],
     hobbies: ['Tradear', 'Viajar'],

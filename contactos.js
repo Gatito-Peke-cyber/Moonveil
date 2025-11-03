@@ -137,7 +137,7 @@ const contacts = [
       fallback:'No entendi lo que me pides colega. Capaz mejor comenzamos con un hola: “Hola”.'
     }
   },
-  {
+  /*{
     id:'c3',
     name:'Sev Ark',
     alias:'████',
@@ -155,7 +155,7 @@ const contacts = [
         'Aveces no hay nada que decir.'
       ]
     }
-  },
+  },*/
   { //kind:'censored', bueno esto era 
     id:'c4',
     name:'Brun Tallow',
@@ -209,7 +209,7 @@ const contacts = [
       fallback:'Que necesitas my friend'
     }
   },
-  {
+  /*{
     id:'c6',
     name:'Nox Vire',
     alias:'████',
@@ -240,7 +240,7 @@ const contacts = [
       ],
       fallback: '...'
     }
-  },
+  },*/
   {
     id:'c7',
     name:'Steven Moss',
@@ -271,19 +271,19 @@ const contacts = [
       }, fallback:'¿Que quieres saber, alguna historia?.'
     }
   },
-  {
+  /*{
     id:'c8',
     name:'████',
     alias:'████',
-    desc:'Peces espectrales en tormentas.',
+    desc:'Solo se sabra con el tiempo.',
     avatar:'https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?q=80&w=600&auto=format&fit=crop',
     mystery:true, gold:false, online:true, unread:0,
     kind:'echo',
     //quickReplies:['¿Dónde?', '¿Cebo?', '¿Hora?', 'Consejo'],
     profile:{ correo:'@moonveil.mv', seccion:'B-1', profesion:'████', pasatiempos:['',''], mascotas:[' ""'], colorFav:'' },
     brain:{ preface:'Capaz quieras saberlo: ' }
-  },
-  {
+  },*/
+  /*{
     id:'c9',
     name:'Konn Slate',
     alias:'████',
@@ -294,7 +294,7 @@ const contacts = [
     quickReplies:['A','W','S','D','G','Q','P','E'],
     profile:{ correo:'konn.slate@moonveil.mv', seccion:'A-1', profesion:'████', pasatiempos:[''], mascotas:[], colorFav:'Verde Lima' },
     brain:{ cliches:['...','Ok','Z','Up','Down','Right','Left'] }
-  },
+  },*/
   {
     id:'c10',
     name:'Kevin Dew',
@@ -365,8 +365,6 @@ const contacts = [
         { label:'31', reply:'🐺' },
         { label:'Truco', reply:'Guau?😸' },
         { label:'Trato', reply:'Guau!🙀' },
-        { label:'Kevin', reply:'Guau...! 🙀' },
-        { label:'German', reply:'Guau...😸' }
       ],
       fallback: 'Guau!'
     }
@@ -425,7 +423,7 @@ const contacts = [
       fallback: 'Colegita, no te entendi, pero trato...'
     }
   },
-  {
+  /*{
     id:'c13',
     name:'Creaking',
     alias:'Lo oscuridad del bosque',
@@ -456,7 +454,7 @@ const contacts = [
       ],
       fallback: '...'
     }
-  },
+  },*/
   {
     id:'c14',
     name:'News!!',
@@ -518,6 +516,112 @@ const contacts = [
       fallback: 'No tenemos esa noticia.'
     }
   },
+  /*{
+    id:'c15',
+    name:'Dog!',
+    alias:'?',
+    desc:'Descansemos en paz en este dia...',
+    avatar:'imagen/spiritdog.gif',
+    mystery:false, gold:false, online:false, unread:0,
+    kind:'options',
+    quickReplies:[''],
+    profile:{
+      correo:'spirit@moonveil.mv', seccion:'', profesion:'',
+      pasatiempos:[''],
+      mascotas:[''],
+      colorFav:''
+    },
+    brain:{
+      prompt:'Guau...!!',
+      options:[
+        { label:'Event', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'Hola', reply:'No hay tiempo para eso...' },
+        { label:'1', reply:'La parte 1 comienza desde el dia 25' },
+        { label:'2', reply:'La parte 2 comienza el dia 31' },
+        { label:'3', reply:'No hay parte 3...' },
+        { label:'Como estas', reply:'Algo tiene que ver con el evento?' },
+        { label:'creacion', reply:'Pues como tal no' },
+        { label:'Dibujo', reply:{ type:'image', url:'img-pass/crepitante.jpg' } },
+        { label:'Evento', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'cancion', reply:{ type:'audio', url:'music/spooky.mp3' } },
+      ],
+      fallback: '...'
+    }
+  },*/
+  {
+    id:'c16',
+    name:'Panda enthusiast',
+    alias:'🎍🐼',
+    desc:'Le gusta el bambu 🎍🐼',
+    avatar:'imagen/panda1.gif',
+    mystery:false, gold:false, online:true, unread:0,
+    kind:'options',
+    quickReplies:['Bambu','Dormir','Territorio','Gravedad','Panda','Roca','Carne','Estornudo','Zen','Ruidos','Nosotros','Correr','Humanos Entrometidos','No quejas','Adios tengo sueño','#GoodLife','Whispers of the Panda… soon to awaken','¿Que significa no entiendo?'],
+    profile:{
+      correo:'event@moonveil.mv', seccion:'', profesion:'',
+      pasatiempos:[''],
+      mascotas:[''],
+      colorFav:''
+    },
+    brain:{
+      prompt:'“¡BUENAS NOCHES, HUMANOS! ¿Cómo están? Yo... gordo, feliz y confundido, como siempre. ¡Démosle un aplauso al bambú, por favor!” 🌿👏', 
+      options:[
+        { label:'Bambu', reply:'¡12 kilos al día! Imagínate un buffet libre y un panda con actitud de “esto es todo lo que puedo comer”. Es el cliente que los restaurantes temen.' },
+        { label:'Dormir', reply:'Si dormir fuera deporte olímpico, el panda tendría 27 medallas. Duerme en árboles, sobre rocas, o encima de otros pandas. Donde caiga, duerme. Nivel: modo hibernación activado 24/7.' },
+        { label:'Territorio', reply:'Los pandas no pelean por territorio, pelean por el mejor bambú. Es como ver dos gorditos discutiendo por la última empanada. Nadie gana, pero todos comen igual.' },
+        { label:'Gravedad', reply:'Cuando un panda se cae de un árbol, se queda mirando el piso como si fuera culpa de la gravedad. “¡Traición! ¡Te confié mi peso, rama traicionera!”' },
+        { label:'Panda', reply:'El panda es el único animal que puede estar en peligro de extinción y seguir siendo influencer. Todos preocupados, y él posando para la cámara: “Hashtag #PandaVibes #SaveTheBamboo”.' },
+        { label:'#PandaVibes', reply:'https://www.pandavibez.com/' },
+        { label:'#SaveTheBamboo', reply:'https://www.bamboo.org/' },
+        { label:'#GoodLife', reply:{ type:'image', url:'imagen/panda2.gif' } },
+        { label:'Whispers of the Panda… soon to awaken', reply:{ type:'image', url:'imagen/pandaparty.jpg' } },
+        { label:'¿Que significa no entiendo?', reply:'Susurros del panda… pronto despertará. Quien sabe es un evento que saldra proximamente...' },
+        { label:'Roca', reply:'Cuando se sienten solos, algunos pandas se abrazan a una roca. Nivel de ternura y drama: telenovela natural “Corazón de Bambú”.' },
+        { label:'Carne', reply:'El panda es un carnívoro… que olvidó comer carne. Sí, su cuerpo está hecho para devorar bistecs, pero un día vio un bambú y dijo: “eh… esto cruje bonito”. Resultado: 14 horas al día masticando palitos verdes sin sentido nutritivo. ¡Un snack eterno! 🥢' },
+        { label:'Estornudo', reply:'Cuando un panda estornuda, otro panda entra en pánico. El pequeño estornuda y la mamá casi se va al más allá del susto. ¡Drama instantáneo! https://youtube.com/shorts/dP7XftgVpg8?si=Hxiw4SsZyIWqZOzl Son básicamente telenovelas con peluche incluido. 📺' },
+        { label:'Zen', reply:'Su rutina diaria es un sueño hecho realidad. Comer. Dormir. Rodar. Repetir. No estrés, no cuentas que pagar, solo bambú y siestas. ¡El verdadero modo zen! 🧘‍♂️🌿' },
+        { label:'Ruidos', reply:'Los pandas no odian nada, excepto los lunes y los humanos ruidosos. Bueno, eso y quedarse sin bambú. Ahí sí… panda mode berserk.' },
+        { label:'Nosotros', reply:'Los científicos dicen que somos torpes. ¡NO SOMOS TORPES! Solo tenemos una relación complicada con el suelo. Y el suelo... siempre gana.' },
+        { label:'Correr', reply:'Una vez intenté correr. Di dos pasos y dije: ‘No, gracias.’ No es flojera, es autoconocimiento espiritual.' },
+        { label:'Humanos Entrometidos', reply:'¿Saben lo que más me molesta? Que todo el mundo nos grabe. “Yo tratando de dormir con dignidad y ustedes: ‘aww mira, se cayó.’ ¡Claro que me caí! ¡Intentaba existir en paz!”' },
+        { label:'No quejas', reply:'Pero no me quejo, ser panda es hermoso. “No tengo depresión existencial, tengo digestión existencial.” “Y cuando la vida se pone dura... como el bambú… simplemente la mastico lento y sigo.” 🌿😎' },
+        { label:'Adios tengo sueño', reply:'“Gracias, humanos, han sido un público adorable. Ahora, si me disculpan, tengo que ir a... eh… dormir mientras mastico.”— se baja del escenario rodando 🐼💤💚' },
+      ],
+      fallback: '...'
+    }
+  },
+  /*{
+    id:'c17',
+    name:'Creaking',
+    alias:'Lo oscuridad del bosque',
+    desc:'Evento...',
+    avatar:'gif/news1.gif',
+    mystery:false, gold:false, online:true, unread:0,
+    kind:'options',
+    quickReplies:['Event'],
+    profile:{
+      correo:'event@moonveil.mv', seccion:'', profesion:'',
+      pasatiempos:[''],
+      mascotas:[''],
+      colorFav:''
+    },
+    brain:{
+      prompt:'Creaking...',
+      options:[
+        { label:'Event', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'Hola', reply:'No hay tiempo para eso...' },
+        { label:'1', reply:'La parte 1 comienza desde el dia 25' },
+        { label:'2', reply:'La parte 2 comienza el dia 31' },
+        { label:'3', reply:'No hay parte 3...' },
+        { label:'Como estas', reply:'Algo tiene que ver con el evento?' },
+        { label:'creacion', reply:'Pues como tal no' },
+        { label:'Dibujo', reply:{ type:'image', url:'img-pass/crepitante.jpg' } },
+        { label:'Evento', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'cancion', reply:{ type:'audio', url:'music/spooky.mp3' } },
+      ],
+      fallback: '...'
+    }
+  },*/
 ];
 
 /* =========================================================
