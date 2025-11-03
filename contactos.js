@@ -558,7 +558,7 @@ const contacts = [
     kind:'options',
     quickReplies:['Bambu','Dormir','Territorio','Gravedad','Panda','Roca','Carne','Estornudo','Zen','Ruidos','Nosotros','Correr','Humanos Entrometidos','No quejas','Adios tengo sueño','#GoodLife','Whispers of the Panda… soon to awaken','¿Que significa no entiendo?'],
     profile:{
-      correo:'event@moonveil.mv', seccion:'', profesion:'',
+      correo:'panda4ever@moonveil.mv', seccion:'', profesion:'',
       pasatiempos:[''],
       mascotas:[''],
       colorFav:''
@@ -1196,3 +1196,4 @@ if (audio && musicButton) {
     }
   });
 }
+
