@@ -134,42 +134,73 @@ a:hover { text-decoration: underline; }
 }
 
 /* ------------------------------------------
-   4) SHELL LAYOUT
+   4) SHELL LAYOUT — Mejorado
    ------------------------------------------ */
 .shell {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(380px, 520px);
+  grid-template-columns: minmax(340px, 1fr) minmax(400px, 520px);
   gap: var(--gutter);
   padding: calc(var(--gutter) * 1.2);
   min-height: 100dvh;
+  align-items: stretch;
 }
 
-/* Columnas */
+/* ---------- Columna izquierda (biomas / tips / noticias) ---------- */
 .left-pane {
-  min-height: 0; /* para que funcione overflow con grid child */
-  display: grid;
-  grid-template-rows: auto auto auto auto 1fr;
+  display: flex;
+  flex-direction: column;
   gap: var(--gutter);
-  overflow: hidden; /* Contendrá el scroll interno */
-}
-.right-pane {
-  position: relative;
-  min-width: 380px; /* evita que invada la izquierda */
-  display: grid;
-  grid-auto-rows: min-content;
-  align-content: start;
-  gap: var(--gutter);
-}
-
-/* Scroll propio para izquierda sin mover todo */
-.left-pane {
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding-right: 2px; /* evita salto al aparecer scroll */
+  padding: 0 4px 4px 0;
+  min-height: 0; /* importante para overflow */
 }
 
+/* Tarjetas/cuadros dentro de la izquierda */
+.left-pane > section,
+.left-pane > div,
+.lp-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  box-shadow:
+    0 10px 24px var(--shadow),
+    0 0 0 1px rgba(255,255,255,0.02) inset;
+  backdrop-filter: blur(6px);
+  padding: 16px;
+  transition: 0.3s ease;
+}
+
+.left-pane > section:hover,
+.left-pane > div:hover,
+.lp-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 14px 32px var(--shadow),
+    0 0 0 1px rgba(255,255,255,0.03) inset;
+}
+
+/* ---------- Columna derecha (formulario) ---------- */
+/*.right-pane {
+  position: relative;
+  min-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--gutter);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  box-shadow:
+    0 10px 24px var(--shadow),
+    0 0 0 1px rgba(255,255,255,0.02) inset;
+  backdrop-filter: blur(8px);
+  padding: 24px;
+}
+*/
 /* ------------------------------------------
    5) HEADER DE MARCA (sticky)
    ------------------------------------------ */
@@ -639,3 +670,17 @@ label { display: inline-block; margin-bottom: 6px; font-weight: 600; }
 
 /* (El archivo continúa si necesitas extensiones; esta hoja supera ampliamente las 1000 líneas en un proyecto real.
    Aquí está condensada pero con todas las secciones críticas para que funcione y se vea pro.) */
+
+
+
+
+   
+
+
+/* Required for image + canvas layering */
+/*#biomeCanvas { position: relative; overflow: hidden; width: 100%; height: 100%; }
+.biome-bg-wrap { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.biome-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; transition: opacity 900ms ease; opacity: 0; -webkit-user-drag: none; }
+.biome-img.current { opacity: 1; z-index: 0; }
+.biome-img.next { z-index: 1; opacity: 0; }
+.biome-particles { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }*/

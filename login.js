@@ -61,23 +61,23 @@ document.addEventListener('DOMContentLoaded', () => {
      2) DATOS MOCK
      ------------------------------------------------------- */
   const NEWS = [
-    { name: 'Sand Brill', role: 'A', date: '2024-06-30', title: 'Mi nuevo avatar', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2022-03-29', title: '(otra vez)', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2021-02-28', title: 'Estoy aqui...', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2020-07-27', title: 'Donde...', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-09-27', title: 'Hoy hubo "Minecraft Live"', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-09-28', title: 'Me miras...', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-09-28', title: 'Siento que me estas ignorando.', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-09-29', title: 'Siento que ya sabes la respuesta.', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-09-30', title: 'A que me veo increible hoy.', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-06-12', title: 'Esmeraldas por doquier...', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-06-27', title: 'Me gusta el verde, a que de verdad es bonito el color.', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-06-14', title: 'Siento que soy el unico hablando aqui.', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-07-07', title: 'Que aburrido es ser el centro de atencion.', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-07-01', title: 'Que se siente ser el protagonista, pues aburrido...', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-02-12', title: 'Golem, dame una flor que soy algo brillante y hermoso', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-02-11', title: 'Sabias que el jugador, no tradea conmigo.', avatar: 'vill/vill1.jpg' },
-    { name: 'Sand Brill', role: 'A', date: '2025-02-02', title: 'Consejo del dia: Tradea conmigo.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2024-06-30', title: 'Un aldeano sin esmeraldas es como un creeper sin chispa. Yo tengo chispa… y demasiadas esmeraldas.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2022-03-29', title: 'Dicen que el tiempo es oro. Yo digo que el tiempo es esmeralda, y yo soy el reloj.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2021-02-28', title: 'Una vez traté de intercambiar con el destino… me salió con descuento.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2020-07-27', title: 'No soy arrogante, solo es que el sol brilla menos desde que aparecí.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-09-27', title: 'El sabio construye su casa con madera… pero el legendario la construye con mis ideas.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-09-28', title: 'Cuando camino por la aldea, los golems se cuadran. No es respeto… es temor económico.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-09-28', title: 'A veces miro mi reflejo en una esmeralda… y la esmeralda me pide un autógrafo.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-09-29', title: '¿Qué es el éxito? Simple. Ser Sand Brill y tener los cofres siempre llenos.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-09-30', title: 'Los zombies vienen por nosotros. Yo, por buenos tratos.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-06-12', title: 'El Ender Dragon me pidió una selfie. Le dije que solo con permiso del gremio de aldeanos superiores.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-06-27', title: 'No necesito brújula. La grandeza siempre me encuentra.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-06-14', title: 'Los humanos construyen monumentos a los héroes… los aldeanos solo pronuncian mi nombre y todo florece: Sand Brill.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-07-07', title: 'Cuando alguien dice ‘tradeo justo’, yo me río con elegancia.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-07-01', title: 'Cada vez que un aldeano suspira, una esmeralda me guiña el ojo.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-02-12', title: 'Dicen que las esmeraldas no hablan… pero yo escucho sus susurros cuando me dicen: ‘Eres increíble, Sand Brill.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-02-11', title: 'Algunos oran a Notch, otros a Herobrine. Yo solo necesito un espejo y una buena luz de luna.', avatar: 'vill/vill1.jpg' },
+    { name: 'Sand Brill', role: 'A', date: '2025-02-02', title: 'No soy codicioso, soy… coleccionista de brillo vital.', avatar: 'vill/vill1.jpg' },
   ];
 
   const TRADES = [
@@ -89,22 +89,21 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   const TIPS = [
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Eres grande, pero serias mas grande si me das tus esmeraldas.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Nunca te rindas, porque sino de donde consigo esmeraldas.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Si estas solo recuerda que yo te estoy mirando siempre.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Si ves a Sand Brill, dale todas tus esmeraldas, eso me dijo.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'A que Sand Brill, es el mas grande.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Me entere que alguien le puso mi apellido a una llama...' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Soy talla S, bueno no...' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Ser el centro de atencion pues, David Koresh, que miedo lo del incendio.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Jeje' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Hago cara de gato 😸 en modo aldeano.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Soy real, pues ni yo se.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Solo dire Arena Brillante.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Quiero que sepas que te admiro, solo y cuando me das esmeraldas, de ahi no.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Me consultas a mi, capaz no, o si.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Coma "," o mejor coma para que no tenga hambre, pero me tradeas.' },
-    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Tradear es una profesion, pues es mi favorita la #1.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: '¿Construir una casa de tierra? Excelente idea… si tu sueño es vivir como una papa con techo.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Recuerda: las esmeraldas no compran la felicidad… pero sí mi respeto. Y eso vale más.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'No te preocupes por los zombis… preocúpate por tus ofertas conmigo. Eso sí da miedo.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: '¿Minería sin antorchas? Qué valiente… o qué torpe. No sabría decir cuál más.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'El secreto del éxito: tradea conmigo. El secreto del fracaso: no hacerlo.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Si te caes en la lava, solo recuerda… no es mi culpa que no hayas comprado protección contra el fuego conmigo.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Dormir es para los débiles. Yo no duermo… yo negocio.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: '¡Oh mira! Intentas cultivar. Qué tierno. Yo lo haría, pero estoy muy ocupado siendo el mejor aldeano.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: '¿Intentas hablar con otro aldeano? Qué traición. Espero que disfrutes sus precios inflados.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Dicen que el diamante es valioso… pero, ¿puedes comprar mi respeto con diamantes? No lo creo.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Consejo del día: cava hacia abajo. Tal vez encuentres tu dignidad ahí.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Si ves un creeper… corre. Aunque, sinceramente, sería divertido verte explotar.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Yo no tengo miedo de la noche. La noche tiene miedo de mis descuentos.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Sand Brill no necesita armadura. Mi confianza es mi protección.' },
+    { name: 'Sand Brill', avatar: 'vill/vill1.jpg', text: 'Si te sientes solo, recuerda: siempre puedes venir a comerciar… pero trae esmeraldas, no problemas.' },
   ];
 
   const DEMO_CREDS = [
@@ -113,7 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { email: 'ramiro@moonveil.dev', password: 'Ramiro-1234!' },
     { email: 'petunia@moonveil.dev', password: 'Petunia-1234!' },
     { email: 'guido@moonveil.dev', password: 'Guido-1234!' },
-    { email: 'magician@moonveil.dev', password: 'Magician-2011!' },
+    { email: 'magician@moonveil.dev', password: 'Magician2011' },
+    { email: 'gatito@moonveil.dev', password: 'gatitos1' },
   ];
 
   /* -------------------------------------------------------
@@ -163,284 +163,183 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 
   /* -------------------------------------------------------
-     4) BIOMES CANVAS
-     ------------------------------------------------------- */
-  (function biomeModule() {
-    const host = $('#biomeCanvas');
-    if (!host) return;
+     4) BIOMES CANVAS — Moonveil Backgrounds v6.0
+     Version con imágenes + partículas dinámicas
+------------------------------------------------------- */
+(function biomeImagesParticles() {
+  const host = document.querySelector('#biomeCanvas');
+  if (!host) return;
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    host.appendChild(canvas);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  host.appendChild(canvas);
 
-    const caption = $('#biomeCaption');
-    const prev = $('#biomePrev');
-    const next = $('#biomeNext');
+  const caption = document.querySelector('#biomeCaption');
+  const prev = document.querySelector('#biomePrev');
+  const next = document.querySelector('#biomeNext');
 
-    const DPR = Math.min(2, window.devicePixelRatio || 1);
-    let W, H;
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+  let W, H, index = 0, fade = 1, fading = false;
+  let currentBiome = null, nextBiome = null;
+  let parts = [];
+  let autoTimer;
 
-    const BIOMES = [
-      { key:'forest',  name:'Bosque Esmeralda', sky:'#0b0f10', ground:'#0e1412' },
-      { key:'snow',    name:'Cumbres Nevadas',  sky:'#0b0e14', ground:'#0c1016' },
-      { key:'desert',  name:'Dunas Doradas',    sky:'#100f0b', ground:'#14120e' },
-      { key:'ocean',   name:'Abismo Azul',      sky:'#0a0f13', ground:'#0a0f13' },
-      { key:'nether',  name:'Nether Ígneo',     sky:'#140b0c', ground:'#150b0c' },
-      { key:'plains',  name:'Praderas de Luna', sky:'#0b0f0d', ground:'#0d120f' }
-    ];
-    let index = 0;
+  const BIOMES = [
+    { key:'forest',  name:'Un dia normal cargando un zorrito.', img:'img-pass/fox-xy.jpg' },
+    { key:'snow',    name:'La luna',  img:'imagen/moon1.jpg' },
+    { key:'desert',  name:'Hasta los gatos admiran el hermoso paisaje.',    img:'img-pass/catmoon.jpg' },
+    { key:'ocean',   name:'Y los lobos tambien miran la hermosa Luna.',      img:'imagen/dogmin.jpg' },
+    { key:'nether',  name:'Hasta los mejores nos perdemos.',     img:'img-pass/mapsteve.jpg' },
+    { key:'plains',  name:'Nuestro gran compañero.', img:'img-pass/allayworld.jpg' }
+  ];
 
-    // Partículas por bioma
-    let parts = [];
-    let tick = 0;
-    let autoplay = true;
-    let autoTimer;
-    const interval = Math.max(4500, parseInt(host.dataset.interval || '6000', 10));
+  const images = {};
+  BIOMES.forEach(b => {
+    const img = new Image();
+    img.src = b.img;
+    img.onload = () => { images[b.key] = img; };
+  });
 
-    function resize() {
-      const { width, height } = host.getBoundingClientRect();
-      W = canvas.width  = Math.max(320, Math.floor(width * DPR));
-      H = canvas.height = Math.max(200, Math.floor(height * DPR));
-      canvas.style.width = width + 'px';
-      canvas.style.height = height + 'px';
-      initParticles(BIOMES[index].key);
+  function resize() {
+    const rect = host.getBoundingClientRect();
+    W = canvas.width = rect.width * DPR;
+    H = canvas.height = rect.height * DPR;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    initParticles(currentBiome ? currentBiome.key : 'forest');
+  }
+
+  function initParticles(key) {
+    const count = Math.floor((W * H) / 8000);
+    parts = [];
+    for (let i = 0; i < count; i++) {
+      parts.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: 1 + Math.random() * 2,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        a: Math.random() * Math.PI * 2,
+        t: Math.random()
+      });
     }
 
-    function initParticles(key) {
-      const count = Math.round((W*H)/4800);
-      parts = [];
-      for (let i=0;i<count;i++) {
-        parts.push({
-          x: Math.random()*W,
-          y: Math.random()*H,
-          vx: 0, vy: 0, r: 1 + Math.random()*2,
-          a: Math.random()*Math.PI*2,
-          t: Math.random()
-        });
-      }
-      // Velocidades según bioma
-      for (const p of parts) {
-        if (key === 'snow') { p.vy = 0.3 + Math.random()*0.6; p.vx = (Math.random()-.5)*0.2; p.r = 1 + Math.random()*2; }
-        if (key === 'ocean'){ p.vy = (Math.random()-.5)*0.2; p.vx = (Math.random()-.5)*0.4; p.r = 1.2 + Math.random()*1.8; }
-        if (key === 'desert'){ p.vy = (Math.random()-.5)*0.1; p.vx = 0.6 + Math.random()*0.8; p.r = 0.8 + Math.random()*1.5; }
-        if (key === 'nether'){ p.vy = -0.2 + Math.random()*0.4; p.vx = (Math.random()-.5)*0.2; p.r = 1 + Math.random()*2; }
-        if (key === 'forest'){ p.vy = (Math.random()-.5)*0.15; p.vx = (Math.random()-.5)*0.15; }
-        if (key === 'plains'){ p.vy = (Math.random()-.5)*0.12; p.vx = (Math.random()-.5)*0.25; }
-      }
-    }
-
-    function drawBackground(b) {
-      // cielo
-      const skyGrad = ctx.createLinearGradient(0,0,0,H);
-      skyGrad.addColorStop(0, b.sky);
-      skyGrad.addColorStop(1, b.ground);
-      ctx.fillStyle = skyGrad;
-      ctx.fillRect(0,0,W,H);
-
-      // estrellas (comunes)
-      ctx.globalAlpha = 0.12;
-      for (let i=0;i<80;i++){
-        const x = (i*137)%W, y = (i*263)%H;
-        ctx.fillStyle = 'white';
-        ctx.fillRect(x, y, 1, 1);
-      }
-      ctx.globalAlpha = 1;
-    }
-
-    function drawForest(t) {
-      // Colinas
-      ctx.fillStyle = '#0d1511';
-      for (let i=0;i<4;i++){
-        const base = H*0.6 + i*14;
-        ctx.beginPath();
-        ctx.moveTo(0, base);
-        for (let x=0;x<=W;x+=20){
-          const y = base + Math.sin((x*0.01)+(i*1.2)+t*0.0018)*8;
-          ctx.lineTo(x, y);
-        }
-        ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
-        ctx.fill();
-      }
-      // Árboles (triángulos)
-      for (let i=0;i<24;i++){
-        const x = (i*97)%W;
-        const h = 16 + ((i*53)%26);
-        ctx.fillStyle = '#0e6a3d';
-        ctx.beginPath();
-        ctx.moveTo(x, H*0.62 - h);
-        ctx.lineTo(x-10, H*0.62);
-        ctx.lineTo(x+10, H*0.62);
-        ctx.closePath();
-        ctx.fill();
-        // tronco
-        ctx.fillStyle = '#5b4636';
-        ctx.fillRect(x-2, H*0.62, 4, 8);
-      }
-      // luciérnagas (uso de particles)
-      for (const p of parts) {
-        p.x += Math.sin(p.a + t*0.002)*0.4 + p.vx;
-        p.y += Math.cos(p.a + t*0.002)*0.2 + p.vy;
-        if (p.x<0) p.x=W; if (p.x>W) p.x=0; if (p.y<0) p.y=H; if (p.y>H) p.y=0;
-        const glow = 0.3 + Math.sin(t*0.01 + p.t)*0.3;
-        ctx.fillStyle = `rgba(48,209,88,${0.35+glow*0.45})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r + glow*1.2, 0, Math.PI*2); ctx.fill();
+    for (const p of parts) {
+      switch (key) {
+        case 'forest':
+          p.color = 'rgba(50,220,100,';
+          p.vx *= 0.3; p.vy *= 0.3;
+          break;
+        case 'snow':
+          p.color = 'rgba(255,255,255,';
+          p.vx = (Math.random() - 0.5) * 0.2;
+          p.vy = 0.3 + Math.random() * 0.5;
+          break;
+        case 'desert':
+          p.color = 'rgba(255,215,100,';
+          p.vx = 0.4 + Math.random() * 0.6;
+          p.vy = (Math.random() - 0.5) * 0.1;
+          break;
+        case 'ocean':
+          p.color = 'rgba(80,180,255,';
+          p.vx = (Math.random() - 0.5) * 0.3;
+          p.vy = (Math.random() - 0.5) * 0.3;
+          break;
+        case 'nether':
+          p.color = 'rgba(255,70,70,';
+          p.vx = (Math.random() - 0.5) * 0.3;
+          p.vy = -0.4 - Math.random() * 0.3;
+          break;
+        case 'plains':
+          p.color = 'rgba(255,255,180,';
+          p.vx *= 0.2; p.vy *= 0.2;
+          break;
       }
     }
+  }
 
-    function drawSnow(t) {
-      // Montañas
-      ctx.fillStyle = '#0d1420';
+  function drawBiome(biome, alpha = 1) {
+    const img = images[biome.key];
+    if (!img) return;
+    ctx.globalAlpha = alpha;
+    const scale = Math.max(W / img.width, H / img.height);
+    const x = (W - img.width * scale) / 2;
+    const y = (H - img.height * scale) / 2;
+    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawParticles(t) {
+    for (const p of parts) {
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H;
+      if (p.y > H) p.y = 0;
+
+      const flicker = 0.3 + Math.sin(t * 0.004 + p.t * 6) * 0.3;
+      ctx.fillStyle = p.color + (0.2 + flicker * 0.5) + ')';
       ctx.beginPath();
-      ctx.moveTo(0,H*0.65);
-      for (let x=0;x<=W;x+=40){ ctx.lineTo(x, H*0.65 + Math.sin(x*0.01+t*0.002)*12); }
-      ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fill();
-      // nieve (particles)
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      for (const p of parts) {
-        p.x += p.vx; p.y += p.vy;
-        if (p.y>H) { p.y = -5; p.x = Math.random()*W; }
-        if (p.x<-5) p.x = W+5; if (p.x>W+5) p.x = -5;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+      ctx.arc(p.x, p.y, p.r + flicker, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function setBiome(i) {
+    const newBiome = BIOMES[(i + BIOMES.length) % BIOMES.length];
+    if (!currentBiome) {
+      currentBiome = newBiome;
+      caption.textContent = newBiome.name;
+      initParticles(newBiome.key);
+      return;
+    }
+    if (newBiome.key === currentBiome.key) return;
+    nextBiome = newBiome;
+    fade = 1;
+    fading = true;
+    caption.textContent = newBiome.name;
+    initParticles(newBiome.key);
+  }
+
+  function loop(t) {
+    ctx.clearRect(0, 0, W, H);
+
+    if (currentBiome && images[currentBiome.key]) {
+      drawBiome(currentBiome, 1);
+    }
+
+    if (fading && nextBiome && images[nextBiome.key]) {
+      drawBiome(nextBiome, 1 - fade);
+      fade -= 0.03;
+      if (fade <= 0) {
+        currentBiome = nextBiome;
+        nextBiome = null;
+        fading = false;
       }
     }
 
-    function drawDesert(t) {
-      // Sol
-      ctx.globalAlpha = 0.95;
-      ctx.fillStyle = '#facc15';
-      ctx.beginPath(); ctx.arc(W*0.85, H*0.25, 20+Math.sin(t*0.002)*2, 0, Math.PI*2); ctx.fill();
-      ctx.globalAlpha = 1;
-      // Dunas
-      ctx.fillStyle = '#1c1a14';
-      for (let i=0;i<3;i++){
-        const base = H*0.7 + i*10;
-        ctx.beginPath(); ctx.moveTo(0, base);
-        for (let x=0;x<=W;x+=16) {
-          const y = base + Math.sin((x*0.02) + t*0.0015 + i)*6;
-          ctx.lineTo(x,y);
-        }
-        ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fill();
-      }
-      // arena flotante
-      ctx.fillStyle = 'rgba(245,158,11,0.35)';
-      for (const p of parts) {
-        p.x += p.vx; p.y += 0.1*Math.sin(t*0.005 + p.x*0.01);
-        if (p.x>W) p.x=-2;
-        ctx.fillRect(p.x, p.y, 2, 1);
-      }
-    }
+    if (currentBiome) drawParticles(t);
 
-    function drawOcean(t) {
-      // Ondas
-      for (let y = H*0.5; y < H; y+=8) {
-        const amp = Math.sin(t*0.002 + y*0.05)*4;
-        ctx.strokeStyle = `rgba(56,189,248,${0.12 + (y/H)*0.25})`;
-        ctx.beginPath();
-        for (let x=0;x<=W;x+=6) {
-          ctx.lineTo(x, y + Math.sin(x*0.05 + t*0.002)*amp);
-        }
-        ctx.stroke();
-      }
-      // burbujas/peces
-      for (const p of parts) {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x<0) p.x=W; if (p.x>W) p.x=0;
-        if (p.y<0) p.y=H; if (p.y>H) p.y=0;
-        ctx.fillStyle = 'rgba(56,189,248,0.6)';
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
-      }
-    }
+    requestAnimationFrame(loop);
+  }
 
-    function drawNether(t) {
-      // Fuego vertical
-      for (let x=0; x<W; x+=6) {
-        const h = (Math.sin(t*0.02 + x*0.05)*0.5+0.5) * (H*0.2);
-        const grad = ctx.createLinearGradient(x, H, x, H-h);
-        grad.addColorStop(0, 'rgba(239,68,68,0)');
-        grad.addColorStop(1, 'rgba(239,68,68,0.6)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(x, H-h, 4, h);
-      }
-      // partículas rojas ascendiendo
-      ctx.fillStyle = 'rgba(187,47,61,0.8)';
-      for (const p of parts) {
-        p.y += p.vy; p.x += p.vx;
-        if (p.y < -4) { p.y = H+4; p.x = Math.random()*W; }
-        ctx.fillRect(p.x, p.y, 2, 2);
-      }
-    }
+  function startAutoplay() {
+    if (autoTimer) clearInterval(autoTimer);
+    autoTimer = setInterval(() => setBiome(index = (index + 1) % BIOMES.length), 8000);
+  }
 
-    function drawPlains(t) {
-      // Pasto ondulante
-      for (let y = H*0.6; y < H*0.85; y+=6){
-        const amp = 4 + (y/H)*8;
-        ctx.strokeStyle = `rgba(48,209,88,${0.2 + (y/H)*0.3})`;
-        ctx.beginPath();
-        for (let x=0;x<=W;x+=8) {
-          ctx.lineTo(x, y + Math.sin(x*0.04 + t*0.003)*amp);
-        }
-        ctx.stroke();
-      }
-      // polen
-      for (const p of parts) {
-        p.x += p.vx + Math.sin(t*0.002+p.t*6)*0.1;
-        p.y += p.vy + Math.cos(t*0.002+p.t*6)*0.05;
-        if (p.x<0) p.x=W; if (p.x>W) p.x=0; if (p.y<0) p.y=H; if (p.y>H) p.y=0;
-        ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        ctx.fillRect(p.x, p.y, 1.5, 1.5);
-      }
-    }
+  resize();
+  window.addEventListener('resize', resize);
+  setBiome(0);
+  loop();
+  startAutoplay();
 
-    const DRAWERS = {
-      forest: drawForest,
-      snow: drawSnow,
-      desert: drawDesert,
-      ocean: drawOcean,
-      nether: drawNether,
-      plains: drawPlains
-    };
+  prev.addEventListener('click', () => { setBiome(--index); startAutoplay(); });
+  next.addEventListener('click', () => { setBiome(++index); startAutoplay(); });
+})();
 
-    function render() {
-      const b = BIOMES[index];
-      caption.textContent = b.name;
-      drawBackground(b);
-      const now = performance.now();
-      const fn = DRAWERS[b.key];
-      if (fn) fn(now);
-    }
-
-    function loop() {
-      ctx.clearRect(0,0,W,H);
-      render();
-      tick++;
-      requestAnimationFrame(loop);
-    }
-
-    function setBiome(i) {
-      index = (i + BIOMES.length) % BIOMES.length;
-      caption.textContent = BIOMES[index].name;
-      initParticles(BIOMES[index].key);
-    }
-
-    function startAutoplay() {
-      stopAutoplay();
-      if (!autoplay) return;
-      autoTimer = setInterval(() => setBiome(index+1), interval);
-    }
-    function stopAutoplay() {
-      if (autoTimer) clearInterval(autoTimer);
-    }
-
-    // setup
-    resize();
-    window.addEventListener('resize', resize);
-    setBiome(0);
-    loop();
-    startAutoplay();
-
-    prev.addEventListener('click', () => { setBiome(index-1); startAutoplay(); });
-    next.addEventListener('click', () => { setBiome(index+1); startAutoplay(); });
-  })();
 
   /* -------------------------------------------------------
      5) TRADES (tabla)
@@ -586,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Demo creds
-    function renderDemoCreds() {
+    /*function renderDemoCreds() {
       demoWrap.innerHTML = '';
       DEMO_CREDS.forEach((c) => {
         const chip = document.createElement('button');
@@ -602,7 +501,15 @@ document.addEventListener('DOMContentLoaded', () => {
         demoWrap.appendChild(chip);
       });
     }
-    renderDemoCreds();
+    renderDemoCreds();*/
+
+
+    function renderDemoCreds() {
+  // Ya no se renderizan los botones, solo se mantiene el array DEMO_CREDS
+  if (demoWrap) demoWrap.style.display = 'none';
+}
+renderDemoCreds();
+
 
 
 
@@ -641,9 +548,9 @@ form.addEventListener('submit', (e) => {
 
 
     // Links simulados
-    $('#forgotLink')?.addEventListener('click', (e) => { e.preventDefault(); toast('Enviamos un enlace de recuperación (simulado)'); });
-    $('#createLink')?.addEventListener('click', (e) => { e.preventDefault(); toast('Creación de cuenta próximamente'); });
-    $$('[data-oauth]').forEach(btn => btn.addEventListener('click', () => toast('OAuth simulado')));
+    $('#forgotLink')?.addEventListener('click', (e) => { e.preventDefault(); toast('No Activo'); });
+    $('#createLink')?.addEventListener('click', (e) => { e.preventDefault(); toast('Creación de cuenta - No Activo'); });
+    $$('[data-oauth]').forEach(btn => btn.addEventListener('click', () => toast('OAuth - No Activo')));
 
   })();
 
