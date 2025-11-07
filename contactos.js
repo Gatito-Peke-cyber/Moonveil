@@ -590,28 +590,126 @@ const contacts = [
       fallback: '...'
     }
   },
-  /*{
+  {
     id:'c17',
-    name:'Creaking',
-    alias:'Lo oscuridad del bosque',
-    desc:'Evento...',
-    avatar:'gif/news1.gif',
+    name:'Allay🎶',
+    alias:'El angel musical',
+    desc:'Volvamos a recordar...',
+    avatar:'gif/minecraft-allay.gif',
+    mystery:false, gold:true, online:true, unread:0,
+    kind:'options',
+    quickReplies:['October','November'],
+    profile:{
+      correo:'allay@music.disc', seccion:'', profesion:'',
+      pasatiempos:['Escuchar Musica'],
+      mascotas:[''],
+      colorFav:''
+    },
+    brain:{
+      prompt:'🎶🎶🎶🎶',
+      options:[
+        { label:'October', reply:{ type:'audio', url:'music/spooky.mp3' } },
+        { label:'November', reply:{ type:'audio', url:'music/november.mp3' } },
+        { label:'Sand Brill', reply:{ type:'audio', url:'ald/music1.mp3' } },
+        { label:'Shop', reply:{ type:'audio', url:'music/1234.mp3' } },
+        { label:'████', reply:{ type:'audio', url:'music/sleep.mp3' } },
+        { label:'████████', reply:{ type:'audio', url:'music/sleep.mp3' } },
+        { label:'███', reply:{ type:'image', url:'img-pass/crepitante.jpg' } },
+        { label:'██', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'█', reply:{ type:'audio', url:'music/spooky.mp3' } },
+      ],
+      fallback: 'Todavia no tenemos esa pista...'
+    }
+  },
+  /*{
+    id:'c18',
+    name:'Allay🎶',
+    alias:'El angel musical',
+    desc:'Lo bueno de la musica...',
+    avatar:'gif/minecraft-allay.gif',
     mystery:false, gold:false, online:true, unread:0,
     kind:'options',
     quickReplies:['Event'],
     profile:{
-      correo:'event@moonveil.mv', seccion:'', profesion:'',
+      correo:'allay@moonveil.mv', seccion:'', profesion:'',
       pasatiempos:[''],
       mascotas:[''],
       colorFav:''
     },
     brain:{
-      prompt:'Creaking...',
+      prompt:'🎶🎶🎶🎶',
       options:[
         { label:'Event', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
         { label:'Hola', reply:'No hay tiempo para eso...' },
         { label:'1', reply:'La parte 1 comienza desde el dia 25' },
         { label:'2', reply:'La parte 2 comienza el dia 31' },
+        { label:'cancion', reply:{ type:'audio', url:'dav/sleep.mp3' } },
+        { label:'3', reply:'No hay parte 3...' },
+        { label:'Como estas', reply:'Algo tiene que ver con el evento?' },
+        { label:'creacion', reply:'Pues como tal no' },
+        { label:'Dibujo', reply:{ type:'image', url:'img-pass/crepitante.jpg' } },
+        { label:'Evento', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'cancion', reply:{ type:'audio', url:'music/spooky.mp3' } },
+      ],
+      fallback: '...'
+    }
+  },*/
+  /*{
+    id:'c19',
+    name:'Allay🎶',
+    alias:'El angel musical',
+    desc:'Lo bueno de la musica...',
+    avatar:'gif/minecraft-allay.gif',
+    mystery:false, gold:false, online:true, unread:0,
+    kind:'options',
+    quickReplies:['Event'],
+    profile:{
+      correo:'allay@moonveil.mv', seccion:'', profesion:'',
+      pasatiempos:[''],
+      mascotas:[''],
+      colorFav:''
+    },
+    brain:{
+      prompt:'🎶🎶🎶🎶',
+      options:[
+        { label:'Event', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'Hola', reply:'No hay tiempo para eso...' },
+        { label:'1', reply:'La parte 1 comienza desde el dia 25' },
+        { label:'2', reply:'La parte 2 comienza el dia 31' },
+        { label:'cancion', reply:{ type:'audio', url:'dav/sleep.mp3' } },
+        { label:'3', reply:'No hay parte 3...' },
+        { label:'Como estas', reply:'Algo tiene que ver con el evento?' },
+        { label:'creacion', reply:'Pues como tal no' },
+        { label:'Dibujo', reply:{ type:'image', url:'img-pass/crepitante.jpg' } },
+        { label:'Evento', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'cancion', reply:{ type:'audio', url:'music/spooky.mp3' } },
+      ],
+      fallback: '...'
+    }
+  },*/
+  /*{
+    id:'c20',
+    name:'Allay🎶',
+    alias:'El angel musical',
+    desc:'Lo bueno de la musica...',
+    avatar:'gif/minecraft-allay.gif',
+    mystery:false, gold:false, online:true, unread:0,
+    kind:'options',
+    quickReplies:['Event'],
+    profile:{
+      correo:'allay@moonveil.mv', seccion:'', profesion:'',
+      pasatiempos:[''],
+      mascotas:[''],
+      colorFav:''
+    },
+    brain:{
+      prompt:'🎶🎶🎶🎶',
+      options:[
+        { label:'Event', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'Hola', reply:'No hay tiempo para eso...' },
+        { label:'1', reply:'La parte 1 comienza desde el dia 25' },
+        { label:'2', reply:'La parte 2 comienza el dia 31' },
+        { label:'cancion', reply:{ type:'audio', url:'dav/sleep.mp3' } },
         { label:'3', reply:'No hay parte 3...' },
         { label:'Como estas', reply:'Algo tiene que ver con el evento?' },
         { label:'creacion', reply:'Pues como tal no' },
@@ -1196,4 +1294,3 @@ if (audio && musicButton) {
     }
   });
 }
-
