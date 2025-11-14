@@ -95,6 +95,7 @@ const D30 = 30*H24;
 function escapeHTML(s){return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function cls(...xs){return xs.filter(Boolean).join(' ')}
 
+
 /* =========================================================
    DATASET (muestra; puedes añadir más items si deseas)
    Campos:
@@ -146,6 +147,24 @@ const products = [
   { id:'c1', name:'Pack de 128r.', img:'img/coin.jpg', quality:'common', price:64, stock:999, restock:null, section:'monedas', gold:false, desc:'Para trueques y consumibles básicos.(2 stacks)', tags:['monedas','pack'] },
   { id:'c2', name:'Pack de 256r.', img:'img/packcoin.jpg', quality:'rare', price:128, stock:999, restock:null, section:'monedas', gold:false, desc:'Relación costo/beneficio equilibrada.(4 stacks)', tags:['monedas','pack'] },
   { id:'c3', name:'Pack de 384r.', img:'img/stackcoin.jpg', quality:'epic', price:256, stock:999, restock:null, section:'monedas', gold:true, desc:'Ideal para temporadas completas.(6 stacks)', tags:['monedas','pack'] },
+
+
+  /* ===== TICKETS DE RULETA ===== */
+
+  { id:'t_classic_1', name:'Ticket Clasico', img:'imagen/ticket1.jpg', quality:'epic', price:10,  stock:10, restock:'24h', amount:1 , section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','clasico'] },
+  { id:'t_mystic_1', name:'Ticket mistico', img:'imagen/ticket2.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','mistico'] },
+  { id:'t_elemental_1', name:'Ticket elemental', img:'imagen/ticket3.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','elemental'] },
+  { id:'t_event_1', name:'Ticket evento', img:'imagen/ticket4.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','evento'] },
+  { id:'t_classic_2', name:'Ticket Clasico', img:'imagen/ticket1.jpg', quality:'epic', price:30,  stock:10, restock:'24h', amount:5 , section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','clasico'] },
+  { id:'t_mystic_2', name:'Ticket mistico', img:'imagen/ticket2.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','mistico'] },
+  { id:'t_elemental_2', name:'Ticket elemental', img:'imagen/ticket3.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','elemental'] },
+  { id:'t_event_2', name:'Ticket evento', img:'imagen/ticket4.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','evento'] },
+  { id:'t_classic_3', name:'Ticket Clasico', img:'imagen/ticket1.jpg', quality:'epic', price:0,  stock:1, restock:'24h', amount:10 , section:'tickets', gold:true, desc:'Ticket para la ruleta x10', tags:['ticket','clasico'] },
+
+/* ===== TICKETS PARA RULETAS ===== */
+
+
+
 ];
 
 /* =========================================================
@@ -191,7 +210,11 @@ const gridFun    = $('#gridFun');
 const gridLore   = $('#gridLore');
 const gridMats   = $('#gridMats');
 const gridEvents = $('#gridEvents');
+const gridTickets  = $('#gridTickets');
 const gridCoins  = $('#gridCoins');
+
+
+
 
 const chipSections = $('#chipSections');
 const searchInput = $('#searchInput');
@@ -267,6 +290,7 @@ function renderAll(){
   const M = arr.filter(p=>p.section==='materiales');
   const E = arr.filter(p=>p.section==='eventos');
   const C = arr.filter(p=>p.section==='monedas');
+  const T = arr.filter(p=>p.section==='tickets');
 
   gridSeason.innerHTML = S.map(cardTemplate).join('') || emptyBlock('No hay pases disponibles.');
   gridKeys.innerHTML   = K.map(cardTemplate).join('') || emptyBlock('No hay llaves por ahora.');
@@ -275,6 +299,7 @@ function renderAll(){
   gridMats.innerHTML   = M.map(cardTemplate).join('') || emptyBlock('Sin materiales.');
   gridEvents.innerHTML = E.map(cardTemplate).join('') || emptyBlock('No hay eventos activos.');
   gridCoins.innerHTML  = C.map(cardTemplate).join('') || emptyBlock('No hay packs de monedas.');
+  gridTickets.innerHTML  = T.map(cardTemplate).join('') || emptyBlock('No hay tickets en estos momentos.');
 
   // Bind eventos
   $$('[data-open]').forEach(b=> b.addEventListener('click', ()=> openModal(b.getAttribute('data-open'))));
@@ -438,6 +463,11 @@ modalBuy.addEventListener('click', ()=>{
 /* =========================================================
    Comprar (sin saldo): descuenta stock y actualiza UI
    ========================================================= */
+/* =========================================================
+   Comprar (sin saldo): descuenta stock y actualiza UI
+   - Si el item es un ticket (id empezando con "t_" o tag 'ticket'), 
+     se añadirá el/los ticket(s) a la ruleta correspondiente.
+   ========================================================= */
 function buyItem(id, opts={}){
   const p = products.find(x=> x.id===id);
   if (!p) return;
@@ -445,6 +475,7 @@ function buyItem(id, opts={}){
   let st = getStock(p);
   if (st<=0){ toast('Artículo agotado'); return; }
 
+  // decrement stock
   st -= 1;
   setStock(p, st);
 
@@ -457,7 +488,88 @@ function buyItem(id, opts={}){
     }
   }
 
-  if (opts.toastMsg!==false) toast(`Comprado: ${p.name}`);
+  // ---------- NUEVO: detectar si es un producto "ticket" ----------
+  // Regla simple y robusta:
+  //  - Si el id comienza por "t_<wheelId>" -> otorga 1 ticket a wheelId
+  //  - Si el producto tiene tag 'ticket' puedes personalizar (ej. name, desc)
+  //  - Puedes ajustar la 'count' si quieres dar >1 tickets por compra
+  function detectTicketInfo(product){
+    // default: no es ticket
+    const info = { isTicket:false, wheelId:null, count:0 };
+
+    // prioridad 1: id con prefijo t_
+    if (typeof product.id === 'string' && product.id.startsWith('t_')){
+      const parts = product.id.split('_'); // t_classic -> ['t','classic']
+      if (parts.length >= 2 && parts[1]) {
+        info.isTicket = true;
+        //info.wheelId = parts.slice(1).join('_'); // por si usa t_some_wheel
+        // Quitar sufijo numérico opcional ( _1 , _2 , _99 , etc. )
+let wheel = parts.slice(1).join('_');
+wheel = wheel.replace(/_\d+$/, ''); // <-- elimina _1, _2, _3, etc.
+info.wheelId = wheel;
+
+        //info.count = 1;
+        info.count = product.amount ?? 1;
+        return info;
+      }
+    }
+
+    // prioridad 2: tag 'ticket' -> intentar inferir wheel a partir del nombre
+    if (Array.isArray(product.tags) && product.tags.includes('ticket')){
+      // intenta extraer wheelId desde name: 'Ticket Ruleta Clásica' -> 'classic'
+      const name = (product.name||'').toLowerCase();
+      if (name.includes('clásic') || name.includes('classic')) { info.isTicket=true; info.wheelId='classic'; info.count=1; return info; }
+      if (name.includes('místic') || name.includes('mystic') || name.includes('mística')) { info.isTicket=true; info.wheelId='mystic'; info.count=1; return info; }
+      if (name.includes('elemental')) { info.isTicket=true; info.wheelId='elemental'; info.count=1; return info; }
+      // si no se puede inferir, marcar como ticket genérico (no asigna)
+      info.isTicket = true;
+      info.wheelId = null;
+      //info.count = 1;
+      info.count = product.amount ?? 1;
+      return info;
+    }
+
+    return info;
+  }
+
+  function awardTicketsToWheel(wheelId, count){
+    if (!wheelId) return false;
+    // si existe función global addTickets (de tu código de ruleta), úsala
+    try {
+      if (typeof addTickets === 'function') {
+        addTickets(wheelId, count);
+      } else {
+        // fallback directo a localStorage con la misma clave usada por la ruleta
+        const key = `mv_tickets_${wheelId}`;
+        const cur = parseInt(localStorage.getItem(key) || '0', 10);
+        localStorage.setItem(key, String(Math.max(0, cur + (count|0))));
+      }
+      // intenta actualizar UI si las funciones renderTicketCounts/renderHUDTickets existen
+      if (typeof renderTicketCounts === 'function') try{ renderTicketCounts(); }catch(e){}
+      if (typeof renderHUDTickets === 'function') try{ renderHUDTickets(); }catch(e){}
+      return true;
+    } catch(e){
+      console.warn('awardTicketsToWheel error', e);
+      return false;
+    }
+  }
+
+  // detectar ticket y aplicarlo
+  const ticketInfo = detectTicketInfo(p);
+  if (ticketInfo.isTicket){
+    const gave = ticketInfo.wheelId ? awardTicketsToWheel(ticketInfo.wheelId, ticketInfo.count) : false;
+    if (gave){
+      // mensaje claro según si se reconoció la ruleta
+      const displayWheel = ticketInfo.wheelId ? ticketInfo.wheelId : 'ruleta';
+      if (opts.toastMsg!==false) toast(`Comprado: ${p.name} — +${ticketInfo.count} ticket(s) para ${displayWheel}`);
+    } else {
+      if (opts.toastMsg!==false) toast(`Comprado: ${p.name} — Ticket guardado localmente`);
+    }
+  } else {
+    if (opts.toastMsg!==false) toast(`Comprado: ${p.name}`);
+  }
+
+  // refrescar la tienda
   renderAll();
 
   // Actualiza modal si está abierto
@@ -465,6 +577,7 @@ function buyItem(id, opts={}){
     openModal(id);
   }
 }
+
 
 /* =========================================================
    Tiempos amigables
@@ -545,3 +658,29 @@ if (audio && musicButton) {
     }
   });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// --- COMPRA DE TICKETS DESDE TIENDA ---
+// Recibe: id de ruleta ("classic", "mystic", etc) y cantidad
+window.buyTickets = function(wheelId, amount) {
+    try {
+        addTickets(wheelId, amount); // tu propia función, ya funcional
+        toast(`Has recibido ${amount} ticket(s) de la ruleta ${wheelId}`);
+    } catch (e) {
+        console.error(e);
+        toast("Error al entregar los tickets.");
+    }
+};

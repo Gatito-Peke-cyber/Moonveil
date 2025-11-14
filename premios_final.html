@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Moonveil — Premios (Multiruleta, final)</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Base CSS del portal (opcional, si lo tienes) -->
+  <link rel="stylesheet" href="inicio.css" />
+
+  <!-- Nuestro CSS -->
+  <link rel="stylesheet" href="premios_final.css" />
+
+  <meta name="description" content="Moonveil Premios — multiruleta con tickets por ruleta, misiones reseteables y ruletas temporales con fondos y música." />
+</head>
+<body class="theme-auto">
+
+  <!-- BG + partículas (estética portal) -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div id="bgLayer" class="bg-layer"></div>
+  </div>
+
+  <!-- HUD / Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a class="active" aria-current="page">Premios</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <!-- HUD: tickets rápido (por ruleta) -->
+    <div class="hud-stats" aria-label="Tickets">
+      <div id="hudTickets" class="hud-tickets"></div>
+    </div>
+  </header>
+
+  <main class="prizes-root container" role="main" aria-labelledby="prizesTitle">
+    <header class="prizes-header">
+      <div>
+        <h1 id="prizesTitle">Moonveil — Premios</h1>
+        <p class="lead u-muted">Gira ruletas temáticas con tickets. Las ruletas temporales se mostrarán pero bloqueadas hasta su fecha.</p>
+      </div>
+      <div class="header-actions">
+        <button id="btnOpenRules" class="btn btn--ghost">Reglas</button>
+      </div>
+    </header>
+
+    <section class="top-controls">
+      <div class="select-wrap">
+        <label for="wheelSelect">Selecciona ruleta</label>
+        <select id="wheelSelect"></select>
+      </div>
+
+      <div class="controls">
+        <button id="btnPreview" class="btn btn--ghost">Ver premios</button>
+        <button id="btnSpin" class="btn btn--primary">Girar (usar ticket)</button>
+        <div id="spinInfo" class="spin-info u-muted">—</div>
+      </div>
+    </section>
+
+    <section class="main-area">
+      <div class="wheel-column">
+        <div class="wheel-shell">
+          <div id="wheelBackdrop" class="wheel-backdrop"></div>
+          <div id="wheel" class="wheel" aria-hidden="true" role="img" aria-label="Ruleta de premios"></div>
+          <div class="wheel-pointer" aria-hidden="true">▲</div>
+          <div id="wheelLock" class="wheel-lock" hidden>
+            <div class="lock-box">
+              <div class="lock-icon">🔒</div>
+              <div id="lockText" class="lock-text">Bloqueada</div>
+              <div id="lockRange" class="lock-range u-muted">Del 13/11/2025 al 25/11/2025</div>
+            </div>
+          </div>
+          <!-- particulas de bloqueo -->
+          <canvas id="lockParticles" class="lock-particles" aria-hidden="true"></canvas>
+        </div>
+        <div class="wheel-footer">
+          <div id="wheelDesc" class="wheel-desc u-muted">Descripción de la ruleta</div>
+        </div>
+      </div>
+
+      
+
+      <aside class="right-column">
+        <div class="panel">
+          <h3>Tickets</h3>
+          <div id="ticketCounts" class="ticket-counts"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Misiones (ganar tickets)</h3>
+          <div id="missionsList" class="missions-list"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Último premio</h3>
+          <div id="lastPrize" class="last-prize u-muted">—</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="history-section panel">
+      <h3>Historial de premios</h3>
+      <div id="prizeHistory" class="prize-history">—</div>
+    </section>
+  </main>
+
+  <!-- Modal: preview / history / prize -->
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__panel">
+      <button id="modalClose" class="modal__close" aria-label="Cerrar">✕</button>
+      <div id="modalContent" class="modal__content"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand"><span class="cube"></span><strong>Moonveil</strong> Portal</div>
+      <p class="foot__copy">© <span id="y-year"></span> Moonveil.</p>
+    </div>
+  </footer>
+
+  <!-- JS -->
+  <script type="module" src="premios_final.js"></script>
+  <script>document.getElementById('y-year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
