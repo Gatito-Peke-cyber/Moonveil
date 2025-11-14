@@ -102,6 +102,8 @@ const contacts = [
         { label:'Audio', reply:{ type:'audio', url:'music/1234.mp3' } },
         { label:'Sand', reply:{ type:'audio', url:'ald/music1.mp3' } },
         { label:'🐶', reply:'Runa!?...' },
+        { label:'Video', reply:{ type:'video', url:'vill/wolfmine.mp4' } },
+        { label:'Video2', reply:{ type:'video', url:'video/stevevideo2.mp4' } },
       ],
       fallback: 'No entiendo pero, digamos que si, pero con esmeraldas se soluciona...'
     }
@@ -621,25 +623,25 @@ const contacts = [
       fallback: 'Todavia no tenemos esa pista...'
     }
   },
-  /*{
+  {
     id:'c18',
-    name:'Allay🎶',
-    alias:'El angel musical',
-    desc:'Lo bueno de la musica...',
-    avatar:'gif/minecraft-allay.gif',
+    name:'Jack Galy',
+    alias:'El profe',
+    desc:'Lo bueno de la enseñanza...',
+    avatar:'vill/teacher.jpg',
     mystery:false, gold:false, online:true, unread:0,
     kind:'options',
     quickReplies:['Event'],
     profile:{
-      correo:'allay@moonveil.mv', seccion:'', profesion:'',
-      pasatiempos:[''],
-      mascotas:[''],
-      colorFav:''
+      correo:'jack.gl@moonveil.mv', seccion:'?', profesion:'The Teacher',
+      pasatiempos:['Enseñar'],
+      mascotas:['Gato "Galaxy"'],
+      colorFav:'Azul Marino'
     },
     brain:{
-      prompt:'🎶🎶🎶🎶',
+      prompt:'Aqui, para resolver tus dudas.',
       options:[
-        { label:'Event', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
+        { label:'Event', reply:'-' },
         { label:'Hola', reply:'No hay tiempo para eso...' },
         { label:'1', reply:'La parte 1 comienza desde el dia 25' },
         { label:'2', reply:'La parte 2 comienza el dia 31' },
@@ -651,9 +653,9 @@ const contacts = [
         { label:'Evento', reply:'El evento inicia el dia 25 de Octubre hasta el dia 2 de Noviembre' },
         { label:'cancion', reply:{ type:'audio', url:'music/spooky.mp3' } },
       ],
-      fallback: '...'
+      fallback: 'Todavia no tengo esa respuesta, pero pronto tal vez si...'
     }
-  },*/
+  },
   /*{
     id:'c19',
     name:'Allay🎶',
@@ -1081,14 +1083,26 @@ function pushPeer(c, content){
   let bubbleHTML = '';
 
   if (typeof content === 'string') {
-    // Si es texto normal
+    // Texto normal
     bubbleHTML = `<div class="text">${formatText(content)}</div>`;
-  } else if (content.type === 'image') {
+  } 
+  else if (content.type === 'image') {
     bubbleHTML = `<div class="text"><img src="${content.url}" alt="imagen" class="chat-image"></div>`;
-  } else if (content.type === 'pdf') {
+  } 
+  else if (content.type === 'pdf') {
     bubbleHTML = `<div class="text"><a href="${content.url}" target="_blank" class="chat-file">📄 Ver PDF</a></div>`;
-  } else if (content.type === 'audio') {
+  } 
+  else if (content.type === 'audio') {
     bubbleHTML = `<div class="text"><audio controls src="${content.url}" class="chat-audio"></audio></div>`;
+  } 
+  else if (content.type === 'video') {
+    bubbleHTML = `
+      <div class="text">
+        <video controls class="chat-video">
+          <source src="${content.url}" type="video/mp4">
+          Tu navegador no soporta videos.
+        </video>
+      </div>`;
   }
 
   node.innerHTML = `
@@ -1103,6 +1117,7 @@ function pushPeer(c, content){
   thread.appendChild(node);
   threadScrollToEnd();
 }
+
 
 
 function pushMe(me, text){
@@ -1223,7 +1238,20 @@ function toast(msg){
   clearTimeout(toastEl._id);
   toastEl._id = setTimeout(()=> toastEl.classList.remove('show'), 1400);
 }
+
+//esto es del scroll
 function threadScrollToEnd(){ thread.scrollTop = thread.scrollHeight; }
+
+/*function threadScrollToEnd() {
+  const threshold = 80; // píxeles desde el fondo para considerarlo “abajo”
+  const atBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < threshold;
+
+  // Solo autoscroll si el usuario estaba cerca del fondo
+  if (atBottom) {
+    thread.scrollTop = thread.scrollHeight;
+  }
+}*/
+
 
 /* =========================================================
    Inicialización

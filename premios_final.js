@@ -70,24 +70,32 @@ const ROULETTES = [
       { id:'c12', label:'Paquete de cobre (x64)', weight:1, rarity:'legend', img:'✨', desc:'Una garn bolsa' },
     ]
   },
-  /*{
+  {
     id: 'mystic',
-    title: 'Mística',
-    desc: 'Skins y objetos místicos. Requiere Tickets Místicos.',
+    title: 'Ruleta de Halloween',
+    desc: 'Requiere Tickets de Halloween.',
     bg: null,
     music: 'music/spooky.mp3',
     // example temporally locked ruleta
-    start: '2025-11-13',
-    end: '2025-11-25',
+    start: '2025-10-02',
+    end: '2025-11-30',
     rewards: [
-      { id:'m1', label:'Skin Místico', weight:6, rarity:'rare', img:'🧙', desc:'Aspecto exclusivo' },
+      { id:'m1', label:'Esmeradas x40', weight:6, rarity:'rare', img:'💚', desc:'Un paquetito de esmeraldas' },
       { id:'m2', label:'Esmeraldas x10', weight:30, rarity:'common', img:'💚', desc:'Paquete moderado' },
-      { id:'m3', label:'Cofre Místico', weight:25, rarity:'uncommon', img:'📦', desc:'Cofre con chance a raro' },
-      { id:'m4', label:'Objeto Legendario', weight:3, rarity:'legend', img:'🏆', desc:'Artículo único muy raro' },
-      { id:'m5', label:'Ticket Elemental', weight:4, rarity:'rare', img:'🎟️', desc:'Ticket para Elemental' }
+      { id:'m3', label:'Llave (x1)', weight:25, rarity:'uncommon', img:'📦', desc:'La llave de un cofre de la tematica' },
+      { id:'m4', label:'Un libro', weight:3, rarity:'legend', img:'🏆', desc:'Un pequeño libro de la temporada' },
+      { id:'m13', label:'El pase de la temporada', weight:3, rarity:'legend', img:'🏆', desc:'El pase de esta temporada (Octubre)' },
+      { id:'m5', label:'Ticket  de Desc. 50%', weight:4, rarity:'rare', img:'🎟️', desc:'Ticket' },
+      { id:'m6', label:'Ticket  de Desc. 40%', weight:4, rarity:'rare', img:'🎟️', desc:'Ticket' },
+      { id:'m7', label:'Ticket  de Desc. 30%', weight:4, rarity:'rare', img:'🎟️', desc:'Ticket' },
+      { id:'m8', label:'Ticket  de Desc. 20%', weight:4, rarity:'rare', img:'🎟️', desc:'Ticket' },
+      { id:'m9', label:'Esmeraldas x5', weight:30, rarity:'common', img:'💚', desc:'Bueno creo que se le cayo un poco mas' },
+      { id:'m10', label:'Esmeraldas x1', weight:30, rarity:'common', img:'💚', desc:'Creo que a un aldeano se le cayo' },
+      { id:'m11', label:'Esmeraldas x15', weight:30, rarity:'common', img:'💚', desc:'Paquete de una mini bolsa' },
+      { id:'m12', label:'Esmeraldas x20', weight:30, rarity:'common', img:'💚', desc:'Paquete de un mini cofre' },
     ]
   },
-  {
+  /*{
     id: 'elemental',
     title: 'Elemental',
     desc: 'Cofres por elemento y recursos únicos.',
@@ -105,7 +113,7 @@ const ROULETTES = [
   },*/
   {
     id: 'event',
-    title: 'Evento — Albor Místico',
+    title: 'Evento',
     desc: 'Premios exclusivos del evento (fecha limitada).',
     bg: null,
     music: 'music/1234.mp3',
