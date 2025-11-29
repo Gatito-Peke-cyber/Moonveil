@@ -14,6 +14,9 @@
   <!-- Nuestro CSS -->
   <link rel="stylesheet" href="premios_final.css" />
 
+  <link rel="stylesheet" href="loader.css">
+<script defer src="loader.js"></script>
+
   <meta name="description" content="Moonveil Premios — multiruleta con tickets por ruleta, misiones reseteables y ruletas temporales con fondos y música." />
 </head>
 <body class="theme-auto">
@@ -66,8 +69,10 @@
 
       <div class="controls">
         <button id="btnPreview" class="btn btn--ghost">Ver premios</button>
-        <button id="btnSpin" class="btn btn--primary">Girar (usar ticket)</button>
-        <div id="spinInfo" class="spin-info u-muted">—</div>
+        <button id="btnSpin" class="btn btn--primary">Girar x1</button>
+        <button id="btnSpin5" class="btn btn--primary">Tirar x5</button>
+
+        <div id="spinInfo" class="spin-info u-muted"> </div>
       </div>
     </section>
 
@@ -76,7 +81,11 @@
         <div class="wheel-shell">
           <div id="wheelBackdrop" class="wheel-backdrop"></div>
           <div id="wheel" class="wheel" aria-hidden="true" role="img" aria-label="Ruleta de premios"></div>
-          <div class="wheel-pointer" aria-hidden="true">▲</div>
+          <div class="wheel-pointer" aria-hidden="true"> </div>
+
+          <!-- 📌 CUADRO NUEVO DE FECHAS  ---------------- ▲-->
+  <div id="expireBox" class="wheel-expire-box"></div>
+
           <div id="wheelLock" class="wheel-lock" hidden>
             <div class="lock-box">
               <div class="lock-icon">🔒</div>

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Moonveil — Messenger (Asistencia avanzada)</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- CSS base del portal (inicio.css) y CSS específico -->
+  <link rel="stylesheet" href="inicio.css" />
+  <link rel="stylesheet" href="asistencia.css" />
+
+
+  <link rel="stylesheet" href="loader.css">
+<script defer src="loader.js"></script>
+
+  <meta name="description" content="Moonveil Messenger — Asistencia con múltiples asistentes, respuestas por palabras clave, imágenes y descargas." />
+</head>
+<body class="theme-auto">
+
+  <!-- Fondo / parallax (reusa estructura del portal para coherencia) -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax" aria-hidden="true">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar: idéntico estilo Moonveil -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="draw.html">Draw</a></li>
+        <li><a href="game.html">Game</a></li>
+        <li><a href="asistencia.html" class="active" aria-current="page">Asistencia</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores del jugador">
+      <div class="hud__bars">
+        <div id="hpBar" class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
+        <div id="xpBar" class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
+        <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN: Messenger -->
+  <main id="mvMessenger" class="mv-messenger container" role="main" aria-label="Messenger de Asistencia">
+    <div class="messenger-shell">
+
+      <!-- LEFT: contactos -->
+      <aside class="contacts-panel" role="navigation" aria-label="Lista de contactos">
+        <header class="contacts-header">
+          <div>
+            <h2>Asistentes</h2>
+            <div class="u-muted small">Selecciona un asistente para chatear</div>
+          </div>
+        </header>
+
+        <div id="contactsList" class="contacts-list" role="list" aria-label="Contactos">
+          <!-- Renderizado por JS -->
+        </div>
+
+        <footer class="contacts-footer u-muted small">
+          Moonveil Messenger — Asistencia
+        </footer>
+      </aside>
+
+      <!-- RIGHT: chat -->
+      <section class="chat-panel" role="region" aria-label="Chat activo">
+        <header class="chat-top">
+          <div class="chat-top-left">
+            <div id="activeAvatar" class="avatar avatar--lg" aria-hidden="true"></div>
+            <div class="chat-top-meta">
+              <div id="activeName" class="chat-name">Selecciona un contacto</div>
+              <div id="activeStatus" class="u-muted small">—</div>
+            </div>
+          </div>
+
+          <div class="chat-top-right">
+            <button id="btnExportChat" class="btn btn--ghost" title="Exportar conversación">Exportar</button>
+            <button id="btnClearChat" class="btn btn--ghost" title="Limpiar conversación">Limpiar</button>
+          </div>
+        </header>
+
+        <div id="chatWindow" class="chat-window" role="log" aria-live="polite" tabindex="0">
+          <div class="chat-empty u-muted">Selecciona un contacto en la lista para iniciar.</div>
+        </div>
+
+        <div class="chat-composer">
+          <label class="attach" title="Adjuntar imagen">
+            <input id="attachInput" type="file" accept="image/*" hidden />
+            📎
+          </label>
+          <input id="msgInput" type="text" placeholder="Escribe un mensaje o palabra clave..." aria-label="Mensaje" autocomplete="off" />
+          <button id="btnSend" class="btn btn--primary">Enviar</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Lightbox para imágenes -->
+    <div id="mvLightbox" class="mv-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+      <button id="lbClose" class="lightbox__close" aria-label="Cerrar">✕</button>
+      <figure class="lightbox__figure">
+        <img id="lbImg" alt="">
+        <figcaption id="lbCaption"></figcaption>
+      </figure>
+      <button id="lbPrev" class="lightbox__nav prev" aria-label="Anterior">‹</button>
+      <button id="lbNext" class="lightbox__nav next" aria-label="Siguiente">›</button>
+    </div>
+
+    <div id="mvToast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand"><span class="cube"></span><strong>Moonveil</strong> Portal</div>
+      <p class="foot__copy">© <span id="y-year"></span> Moonveil.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="asistencia.js"></script>
+  <script>document.getElementById('y-year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
