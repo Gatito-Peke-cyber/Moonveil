@@ -375,3 +375,95 @@ body{margin:0;font-family:Outfit,system-ui,Segoe UI,Roboto;color:var(--text);bac
   opacity: .4;
   cursor: default;
 }
+
+
+
+
+
+
+
+
+
+
+
+.wheel-expire-box {
+  position: absolute;
+  left: -205px;
+  top: 2%;
+  transform: translateY(0);
+
+  /* fondo cristal premium */
+  background: rgba(20, 28, 28, 0.58);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+
+  padding: 16px 20px;
+  border-radius: 16px;
+
+  /* texto */
+  color: #eafff7;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.45px;
+
+  /* borde neon suave */
+  border: 1px solid rgba(0, 255, 200, 0.22);
+
+  /* profundidad */
+  box-shadow:
+    0 6px 26px rgba(0,0,0,0.55),
+    0 0 16px rgba(0,255,190,0.28),
+    inset 0 0 10px rgba(0,255,200,0.18);
+
+  white-space: nowrap;
+  pointer-events: none;
+  display: none;
+
+  /* efecto de brillo suave */
+  animation: boxPulse 3s ease-in-out infinite;
+}
+
+/* Línea brillante vertical animada */
+.wheel-expire-box::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+
+  background: linear-gradient(to bottom,#4dfcff,#00e69d,#4dfcff);
+  border-radius: 4px;
+  opacity: 0.9;
+
+  animation: glowSlide 2.2s ease-in-out infinite;
+}
+
+/* efecto de aparición */
+.wheel-expire-box.show {
+  animation: fadeSlide 0.35s ease forwards, boxPulse 3s ease-in-out infinite;
+}
+
+/* animación entrada */
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* animación glow vertical */
+/*@keyframes glowSlide {
+  0% { opacity: .6; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(6px); }
+  100% { opacity: .6; transform: translateY(0); }
+}*/
+
+/* pulso suave del cuadro */
+@keyframes boxPulse {
+  0% { box-shadow: 0 6px 26px rgba(0,0,0,0.55), 0 0 14px rgba(0,255,190,0.22), inset 0 0 6px rgba(0,255,200,0.12); }
+  50% { box-shadow: 0 6px 26px rgba(0,0,0,0.55), 0 0 20px rgba(0,255,190,0.30), inset 0 0 12px rgba(0,255,200,0.22); }
+  100% { box-shadow: 0 6px 26px rgba(0,0,0,0.55), 0 0 14px rgba(0,255,190,0.22), inset 0 0 6px rgba(0,255,200,0.12); }
+}
+
+
+
+

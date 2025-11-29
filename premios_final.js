@@ -530,7 +530,7 @@ function renderWheel(wheelId) {
   wrapper.appendChild(svg);
 
   // puntero dorado superior
-  const pointer = el('div', { className: 'wheel-pointer' });
+  /*const pointer = el('div', { className: 'wheel-pointer' });
   Object.assign(pointer.style, {
     position: 'absolute',
     top: '-15px',
@@ -543,7 +543,24 @@ function renderWheel(wheelId) {
     borderBottom: '18px solid gold',
     filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.6))'
   });
-  container.appendChild(pointer);
+  container.appendChild(pointer);*/
+
+  // puntero dorado inferior (flecha hacia abajo)
+const pointer = el('div', { className: 'wheel-pointer' });
+Object.assign(pointer.style, {
+  position: 'absolute',
+  bottom: '-15px',        // antes top
+  left: '50%',
+  transform: 'translateX(-50%)',
+  width: '0',
+  height: '0',
+  borderLeft: '10px solid transparent',
+  borderRight: '10px solid transparent',
+  borderTop: '18px solid gold',  // antes borderBottom
+  filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.6))'
+});
+container.appendChild(pointer);
+
 
   container.appendChild(wrapper);
   container.dataset.wheelId = wheelId;
@@ -707,8 +724,6 @@ async function spinCurrentWheel(){
   const anglePer = 360 / parts;
   //const targetCenter = idx*anglePer + anglePer/2;
 
-  
-
   // ================ FIX REAL ================
   // REFERENCIA REAL DEL WHEEL
   const wheelEl = $('#wheel .wheel-wrapper');
@@ -829,6 +844,45 @@ function showPrizeModal(prize, wheelId){
   beep(880,0.05,0.06); beep(660,0.08,0.07);
 }
 
+
+
+
+function showFivePrizesModal(prizes, wheelId) {
+  const modal = $('#modal');
+  const content = $('#modalContent');
+
+  let html = `
+    <h2>Tirada x5 — ${wheelId}</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px">
+  `;
+
+  for (const p of prizes) {
+    html += `
+      <div style="padding:10px;border-radius:10px;background:#0e1a17;border:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:40px">${p.img || "🎁"}</div>
+        <strong>${p.label}</strong>
+        <div class="u-muted">${p.rarity}</div>
+      </div>
+    `;
+  }
+
+  html += `</div>
+    <div style="margin-top:18px;text-align:right">
+      <button id="btnAcknow5" class="btn btn--ghost">Aceptar</button>
+    </div>
+  `;
+
+  content.innerHTML = html;
+
+  $('#btnAcknow5').addEventListener('click', () => {
+    modal.setAttribute('aria-hidden','true');
+  });
+
+  modal.setAttribute('aria-hidden','false');
+
+  beep(880,0.05,0.06); beep(660,0.08,0.07);
+}
+
 /* preview modal */
 function openPreview(wheelId){
   const wheel = ROULETTES.find(w=>w.id===wheelId); if(!wheel) return;
@@ -906,19 +960,111 @@ function wireEvents(){
   $('#wheelSelect').addEventListener('change', (e)=> {
     const id = e.target.value;
     renderWheel(id);
+
+    // 🔥 MUY IMPORTANTE
+    const w = ROULETTES.find(r => r.id === id);
+    updateExpireBox(w);
+
     const wheel = ROULETTES.find(w=>w.id===id);
+    updateExpireBox(wheel); // ← AQUI es nuevo jeje
     // music change (if wheel has music use it)
     if(wheel && wheel.music){ playMusic(wheel.music); } else { playMusic(null); }
   });
   $('#btnPreview').addEventListener('click', ()=> openPreview($('#wheelSelect').value));
   $('#btnSpin').addEventListener('click', ()=> spinCurrentWheel());
   $('#modalClose').addEventListener('click', ()=> $('#modal').setAttribute('aria-hidden','true'));
+  $('#btnSpin5').addEventListener('click', () => spinFiveTimes());
+
   $('#btnOpenRules').addEventListener('click', ()=> {
     const modal = $('#modal'); const c = $('#modalContent');
     c.innerHTML = `<h3>Reglas</h3><ul><li>Cada ruleta usa sus propios tickets.</li><li>Completa misiones para recibir tickets.</li><li>Las ruletas temporales se muestran pero están bloqueadas hasta sus fechas.</li></ul>`;
     modal.setAttribute('aria-hidden','false');
   });
 }
+
+
+
+async function spinFiveTimes() {
+  if (spinning) return;
+
+  const wheelId = $('#wheelSelect').value;
+  const wheel = ROULETTES.find(w=>w.id===wheelId);
+  if (!wheel) return;
+
+  if (!inRangeToday(wheel.start, wheel.end)) {
+    toast("Esta ruleta está cerrada temporalmente.");
+    return;
+  }
+
+  let tickets = getTickets(wheelId);
+  if (tickets < 5) {
+    toast("Necesitas 5 tickets para tirar x5.");
+    return;
+  }
+
+  // Consumir tickets
+  setTickets(wheelId, tickets - 5);
+
+  // Calcular 5 premios reales (NO animación)
+  const results = [];
+  for (let i = 0; i < 5; i++) {
+    const idx = pickWithPity(wheel.id, wheel.rewards);
+    const prize = wheel.rewards[idx];
+
+    results.push(prize);
+
+    pushHistory({
+      wheel: wheelId,
+      label: prize.label,
+      img: prize.img,
+      rarity: prize.rarity,
+      time: new Date().toISOString()
+    });
+  }
+
+  // ----------- ANIMACIÓN: hacer girar la ruleta UNA VEZ -----------
+
+  const wheelEl = $('#wheel .wheel-wrapper');
+
+  // resetear giro anterior
+  wheelEl.style.transition = 'none';
+  wheelEl.style.transform = 'rotate(0deg)';
+  void wheelEl.offsetWidth;
+
+  spinning = true;
+
+  // animar hacia un premio aleatorio solo para el efecto visual
+  const randomFakeIndex = Math.floor(Math.random() * wheel.rewards.length);
+  const parts = wheel.rewards.length;
+  const anglePer = 360 / parts;
+  const targetCenter = randomFakeIndex * anglePer + anglePer / 2;
+
+  const spins = 6;
+  const finalRotation = spins * 360 + (270 - targetCenter);
+
+  // aplicar giro
+  wheelEl.style.transition = `transform 4.2s cubic-bezier(.14,.9,.26,1)`;
+  wheelEl.style.transform = `rotate(${finalRotation}deg)`;
+
+  // ticks sonido
+  const tickInterval = setInterval(()=> { beep(120,0.02); }, 110);
+  await wait(4400);
+  clearInterval(tickInterval);
+
+  // estabilización
+  wheelEl.style.transition = `transform 4s cubic-bezier(.14,.9,.26,1)`;
+  wheelEl.style.transform = `rotate(${finalRotation + rand(-6,6)}deg)`;
+  await wait(650);
+
+  spinning = false;
+
+  // ----------- MOSTRAR PREMIOS REALES -----------
+
+  showFivePrizesModal(results, wheelId);
+  toast("Tirada x5 completada.");
+}
+
+
 
 /* -------------------------- Init boot -------------------------- */
 function boot(){
@@ -929,9 +1075,13 @@ function boot(){
   renderHUDTickets();
   renderMissions();
   renderHistory();
+  //updateExpireBox(ROULETTES[0]);
+  //updateExpireBox(wheel); // ← AQUI supuestamente este no, pero el de arriba si
   // initial wheel
   $('#wheelSelect').value = ROULETTES[0].id;
   renderWheel(ROULETTES[0].id);
+
+  updateExpireBox(ROULETTES[0]);
   // reset missions based on freq
   resetMissionsIfNeeded();
   // wire events
@@ -957,3 +1107,50 @@ window.MoonveilPrizes = {
   pushHistory
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+function getDaysDifference(dateStr) {
+  const now = new Date();
+  const target = new Date(dateStr);
+  const diff = target - now;
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+function updateExpireBox(wheel) {
+  const box = $('#expireBox');
+
+  if (!wheel.start || !wheel.end) {
+    box.style.display = "none";
+    return;
+  }
+
+  const daysToStart = getDaysDifference(wheel.start);
+  const daysToEnd   = getDaysDifference(wheel.end);
+
+  // 🔒 Aún no empieza
+  if (daysToStart > 0) {
+    box.textContent = `🔒 Disponible en ${daysToStart} día${daysToStart===1?"":"s"}`;
+    box.style.display = "block";
+    return;
+  }
+
+  // ⏳ Ya inició pero no ha terminado
+  if (daysToEnd > 0) {
+    box.textContent = `⏳ Quedan ${daysToEnd} día${daysToEnd===1?"":"s"}`;
+    box.style.display = "block";
+    return;
+  }
+
+  // Expirada
+  box.style.display = "none";
+}
