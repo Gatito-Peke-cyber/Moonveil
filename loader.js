@@ -305,11 +305,11 @@ const loaderHTML = `
 
   //esto se volvera activar mas adelante porfa... no olvidar              ---- Here!!!
   /* Also hide on history navigation or if page already loaded */
-  window.addEventListener('pageshow', (e) => {
+  /*window.addEventListener('pageshow', (e) => {
     if (document.readyState === 'complete') {
       cleanupAndHide();
     }
-  });
+  });*/
 
   /* If page loads quickly, ensure we don't show long */
   let autoHideTimeout = setTimeout(() => {
