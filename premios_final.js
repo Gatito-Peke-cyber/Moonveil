@@ -20,6 +20,11 @@
  * - Archivos multimedia: usa rutas en assets/ o data URLs.
  */
 
+
+/* ================= MULTIPLICADOR DE TICKETS ================= */
+let TICKET_MULTIPLIER = 1;
+
+
 /* -------------------------- Helpers -------------------------- */
 const $ = (s, ctx=document) => ctx.querySelector(s);
 const $$ = (s, ctx=document) => Array.from((ctx||document).querySelectorAll(s));
@@ -78,7 +83,7 @@ const ROULETTES = [
     music: 'music/spooky.mp3',
     // example temporally locked ruleta
     start: '2025-10-02',
-    end: '2025-11-30',
+    end: '2025-12-01',
     rewards: [
       { id:'m1', label:'Esmeradas x40', weight:6, rarity:'rare', img:'💚', desc:'Un paquetito de esmeraldas' },
       { id:'m2', label:'Esmeraldas x10', weight:30, rarity:'common', img:'💚', desc:'Paquete moderado' },
@@ -117,7 +122,7 @@ const ROULETTES = [
     desc: 'Premios exclusivos del evento (fecha limitada).',
     bg: null,
     music: 'music/1234.mp3',
-    start: '2025-11-30',
+    start: '2025-12-01',
     end: '2025-12-05',
     rewards: [
       { id:'ev1', label:'Cosmético Evento', weight:10, rarity:'rare', img:'🎭', desc:'Objeto temático del evento' },
@@ -140,9 +145,14 @@ const MISSIONS = [
 
   // MYSTIC
   { id:'ms5', wheelId:'mystic', title:'Completa 5 raids', desc:'Activa y completa raids.', freq:'weekly', reward:{wheelId:'mystic', count:1} },
-  { id:'ms6', wheelId:'mystic', title:'Encuentra 3 cofres raros', desc:'Explora zonas místicas.', freq:'weekly', reward:{wheelId:'mystic', count:2} },
-  { id:'ms7', wheelId:'mystic', title:'Sobrevive 10 minutos sin daño', desc:'Demuestra habilidad.', freq:'monthly', reward:{wheelId:'mystic', count:5} },
-
+  { id:'ms6', wheelId:'mystic', title:'Abre 3 cofres', desc:'Ay mis cofres.', freq:'weekly', reward:{wheelId:'mystic', count:2} },
+  { id:'ms7', wheelId:'mystic', title:'Sobrevive 10 minutos sin daño', desc:'Demuestra habilidad.', freq:'daily', reward:{wheelId:'mystic', count:5} },
+  { id:'ms17', wheelId:'mystic', title:'Inicia Sesion', desc:'Conectate hoy.', freq:'daily', reward:{wheelId:'mystic', count:3} },
+  { id:'ms18', wheelId:'mystic', title:'Compra algo en la pagina (no cuenta cosas gratis)', desc:'Que me apetece hoy.', freq:'daily', reward:{wheelId:'mystic', count:5} },
+  { id:'ms19', wheelId:'mystic', title:'Juega un mundo', desc:'Conectate!', freq:'daily', reward:{wheelId:'mystic', count:5} },
+  { id:'ms20', wheelId:'mystic', title:'Intercambia una vez', desc:'Demuestra tu habilidad para comerciar.', freq:'daily', reward:{wheelId:'mystic', count:1} },
+  { id:'ms21', wheelId:'mystic', title:'Comercia 10 veces', desc:'Demuestra habilidad para hacer tratos.', freq:'daily', reward:{wheelId:'mystic', count:5} },
+  
   // ELEMENTAL
   { id:'ms8', wheelId:'elemental', title:'Usa 3 poderes elementales', desc:'Cualquier elemento sirve.', freq:'daily', reward:{wheelId:'elemental', count:1} },
   { id:'ms9', wheelId:'elemental', title:'Derrota 15 mobs', desc:'Usa armas o magia.', freq:'daily', reward:{wheelId:'elemental', count:1} },
@@ -150,11 +160,11 @@ const MISSIONS = [
   { id:'ms11', wheelId:'elemental', title:'Explora 2 biomas nuevos', desc:'Exploración elemental.', freq:'monthly', reward:{wheelId:'elemental', count:3} },
 
   // EVENT
-  { id:'ms12', wheelId:'event', title:'Participa en un evento', desc:'Válido en fecha del evento.', freq:'daily', reward:{wheelId:'event', count:1} },
-  { id:'ms13', wheelId:'event', title:'Ayuda en 3 actividades del evento', desc:'Misiones temporales.', freq:'weekly', reward:{wheelId:'event', count:3} },
-  { id:'ms14', wheelId:'event', title:'Derrota al jefe del evento', desc:'Solo en eventos activos.', freq:'monthly', reward:{wheelId:'event', count:5} },
-  { id:'ms15', wheelId:'event', title:'Derrota al jefe del evento', desc:'Solo en eventos activos.', freq:'monthly', reward:{wheelId:'event', count:5} },
-  { id:'ms16', wheelId:'event', title:'Derrota al jefe del evento', desc:'Solo en eventos activos.', freq:'monthly', reward:{wheelId:'event', count:5} },
+  { id:'ms12', wheelId:'event', title:'Compra un articulo en la tienda (no cuenta nada gratis)', desc:'¿Que dia sera hoy?', freq:'daily', reward:{wheelId:'event', count:3} },
+  { id:'ms13', wheelId:'event', title:'Comercia 5 veces', desc:'Dia de comerciar.', freq:'weekly', reward:{wheelId:'event', count:6} },
+  { id:'ms14', wheelId:'event', title:'Derrota 20 mobs', desc:'Solo un poco...', freq:'daily', reward:{wheelId:'event', count:5} },
+  { id:'ms15', wheelId:'event', title:'Derrota 40 mobs', desc:'Un poco mas...', freq:'weekly', reward:{wheelId:'event', count:10} },
+  { id:'ms16', wheelId:'event', title:'Domestica 5 lobos', desc:'Guau!', freq:'weekly', reward:{wheelId:'event', count:10} },
 ];
 
 
@@ -217,7 +227,13 @@ function pickWithPity(rouletteId, rewards) {
 function ticketsKey(id){ return LS.tickets(id); }
 function getTickets(id){ return parseInt(localStorage.getItem(ticketsKey(id)) || '0', 10); }
 function setTickets(id, n){ localStorage.setItem(ticketsKey(id), String(Math.max(0, Math.floor(n)))); renderTicketCounts(); renderHUDTickets(); }
-function addTickets(id, n=1){ setTickets(id, getTickets(id) + n); }
+//function addTickets(id, n=1){ setTickets(id, getTickets(id) + n); }   -- Tickets!!!
+
+function addTickets(id, n=1){
+  const realGain = n * TICKET_MULTIPLIER;
+  setTickets(id, getTickets(id) + realGain);
+}
+
 
 /* History helpers */
 function pushHistory(entry){
@@ -1154,3 +1170,111 @@ function updateExpireBox(wheel) {
   // Expirada
   box.style.display = "none";
 }
+
+
+
+
+
+
+
+const multBtn = document.getElementById('multiplierBtn');
+
+const BOOST_DURATION = 10; // 1 hora
+const LS_KEY_BOOST = "boostState_v3";
+
+let boostState = loadBoostState();
+let interval = null;
+
+function loadBoostState() {
+  const s = localStorage.getItem(LS_KEY_BOOST);
+  return s ? JSON.parse(s) : {
+    activeUntil: 0,
+    cooldownUntil: 0
+  };
+}
+
+function saveBoostState() {
+  localStorage.setItem(LS_KEY_BOOST, JSON.stringify(boostState));
+}
+
+/* ----------------- Medianoche ----------------- */
+function getTonightMidnight() {
+  const d = new Date();
+  d.setHours(24, 0, 0, 0); // próxima medianoche
+  return d.getTime();
+}
+
+/* ----------------- UI ----------------- */
+function updateBoostUI() {
+  const now = Date.now();
+
+  // 1) BOOST ACTIVO
+  if (boostState.activeUntil > now) {
+
+    const diff = Math.floor((boostState.activeUntil - now) / 1000);
+    multBtn.disabled = true;
+    multBtn.classList.add("active");
+    multBtn.textContent = "x2 (" + formatTime(diff) + ")";
+    TICKET_MULTIPLIER = 2;
+    return;
+  }
+
+  // 2) COOLDOWN HASTA MEDIANOCHE
+  if (boostState.cooldownUntil > now) {
+
+    const diff = Math.floor((boostState.cooldownUntil - now) / 1000);
+    multBtn.disabled = true;
+    multBtn.classList.remove("active");
+    //Disponible en -- se coloca en " aqui!!"
+    multBtn.textContent = " " + formatTime(diff);
+    TICKET_MULTIPLIER = 1;
+
+    // Si ya pasó medianoche → reset automático
+    if (now >= boostState.cooldownUntil) {
+      boostState.cooldownUntil = 0;
+      saveBoostState();
+    }
+    return;
+  }
+
+  // 3) DISPONIBLE
+  multBtn.disabled = false;
+  multBtn.classList.remove("active");
+  multBtn.textContent = "Usar x2";
+  TICKET_MULTIPLIER = 1;
+}
+
+/* ----------------- Activación ----------------- */
+multBtn.addEventListener("click", () => {
+  const now = Date.now();
+
+  if (boostState.activeUntil > now) return;
+  if (boostState.cooldownUntil > now) return;
+
+  // ACTIVAR BOOST
+  boostState.activeUntil = now + BOOST_DURATION * 1000;
+
+  // COOLDOWN hasta la medianoche siguiente
+  boostState.cooldownUntil = getTonightMidnight();
+
+  saveBoostState();
+  updateBoostUI();
+});
+
+/* ----------------- Intervalo ----------------- */
+function startInterval() {
+  if (interval) clearInterval(interval);
+  interval = setInterval(updateBoostUI, 1000);
+}
+
+/* ----------------- Formato ----------------- */
+function formatTime(sec) {
+  const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+  const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+  const s = String(sec % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
+
+/* ----------------- Init ----------------- */
+updateBoostUI();
+startInterval();
