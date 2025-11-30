@@ -365,3 +365,14 @@ a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
     0 0 15px rgba(0,255,128,0.7),
     4px 4px 0px #000;
 }
+
+
+
+
+
+
+
+
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
+}

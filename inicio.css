@@ -340,3 +340,12 @@ a:hover{text-decoration:underline}
 @keyframes pop{from{transform:scale(.98);opacity:.8}to{transform:scale(1);opacity:1}}
 @keyframes rise{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
+
+
+
+/* ===== Cursor personalizado sin imagen ===== */
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
+}
+
+

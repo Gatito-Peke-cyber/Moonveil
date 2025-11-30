@@ -223,3 +223,7 @@ a{color:var(--primary);text-decoration:none}
 }
 
 
+
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
+}

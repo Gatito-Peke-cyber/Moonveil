@@ -243,3 +243,13 @@ body {
   .reward-body { flex-direction: column }
   .calendar-grid .day-cell { min-height: 96px }
 }
+
+
+
+
+
+
+
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
+}

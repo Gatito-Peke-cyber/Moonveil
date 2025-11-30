@@ -414,14 +414,40 @@ a:hover{text-decoration:underline}
 .peer__avatar img{width:100%;height:100%;object-fit:cover}
 
 /* Thread */
-.chat__thread{
+/*.chat__thread{
   position:relative;flex:1;overflow:auto;background:
     linear-gradient(180deg, rgba(20,26,22,.3), rgba(20,26,22,.1)),
     radial-gradient(700px 420px at 70% -100px, #0d1612 0, transparent 60%),
     linear-gradient(180deg,#101512,#0e140f);
   padding:12px;
   display:flex;flex-direction:column;gap:8px;
+}*/
+
+
+
+
+.chat__thread {
+  position: relative;
+  flex: 1;
+  overflow-y: auto; /* solo vertical */
+  overflow-x: hidden;
+  background:
+    linear-gradient(180deg, rgba(20,26,22,.3), rgba(20,26,22,.1)),
+    radial-gradient(700px 420px at 70% -100px, #0d1612 0, transparent 60%),
+    linear-gradient(180deg,#101512,#0e140f);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  /* 🔹 Nuevo: controla el alto visible del chat */
+  max-height: var(--chat-height, 100vh);
 }
+
+
+
+
+
 .empty-hint{margin:auto;text-align:center;max-width:520px}
 .empty-hint h3{margin:8px 0 6px}
 .typing{
@@ -667,6 +693,14 @@ a:hover{text-decoration:underline}
 
 
 
+.chat-video {
+  width: 220px;
+  max-width: 100%;
+  border-radius: 8px;
+  display: block;
+}
+
+
 
 
 
@@ -809,4 +843,14 @@ a:hover{text-decoration:underline}
     inset 3px 3px 0px #5efc82,
     0 0 15px rgba(0,255,128,0.7),
     4px 4px 0px #000;
+}
+
+
+
+
+
+
+
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
 }

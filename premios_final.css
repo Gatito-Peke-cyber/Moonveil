@@ -467,3 +467,99 @@ body{margin:0;font-family:Outfit,system-ui,Segoe UI,Roboto;color:var(--text);bac
 
 
 
+.boost-box {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 225, 140, 0.25);
+  padding: 12px 18px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 25px rgba(255, 210, 100, 0.6);
+  border: 2px solid rgba(255, 220, 140, 0.5);
+  transition: transform 0.25s ease;
+  cursor: pointer;
+  z-index: 9999;
+}
+
+.boost-box:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 35px rgba(255, 220, 150, 0.9);
+}
+
+.boost-icon {
+  font-size: 32px;
+  animation: glowPulse 2s infinite ease-in-out;
+}
+
+@keyframes glowPulse {
+  0%   { text-shadow: 0 0 10px gold; }
+  50%  { text-shadow: 0 0 18px rgb(255, 240, 180); }
+  100% { text-shadow: 0 0 10px gold; }
+}
+
+.boost-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.boost-title {
+  font-size: 15px;
+  font-weight: bold;
+  color: #654400;
+}
+
+.boost-sub {
+  font-size: 12px;
+  color: #8a6b1f;
+}
+
+.boost-toggle {
+  background: linear-gradient(135deg, #d4a742, #f7e18a, #c9962e);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 16px;
+  color: #3a2a00;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.20s ease, box-shadow 0.20s ease;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+}
+
+.boost-toggle.active {
+  transform: scale(1.25);
+  background: linear-gradient(135deg, #ffe48a, #fff7d7, #f2c76b);
+  box-shadow: 0 0 25px rgba(255, 240, 170, 1);
+}
+
+.boost-timer {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: gold;
+  text-shadow: 0 0 8px rgba(255, 240, 170, 0.8);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
+}

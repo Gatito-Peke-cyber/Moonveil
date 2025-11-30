@@ -14,8 +14,7 @@
   <!-- Nuestro CSS -->
   <link rel="stylesheet" href="premios_final.css" />
 
-  <link rel="stylesheet" href="loader.css">
-<script defer src="loader.js"></script>
+
 
   <meta name="description" content="Moonveil Premios — multiruleta con tickets por ruleta, misiones reseteables y ruletas temporales con fondos y música." />
 </head>
@@ -49,6 +48,20 @@
       <div id="hudTickets" class="hud-tickets"></div>
     </div>
   </header>
+
+
+  <div id="ticketBoostBox" class="boost-box">
+  <div class="boost-icon">🎟️</div>
+
+  <div class="boost-info">
+    <div class="boost-title">Boost de Tickets</div>
+    <div class="boost-sub">Multiplica tus recompensas</div>
+    <div id="boostTimer" class="boost-timer"></div>
+  </div>
+
+  <button id="multiplierBtn" class="boost-toggle">x1</button>
+</div>
+
 
   <main class="prizes-root container" role="main" aria-labelledby="prizesTitle">
     <header class="prizes-header">

@@ -390,3 +390,12 @@
   0%   { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+
+
+
+
+
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
+}

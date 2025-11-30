@@ -371,3 +371,16 @@ a:hover{text-decoration:underline}
 
 /* Buttons alt */
 .btn--icon{width:36px;height:36px;display:grid;place-items:center}
+
+
+
+
+
+
+
+
+
+
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
+}

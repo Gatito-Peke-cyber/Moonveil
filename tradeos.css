@@ -260,3 +260,17 @@ a:hover{text-decoration:underline}
   .nav-links.open{transform:scaleY(1);opacity:1;pointer-events:auto}
   .stock{min-width:unset}
 }
+
+
+
+
+
+
+
+
+
+
+
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
+}

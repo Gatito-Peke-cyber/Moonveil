@@ -451,3 +451,22 @@ a:hover{text-decoration:underline}
 .coupon-card .cd { display:block; font-size:11px; margin-top:6px; color:#b8c1d9; }
 .price .old-price { text-decoration:line-through; margin-right:8px; color:#9aa3b8; font-size:0.95em; }
 .price .new-price { color:#9bd8ff; font-weight:700; font-size:1.05em; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
+}
