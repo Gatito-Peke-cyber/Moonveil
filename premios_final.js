@@ -125,10 +125,22 @@ const ROULETTES = [
     start: '2025-12-01',
     end: '2025-12-05',
     rewards: [
-      { id:'ev1', label:'Cosmético Evento', weight:10, rarity:'rare', img:'🎭', desc:'Objeto temático del evento' },
+      { id:'ev1', label:'Cupon del *%', weight:10, rarity:'rare', img:'🎭', desc:'Quien sabe, cuanto valdra?' },
       { id:'ev2', label:'Esmeraldas x25', weight:6, rarity:'epic', img:'💎', desc:'Paquete generoso' },
-      { id:'ev3', label:'Objeto Legendario', weight:1, rarity:'legend', img:'🏅', desc:'Único y raro' },
-      { id:'ev4', label:'Cofre de evento', weight:18, rarity:'uncommon', img:'📦', desc:'Cofre temático' }
+      { id:'ev3', label:'████', weight:1, rarity:'legend', img:'🏅', desc:'Lo sabremos, eso creo...' },
+      { id:'ev3', label:'Cupon del 100%', weight:1, rarity:'legend', img:'🏅', desc:'Ojito un cupon...' },
+      { id:'ev4', label:'Una llave x1', weight:18, rarity:'uncommon', img:'📦', desc:'Cofrecito...' },
+      { id:'ev5', label:'Esmeraldas x0', weight:30, rarity:'common', img:'💚', desc:'A nadie se le callo ninguna esmeralda...' },
+      { id:'ev6', label:'Esmeraldas x5', weight:30, rarity:'common', img:'💚', desc:'Enserio 5...' },
+      { id:'ev7', label:'Esmeraldas x5', weight:30, rarity:'common', img:'💚', desc:'Enserio 5...' },
+      { id:'ev8', label:'Esmeraldas x10', weight:30, rarity:'common', img:'💚', desc:'Paquete moderado' },
+      { id:'ev9', label:'Esmeraldas x10', weight:30, rarity:'common', img:'💚', desc:'Paquete moderado' },
+      { id:'ev10', label:'Esmeraldas x10', weight:30, rarity:'common', img:'💚', desc:'Paquete moderado' },
+      { id:'ev11', label:'Esmeraldas x10', weight:30, rarity:'common', img:'💚', desc:'Paquete moderado' },
+      { id:'ev12', label:'Esmeraldas x15', weight:30, rarity:'common', img:'💚', desc:'Almenos 5 mas...' },
+      { id:'ev13', label:'Esmeraldas x15', weight:30, rarity:'common', img:'💚', desc:'Almenos 5 mas...' },
+      { id:'ev14', label:'Esmeraldas x5', weight:30, rarity:'common', img:'💚', desc:'Enserio 5...' },
+      { id:'ev15', label:'Esmeraldas x5', weight:30, rarity:'common', img:'💚', desc:'Enserio 5...' },
     ]
   }
 ];
@@ -1179,7 +1191,7 @@ function updateExpireBox(wheel) {
 
 const multBtn = document.getElementById('multiplierBtn');
 
-const BOOST_DURATION = 10; // 1 hora
+const BOOST_DURATION = 60*60; // 1 hora
 const LS_KEY_BOOST = "boostState_v3";
 
 let boostState = loadBoostState();
