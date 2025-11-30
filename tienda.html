@@ -88,6 +88,15 @@
           <button class="chip" data-section="eventos">Pases de evento</button>
           <button class="chip" data-section="monedas">Monedas</button>
         </div>
+        <!-- COLOCAR: dentro de .hero__controls (por ejemplo, justo después de #chipSections) -->
+<div class="coupon-area reveal" id="couponArea">
+  <label class="coupon-label">Usar cupón</label>
+  <div id="couponList" class="coupon-list" aria-live="polite"></div>
+  <div style="margin-top:8px;">
+    <button id="couponClearBtn" class="btn btn--ghost" type="button">No usar cupón</button>
+  </div>
+</div>
+
         <div class="search">
           <input id="searchInput" type="search" placeholder="Buscar por nombre, calidad o etiqueta…" aria-label="Buscar en tienda" />
           <button class="btn btn--ghost" id="clearSearch" aria-label="Limpiar búsqueda">Limpiar</button>

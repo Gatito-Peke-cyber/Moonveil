@@ -95,7 +95,6 @@ const D30 = 30*H24;
 function escapeHTML(s){return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function cls(...xs){return xs.filter(Boolean).join(' ')}
 
-
 /* =========================================================
    DATASET (muestra; puedes añadir más items si deseas)
    Campos:
@@ -163,8 +162,6 @@ const products = [
   { id:'t_classic_4', name:'Tiros Gratis!!', img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1, restock:'30d', amount:10 , section:'tickets', gold:true, desc:'Ticket para la ruleta clasica x10', tags:['ticket','clasico'] },
 
 /* ===== TICKETS PARA RULETAS ===== */
-
-
 
 ];
 
@@ -243,6 +240,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   synchronizeStocks();
   renderAll();
   // Events filtros/busqueda
+  // dentro de renderAll(), al principio:
+  renderCouponUI();
+
   chipSections.addEventListener('click', onChipSection);
   searchInput.addEventListener('input', onSearch);
   clearSearch.addEventListener('click', ()=>{ searchInput.value=''; searchText=''; renderAll(); });
@@ -336,7 +336,9 @@ function cardTemplate(p){
         <p class="card-desc">${escapeHTML(p.desc)}</p>
         <div class="card-meta">
           <span class="quality"><span class="qdot ${qCl}"></span>${labelQuality(p.quality)}</span>
-          <span class="price">${fmt.format(p.price)}</span>
+
+          <span class="price">${renderPrice(p)}</span>
+
         </div>
       </div>
       <div class="card-foot">
@@ -570,6 +572,20 @@ info.wheelId = wheel;
     if (opts.toastMsg!==false) toast(`Comprado: ${p.name}`);
   }
 
+
+
+  // Si había un cupón aplicado, poner solo ese cupón en cooldown hasta medianoche
+if (currentCoupon && currentCoupon !== 0){
+  // marcar cooldown (timestamp de la próxima medianoche)
+  setCouponCooldown(currentCoupon, nextMidnight());
+  // reset selección
+  currentCoupon = 0;
+  saveCurrentCoupon();
+  // actualizar UI de cupones inmediatamente
+  renderCouponUI();
+}
+
+
   // refrescar la tienda
   renderAll();
 
@@ -578,6 +594,7 @@ info.wheelId = wheel;
     openModal(id);
   }
 }
+
 
 
 /* =========================================================
@@ -685,3 +702,155 @@ window.buyTickets = function(wheelId, amount) {
         toast("Error al entregar los tickets.");
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ========== SISTEMA CUPONES (INSERTAR EN TIENDA.JS - GLOBALES) ========== */
+// Lista de cupones (porcentaje)
+const ALL_COUPONS = [10,15,20,25,30,35,40,45,50,60,70,80,90,100];
+
+// estado guardado en localStorage bajo 'mv_coupon_state'
+// formato: { "10": 0 | timestamp, "20": 0 | timestamp, ... }
+const COUPON_LS_KEY = 'mv_coupon_state';
+const CURRENT_COUPON_KEY = 'mv_current_coupon';
+
+function loadCouponState(){
+  try { 
+    const raw = localStorage.getItem(COUPON_LS_KEY);
+    if (!raw) {
+      const init = {};
+      ALL_COUPONS.forEach(c=> init[String(c)] = 0);
+      localStorage.setItem(COUPON_LS_KEY, JSON.stringify(init));
+      return init;
+    }
+    return JSON.parse(raw);
+  } catch(e){ 
+    const init = {}; ALL_COUPONS.forEach(c=> init[String(c)] = 0); return init;
+  }
+}
+function saveCouponState(state){ localStorage.setItem(COUPON_LS_KEY, JSON.stringify(state)); }
+
+function getCouponCooldown(percent){
+  const s = loadCouponState();
+  return Number(s[String(percent)] || 0);
+}
+function setCouponCooldown(percent, ts){
+  const s = loadCouponState();
+  s[String(percent)] = ts || 0;
+  saveCouponState(s);
+}
+
+function nextMidnight(){ const d=new Date(); d.setHours(24,0,0,0); return d.getTime(); }
+
+let currentCoupon = Number(localStorage.getItem(CURRENT_COUPON_KEY) || 0); // 0 = sin cupón
+
+function saveCurrentCoupon(){
+  localStorage.setItem(CURRENT_COUPON_KEY, String(currentCoupon));
+}
+
+/* Render del UI de cupones */
+function renderCouponUI(){
+  const box = $('#couponList');
+  if(!box) return;
+  const nowTs = now();
+
+  // auto-liberar cupones vencidos (por si recargas pasada medianoche)
+  const state = loadCouponState();
+  let dirty=false;
+  ALL_COUPONS.forEach(c=>{
+    const cd = Number(state[String(c)] || 0);
+    if (cd > 0 && cd <= nowTs){ state[String(c)] = 0; dirty=true; }
+  });
+  if (dirty) saveCouponState(state);
+
+  box.innerHTML = ALL_COUPONS.map(c=>{
+    const cd = getCouponCooldown(c);
+    const active = cd > nowTs;
+    const isSelected = currentCoupon === c;
+    if (active){
+      return `<button class="coupon-card" aria-disabled="true" data-percent="${c}">
+                ${c}% <span class="cd">recargando ${timeLeft(cd)}</span>
+              </button>`;
+    } else {
+      return `<button class="coupon-card" data-percent="${c}" data-active="${isSelected}">
+                ${c}% ${isSelected?'<span class="cd">activado</span>':''}
+              </button>`;
+    }
+  }).join('');
+
+  // botón "sin cupón" visual (local)
+  const clearBtn = $('#couponClearBtn');
+  if (clearBtn) clearBtn.disabled = false;
+
+  // listeners
+  box.querySelectorAll('.coupon-card:not([aria-disabled="true"])').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const pct = Number(btn.getAttribute('data-percent'));
+      // toggle
+      currentCoupon = (currentCoupon === pct) ? 0 : pct;
+      saveCurrentCoupon();
+      renderCouponUI();
+      renderAll(); // re-render precios
+    });
+  });
+}
+setInterval(()=> { renderCouponUI(); }, 1000); // actualiza contadores cada 1s
+
+// boton "no usar cupón"
+document.addEventListener('click',(e)=>{
+  if (e.target && e.target.id === 'couponClearBtn'){
+    currentCoupon = 0; saveCurrentCoupon(); renderCouponUI(); renderAll();
+  }
+});
+
+/* función que devuelve HTML del precio (usar en cardTemplate) */
+/*function renderPrice(p){
+  // p puede ser objeto producto o precio numérico; preferimos objeto para acceder a p.price
+  const base = (typeof p === 'object' && p.price != null) ? Number(p.price) : Number(p);
+  if (!currentCoupon || currentCoupon === 0) {
+    return `${fmt.format(base)}`;
+  }
+  const discount = Number(currentCoupon);
+  const finalPrice = Math.max(0, base - (base * (discount / 100)));
+  return `<span class="old-price">${fmt.format(base)}</span><span class="new-price">${fmt.format(finalPrice)}</span>`;
+}*/
+
+
+/* función que devuelve HTML del precio (usar en cardTemplate) */
+function renderPrice(p){
+  const base = (typeof p === 'object' && p.price != null) ? Number(p.price) : Number(p);
+
+  if (!currentCoupon || currentCoupon === 0) {
+    return `${fmt.format(base)}`;
+  }
+
+  const discount = Number(currentCoupon);
+  let finalPrice = base - (base * (discount / 100));
+
+  // 🔥 convertimos a número entero sin decimales:
+  finalPrice = Math.round(finalPrice);
+
+  // nunca permitir negativos
+  finalPrice = Math.max(0, finalPrice);
+
+  return `
+    <span class="old-price">${fmt.format(base)}</span>
+    <span class="new-price">${fmt.format(finalPrice)}</span>
+  `;
+}
+
