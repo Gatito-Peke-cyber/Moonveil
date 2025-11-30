@@ -63,14 +63,21 @@ const markRead = (id) => { const s = getRead(); if (!s.includes(id)) { s.push(id
 function seed(n = 0) {
   UPDATES = [];
   const base = [
-    { id:'u-ev', title:'Evento: Cofres Esmeralda', summary:'Evento con recompensas y misiones', content:'<p>Detalles del evento de aniversario.</p>', state:'active', date:'2025-11-12', tags:['evento','cofre'], progress:100, link:'https://gatito-peke-cyber.github.io/Moonveil/calendar.html' },
-    { id:'u-bal', title:'Balance: Trueques 2.1', summary:'Ajustes de economía y precios', content:'<p>Balance aplicado a aldeanos.</p>', state:'inprogress', date:'2025-11-25', tags:['balance','economia'], progress:57 },
-    { id:'u-bio', title:'Bioma: Laderas de Azur', summary:'Bioma nuevo con recursos exclusivos', content:'<p>Azurita, fauna y quests.</p>', state:'upcoming', date:'2025-12-10', tags:['bioma','novedad'], progress:12 }
+    { id:'u-ev', title:'Ruletas!!', summary:'Se agrego la funcion de ganar el doble de tickets.', content:'Se agrego la funcion de ganar el doble de tickets.', state:'active', date:'2025-11-12', tags:['evento'], progress:100, link:'https://gatito-peke-cyber.github.io/Moonveil/premios_final.html' },
+    { id:'u-mej', title:'Act. Tienda', summary:'Ahora la tienda tiene descuentos, usalos bien porque son de un solo uso, se recargan cada 24 horas.', content:'Ahora la tienda tiene descuentos, usalos bien porque son de un solo uso, se recargan cada 24 horas.', state:'active', date:'2025-11-28', tags:['mejora'], progress:100, link:'https://gatito-peke-cyber.github.io/Moonveil/tienda.html' },
+    { id:'u-mej', title:'Act. Tienda (v.2)', summary:'Se añadieron los tickets, para que puedas usarlos en las ruletas respectivas.', content:'Se añadieron los tickets, para que puedas usarlos en las ruletas respectivas.', state:'active', date:'2025-11-20', tags:['mejora'], progress:100, link:'https://gatito-peke-cyber.github.io/Moonveil/tienda.html' },
+    { id:'u-mej', title:'Ruletas 2', summary:'Se añadieron mas misiones a las ruletas.', content:'Se añadieron mas misiones a las ruletas.', state:'active', date:'2025-11-22', tags:['mejora'], progress:100, link:'https://gatito-peke-cyber.github.io/Moonveil/premios_final.html' },
+    { id:'u-mej', title:'Mapa', summary:'Implementacion del mapa, con sus respectivas caracteristicas.(No se implementara)', content:'Implementacion del mapa, con sus respectivas caracteristicas..', state:'archived', date:'2025-11-10', tags:['mejora'], progress:100, link:'' },
+    { id:'u-mej', title:'Login (v.3)', summary:'Se mejoro el diseño anterior del Login.', content:'Se mejoro el diseño anterior del Login.', state:'active', date:'2025-10-20', tags:['mejora'], progress:100, link:'' },
+    { id:'u-mej', title:'Contactos', summary:'Futura mejora de su pequeños errores, y algunos contactos...', content:'Futura mejora de su pequeños errores, y algunos contactos...', state:'upcoming', date:'2025-10-30', tags:['mejora'], progress:0, link:'' },
+    //{ id:'u-bal', title:'Balance: Trueques 2.1', summary:'Ajustes de economía y precios', content:'<p>Balance aplicado a aldeanos.</p>', state:'inprogress', date:'2025-11-25', tags:['balance','economia'], progress:57, link:'' },
+    //{ id:'u-bal', title:'Balance: Trueques 2.1', summary:'Ajustes de economía y precios', content:'<p>Balance aplicado a aldeanos.</p>', state:'inprogress', date:'2025-11-25', tags:['balance','economia'], progress:57, link:'' },
+    //{ id:'u-bio', title:'Bioma: Laderas de Azur', summary:'Bioma nuevo con recursos exclusivos', content:'<p>Azurita, fauna y quests.</p>', state:'upcoming', date:'2025-12-10', tags:['bioma','novedad'], progress:12, link:'' }
   ];
   // seed base
   base.forEach((b,i) => UPDATES.push({ ...b, id: b.id + '-' + (i+1) }));
   // generate synthetic items
-  const tags = ['evento','balance','bioma','netcode','ui','tienda','misiones','cofre','performance','shops','craft','trade','seasonal'];
+  const tags = ['evento','balance','bioma','netcode','ui','tienda','misiones','cofre','performance','shops','craft','trade','seasonal','mejora'];
   const states = ['active','inprogress','upcoming','archived'];
   const start = Date.now();
   for (let i=0;i<n;i++) {
@@ -192,6 +199,16 @@ $$('.js-link').forEach(btn =>
     window.open(item.link, "_blank");
   })
 );
+
+
+// Abrir modal (botón "Ver")
+$$('.js-open').forEach(btn =>
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    openModal(id);  // tu función ya existe
+  })
+);
+
 
 
 
