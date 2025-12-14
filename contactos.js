@@ -1322,3 +1322,243 @@ if (audio && musicButton) {
     }
   });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const estados = [
+  {
+    id:'st1',
+    contact:'c1',
+    type:'video',
+    url:'video/stevevideo2.mp4',
+    text:'Cuando encuentras una esmeralda,<br>no celebras. Respiras hondo y sigues,<br>porque sabes que costó demasiado<br>como para distraerte.',
+    start:'2025-12-01',
+    end:'2026-01-01',
+    duration:16000, // 10 segundos
+    seen:false
+  },
+  {
+    id:'st2',
+    contact:'c1',
+    type:'image',
+    url:'vill/vill1.jpg',
+    text:'Que opinan de mi foto de perfil.<br>A que es muy grandiosa',
+    start:'2025-12-01',
+    end:'2026-01-01',
+    seen:false
+  },
+  {
+    id:'st3',
+    contact:'c1',
+    type:'audio',
+    url:'ald/music1.mp3',
+    text:'Cuando casi nadie escucha,<br>es donde realmente suena.',
+    start:'2025-12-01',
+    end:'2026-01-01',
+    duration:206000, // 3 minutos y 26 segundos
+    seen:false
+  },
+  {
+    id:'st5',
+    contact:'c14',
+    type:'image',
+    url:'',
+    text:'🟩 Minecraft Noticias – Edición Matutina<br>Buenos días, jugadores.<br>Iniciamos esta jornada cuadrada con información<br>importante desde los distintos biomas del mundo.',
+    start:'2025-12-01',
+    end:'2026-01-01',
+    seen:false
+  },
+  {
+    id:'st6',
+    contact:'c14',
+    type:'image',
+    url:'gif/creaking-minecraft.gif',
+    text:'🟨 Última hora desde el Overworld:<br>Durante la madrugada, varios creakings fueron vistos<br>merodeando zonas residenciales cercanas a aldeas<br>sin iluminación adecuada. Autoridades recomiendan colocar antorchas<br>y evitar salir sin armadura después del anochecer.',
+    start:'2025-12-01',
+    end:'2026-01-01',
+    seen:false
+  },
+  {
+    id:'st7',
+    contact:'c14',
+    type:'image',
+    url:'gif/yes.gif',
+    text:'🟩 Economía minera en alza:<br>El precio del diamante se mantiene estable, mientras que las esmeraldas<br>alcanzan un nuevo récord tras un aumento en el comercio con aldeanos.<br>Expertos aseguran que invertir en bibliotecarios sigue<br>siendo una decisión inteligente.',
+    start:'2025-12-01',
+    end:'2026-01-01',
+    seen:false
+  },
+  {
+    id:'st8',
+    contact:'c14',
+    type:'image',
+    url:'gif/villager-news.gif',
+    text:'🟩 Cierre del informativo:<br>Esto fue Minecraft Noticias, edición matutina.<br>Recuerde: duerma para evitar fantasmas, revise su inventario antes de salir<br>y nunca confíe en un creeper silencioso.<br>Que tenga un excelente día…<br>y que los bloques estén a su favor.',
+    start:'2025-12-01',
+    end:'2026-01-01',
+    seen:false
+  },
+];
+
+// --- CARGAR ESTADOS VISTOS DESDE LOCALSTORAGE ---
+let vistos = JSON.parse(localStorage.getItem("estadosVistos") || "{}");
+
+// Marcar en memoria qué estados ya fueron vistos
+estados.forEach(s => {
+  if (vistos[s.id]) s.seen = true;
+});
+
+const container = document.getElementById("storiesContainer");
+
+function renderStoriesBar() {
+  container.innerHTML = "";
+
+  contacts.forEach(c => {
+    const userStates = estados.filter(e => e.contact === c.id);
+
+    if (userStates.length === 0) return;
+
+    const unseen = userStates.some(s => !s.seen);
+
+    const div = document.createElement("div");
+    div.className = "story-bubble " + (unseen ? "unseen" : "seen");
+
+    div.innerHTML = `<img src="${c.avatar}">`;
+    div.onclick = () => openViewer(c.id);
+
+    container.appendChild(div);
+  });
+}
+
+renderStoriesBar();
+const viewer = document.getElementById("storyViewer");
+const viewerName = document.getElementById("viewerName");
+const viewerAvatar = document.getElementById("viewerAvatar");
+const storyContent = document.getElementById("storyContent");
+const progressBars = document.getElementById("progressBars");
+
+let currentList = [];
+let index = 0;
+let timer = null;
+function openViewer(contactId) {
+  currentList = estados.filter(e => e.contact === contactId);
+  index = 0;
+
+  const contact = contacts.find(c => c.id === contactId);
+
+  viewerName.textContent = contact.name;
+  viewerAvatar.src = contact.avatar;
+
+  viewer.style.display = "flex";
+  loadStory();
+}
+function loadStory() {
+  const st = currentList[index];
+
+  storyContent.style.opacity = 0;
+
+  setTimeout(() => {
+    storyContent.innerHTML = renderStory(st);
+    storyContent.style.opacity = 1;
+  }, 150);
+
+  renderBars();
+  startTimer();
+
+  // ---- MARCAR COMO VISTO ----
+  st.seen = true;
+  vistos[st.id] = true;
+  localStorage.setItem("estadosVistos", JSON.stringify(vistos));
+
+  renderStoriesBar();
+}
+
+function renderStory(s) {
+  if (s.type === "image")
+    return `<img src="${s.url}"><p>${s.text || ""}</p>`;
+
+  if (s.type === "video")
+    return `<video src="${s.url}" autoplay controls></video><p>${s.text || ""}</p>`;
+
+  if (s.type === "audio")
+    return `<audio src="${s.url}" autoplay controls></audio><p>${s.text || ""}</p>`;
+}
+function renderBars() {
+  progressBars.innerHTML = "";
+
+  currentList.forEach((st, i) => {
+    const bar = document.createElement("div");
+
+    if (i === index) {
+      const fill = document.createElement("div");
+      fill.className = "progress-line";
+
+      const dur = st.duration || 5000;
+      fill.style.animationDuration = dur + "ms";
+
+      bar.appendChild(fill);
+    }
+
+    progressBars.appendChild(bar);
+  });
+}
+
+/*function startTimer() {
+  clearTimeout(timer);
+  timer = setTimeout(() => nextStory(), 10000);
+}*/
+
+function startTimer() {
+  clearTimeout(timer);
+  const st = currentList[index];
+  const dur = st.duration || 5000; // si no tiene duración, usa 5s
+  timer = setTimeout(() => nextStory(), dur);
+}
+
+function nextStory() {
+  if (index < currentList.length - 1) {
+    index++;
+    loadStory();
+  } else {
+    closeViewer();
+  }
+}
+
+function prevStory() {
+  if (index > 0) {
+    index--;
+    loadStory();
+  }
+}
+document.querySelector(".next-story").onclick = nextStory;
+document.querySelector(".prev-story").onclick = prevStory;
+document.getElementById("closeViewer").onclick = closeViewer;
+
+function closeViewer() {
+  viewer.style.display = "none";
+  clearTimeout(timer);
+}
+document.querySelector(".scroll-right").onclick = () => {
+  container.scrollLeft += 200;
+};
+
+document.querySelector(".scroll-left").onclick = () => {
+  container.scrollLeft -= 200;
+};
+
+
+

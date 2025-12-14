@@ -74,18 +74,19 @@
     <div class="container hero__inner">
       <div class="hero__text reveal">
         <h1 id="title">Tienda <span>Moonveil</span></h1>
-        <p class="lead">El escaparate del reino: pases, llaves, artefactos y más. Sin saldo: compra directa sobre stock disponible. El agotado se repone automáticamente.</p>
+        <p class="lead">La tienda de Moonveil tiene: pases, tickets, materiales y más. Con descuentos y por su confianza en la primera compra tiene el 100%. (No incluye Historia / Monedas)</p>
       </div>
       <div class="hero__controls reveal">
         <div class="chip-group" id="chipSections" role="group" aria-label="Filtrar por sección">
           <button class="chip is-on" data-section="all">Todo</button>
           <button class="chip" data-section="pases">Pases de temporada</button>
-          <button class="chip" data-section="llaves">Llaves</button>
-          <button class="chip" data-section="cosas">Cosas interesantes</button>
+          <button class="chip" data-section="llaves">Cofres</button>
+          <button class="chip" data-section="cosas">Materiales</button>
           <button class="chip" data-section="historia">Historia</button>
-          <button class="chip" data-section="materiales">Materiales</button>
+          <button class="chip" data-section="materiales">Monedas</button>
           <button class="chip" data-section="eventos">Pases de evento</button>
           <button class="chip" data-section="monedas">Monedas</button>
+          <button class="chip" data-section="tickets">Tickets</button>
         </div>
         <!-- COLOCAR: dentro de .hero__controls (por ejemplo, justo después de #chipSections) -->
 <div class="coupon-area reveal" id="couponArea">
@@ -109,13 +110,21 @@
     </div>
   </section>
 
+
+ 
+<div id="snow-container"></div>
+
+<div id="fireworks-container"></div>
+
+
+
   <!-- Sección: Pases de temporada -->
   <section class="section section-pass season" aria-labelledby="seasonTitle">
     <div class="container">
       <header class="section__head reveal">
         <div>
           <h2 id="seasonTitle">Pases de temporada</h2>
-          <p class="muted">Acceso premium a retos, recompensas y cosméticos exclusivos.</p>
+          <p class="muted">Acceso a retos y recompensas.</p>
         </div>
       </header>
       <div class="grid cards" id="gridSeason"></div>
@@ -128,7 +137,7 @@
       <header class="section__head reveal">
         <div>
           <h2 id="keysTitle">Cofres</h2>
-          <p class="muted">Ábrelos y que la suerte te acompañe.</p>
+          <p class="muted">Ábrelos y que la suerte te acompañe. Ya que Sand Brill no fue generoso.</p>
         </div>
       </header>
       <div class="grid cards" id="gridKeys"></div>
@@ -140,8 +149,8 @@
     <div class="container">
       <header class="section__head reveal">
         <div>
-          <h2 id="funTitle">Libros</h2>
-          <p class="muted">Algunos libros, quien sabe que dira.</p>
+          <h2 id="funTitle">Materiales</h2>
+          <p class="muted">Algunos materiales, que capaz te sirvan, o ¿quien sabe? y su fantasma de los productos...</p>
         </div>
       </header>
       <div class="grid cards" id="gridFun"></div>
@@ -154,7 +163,7 @@
       <header class="section__head reveal">
         <div>
           <h2 id="loreTitle">Historia</h2>
-          <p class="muted">Libros de lo que pasa en el mundo de Moonveil.</p>
+          <p class="muted">Libros de lo que pasa en el mundo de Moonveil. ¿Espero que si...?</p>
         </div>
       </header>
       <div class="grid cards" id="gridLore"></div>
@@ -180,7 +189,7 @@
       <header class="section__head reveal">
         <div>
           <h2 id="eventTitle">Pases de evento</h2>
-          <p class="muted">Eventos temporales con misiones y recompensas únicas.</p>
+          <p class="muted">Eventos temporales con misiones y recompensas.</p>
         </div>
       </header>
       <div class="grid cards" id="gridEvents"></div>
@@ -193,7 +202,7 @@
       <header class="section__head reveal">
         <div>
           <h2 id="coinsTitle">Pack de monedas</h2>
-          <p class="muted">Packs para comerciar.</p>
+          <p class="muted">Packs para comerciar. No se reestablece, ¿Y porque? Ni idea...</p>
         </div>
       </header>
       <div class="grid cards" id="gridCoins"></div>
@@ -206,7 +215,7 @@
     <header class="section__head reveal">
       <div>
         <h2 id="ticketsTitle">Tickets</h2>
-        <p class="muted">Tickets especiales para eventos y recompensas únicas.</p>
+        <p class="muted">Tickets especiales para eventos y recompensas. ¿Y giramos algunas?</p>
       </div>
     </header>
     <div class="grid cards" id="gridTickets"></div>

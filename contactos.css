@@ -441,7 +441,7 @@ a:hover{text-decoration:underline}
   gap: 8px;
 
   /* 🔹 Nuevo: controla el alto visible del chat */
-  max-height: var(--chat-height, 100vh);
+  max-height: var(--chat-height, 110vh);
 }
 
 
@@ -563,7 +563,7 @@ a:hover{text-decoration:underline}
 
 
 
-/* === PANEL DE EMOJIS PROFESIONAL === */
+/* === PANEL DE EMOJIS === */
 .emoji-panel {
   position: absolute;
   bottom: 70px;
@@ -715,7 +715,7 @@ a:hover{text-decoration:underline}
 
 
 /* -------------------------------
-   Botones pixelados PRO (verde tecnológico)
+   Botones pixelados
 -------------------------------- */
 .pixel-button {
   display: inline-block;
@@ -802,7 +802,7 @@ a:hover{text-decoration:underline}
 }
 
 /* --------------------------------
-   Botón flotante de música (versión PRO)
+   Botón flotante de música 
 -------------------------------- */
 .floating-music {
   position: fixed;
@@ -854,3 +854,240 @@ a:hover{text-decoration:underline}
 body {
   cursor: url("img/diamond.cur") 0 0, auto;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+body {
+  margin: 0;
+  background: #0e0e0e;
+  color: white;
+  font-family: "Outfit", sans-serif;
+}
+
+/* --------------------------
+   BARRA SUPERIOR DE ESTADOS
+--------------------------- */
+.stories-bar {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: linear-gradient(90deg, #0f0f0f, #181818);
+  border-bottom: 1px solid #1f1f1f;
+}
+
+.stories-container {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  flex: 1;
+  padding: 10px 4px;
+}
+
+.stories-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* -------- BURBUJA PROFESIONAL -------- */
+.story-bubble {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  padding: 3px;
+  flex-shrink: 0;
+  transition: transform 0.2s, filter 0.25s;
+  background: conic-gradient(#38ff70, #0d962f, #38ff70);
+}
+
+/* NO VISTO → VERDE PREMIUM */
+.story-bubble.unseen {
+  filter: brightness(1.2);
+}
+
+/* VISTO → GRIS PROFESIONAL */
+.story-bubble.seen {
+  background: conic-gradient(#444, #666, #444);
+}
+
+/* Imagen interna */
+.story-bubble img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #0f0f0f;
+}
+
+.story-bubble:hover {
+  transform: scale(1.09);
+}
+
+/* Botones scroll */
+.scroll-left,
+.scroll-right {
+  background: none;
+  color: #79ffb1;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 5px;
+  transition: opacity 0.2s;
+}
+
+.scroll-left:hover,
+.scroll-right:hover {
+  opacity: 0.5;
+}
+
+/* --------------------------
+   VISOR COMPLETO
+--------------------------- */
+.story-viewer {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #000000df, #0f1b0fec);
+  display: none;
+  flex-direction: column;
+  animation: fadeIn 0.3s ease-out;
+  z-index: 999;
+  backdrop-filter: blur(6px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Header del visor */
+.story-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+}
+
+.viewer-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #1aff65;
+}
+
+.viewer-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #b3ffcf;
+}
+
+#closeViewer {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #eee;
+  font-size: 30px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+#closeViewer:hover {
+  opacity: 0.6;
+}
+
+/* -----------------------
+   BARRAS DE PROGRESO
+------------------------- */
+.progress-bars {
+  display: flex;
+  gap: 6px;
+  padding: 10px 15px;
+}
+
+.progress-bars div {
+  flex: 1;
+  height: 4px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.18);
+  overflow: hidden;
+}
+
+/* Línea — ahora VERDE */
+.progress-line {
+  height: 100%;
+  width: 0%;
+  background: #30ff6d;
+  border-radius: 6px;
+  animation: grow 5s linear forwards;
+}
+
+@keyframes grow {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* Contenido del estado */
+.story-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.story-content img,
+.story-content video {
+  max-width: 88%;
+  max-height: 72vh;
+  border-radius: 16px;
+  box-shadow: 0 0 25px #000;
+  border: 2px solid #0f0f0f;
+}
+
+/* Texto estilizado */
+.story-content p {
+  margin-top: 20px;
+  background: rgba(0,0,0,0.55);
+  padding: 12px 20px;
+  border-radius: 12px;
+  max-width: 80%;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: #c1ffd7;
+  backdrop-filter: blur(4px);
+}
+
+/* Flechas */
+.prev-story,
+.next-story {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.08);
+  border: none;
+  font-size: 45px;
+  padding: 12px 18px;
+  color: #caffd9;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.prev-story:hover,
+.next-story:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+.prev-story { left: 25px; }
+.next-story { right: 25px; }

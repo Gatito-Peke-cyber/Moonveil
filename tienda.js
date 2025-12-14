@@ -106,14 +106,14 @@ function cls(...xs){return xs.filter(Boolean).join(' ')}
 
 const products = [
   /* ===== PASES DE TEMPORADA ===== */
-  { id:'s1', name:'Pase Lamento — Temporada I', img:'img-pass/banwar.jpg', quality:'legendary', price:128, stock:1,  restock:'30d', section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Septiembre.', tags:['pase','cosmético','reto'] },
-  { id:'s2', name:'Pase Alma — Temporada II', img:'img-pass/banhall.jpg', quality:'legendary', price:128,  stock:1, restock:'30d', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Octubre.', tags:['pase','acelerado'] },
-  { id:'s3', name:'Pase 404 — Temporada III', img:'img-pass/partymine.jpg', quality:'legendary', price:128, stock:1, restock:'30d', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Noviembre.', tags:['pase','xp'] },
-  { id:'s4', name:'Pase Árboreo — Temporada IV', img:'img-pass/chrismine.jpg', quality:'legendary', price:128, stock:1, restock:'30d', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Diciembre.', tags:['pase','xp'] },
-  { id:'s5', name:'Pase Resurge — Temporada V', img:'img-pass/añomine.jpg', quality:'legendary', price:128, stock:1, restock:'30d', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Enero.', tags:['pase','xp'] },
-  { id:'s6', name:'Pase Carbón — Temporada VI', img:'img-pass/banair.jpg', quality:'legendary', price:128, stock:1, restock:'30d', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Febrero.', tags:['pase','xp'] },
-  { id:'s7', name:'Pase Carbón — Temporada VII', img:'img-pass/dancingmine.jpg', quality:'legendary', price:128, stock:1, restock:'30d', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Marzo.', tags:['pase','xp'] },
-  { id:'s8', name:'Pase Carbón — Temporada VIII', img:'img-pass/squemine.jpg', quality:'legendary', price:128, stock:1, restock:'30d', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Abril.', tags:['pase','xp'] },
+  { id:'s1', name:'Pase Lamento — Temporada I', img:'img-pass/banwar.jpg', quality:'legendary', price:128, stock:1,  restock:null, section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Septiembre.', tags:['pase','cosmético','reto'] },
+  { id:'s2', name:'Pase Alma — Temporada II', img:'img-pass/banhall.jpg', quality:'legendary', price:128,  stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Octubre.', tags:['pase','acelerado'] },
+  { id:'s3', name:'Pase 404 — Temporada III', img:'img-pass/partymine.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Noviembre.', tags:['pase','xp'] },
+  { id:'s4', name:'Pase Árboreo — Temporada IV', img:'img-pass/chrismine.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Diciembre.', tags:['pase','xp'] },
+  { id:'s5', name:'Pase Resurge — Temporada V', img:'img-pass/añomine.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Enero.', tags:['pase','xp'] },
+  { id:'s6', name:'Pase Carbón — Temporada VI', img:'img-pass/banair.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Febrero.', tags:['pase','xp'] },
+  { id:'s7', name:'Pase Carbón — Temporada VII', img:'img-pass/dancingmine.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Marzo.', tags:['pase','xp'] },
+  { id:'s8', name:'Pase Carbón — Temporada VIII', img:'img-pass/squemine.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Abril.', tags:['pase','xp'] },
 
   /* ===== LLAVES ===== común*/
   { id:'k1', name:'Cofre de Ambar', img:'img/chest2.gif', quality:'epic', price:30,  stock:10, restock:'7d', section:'llaves', gold:false, desc:'Abre este cofre de Ambar.', tags:['cofre','epico'] },
@@ -122,15 +122,23 @@ const products = [
   { id:'k4', name:'Cofre de Moonveil II', img:'img/chest2.gif', quality:'legendary', price:30, stock:5, restock:'7d', section:'llaves', gold:true, desc:'Abre este cofre Moon por ████.', tags:['cofre','█████'] },
 
   /* ===== COSAS INTERESANTES ===== */
-  { id:'f1', name:'Libro A1', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:'30d', section:'cosas', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
-  { id:'f2', name:'Libro B2', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:'30d', section:'cosas', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
-  { id:'f3', name:'Libro A2', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:'30d', section:'cosas', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
-  { id:'f4', name:'Libro C3', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:'30d', section:'cosas', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
+  { id:'f1', name:'Rieles (x64)', img:'imagen/phantom.gif', quality:'epic', price:64, stock:10, restock:'24h', section:'cosas', gold:false, desc:'Unos rieles que siempre vienen bien.', tags:['Rieles'] },
+  { id:'f2', name:'Rieles Activadores (x64)', img:'imagen/phantom.gif', quality:'epic', price:128, stock:10, restock:'24h', section:'cosas', gold:false, desc:'Activemos estos rieles...', tags:['Rieles','velocidad'] },
+  { id:'f3', name:'Rieles (x64) x2', img:'imagen/phantom.gif', quality:'epic', price:64, stock:2, restock:'7d', section:'cosas', gold:true, desc:'Un x2 en rieles, ¡guau! y con Descuento!!', tags:['Rieles'] },
+  { id:'f4', name:'Concreto (x64)', img:'imagen/phantom.gif', quality:'epic', price:64, stock:20, restock:'24h', section:'cosas', gold:false, desc:'Para construir', tags:['Concreto','construccion'] },
+  { id:'f5', name:'Bloques de Hierro (x64)', img:'imagen/phantom.gif', quality:'epic', price:128, stock:10, restock:'7d', section:'cosas', gold:false, desc:'Algunos bloques...', tags:['Bloques'] },
+  { id:'f6', name:'Bloques de Hierro (x64) x4', img:'imagen/phantom.gif', quality:'legendary', price:128, stock:1, restock:null, section:'cosas', gold:true, desc:'Oferta y demanda, ¿seguro?', tags:['Bloques','Oferta'] },
+  { id:'f7', name:'Bloques de Diamante (x64) x4', img:'imagen/phantom.gif', quality:'legendary', price:128, stock:1, restock:null, section:'cosas', gold:true, desc:'Bueno brillemos...', tags:['Bloques','Oferta'] },
+  { id:'f8', name:'Esmeralda x1', img:'imagen/phantom.gif', quality:'legendary', price:1, stock:1, restock:null, section:'cosas', gold:true, desc:'Sand Brill, te desae una ¡Gran Navidad!, pero es tan tacaño que no da mas de 1 esmeralda...', tags:['Sand','Brill'] },
 
   /* ===== HISTORIA ===== */
   { id:'l1', name:'Libro: “Bosque de Jade”', img:'img/bookmine.jpg', quality:'rare', price:256, stock:1, restock:null, section:'historia', gold:false, desc:'Leyendas de...', tags:['lore','bioma'] },
   { id:'l2', name:'Libro: “La Negra Noche”', img:'img/bookmine.jpg', quality:'epic', price:256, stock:1, restock:null, section:'historia', gold:false, desc:'Símbolos...', tags:['runas','forja'] },
   { id:'l3', name:'Libro: “El lado ███ de S██ B███”', img:'img/bookcat.gif', quality:'legendary', price:384, stock:1, restock:null, section:'historia', gold:true, desc:'█████████.', tags:['reliquia','desierto'] },
+  { id:'l4', name:'Libro A1', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
+  { id:'l5', name:'Libro B2', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
+  { id:'l6', name:'Libro A2', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
+  { id:'l7', name:'Libro C3', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
 
   /* ===== MATERIALES ===== metal, cristal, madera*/
   { id:'m1', name:'Pegatina de 1c.', img:'img/coin.jpg', quality:'common', price:0, stock:1, restock:'24h', section:'materiales', gold:false, desc:'Gratis.', tags:['coin','monedas'] },
@@ -722,7 +730,7 @@ window.buyTickets = function(wheelId, amount) {
 
 /* ========== SISTEMA CUPONES (INSERTAR EN TIENDA.JS - GLOBALES) ========== */
 // Lista de cupones (porcentaje)
-const ALL_COUPONS = [10,15,20,25,30,35,40,45,50,60,70,80,90,100];
+const ALL_COUPONS = [10,15,20,25,30,40,50,60,70,80,90,100];
 
 // estado guardado en localStorage bajo 'mv_coupon_state'
 // formato: { "10": 0 | timestamp, "20": 0 | timestamp, ... }
@@ -854,3 +862,135 @@ function renderPrice(p){
   `;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const NAVIDAD_INICIO = new Date("2025-12-01T00:00:00");
+const NAVIDAD_FIN    = new Date("2025-12-30T23:59:59");
+
+let snowInterval = null;
+
+function crearCopo() {
+const cont = document.getElementById("snow-container");
+if (!cont) return;
+
+const flake = document.createElement("div");
+flake.className = "snowflake";
+flake.textContent = "❄";
+flake.style.left = Math.random() * 100 + "%";
+flake.style.opacity = (0.10 + Math.random() * 0.35).toFixed(2);
+flake.style.fontSize = (8 + Math.random() * 18) + "px";
+
+const duration = 6 + Math.random() * 8;
+flake.style.animationDuration = duration + "s";
+
+cont.appendChild(flake);
+
+setTimeout(() => {
+try { flake.remove(); } catch(e){}
+}, duration * 1000 + 200);
+}
+
+function activarNieveSiEsNavidad() {
+const hoy = new Date();
+if (hoy < NAVIDAD_INICIO || hoy > NAVIDAD_FIN) return;
+
+if (!snowInterval) {
+for (let i = 0; i < 15; i++) crearCopo();
+snowInterval = setInterval(crearCopo, 250);
+}
+}
+
+// auto-ejecutar al cargar la página
+document.addEventListener("DOMContentLoaded", activarNieveSiEsNavidad);
+
+
+
+
+
+
+
+
+
+const EVENTO_INICIO = new Date("2025-12-31T00:00:00");
+const EVENTO_FIN    = new Date("2026-01-06T23:59:59");
+
+let fireworksInterval = null;
+const COLORES = ["red","blue","green","orange","pink","purple","yellow","cyan","magenta"];
+
+function crearCohete() {
+  const cont = document.getElementById("fireworks-container");
+  if (!cont) return;
+
+  const fw = document.createElement("div");
+  fw.className = "firework";
+
+  const color = COLORES[Math.floor(Math.random() * COLORES.length)];
+  fw.style.background = color;
+  fw.style.color = color;
+  fw.style.left = Math.random() * 90 + "vw";
+  fw.style.width = (4 + Math.random() * 4) + "px";
+  fw.style.height = (15 + Math.random() * 15) + "px";
+  fw.style.animationDuration = (1 + Math.random() * 0.7) + "s";
+
+  cont.appendChild(fw);
+
+  fw.addEventListener("animationend", () => {
+    const rect = fw.getBoundingClientRect();
+    const numParticles = 30 + Math.floor(Math.random() * 20);
+
+    for (let i = 0; i < numParticles; i++) {
+      const p = document.createElement("div");
+      p.className = "particle";
+      const size = 3 + Math.random() * 4;
+      const pColor = COLORES[Math.floor(Math.random() * COLORES.length)];
+      p.style.width = size + "px";
+      p.style.height = size + "px";
+      p.style.background = pColor;
+      p.style.opacity = (0.7 + Math.random() * 0.3);
+      p.style.left = rect.left + rect.width/2 + "px";
+      p.style.top  = rect.top + rect.height/2 + "px";
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = 50 + Math.random() * 60;
+      p.style.setProperty('--x', (Math.cos(angle) * distance) + 'px');
+      p.style.setProperty('--y', (Math.sin(angle) * distance) + 'px');
+      p.style.animationDuration = (0.5 + Math.random() * 0.7) + "s";
+      cont.appendChild(p);
+      setTimeout(() => p.remove(), 1500);
+    }
+
+    const year = document.createElement("span");
+    year.className = "firework-year";
+    year.style.color = color;
+    year.style.left = rect.left + rect.width/2 + "px";
+    year.style.top  = rect.top + rect.height/2 + "px";
+    year.textContent = "2026";
+    cont.appendChild(year);
+    setTimeout(() => year.remove(), 1200);
+
+    fw.remove();
+  });
+}
+
+function activarFuegos() {
+  const hoy = new Date();
+  if (hoy < EVENTO_INICIO || hoy > EVENTO_FIN) return;
+
+  if (!fireworksInterval) {
+    for (let i = 0; i < 3; i++) setTimeout(crearCohete, i * 300);
+    fireworksInterval = setInterval(() => crearCohete(), 800 + Math.random() * 400);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", activarFuegos);

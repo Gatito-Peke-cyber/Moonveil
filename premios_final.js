@@ -123,7 +123,7 @@ const ROULETTES = [
     bg: null,
     music: 'music/1234.mp3',
     start: '2025-12-01',
-    end: '2025-12-05',
+    end: '2026-01-10',
     rewards: [
       { id:'ev1', label:'Cupon del *%', weight:10, rarity:'rare', img:'🎭', desc:'Quien sabe, cuanto valdra?' },
       { id:'ev2', label:'Esmeraldas x25', weight:6, rarity:'epic', img:'💎', desc:'Paquete generoso' },

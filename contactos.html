@@ -90,6 +90,31 @@
       <div class="search-wrap">
         <input id="searchContacts" type="search" placeholder="Buscar contacto…" aria-label="Buscar contacto" />
       </div>
+      
+      <!-- BARRA DE ESTADOS -->
+  <div class="stories-bar">
+    <button class="scroll-left">⟨</button>
+
+    <div id="storiesContainer" class="stories-container"></div>
+
+    <button class="scroll-right">⟩</button>
+  </div>
+
+  <!-- VISOR -->
+  <div id="storyViewer" class="story-viewer">
+    <div class="story-header">
+      <img id="viewerAvatar" class="viewer-avatar">
+      <span id="viewerName" class="viewer-name"></span>
+      <button id="closeViewer">✕</button>
+    </div>
+
+    <div class="progress-bars" id="progressBars"></div>
+
+    <div id="storyContent" class="story-content"></div>
+
+    <button class="prev-story">⟨</button>
+    <button class="next-story">⟩</button>
+  </div>
 
       <ul id="contactList" class="contacts" role="listbox" aria-label="Contactos">
         <!-- Items generados por JS -->
