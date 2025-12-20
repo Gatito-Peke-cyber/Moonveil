@@ -159,15 +159,17 @@ const products = [
   /* ===== TICKETS DE RULETA ===== */
 
   { id:'t_classic_1', name:'Ticket Clasico', img:'imagen/ticket5.jpg', quality:'epic', price:10,  stock:10, restock:'24h', amount:1 , section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','clasico'] },
-  { id:'t_mystic_1', name:'Ticket Halloween', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','Halloween'] },
-  { id:'t_elemental_1', name:'Ticket elemental', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','elemental'] },
+  //{ id:'t_mystic_1', name:'Ticket Halloween', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','Halloween'] },
+  { id:'t_elemental_1', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','elemental'] },
   { id:'t_event_1', name:'Ticket evento', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','evento'] },
   { id:'t_classic_2', name:'Ticket Clasico', img:'imagen/ticket5.jpg', quality:'epic', price:30,  stock:10, restock:'24h', amount:5 , section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','clasico'] },
-  { id:'t_mystic_2', name:'Ticket Halloween', img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','Halloween'] },
-  { id:'t_elemental_2', name:'Ticket elemental', img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','elemental'] },
+  //{ id:'t_mystic_2', name:'Ticket Halloween', img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','Halloween'] },
+  { id:'t_elemental_2', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','elemental'] },
   { id:'t_event_2', name:'Ticket evento', img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','evento'] },
-  { id:'t_classic_3', name:'Bienvenida a los tickets!!', img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1, restock:'7d', amount:10 , section:'tickets', gold:true, desc:'Ticket para la ruleta clasica x10', tags:['ticket','clasico'] },
+  { id:'t_classic_3', name:'Bienvenida a los tickets!!', img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1, restock:null, amount:10 , section:'tickets', gold:true, desc:'Ticket para la ruleta clasica x10', tags:['ticket','clasico'] },
   { id:'t_classic_4', name:'Tiros Gratis!!', img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1, restock:'30d', amount:10 , section:'tickets', gold:true, desc:'Ticket para la ruleta clasica x10', tags:['ticket','clasico'] },
+  { id:'t_elemental_3', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:1, restock:null,  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','elemental'] },
+  { id:'t_elemental_4', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:1, stock:1, restock:null,  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta x1', tags:['ticket','elemental'] },
 
 /* ===== TICKETS PARA RULETAS ===== */
 

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moonveil | Biblioteca de Historias</title>
+    
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="historia.css">
+    
+    <meta name="description" content="Dashboard profesional de historias interactivas de Moonveil. Explora, desbloquea y lee historias únicas.">
+</head>
+<body>
+    <!-- Header completo con HUD -->
+    <header class="top-hud" role="banner">
+        <nav class="navbar" aria-label="Navegación principal">
+            <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+                <span class="cube" aria-hidden="true"></span>
+                <span class="brand__title">Moonveil <b>Stories</b></span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="inicio.html">Inicio</a></li>
+                <li><a href="perfiles.html">Perfiles</a></li>
+                <li><a href="juego.html">Juego</a></li>
+                <li><a href="historia.html" class="active">Historias</a></li>
+                <li><a href="contactos.html">Contacto</a></li>
+            </ul>
+        </nav>
+
+        <!-- HUD Stats -->
+        <div class="hud-stats" aria-label="Indicadores del jugador">
+            <div class="hud__bars">
+                <div class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
+                <div class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
+            </div>
+            <div class="hud__inv" aria-label="Inventario rápido">
+                <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+                <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
+                <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dashboard Principal -->
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">M</div>
+                <div class="sidebar-title">
+                    <span>Biblioteca</span><br>
+                    <small class="muted">Dashboard</small>
+                </div>
+            </div>
+
+            <!-- Búsqueda -->
+            <div class="search-box">
+                <input 
+                    type="search" 
+                    id="searchInput" 
+                    placeholder="Buscar historias..."
+                    aria-label="Buscar historias"
+                >
+            </div>
+
+            <!-- Filtro de Categorías -->
+            <div class="filter-section">
+                <h4>Categorías</h4>
+                <div class="filter-chips" id="categoryChips">
+                    <!-- Se genera dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Filtro de Rarezas -->
+            <div class="filter-section">
+                <h4>Rarezas</h4>
+                <div class="filter-chips" id="rarityChips">
+                    <button class="chip active" data-rarity="all">Todas</button>
+                    <button class="chip" data-rarity="common">Común</button>
+                    <button class="chip" data-rarity="rare">Rara</button>
+                    <button class="chip" data-rarity="special">Especial</button>
+                    <button class="chip" data-rarity="epic">Épica</button>
+                    <button class="chip" data-rarity="mythic">Mítica</button>
+                    <button class="chip" data-rarity="legend">Legendaria</button>
+                    <button class="chip" data-rarity="dex">DEX</button>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="stats-section">
+                <h4 class="muted mb-3">Estadísticas</h4>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="unlockedCount">0/0</div>
+                        <div class="stat-label">Desbloqueadas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalCount">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles de Audio -->
+            <div class="filter-section">
+                <h4>Audio</h4>
+                <div class="card-actions">
+                    <button id="toggleAudio" class="btn btn-ghost btn-sm">
+                        🎵 Play/Pause
+                    </button>
+                    <button id="muteBtn" class="btn btn-ghost btn-sm">
+                        🔇 Silenciar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gestión de Progreso -->
+            <div class="filter-section">
+                <h4>Progreso</h4>
+                <div class="card-actions">
+                    <button id="exportBtn" class="btn btn-ghost btn-sm">
+                        💾 Exportar
+                    </button>
+                    <button id="importBtn" class="btn btn-ghost btn-sm">
+                        📂 Importar
+                    </button>
+                    <input type="file" id="importFile" accept=".json" class="hidden">
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal CENTRADO -->
+        <main class="dashboard-main">
+            <!-- Hero -->
+            <section class="hero-section reveal">
+                <h1 class="hero-title">Biblioteca Moonveil</h1>
+                <p class="hero-subtitle">
+                    Explora una colección única de historias interactivas. 
+                    Cada relato es una aventura única con rarezas especiales y contenido exclusivo.
+                </p>
+            </section>
+
+            <!-- Grid de Historias -->
+            <section class="stories-section">
+                <div class="section-header">
+                    <h2>Colección de Historias</h2>
+                    <p class="muted">Haz clic en cualquier historia para comenzar la lectura</p>
+                </div>
+
+                <div id="storiesGrid" class="stories-grid">
+                    <!-- Las historias se cargan aquí dinámicamente -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal de Historia (Lector) -->
+    <div id="storyModal" class="modal story-modal" aria-hidden="true">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <div>
+                    <h3 id="storyTitle" class="story-title">Título de la Historia</h3>
+                    <p id="storyMeta" class="story-meta">Rareza • Categoría</p>
+                </div>
+                <button id="closeStory" class="btn btn-ghost" aria-label="Cerrar">✕</button>
+            </div>
+
+            <!-- Cuerpo del libro -->
+            <div class="story-body">
+                <!-- Página izquierda -->
+                <div class="story-page" id="leftPage">
+                    <div class="page-text">
+                        <!-- Contenido dinámico -->
+                    </div>
+                </div>
+
+                <!-- Lomo del libro -->
+                <div class="page-spine"></div>
+
+                <!-- Página derecha -->
+                <div class="story-page" id="rightPage">
+                    <div class="page-text">
+                        <!-- Contenido dinámico -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles -->
+            <div class="story-controls">
+                <button id="prevPage" class="btn btn-ghost">
+                    ← Anterior
+                </button>
+                
+                <div class="page-indicator">
+                    Página <span id="currentPage">1</span> de <span id="totalPages">1</span>
+                </div>
+                
+                <button id="nextPage" class="btn btn-primary">
+                    Siguiente →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Desbloqueo -->
+    <div id="unlockModal" class="modal unlock-modal" aria-hidden="true">
+        <div class="modal-content">
+            <div class="unlock-header">
+                <h4 class="unlock-title">Historia Bloqueada</h4>
+                <p class="unlock-hint"></p>
+            </div>
+            
+            <div class="unlock-body">
+                <input 
+                    type="password" 
+                    id="unlockPassword" 
+                    placeholder="Introduce la contraseña"
+                    aria-label="Contraseña de desbloqueo"
+                >
+                
+                <div class="unlock-actions">
+                    <button id="unlockSubmit" class="btn btn-primary">
+                        🔓 Desbloquear
+                    </button>
+                    <button id="unlockCancel" class="btn btn-ghost">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Elemento de Audio (oculto) -->
+    <audio id="storyAudio" preload="metadata"></audio>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="container footer__inner">
+            <div class="foot__brand">
+                <span class="cube"></span>
+                <strong>Moon</strong>
+            </div>
+            <nav class="foot__links" aria-label="Enlaces del sitio">
+                <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+                <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+                <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+            </nav>
+            <p class="foot__copy">
+                © <span id="y">2024</span> Moonveil. Hecho con bloques.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Script principal -->
+    <script src="historia.js"></script>
+</body>
+</html>
