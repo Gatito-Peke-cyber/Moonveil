@@ -105,7 +105,7 @@ const ROULETTES = [
     title: 'Ruleta del 1 de cobre',
     desc: '¿Y porque no? 1 de Cobre',
     bg: 'img-pass/catmoon.jpg',
-    //music: 'music/november.mp3',
+    music: 'ald/music3.mp3',
     start: '2025-01-02',
     end: '2025-12-23',
     rewards: [
