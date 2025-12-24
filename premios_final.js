@@ -139,17 +139,17 @@ const ROULETTES = [
       { id:'e28', label:'Cobre x1', weight:6, rarity:'common', img:'🪙', desc:'Un mini paquetito de Cobre' },
       { id:'e29', label:'Cobre x1', weight:6, rarity:'common', img:'🪙', desc:'Un mini paquetito de Cobre' },
       { id:'e30', label:'Cobres x1', weight:6, rarity:'common', img:'🪙', desc:'Un mini paquetito de Cobre' },
-      { id:'e31', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte 1' },
-      { id:'e32', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte 2' },
-      { id:'e33', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte 3' },
-      { id:'e34', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte 4' },
-      { id:'e35', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte 5' },
-      { id:'e36', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte 6' },
-      { id:'e37', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte 7' },
-      { id:'e38', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte 8' },
-      { id:'e39', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte 9' },
-      { id:'e40', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte 10' },
-      { id:'e41', label:'Episodios', weight:1, rarity:'legend', img:'✨', desc:'Parte XI' },
+      { id:'e31', label:'Episodios 1', weight:1, rarity:'legend', img:'✨', desc:'Parte 1' },
+      { id:'e32', label:'Episodios 2', weight:1, rarity:'legend', img:'✨', desc:'Parte 2' },
+      { id:'e33', label:'Episodios 3', weight:1, rarity:'legend', img:'✨', desc:'Parte 3' },
+      { id:'e34', label:'Episodios 4', weight:1, rarity:'legend', img:'✨', desc:'Parte 4' },
+      { id:'e35', label:'Episodios 5', weight:1, rarity:'legend', img:'✨', desc:'Parte 5' },
+      { id:'e36', label:'Episodios 6', weight:1, rarity:'legend', img:'✨', desc:'Parte 6' },
+      { id:'e37', label:'Episodios 7', weight:1, rarity:'legend', img:'✨', desc:'Parte 7' },
+      { id:'e38', label:'Episodios 8', weight:1, rarity:'legend', img:'✨', desc:'Parte 8' },
+      { id:'e39', label:'Episodios 9', weight:1, rarity:'legend', img:'✨', desc:'Parte 9' },
+      { id:'e40', label:'Episodios 10', weight:1, rarity:'legend', img:'✨', desc:'Parte 10' },
+      { id:'e41', label:'Episodios XI', weight:1, rarity:'legend', img:'✨', desc:'Parte XI' },
       { id:'e42', label:'Vacio', weight:1, rarity:'legend', img:'✨', desc:'¡Nada!' },
       { id:'e43', label:'Vacio', weight:1, rarity:'legend', img:'✨', desc:'¡Nada!' },
       { id:'e44', label:'Cobre (x64)', weight:1, rarity:'legend', img:'🪙', desc:'Una gran bolsita de cobre' },
@@ -1332,3 +1332,4 @@ function formatTime(sec) {
 updateBoostUI();
 
 startInterval();
+
