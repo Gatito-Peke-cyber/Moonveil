@@ -107,7 +107,7 @@ const ROULETTES = [
     bg: 'img-pass/catmoon.jpg',
     music: 'ald/music3.mp3',
     start: '2025-01-02',
-    end: '2025-12-23',
+    end: '2025-12-25',
     rewards: [
       { id:'e1', label:'Cobre x2', weight:10, rarity:'epic', img:'💎', desc:'Paquete valioso (eso creemos)' },
       { id:'e2', label:'Ticket (0%)', weight:3, rarity:'common', img:'🎟️', desc:'Ticket con 0' },
@@ -1330,4 +1330,5 @@ function formatTime(sec) {
 
 /* ----------------- Init ----------------- */
 updateBoostUI();
+
 startInterval();
