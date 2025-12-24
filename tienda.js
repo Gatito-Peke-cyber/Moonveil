@@ -170,6 +170,7 @@ const products = [
   { id:'t_classic_4', name:'Tiros Gratis!!', img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1, restock:'30d', amount:10 , section:'tickets', gold:true, desc:'Ticket para la ruleta clasica x10', tags:['ticket','clasico'] },
   { id:'t_elemental_3', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:1, restock:null,  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','elemental'] },
   { id:'t_elemental_4', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:1, stock:1, restock:null,  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta x1', tags:['ticket','elemental'] },
+  { id:'t_elemental_5', name:'Tickets de Nox', img:'imagen/ticket5.jpg', quality:'epic', price:0, stock:1, restock:null,  amount:40, section:'tickets', gold:false, desc:'Nox te desea una Feliz Navidad', tags:['ticket','elemental'] },
 
 /* ===== TICKETS PARA RULETAS ===== */
 
@@ -994,5 +995,6 @@ function activarFuegos() {
     fireworksInterval = setInterval(() => crearCohete(), 800 + Math.random() * 400);
   }
 }
+
 
 document.addEventListener("DOMContentLoaded", activarFuegos);
