@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil Portal — Banco del Reino</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <!-- Favicon pixel -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS del banco -->
+  <link rel="stylesheet" href="banco.css" />
+  
+  <!-- CSS del header/footer -->
+  <link rel="stylesheet" href="inicio.css" />
+
+  <meta name="description" content="Moonveil Portal — Banco del Reino. Almacena tus riquezas y observa cómo crecen automáticamente con el tiempo." />
+</head>
+<body class="theme-auto">
+  <!-- Fondo global: partículas y capas parallax -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD + Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="banco.html" class="active">Banco</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores del jugador">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
+        <div class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
+        <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor principal del banco -->
+  <main class="banco-container">
+    <!-- Panel de bienvenida -->
+    <section class="banco-hero">
+      <div class="banco-hero-content">
+        <h1><span class="icon-vault">🏦</span> Banco del Reino Moonveil</h1>
+        <p class="subtitle">Almacena tus riquezas y observa cómo crecen automáticamente con el tiempo</p>
+        
+        <div class="daily-report">
+          <h3><span class="icon-report">📊</span> Reporte Diario</h3>
+          <p id="dailyReport">¡Bienvenido al Banco Moonveil! Tus monedas están acumulándose automáticamente.</p>
+        </div>
+        
+        <div class="bank-tutorial">
+          <h4>¿Cómo funciona?</h4>
+          <ol>
+            <li>Las monedas se acumulan automáticamente con el tiempo</li>
+            <li>Haz clic en "Recolectar" para vaciar los chanchitos</li>
+            <li>¡Cada chanchito puede almacenar hasta 50 monedas!</li>
+            <li>Y si el chanchito almacena mas de 50 monedas se pierde, tiene que estar atento</li>
+            <li>La Pepita Rápida se llena cada 10 segundos, asi que solo es de prueba no ganas nada con ese chanchito</li>
+          </ol>
+        </div>
+      </div>
+      <div class="vault-door" id="vaultDoor">
+        <div class="door-handle"></div>
+        <div class="door-rivets">
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+        </div>
+        <div class="door-glow"></div>
+        <div class="vault-label">BÓVEDA</div>
+      </div>
+    </section>
+    
+    <!-- Panel de monedas -->
+    <section class="currency-panel">
+      <h2><span class="icon-coins">💰</span> Tus Depósitos</h2>
+      <p class="panel-description">Cada moneda se acumula automáticamente con el tiempo. ¡Haz clic en "Recolectar" para vaciar los chanchitos y guardar tus ganancias!</p>
+      
+      <div class="currency-grid">
+        <!-- Esmeralda -->
+        <div class="currency-card" data-currency="esmeralda">
+          <div class="currency-header">
+            <div class="currency-icon emerald">💎</div>
+            <div class="currency-info">
+              <h3>Esmeraldas</h3>
+              <p class="currency-rate">+1 cada 3 horas</p>
+            </div>
+            <div class="currency-badge" id="badgeEsmeralda">0</div>
+          </div>
+          
+          <div class="piggy-bank-container">
+            <div class="piggy-bank" id="piggyEsmeralda">
+              <div class="piggy-body">
+                <div class="piggy-fill" id="fillEsmeralda"></div>
+                <div class="piggy-face">
+                  <div class="piggy-eye left"></div>
+                  <div class="piggy-eye right"></div>
+                  <div class="piggy-snout">
+                    <div class="piggy-nostril left"></div>
+                    <div class="piggy-nostril right"></div>
+                  </div>
+                </div>
+                <div class="piggy-ear left"></div>
+                <div class="piggy-ear right"></div>
+              </div>
+              <div class="piggy-base"></div>
+              <div class="piggy-slot"></div>
+              <div class="piggy-coin-display" id="coinEsmeralda">0</div>
+            </div>
+          </div>
+          
+          <div class="currency-stats">
+            <div class="stat">
+              <span class="stat-label">Acumulado:</span>
+              <span class="stat-value" id="countEsmeralda">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Próximo +1:</span>
+              <span class="stat-value" id="nextEsmeralda">3h 0m</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">En chanchito:</span>
+              <span class="stat-value" id="piggyCountEsmeralda">0/50</span>
+            </div>
+          </div>
+          
+          <button class="btn-collect" data-currency="esmeralda" disabled>
+            <span class="btn-icon">🔄</span> Recolectar Esmeraldas
+          </button>
+        </div>
+        
+        <!-- Lingote de Cobre -->
+        <div class="currency-card" data-currency="cobre">
+          <div class="currency-header">
+            <div class="currency-icon copper">🟫</div>
+            <div class="currency-info">
+              <h3>Lingotes de Cobre</h3>
+              <p class="currency-rate">+1 cada hora</p>
+            </div>
+            <div class="currency-badge" id="badgeCobre">0</div>
+          </div>
+          
+          <div class="piggy-bank-container">
+            <div class="piggy-bank" id="piggyCobre">
+              <div class="piggy-body">
+                <div class="piggy-fill" id="fillCobre"></div>
+                <div class="piggy-face">
+                  <div class="piggy-eye left"></div>
+                  <div class="piggy-eye right"></div>
+                  <div class="piggy-snout">
+                    <div class="piggy-nostril left"></div>
+                    <div class="piggy-nostril right"></div>
+                  </div>
+                </div>
+                <div class="piggy-ear left"></div>
+                <div class="piggy-ear right"></div>
+              </div>
+              <div class="piggy-base"></div>
+              <div class="piggy-slot"></div>
+              <div class="piggy-coin-display" id="coinCobre">0</div>
+            </div>
+          </div>
+          
+          <div class="currency-stats">
+            <div class="stat">
+              <span class="stat-label">Acumulado:</span>
+              <span class="stat-value" id="countCobre">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Próximo +1:</span>
+              <span class="stat-value" id="nextCobre">1h 0m</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">En chanchito:</span>
+              <span class="stat-value" id="piggyCountCobre">0/50</span>
+            </div>
+          </div>
+          
+          <button class="btn-collect" data-currency="cobre" disabled>
+            <span class="btn-icon">🔄</span> Recolectar Lingotes
+          </button>
+        </div>
+        
+        <!-- Pepita de Oro -->
+        <div class="currency-card" data-currency="oro">
+          <div class="currency-header">
+            <div class="currency-icon gold">🟨</div>
+            <div class="currency-info">
+              <h3>Pepitas de Oro</h3>
+              <p class="currency-rate">+1 cada 2 horas</p>
+            </div>
+            <div class="currency-badge" id="badgeOro">0</div>
+          </div>
+          
+          <div class="piggy-bank-container">
+            <div class="piggy-bank" id="piggyOro">
+              <div class="piggy-body">
+                <div class="piggy-fill" id="fillOro"></div>
+                <div class="piggy-face">
+                  <div class="piggy-eye left"></div>
+                  <div class="piggy-eye right"></div>
+                  <div class="piggy-snout">
+                    <div class="piggy-nostril left"></div>
+                    <div class="piggy-nostril right"></div>
+                  </div>
+                </div>
+                <div class="piggy-ear left"></div>
+                <div class="piggy-ear right"></div>
+              </div>
+              <div class="piggy-base"></div>
+              <div class="piggy-slot"></div>
+              <div class="piggy-coin-display" id="coinOro">0</div>
+            </div>
+          </div>
+          
+          <div class="currency-stats">
+            <div class="stat">
+              <span class="stat-label">Acumulado:</span>
+              <span class="stat-value" id="countOro">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Próximo +1:</span>
+              <span class="stat-value" id="nextOro">2h 0m</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">En chanchito:</span>
+              <span class="stat-value" id="piggyCountOro">0/50</span>
+            </div>
+          </div>
+          
+          <button class="btn-collect" data-currency="oro" disabled>
+            <span class="btn-icon">🔄</span> Recolectar Pepitas
+          </button>
+        </div>
+        
+        <!-- Pepita de Hierro -->
+        <div class="currency-card" data-currency="hierro">
+          <div class="currency-header">
+            <div class="currency-icon iron">⬜</div>
+            <div class="currency-info">
+              <h3>Pepitas de Hierro</h3>
+              <p class="currency-rate">+1 cada 1.5 horas</p>
+            </div>
+            <div class="currency-badge" id="badgeHierro">0</div>
+          </div>
+          
+          <div class="piggy-bank-container">
+            <div class="piggy-bank" id="piggyHierro">
+              <div class="piggy-body">
+                <div class="piggy-fill" id="fillHierro"></div>
+                <div class="piggy-face">
+                  <div class="piggy-eye left"></div>
+                  <div class="piggy-eye right"></div>
+                  <div class="piggy-snout">
+                    <div class="piggy-nostril left"></div>
+                    <div class="piggy-nostril right"></div>
+                  </div>
+                </div>
+                <div class="piggy-ear left"></div>
+                <div class="piggy-ear right"></div>
+              </div>
+              <div class="piggy-base"></div>
+              <div class="piggy-slot"></div>
+              <div class="piggy-coin-display" id="coinHierro">0</div>
+            </div>
+          </div>
+          
+          <div class="currency-stats">
+            <div class="stat">
+              <span class="stat-label">Acumulado:</span>
+              <span class="stat-value" id="countHierro">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Próximo +1:</span>
+              <span class="stat-value" id="nextHierro">1h 30m</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">En chanchito:</span>
+              <span class="stat-value" id="piggyCountHierro">0/50</span>
+            </div>
+          </div>
+          
+          <button class="btn-collect" data-currency="hierro" disabled>
+            <span class="btn-icon">🔄</span> Recolectar Pepitas
+          </button>
+        </div>
+        
+        <!-- Pepita Rápida (nueva) -->
+        <div class="currency-card" data-currency="rapida">
+          <div class="currency-header">
+            <div class="currency-icon rapid">⚡</div>
+            <div class="currency-info">
+              <h3>Pepita Rápida</h3>
+              <p class="currency-rate">+1 cada 10 segundos</p>
+            </div>
+            <div class="currency-badge" id="badgeRapida">0</div>
+          </div>
+          
+          <div class="piggy-bank-container">
+            <div class="piggy-bank" id="piggyRapida">
+              <div class="piggy-body">
+                <div class="piggy-fill" id="fillRapida"></div>
+                <div class="piggy-face">
+                  <div class="piggy-eye left"></div>
+                  <div class="piggy-eye right"></div>
+                  <div class="piggy-snout">
+                    <div class="piggy-nostril left"></div>
+                    <div class="piggy-nostril right"></div>
+                  </div>
+                </div>
+                <div class="piggy-ear left"></div>
+                <div class="piggy-ear right"></div>
+              </div>
+              <div class="piggy-base"></div>
+              <div class="piggy-slot"></div>
+              <div class="piggy-coin-display" id="coinRapida">0</div>
+            </div>
+          </div>
+          
+          <div class="currency-stats">
+            <div class="stat">
+              <span class="stat-label">Acumulado:</span>
+              <span class="stat-value" id="countRapida">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Próximo +1:</span>
+              <span class="stat-value" id="nextRapida">10s</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">En chanchito:</span>
+              <span class="stat-value" id="piggyCountRapida">0/50</span>
+            </div>
+          </div>
+          
+          <button class="btn-collect" data-currency="rapida" disabled>
+            <span class="btn-icon">🔄</span> Recolectar Rápidas
+          </button>
+        </div>
+      </div>
+      
+      <div class="collect-all-container">
+        <button class="btn-collect-all" id="btnCollectAll" disabled>
+          <span class="btn-icon">🎁</span> Recolectar Todo
+        </button>
+      </div>
+    </section>
+    
+    <!-- Registro de actividad -->
+    <section class="activity-log">
+      <h2><span class="icon-log">📜</span> Registro de Actividad</h2>
+      <div class="log-container">
+        <div class="log-controls">
+          <button class="btn-log active" id="btnToday">Hoy</button>
+          <button class="btn-log" id="btnWeek">Esta semana</button>
+          <button class="btn-log" id="btnMonth">Este mes</button>
+          <button class="btn-clear-log" id="btnClearLog">Limpiar</button>
+        </div>
+        
+        <div class="log-entries" id="logEntries">
+          <div class="log-entry">
+            <div class="log-icon">🏦</div>
+            <div class="log-time">Ahora</div>
+            <div class="log-message">¡Bienvenido al Banco Moonveil! Tus monedas comenzarán a acumularse automáticamente.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Panel de estadísticas -->
+    <section class="stats-panel">
+      <h2><span class="icon-stats">📈</span> Estadísticas del Banco</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon total">💰</div>
+          <h3>Riqueza Total</h3>
+          <p class="stat-number" id="totalWealth">0</p>
+          <p class="stat-desc">Unidades monetarias</p>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon time">⏱</div>
+          <h3>Tiempo Activo</h3>
+          <p class="stat-number" id="totalTime">0d 0h</p>
+          <p class="stat-desc">Desde tu primer ingreso</p>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon gain">📊</div>
+          <h3>Ganancias Totales</h3>
+          <p class="stat-number" id="totalGains">0</p>
+          <p class="stat-desc">Unidades ganadas</p>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon favorite">⭐</div>
+          <h3>Moneda Favorita</h3>
+          <p class="stat-number" id="favCurrency">-</p>
+          <p class="stat-desc">Más acumulada</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand">
+        <span class="cube"></span>
+        <strong>Moonveil</strong> Portal — Banco
+      </div>
+      <nav class="foot__links" aria-label="Enlaces del sitio">
+        <a href="inicio.html">Inicio</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+      </nav>
+      <p class="foot__copy">© <span id="currentYear"></span> Moonveil. ¡Que tus monedas sigan creciendo!</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JavaScript del banco -->
+  <script src="banco.js"></script>
+</body>
+</html>
