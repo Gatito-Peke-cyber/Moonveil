@@ -406,3 +406,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Render inicial
   render(currentList);
 });
+
+
+
