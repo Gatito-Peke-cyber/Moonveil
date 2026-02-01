@@ -170,7 +170,6 @@ const products = [
   { id:'t_classic_4', name:'Tiros Gratis!!', img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1, restock:'30d', amount:10 , section:'tickets', gold:true, desc:'Ticket para la ruleta clasica x10', tags:['ticket','clasico'] },
   { id:'t_elemental_3', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:1, restock:null,  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','elemental'] },
   { id:'t_elemental_4', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:1, stock:1, restock:null,  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta x1', tags:['ticket','elemental'] },
-  { id:'t_elemental_5', name:'Tickets de Nox', img:'imagen/ticket5.jpg', quality:'epic', price:0, stock:1, restock:null,  amount:40, section:'tickets', gold:false, desc:'Nox te desea una Feliz Navidad', tags:['ticket','elemental'] },
 
 /* ===== TICKETS PARA RULETAS ===== */
 
@@ -921,11 +920,6 @@ document.addEventListener("DOMContentLoaded", activarNieveSiEsNavidad);
 
 
 
-
-
-
-
-
 const EVENTO_INICIO = new Date("2025-12-31T00:00:00");
 const EVENTO_FIN    = new Date("2026-01-06T23:59:59");
 
@@ -996,5 +990,300 @@ function activarFuegos() {
   }
 }
 
-
 document.addEventListener("DOMContentLoaded", activarFuegos);
+
+
+
+
+const SAN_VALENTIN_INICIO = new Date("2026-02-10T00:00:00");
+const SAN_VALENTIN_FIN = new Date("2026-02-15T23:59:59");
+
+let petalsInterval = null;
+
+function crearPetalo() {
+    const cont = document.getElementById("petals-container");
+    if (!cont) return;
+
+    const petalo = document.createElement("div");
+    petalo.className = "petal";
+    
+    // Alternar entre rosas y corazones
+    const tipos = ["🌹", "❤️", "💗", "🌷", "💞"];
+    petalo.textContent = tipos[Math.floor(Math.random() * tipos.length)];
+    
+    petalo.style.left = Math.random() * 100 + "%";
+    petalo.style.opacity = (0.3 + Math.random() * 0.4).toFixed(2);
+    petalo.style.fontSize = (14 + Math.random() * 20) + "px";
+    
+    // Rotación aleatoria
+    const rotacion = Math.random() * 360;
+    petalo.style.setProperty('--rotation', rotacion + 'deg');
+    
+    const duration = 8 + Math.random() * 10;
+    petalo.style.animationDuration = duration + "s";
+    
+    // Oscilación lateral
+    const swingAmount = 30 + Math.random() * 70;
+    petalo.style.setProperty('--swing', swingAmount + 'px');
+
+    cont.appendChild(petalo);
+
+    setTimeout(() => {
+        try { petalo.remove(); } catch(e){}
+    }, duration * 1000 + 200);
+}
+
+function activarPetalosSiEsSanValentin() {
+    const hoy = new Date();
+    if (hoy < SAN_VALENTIN_INICIO || hoy > SAN_VALENTIN_FIN) return;
+
+    if (!petalsInterval) {
+        for (let i = 0; i < 20; i++) crearPetalo();
+        petalsInterval = setInterval(crearPetalo, 350);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", activarPetalosSiEsSanValentin);
+
+// ===== CORAZONES FLOTANTES (equivalente a fuegos artificiales) =====
+const CORAZONES_INICIO = new Date("2026-02-14T00:00:00");
+const CORAZONES_FIN = new Date("2026-02-14T23:59:59");
+
+let heartsInterval = null;
+const COLORES_CORAZONES = ["#ff4081", "#ff6b9d", "#ff3366", "#ff99cc", "#ff6699", "#ff1a66"];
+
+function crearCorazonFlotante() {
+    const cont = document.getElementById("hearts-container");
+    if (!cont) return;
+
+    const heart = document.createElement("div");
+    heart.className = "floating-heart";
+    
+    const color = COLORES_CORAZONES[Math.floor(Math.random() * COLORES_CORAZONES.length)];
+    heart.style.color = color;
+    heart.textContent = "❤️";
+    
+    // Tamaño y posición inicial
+    const size = 24 + Math.random() * 32;
+    heart.style.fontSize = size + "px";
+    heart.style.left = Math.random() * 85 + "vw";
+    heart.style.bottom = "0";
+    
+    // Animación de subida
+    const duration = 3 + Math.random() * 2;
+    heart.style.animationDuration = duration + "s";
+    
+    // Oscilación horizontal
+    const swingDistance = 20 + Math.random() * 60;
+    heart.style.setProperty('--swing-distance', swingDistance + 'px');
+    
+    // Brillo
+    heart.style.filter = `drop-shadow(0 0 6px ${color})`;
+    
+    cont.appendChild(heart);
+
+    // Crear partículas de amor alrededor
+    setTimeout(() => {
+        const rect = heart.getBoundingClientRect();
+        const numParticles = 8 + Math.floor(Math.random() * 12);
+        
+        for (let i = 0; i < numParticles; i++) {
+            const p = document.createElement("div");
+            p.className = "love-particle";
+            p.textContent = ["💖", "💕", "💓", "💘", "💝"][Math.floor(Math.random() * 5)];
+            const pColor = COLORES_CORAZONES[Math.floor(Math.random() * COLORES_CORAZONES.length)];
+            p.style.color = pColor;
+            p.style.fontSize = (10 + Math.random() * 16) + "px";
+            p.style.opacity = 0.8;
+            p.style.left = rect.left + rect.width/2 + "px";
+            p.style.top = rect.top + rect.height/2 + "px";
+            
+            const angle = Math.random() * 2 * Math.PI;
+            const distance = 40 + Math.random() * 80;
+            p.style.setProperty('--x', (Math.cos(angle) * distance) + 'px');
+            p.style.setProperty('--y', (Math.sin(angle) * distance) + 'px');
+            p.style.animationDuration = (1.2 + Math.random() * 0.8) + "s";
+            
+            cont.appendChild(p);
+            setTimeout(() => p.remove(), 1800);
+        }
+        
+        // Texto romántico que aparece
+        const textos = ["Te amo", "Amor", "Beso", "Eres mía", "Mi vida", "Cariño"];
+        const texto = document.createElement("span");
+        texto.className = "love-text";
+        texto.style.color = color;
+        texto.style.left = rect.left + rect.width/2 + "px";
+        texto.style.top = rect.top + rect.height/2 + "px";
+        texto.textContent = textos[Math.floor(Math.random() * textos.length)];
+        texto.style.textShadow = `0 0 8px ${color}`;
+        cont.appendChild(texto);
+        setTimeout(() => texto.remove(), 1500);
+        
+        heart.remove();
+    }, duration * 1000);
+}
+
+function activarCorazones() {
+    const hoy = new Date();
+    if (hoy < CORAZONES_INICIO || hoy > CORAZONES_FIN) return;
+
+    if (!heartsInterval) {
+        for (let i = 0; i < 4; i++) setTimeout(crearCorazonFlotante, i * 500);
+        heartsInterval = setInterval(() => crearCorazonFlotante(), 1200 + Math.random() * 600);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", activarCorazones);
+
+
+
+
+const CARNAVAL_INICIO = new Date("2026-02-13T00:00:00");
+const CARNAVAL_FIN = new Date("2026-02-15T23:59:59");
+
+let confettiInterval = null;
+
+function crearConfeti() {
+  const cont = document.getElementById("carnival-container");
+  if (!cont) return;
+
+  const confeti = document.createElement("div");
+  confeti.className = "confetti";
+  
+  // Formas geométricas en lugar de emojis
+  const formas = ["●", "■", "▲", "◆"];
+  confeti.textContent = formas[Math.floor(Math.random() * formas.length)];
+  
+  confeti.style.left = Math.random() * 100 + "%";
+  confeti.style.opacity = (0.15 + Math.random() * 0.4).toFixed(2);
+  confeti.style.fontSize = (6 + Math.random() * 12) + "px";
+  
+  // Colores vibrantes de carnaval
+  const colores = ["#FF3B30", "#4CD964", "#007AFF", "#FF9500", "#FFCC00", "#5856D6", "#FF2D55", "#5AC8FA"];
+  const color = colores[Math.floor(Math.random() * colores.length)];
+  confeti.style.color = color;
+  confeti.style.textShadow = `0 0 3px ${color}`;
+
+  const duration = 5 + Math.random() * 7;
+  confeti.style.animationDuration = duration + "s";
+
+  cont.appendChild(confeti);
+
+  setTimeout(() => {
+    try { confeti.remove(); } catch(e){}
+  }, duration * 1000 + 200);
+}
+
+function activarConfetiSiEsCarnaval() {
+  const hoy = new Date();
+  if (hoy < CARNAVAL_INICIO || hoy > CARNAVAL_FIN) return;
+
+  if (!confettiInterval) {
+    for (let i = 0; i < 20; i++) crearConfeti();
+    confettiInterval = setInterval(crearConfeti, 200);
+  }
+}
+
+// auto-ejecutar al cargar la página
+document.addEventListener("DOMContentLoaded", activarConfetiSiEsCarnaval);
+
+// ===== FUEGOS ARTIFICIALES DE CARNAVAL =====
+const CARNAVAL_FUEGOS_INICIO = new Date("2026-02-01T00:00:00");
+const CARNAVAL_FUEGOS_FIN = new Date("2026-02-12T23:59:59");
+
+let carnivalFireworksInterval = null;
+const COLORES_CARNAVAL = ["#FF3B30", "#FF9500", "#FFCC00", "#4CD964", "#007AFF", "#5856D6", "#FF2D55"];
+
+function crearFuegoCarnaval() {
+  const cont = document.getElementById("carnival-fireworks-container");
+  if (!cont) return;
+
+  const fw = document.createElement("div");
+  fw.className = "carnival-firework";
+
+  const color = COLORES_CARNAVAL[Math.floor(Math.random() * COLORES_CARNAVAL.length)];
+  fw.style.background = color;
+  fw.style.color = color;
+  fw.style.left = Math.random() * 90 + "vw";
+  fw.style.width = (3 + Math.random() * 5) + "px";
+  fw.style.height = (12 + Math.random() * 18) + "px";
+  fw.style.animationDuration = (0.8 + Math.random() * 0.9) + "s";
+
+  cont.appendChild(fw);
+
+  fw.addEventListener("animationend", () => {
+    const rect = fw.getBoundingClientRect();
+    const numParticles = 25 + Math.floor(Math.random() * 25);
+
+    for (let i = 0; i < numParticles; i++) {
+      const p = document.createElement("div");
+      p.className = "carnival-particle";
+      
+      // Forma aleatoria para las partículas
+      const formasParticulas = ["circle", "square", "triangle"];
+      const forma = formasParticulas[Math.floor(Math.random() * formasParticulas.length)];
+      
+      if (forma === "circle") {
+        p.style.borderRadius = "50%";
+      } else if (forma === "triangle") {
+        p.style.width = "0";
+        p.style.height = "0";
+        p.style.borderLeft = "4px solid transparent";
+        p.style.borderRight = "4px solid transparent";
+        p.style.borderBottom = `8px solid ${COLORES_CARNAVAL[Math.floor(Math.random() * COLORES_CARNAVAL.length)]}`;
+        p.style.background = "transparent";
+      } else {
+        p.style.borderRadius = "2px";
+      }
+      
+      const size = forma === "triangle" ? 0 : (2 + Math.random() * 5);
+      if (forma !== "triangle") {
+        p.style.width = size + "px";
+        p.style.height = size + "px";
+      }
+      
+      const pColor = COLORES_CARNAVAL[Math.floor(Math.random() * COLORES_CARNAVAL.length)];
+      if (forma !== "triangle") {
+        p.style.background = pColor;
+      }
+      p.style.opacity = (0.6 + Math.random() * 0.4);
+      p.style.left = rect.left + rect.width/2 + "px";
+      p.style.top = rect.top + rect.height/2 + "px";
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = 40 + Math.random() * 80;
+      p.style.setProperty('--x', (Math.cos(angle) * distance) + 'px');
+      p.style.setProperty('--y', (Math.sin(angle) * distance) + 'px');
+      p.style.animationDuration = (0.6 + Math.random() * 0.8) + "s";
+      cont.appendChild(p);
+      setTimeout(() => p.remove(), 1400);
+    }
+
+    // Texto de carnaval en lugar del año
+    const carnivalText = document.createElement("span");
+    carnivalText.className = "carnival-text";
+    carnivalText.style.color = color;
+    carnivalText.style.left = rect.left + rect.width/2 + "px";
+    carnivalText.style.top = rect.top + rect.height/2 + "px";
+    
+    const textos = ["¡Fiesta!", "Carnaval", "¡Celebra!", "Fiesta", "¡Diversión!"];
+    carnivalText.textContent = textos[Math.floor(Math.random() * textos.length)];
+    
+    cont.appendChild(carnivalText);
+    setTimeout(() => carnivalText.remove(), 1100);
+
+    fw.remove();
+  });
+}
+
+function activarFuegosCarnaval() {
+  const hoy = new Date();
+  if (hoy < CARNAVAL_FUEGOS_INICIO || hoy > CARNAVAL_FUEGOS_FIN) return;
+
+  if (!carnivalFireworksInterval) {
+    for (let i = 0; i < 4; i++) setTimeout(crearFuegoCarnaval, i * 400);
+    carnivalFireworksInterval = setInterval(() => crearFuegoCarnaval(), 1000 + Math.random() * 500);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", activarFuegosCarnaval);
