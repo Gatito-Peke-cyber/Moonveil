@@ -112,8 +112,10 @@ document.addEventListener('DOMContentLoaded', () => {
     { email: 'ramiro@moonveil.dev', password: 'Ramiro-1234!' },
     { email: 'petunia@moonveil.dev', password: 'Petunia-1234!' },
     { email: 'guido@moonveil.dev', password: 'Guido-1234!' },
+    { email: 'almond@moonveil.dev', password: 'Almond2011' },
     { email: 'magician@moonveil.dev', password: 'Magician2011' },
     { email: 'gatito@moonveil.dev', password: 'gatitos1' },
+    
   ];
 
   /* -------------------------------------------------------
