@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Social</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="ins.css" />
+
+  <meta name="description" content="Red social de aldeanos de Minecraft - Moonveil Social" />
+</head>
+<body class="theme-auto">
+  <!-- Fondo -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- HUD / Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Social</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="contactos.html">Contactos</a></li>
+        <li><a href="ins.html" class="active">Social</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
+        <div class="hud-bar xp" data-val="62" aria-label="Experiencia 62%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Mapa"><span class="i i-map" aria-hidden="true"></span></button>
+        <button class="slot" title="Pluma"><span class="i i-feather" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor principal -->
+  <main class="social-container">
+    <!-- Sidebar izquierdo -->
+    <aside class="sidebar left-sidebar">
+      <div class="profile-card">
+        <div class="profile-avatar">
+          <img src="img/imper.jpg" alt="Tu perfil" />
+        </div>
+        <div class="profile-info">
+          <h3>Jugador</h3>
+          <p class="username">@player_001</p>
+          <div class="profile-stats">
+            <div class="stat">
+              <strong id="userFollowers">247</strong>
+              <span>Seguidores</span>
+            </div>
+            <div class="stat">
+              <strong>189</strong>
+              <span>Siguiendo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="suggestions-card">
+        <h4>Sugerencias para ti</h4>
+        <div id="suggestions"></div>
+      </div>
+
+      <div class="trending-card">
+        <h4>🔥 Tendencias</h4>
+        <div id="trending"></div>
+      </div>
+    </aside>
+
+    <!-- Feed principal -->
+    <section class="main-feed">
+      <!-- Stories -->
+      <div class="stories-section">
+        <h3>Historias</h3>
+        <div class="stories-scroll" id="storiesScroll">
+          <!-- Stories generadas por JS -->
+        </div>
+      </div>
+
+      <!-- Posts -->
+      <div class="posts-container" id="postsContainer">
+        <!-- Posts generados por JS -->
+      </div>
+
+      <!-- Paginación -->
+      <div class="pagination" id="pagination">
+        <button id="prevPage" class="btn btn--secondary" disabled>← Anterior</button>
+        <span id="pageInfo" class="page-info">Página 1 de 1</span>
+        <button id="nextPage" class="btn btn--primary">Siguiente →</button>
+      </div>
+    </section>
+
+    <!-- Sidebar derecho (Mensajes directos) -->
+    <aside class="sidebar right-sidebar">
+      <div class="dm-header">
+        <h3>💬 Mensajes</h3>
+        <button class="icon-btn" id="newDM" title="Nuevo mensaje">
+          <span class="icon">✉️</span>
+        </button>
+      </div>
+      <div class="dm-list" id="dmList">
+        <!-- Lista de chats -->
+      </div>
+    </aside>
+  </main>
+
+  <!-- Modal de comentarios -->
+  <div class="modal" id="commentsModal" aria-hidden="true">
+    <div class="modal__overlay" id="commentsOverlay"></div>
+    <div class="modal__dialog comments-dialog">
+      <div class="comments-split">
+        <!-- Imagen del post -->
+        <div class="comments-image-side">
+          <img id="commentsPostImage" alt="Post" />
+        </div>
+        
+        <!-- Comentarios -->
+        <div class="comments-content-side">
+          <header class="modal__head">
+            <div class="comments-post-user">
+              <img id="commentsUserAvatar" class="comments-user-avatar" alt="" />
+              <strong id="commentsUserName">Usuario</strong>
+            </div>
+            <button class="icon-btn" id="closeComments" aria-label="Cerrar">
+              <span class="icon">✕</span>
+            </button>
+          </header>
+          
+          <div class="modal__body comments-body" id="commentsBody">
+            <!-- Comentarios generados por JS -->
+          </div>
+          
+          <div class="comments-actions">
+            <div class="comments-action-buttons">
+              <button class="action-icon-btn" id="commentsLikeBtn">
+                <span class="heart-icon">🤍</span>
+              </button>
+              <button class="action-icon-btn">
+                <span>💬</span>
+              </button>
+              <button class="action-icon-btn">
+                <span>📤</span>
+              </button>
+            </div>
+            <div class="comments-likes" id="commentsLikesCount">0 Me gusta</div>
+            <div class="comments-time" id="commentsTime">Hace 2 horas</div>
+          </div>
+          
+          <div class="comments-info">
+            Los comentarios son de solo lectura
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de chat privado -->
+  <div class="modal" id="chatModal" aria-hidden="true">
+    <div class="modal__overlay" id="chatOverlay"></div>
+    <div class="modal__dialog chat-dialog">
+      <header class="modal__head chat-head">
+        <div class="chat-user-info">
+          <img id="chatUserAvatar" class="chat-avatar" alt="" />
+          <div>
+            <h3 id="chatUserName">Usuario</h3>
+            <small id="chatUserStatus" class="muted">
+              <span class="status-dot"></span>
+              <span id="chatStatusText">En línea</span>
+            </small>
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <button class="icon-btn" id="chatVideoCall" title="Video llamada">
+            <span class="icon">📹</span>
+          </button>
+          <button class="icon-btn" id="chatCall" title="Llamada">
+            <span class="icon">📞</span>
+          </button>
+          <button class="icon-btn" id="closeChat" aria-label="Cerrar">
+            <span class="icon">✕</span>
+          </button>
+        </div>
+      </header>
+      <div class="modal__body chat-body" id="chatBody">
+        <!-- Mensajes generados por JS -->
+      </div>
+      <div class="chat-quick-replies" id="chatQuickReplies">
+        <!-- Respuestas rápidas -->
+      </div>
+      <form class="chat-composer" id="chatComposer">
+        <button type="button" class="icon-btn-small" id="chatEmoji" title="Emojis">😊</button>
+        <button type="button" class="icon-btn-small" id="chatGif" title="GIF">GIF</button>
+        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." autocomplete="off" />
+        <button type="submit" class="btn btn--primary btn--small">
+          <span>Enviar</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de imagen -->
+  <div class="modal" id="imageModal" aria-hidden="true">
+    <div class="modal__overlay" id="imageOverlay"></div>
+    <div class="modal__dialog image-dialog">
+      <button class="icon-btn close-image" id="closeImage">✕</button>
+      <img id="modalImage" alt="Imagen ampliada" />
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Botón flotante de música -->
+  <button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
+
+  <!-- Música de fondo -->
+  <audio id="bg-music" loop>
+    <source src="music/november.mp3" type="audio/mpeg" />
+  </audio>
+
+  <!-- JS -->
+  <script src="ins.js"></script>
+</body>
+</html>

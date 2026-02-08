@@ -1,26 +1,20 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <!-- =========================================================
-       Moonveil Portal — Contactos 
-       - Lista de contactos + Chat
-       - Opciones, keywords, cliché y censura
-       - Responsive y accesible
-       ========================================================= -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark light" />
   <title>Moonveil — Contactos</title>
 
   <!-- Fuentes -->
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
 
   <!-- CSS -->
   <link rel="stylesheet" href="contactos.css" />
-
 
   <meta name="description" content="Contactos estilo WhatsApp con respuestas por opciones, keywords, cliché o censura. Integrado con el diseño Moonveil Portal." />
 </head>
@@ -46,9 +40,6 @@
       <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
       <ul class="nav-links" id="navLinks">
         <li><a href="inicio.html">Inicio</a></li>
-        <!--<li><a href="perfiles.html">Perfiles</a></li>
-        <li><a href="ranking.html">Ranking</a></li>
-        <li><a href="noticias.html">Noticias</a></li>-->
         <li><a href="contactos.html" class="active">Contactos</a></li>
         <li><a href="index.html">Salir</a></li>
       </ul>
@@ -92,33 +83,18 @@
       </div>
       
       <!-- BARRA DE ESTADOS -->
-  <div class="stories-bar">
-    <button class="scroll-left">⟨</button>
+      <div class="stories-bar">
+        <button class="scroll-left" aria-label="Anterior">⟨</button>
+        <div id="storiesContainer" class="stories-container"></div>
+        <button class="scroll-right" aria-label="Siguiente">⟩</button>
+      </div>
 
-    <div id="storiesContainer" class="stories-container"></div>
-
-    <button class="scroll-right">⟩</button>
-  </div>
-
-  <!-- VISOR -->
-  <div id="storyViewer" class="story-viewer">
-    <div class="story-header">
-      <img id="viewerAvatar" class="viewer-avatar">
-      <span id="viewerName" class="viewer-name"></span>
-      <button id="closeViewer">✕</button>
-    </div>
-
-    <div class="progress-bars" id="progressBars"></div>
-
-    <div id="storyContent" class="story-content"></div>
-
-    <button class="prev-story">⟨</button>
-    <button class="next-story">⟩</button>
-  </div>
-
-      <ul id="contactList" class="contacts" role="listbox" aria-label="Contactos">
-        <!-- Items generados por JS -->
-      </ul>
+      <!-- LISTA DE CONTACTOS CON SCROLL -->
+      <div class="contacts-scroll">
+        <ul id="contactList" class="contacts" role="listbox" aria-label="Contactos">
+          <!-- Items generados por JS -->
+        </ul>
+      </div>
     </aside>
 
     <!-- Panel derecho: chat -->
@@ -139,9 +115,8 @@
         </div>
       </header>
 
-      <!-- Thread -->
+      <!-- Thread con altura fija y scroll -->
       <div id="thread" class="chat__thread" role="log" aria-live="polite" aria-relevant="additions">
-        <!-- Mensajes renderizados por JS -->
         <div class="empty-hint">
           <h3>Bienvenido a Contactos</h3>
           <p class="muted">Selecciona un contacto de la izquierda para empezar a chatear. Estilo W, con opciones y respuestas dinámicas.</p>
@@ -153,7 +128,7 @@
         <!-- Botones generados por JS -->
       </div>
 
-      <!-- Composer - en el espacio entre los span va, el enviar pero por ahora no se usa letras -->
+      <!-- Composer -->
       <form id="composer" class="chat__composer" autocomplete="off" novalidate>
         <button type="button" class="icon-btn" id="btnEmoji" title="Emojis"><span class="icon i-emoji"></span></button>
         <button type="button" class="icon-btn" id="btnAttach" title="Adjuntar"><span class="icon i-clip"></span></button>
@@ -163,29 +138,42 @@
         <button type="submit" class="btn btn--primary" id="btnSend" aria-label="Enviar">
           <span class="btn__content">
             <span class="icon i-send"></span>
-            
-            <span>     </span>
           </span>
           <span class="btn__spinner" aria-hidden="true"></span>
         </button>
 
-        <!-- Panel de Emojis Profesional -->
-<div id="emojiPanel" class="emoji-panel hidden">
-  <div class="emoji-header">
-    <button data-category="smileys">😀</button>
-    <button data-category="animals">🐶</button>
-    <button data-category="food">🍕</button>
-    <button data-category="activity">⚽️</button>
-    <button data-category="hearts">❤️</button>
-  </div>
-  <div class="emoji-content" id="emojiContent">
-    <!-- emojis cargados por JS -->
-  </div>
-</div>
-
+        <!-- Panel de Emojis -->
+        <div id="emojiPanel" class="emoji-panel hidden">
+          <div class="emoji-header">
+            <button data-category="smileys">😀</button>
+            <button data-category="animals">🐶</button>
+            <button data-category="food">🍕</button>
+            <button data-category="activity">⚽️</button>
+            <button data-category="hearts">❤️</button>
+          </div>
+          <div class="emoji-content" id="emojiContent">
+            <!-- emojis cargados por JS -->
+          </div>
+        </div>
       </form>
     </section>
   </main>
+
+  <!-- VISOR DE ESTADOS -->
+  <div id="storyViewer" class="story-viewer">
+    <div class="story-header">
+      <img id="viewerAvatar" class="viewer-avatar" alt="">
+      <span id="viewerName" class="viewer-name"></span>
+      <button id="closeViewer" aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="progress-bars" id="progressBars"></div>
+
+    <div id="storyContent" class="story-content"></div>
+
+    <button class="prev-story" aria-label="Anterior">⟨</button>
+    <button class="next-story" aria-label="Siguiente">⟩</button>
+  </div>
 
   <!-- Modal info contacto -->
   <div class="modal" id="contactModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -207,8 +195,6 @@
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-
-
   <!-- Botón flotante de música -->
   <button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
 
@@ -216,6 +202,7 @@
   <audio id="bg-music" loop>
     <source src="music/november.mp3" type="audio/mpeg" />
   </audio>
+
   <!-- JS -->
   <script type="module" src="contactos.js"></script>
 </body>

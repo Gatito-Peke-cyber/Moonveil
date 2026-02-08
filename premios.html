@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Moonveil — Sistema Gacha Premium</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="inicio.css" />
+  <link rel="stylesheet" href="premios.css" />
+
+  <meta name="description" content="Moonveil Gacha — Sistema de recompensas premium con ruletas temáticas, misiones y colección." />
+</head>
+<body class="theme-auto">
+
+  <!-- BG + partículas (del sistema original) -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div id="bgLayer" class="bg-layer"></div>
+  </div>
+
+  <!-- HUD / Navbar (ORIGINAL) -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a class="active" aria-current="page">Premios</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Contenedor principal -->
+  <main class="gacha-root container" role="main">
+    
+    <!-- Header Section -->
+    <header class="gacha-header">
+      <div class="header-content">
+        <h1 class="main-title">
+          <span class="title-accent">✦</span>
+          Sistema Gacha
+          <span class="title-accent">✦</span>
+        </h1>
+        <p class="lead">Gira ruletas temáticas y construye tu colección de premios exclusivos</p>
+      </div>
+      <div class="header-actions">
+        <button id="btnInventory" class="btn btn--inventory">
+          <span>📦</span> Inventario
+        </button>
+        <button id="btnOpenRules" class="btn btn--ghost">
+          <span>📜</span> Reglas
+        </button>
+      </div>
+    </header>
+
+    <!-- Barra de recursos (tickets + boost) -->
+    <section class="resources-bar">
+      <!-- Tickets por ruleta -->
+      <div class="tickets-display" id="ticketsDisplay"></div>
+      
+      <!-- Boost multiplicador -->
+      <div class="boost-widget">
+        <div class="boost-status">
+          <div class="boost-icon-small">⚡</div>
+          <div class="boost-label">Boost x2</div>
+          <div id="boostTimer" class="boost-timer-small"></div>
+        </div>
+        <button id="multiplierBtn" class="boost-btn">Activar</button>
+      </div>
+    </section>
+
+    <!-- Selector de Ruleta (Tabs modernos) -->
+    <section class="wheel-selector">
+      <div class="wheel-tabs" id="wheelTabs"></div>
+    </section>
+
+    <!-- Área principal: Ruleta + Info -->
+    <section class="main-gacha-area">
+      
+      <!-- Columna Izquierda: Misiones -->
+      <aside class="left-panel">
+        <div class="panel missions-panel">
+          <div class="panel-header">
+            <h3>🎯 Misiones</h3>
+            <span class="header-badge" id="missionsBadge">0</span>
+          </div>
+          <div class="panel-body">
+            <div id="missionsList" class="missions-list"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Centro: Ruleta -->
+      <div class="wheel-container">
+        
+        <!-- Info de la ruleta actual -->
+        <div class="wheel-info-compact">
+          <div class="info-row">
+            <span class="info-label">🎡</span>
+            <span id="currentWheelName" class="info-value">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">🎟️</span>
+            <span id="currentWheelTickets" class="info-value">0</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">📊</span>
+            <span id="currentPity" class="info-value">0/40</span>
+          </div>
+        </div>
+
+        <!-- Indicador de pity -->
+        <div class="pity-indicator" id="pityIndicator">
+          <div class="pity-bar">
+            <div class="pity-fill" id="pityFill"></div>
+          </div>
+          <div class="pity-labels">
+            <span class="pity-label epic">Épico: 20</span>
+            <span class="pity-label legend">Legendario: 40</span>
+          </div>
+        </div>
+
+        <!-- La ruleta -->
+        <div class="wheel-shell">
+          <div id="wheelBackdrop" class="wheel-backdrop"></div>
+          <div id="wheel" class="wheel" role="img" aria-label="Ruleta de premios"></div>
+          <div class="wheel-pointer">▼</div>
+          
+          <!-- Lock overlay -->
+          <div id="wheelLock" class="wheel-lock" hidden>
+            <div class="lock-content">
+              <div class="lock-icon">🔒</div>
+              <div id="lockText" class="lock-text">Bloqueada</div>
+              <div id="lockRange" class="lock-range">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="wheel-description-box">
+          <div id="wheelDesc" class="wheel-description"></div>
+          <div id="wheelExpire" class="wheel-expire"></div>
+        </div>
+
+        <!-- Controles de giro -->
+        <div class="spin-controls">
+          <button id="btnPreview" class="btn btn--secondary">
+            <span>👁️</span> Premios
+          </button>
+          <button id="btnSpin" class="btn btn--primary btn--large">
+            <span>🎲</span> x1
+          </button>
+          <button id="btnSpin10" class="btn btn--primary btn--large">
+            <span>✨</span> x10
+          </button>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Último premio -->
+      <aside class="right-panel">
+        <div class="panel last-prize-panel">
+          <div class="panel-header">
+            <h3>🎁 Último Premio</h3>
+          </div>
+          <div class="panel-body">
+            <div id="lastPrize" class="last-prize">
+              <div class="no-prize">Aún no has girado</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+    </section>
+
+  </main>
+
+  <!-- Modal genérico -->
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-panel">
+      <button id="modalClose" class="modal-close" aria-label="Cerrar">✕</button>
+      <div id="modalContent" class="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Toast mejorado -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <div class="toast-icon"></div>
+    <div class="toast-text"></div>
+  </div>
+
+  <!-- Footer (mantener igual) -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="foot__brand"><span class="cube"></span><strong>Moonveil</strong> Portal</div>
+      <p class="foot__copy">© <span id="y-year"></span> Moonveil.</p>
+    </div>
+  </footer>
+
+  <!-- JS -->
+  <script type="module" src="premios.js"></script>
+  <script>document.getElementById('y-year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
