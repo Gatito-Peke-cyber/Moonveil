@@ -1,320 +1,290 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <!-- =========================================================
-       Moonveil Portal — Login Pro (MC-Style)
-       Mejorado por: ChatGPT
-       Notas:
-       - Layout 2 columnas con CSS Grid sin superposición.
-       - Pane izquierdo con scroll independiente y sticky header de marca.
-       - Biomas animados en canvas (bosque, nieve, desierto, océano, nether, pradera).
-       - Noticias con autoplay + botones + indicador.
-       - Ranking de trueques con iconos y tendencías.
-       - Consejos (carrusel) con dots navegables.
-       - Pane derecho: Login accesible, fuerza de contraseña, caps-lock,
-         demo de credenciales, proveedores simulados y HUD post-login.
-       - Todo 100% responsive, dark/light, con tokens CSS.
-       ========================================================= -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark light" />
-  <title>Moonveil Portal — Acceso</title>
+  <title>Moonveil Portal — Nueva Era</title>
 
-  <!-- Fuentes -->
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Press+Start+2P&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 
-  <!-- Favicon pixel -->
   <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
 
-  <!-- CSS principal -->
   <link rel="stylesheet" href="login.css" />
-
-  
-
-  <meta name="description" content="Portal de acceso con estética Minecraft profesional: noticias de aldeanos, biomas animados, ranking de trueques y login seguro con HUD." />
 </head>
-<body class="theme-auto">
-  <!-- Fondo animado (grid + fog) -->
-  <div class="bg" aria-hidden="true">
-    <div class="bg__grid" aria-hidden="true"></div>
-    <div class="bg__fog" aria-hidden="true"></div>
-    <canvas id="bgParticles" class="bg__particles" aria-hidden="true"></canvas>
+<body>
+  <!-- Fondo animado futurista -->
+  <div class="cosmic-bg">
+    <div class="stars-layer" id="starsLayer"></div>
+    <canvas class="aurora-canvas" id="auroraCanvas"></canvas>
+    <div class="grid-overlay"></div>
   </div>
 
-  <!-- App -->
-  <main id="app" class="shell" role="main" aria-label="Moonveil Portal">
-    <!-- =========================================
-         IZQUIERDA: Noticias, Biomas, Trueques, Consejos
-         ========================================= -->
-    <aside class="left-pane" aria-label="Noticias, biomas y consejos de aldeanos">
-      <!-- Encabezado marca (sticky) -->
-      <header class="lp-header">
-        <div class="brand" aria-label="Marca del portal">
-          <div class="brand__cube" aria-hidden="true"></div>
-          <h1 class="brand__title">
-            Moonveil <span>Portal</span>
-          </h1>
-        </div>
-      </header>
+  <!-- Container principal CENTRADO -->
+  <main class="portal-container">
+    
+    <!-- HEADER con logo ORIGINAL (arriba centro) -->
+    <header class="portal-header">
+      <div class="brand">
+        <div class="brand__cube" aria-hidden="true"></div>
+        <h1 class="brand__title">
+          Moonveil <span>Portal</span>
+        </h1>
+      </div>
+    </header>
 
-      <!-- Noticias de aldeanos -->
-      <section class="lp-card news" aria-labelledby="newsTitle" aria-describedby="newsDesc">
-        <div class="card-head">
-          <div>
-            <h2 id="newsTitle">Pensamientos de aldeanos - Sand Brill</h2>
-            <p id="newsDesc" class="visually-hidden">
-              Lista de publicaciones de aldeanos con nombre, rol, fecha y enlace a imagen. Rotación automática.
-            </p>
-          </div>
-          <div class="news-actions">
-            <button class="icon-btn" id="newsPrev" type="button" aria-label="Ver publicaciones anteriores">
-              <span class="icon i-left" aria-hidden="true"></span>
-            </button>
-            <button class="icon-btn" id="newsNext" type="button" aria-label="Ver publicaciones siguientes">
-              <span class="icon i-right" aria-hidden="true"></span>
-            </button>
-            <button class="icon-btn" id="newsPause" type="button" aria-label="Pausar o reanudar rotación">
-              <span class="icon i-pause" aria-hidden="true"></span>
-            </button>
-          </div>
-        </div>
-        <ul class="news-stream" id="newsStream" aria-live="polite"></ul>
-        <div class="news-footer">
-          <span class="news-indicator" id="newsIndicator" aria-live="polite">1 / 1</span>
-        </div>
-      </section>
+    <!-- LOGIN CARD CENTRAL con diseño glassmorphism -->
+    <div class="login-glass-card">
+      <!-- Aro de energía giratorio -->
+      <div class="energy-ring">
+        <div class="ring-segment"></div>
+        <div class="ring-segment"></div>
+        <div class="ring-segment"></div>
+      </div>
 
-      <!-- Biomas Canvas -->
-      <section class="lp-card biomes" aria-labelledby="biomeTitle" aria-describedby="biomeDesc">
-        <div class="card-head">
-          <div>
-            <h2 id="biomeTitle">Pequeños Recuerdos</h2>
-            <p id="biomeDesc" class="visually-hidden">
-              Escenario visual del bioma con pequeños elementos animados como nieve, árboles o peces. Cambia automáticamente.
-            </p>
+      <!-- Avatar holográfico -->
+      <div class="holo-avatar">
+        <div class="holo-layers">
+          <div class="holo-layer"></div>
+          <div class="holo-layer"></div>
+          <div class="holo-layer"></div>
+        </div>
+        <div class="avatar-icon">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Título animado -->
+      <h2 class="login-title">
+        <span class="title-word" data-delay="0">Bienvenido</span>
+        <span class="title-word" data-delay="1">al</span>
+        <span class="title-word" data-delay="2">Portal</span>
+      </h2>
+      <p class="login-subtitle">Ingresa tus credenciales para acceder</p>
+
+      <!-- Formulario minimalista -->
+      <form class="portal-form" id="portalForm">
+        
+        <!-- Campo Email con animación -->
+        <div class="form-field">
+          <div class="field-container">
+            <input 
+              type="email" 
+              id="email" 
+              required 
+              autocomplete="email"
+              placeholder=" "
+            />
+            <label for="email">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <span>Correo Electrónico</span>
+            </label>
+            <div class="field-glow"></div>
           </div>
-          <div class="biome-nav">
-            <button class="icon-btn" id="biomePrev" type="button" aria-label="Bioma anterior">
-              <span class="icon i-left" aria-hidden="true"></span>
+          <span class="field-error" data-error="email"></span>
+        </div>
+
+        <!-- Campo Password con medidor -->
+        <div class="form-field">
+          <div class="field-container">
+            <input 
+              type="password" 
+              id="password" 
+              required 
+              minlength="8"
+              autocomplete="current-password"
+              placeholder=" "
+            />
+            <label for="password">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <span>Contraseña</span>
+            </label>
+            <button type="button" class="toggle-password" id="togglePassword">
+              <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
             </button>
-            <button class="icon-btn" id="biomeNext" type="button" aria-label="Bioma siguiente">
-              <span class="icon i-right" aria-hidden="true"></span>
-            </button>
+            <div class="field-glow"></div>
+          </div>
+          
+          <!-- Medidor circular de seguridad -->
+          <div class="security-gauge" id="securityGauge">
+            <svg class="gauge-svg" viewBox="0 0 100 100">
+              <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+              <circle class="gauge-progress" cx="50" cy="50" r="45" id="gaugeCircle"/>
+            </svg>
+            <div class="gauge-text" id="gaugeText">-</div>
+          </div>
+          
+          <span class="field-error" data-error="password"></span>
+          <div class="caps-warning" id="capsWarning">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+            </svg>
+            Bloq Mayús activado
           </div>
         </div>
-        <div class="biome-stage">
-          <div class="biome-canvas" id="biomeCanvas"
-               aria-live="polite"
-               aria-label="Escena de bioma"
-               data-autoplay="true"
-               data-interval="6000"></div>
-        </div>
-        <div class="biome-caption" id="biomeCaption">—</div>
-      </section>
 
-      <!-- Ranking de trueques -->
-      <!--<section class="lp-card trades" aria-labelledby="tradesTitle" aria-describedby="tradesDesc">
-        <div class="card-head">
-          <div>
-            <h2 id="tradesTitle">Ranking de trueques</h2>
-            <p id="tradesDesc" class="visually-hidden">
-              Tabla de clasificación mostrando los productos más cotizados por los aldeanos, con iconos y tendencia.
-            </p>
-          </div>
+        <!-- Opciones -->
+        <div class="form-options">
+          <label class="neon-checkbox">
+            <input type="checkbox" id="remember" />
+            <span class="checkbox-mark">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+            <span>Mantener sesión</span>
+          </label>
+          <a href="#" class="neon-link" id="forgotLink">Recuperar acceso</a>
         </div>
-        <div class="trades-table-wrap">
-          <table class="trades-table" id="tradesTable">
-            <caption class="visually-hidden">Clasificación de objetos por demanda de aldeanos</caption>
-            <thead>
-              <tr>
-                <th scope="col">Pos.</th>
-                <th scope="col">Objeto</th>
-                <th scope="col">Demanda</th>
-                <th scope="col">Tendencia</th>
-                <th scope="col">Mejor aldeano</th>
-              </tr>
-            </thead>
-            <tbody id="tradesTbody">-->
-              <!-- Filas generadas por JS -->
-            <!--</tbody>
-          </table>
+
+        <!-- Demo accounts flotante -->
+        <!--<div class="demo-floating" id="demoFloating">
+          <button type="button" class="demo-trigger" id="demoTrigger">
+            <span class="demo-pulse"></span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span>Cuentas Demo</span>
+            <span class="demo-count">8</span>
+          </button>
+          <div class="demo-panel" id="demoPanel">-->
+            <!-- Generado por JS -->
+          <!--</div>
+        </div>-->
+
+        <!-- Botón holográfico -->
+        <button type="submit" class="holo-button" id="submitButton">
+          <span class="button-glow"></span>
+          <span class="button-content">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+            <span class="button-text">Iniciar Sesión</span>
+          </span>
+          <div class="button-particles" id="buttonParticles"></div>
+        </button>
+
+        <!-- Separador con efecto -->
+        <div class="quantum-divider">
+          <div class="divider-line"></div>
+          <span class="divider-orb">
+            <span class="orb-core"></span>
+          </span>
+          <div class="divider-line"></div>
         </div>
-      </section>-->
 
-      <!-- Consejos Sarcásticos -->
-      <section class="lp-card tips" aria-labelledby="tipsTitle" aria-describedby="tipsDesc">
-        <div class="card-head">
-          <div>
-            <h2 id="tipsTitle">Consejos sarcásticos</h2>
-            <p id="tipsDesc" class="visually-hidden">
-              Carrusel con consejos sarcásticos de aldeanos, cada uno con foto, nombre y texto gracioso.
-            </p>
-          </div>
-          <div class="tips-nav">
-            <button class="icon-btn" id="tipsPrev" type="button" aria-label="Consejo anterior">
-              <span class="icon i-left" aria-hidden="true"></span>
-            </button>
-            <button class="icon-btn" id="tipsNext" type="button" aria-label="Consejo siguiente">
-              <span class="icon i-right" aria-hidden="true"></span>
-            </button>
-          </div>
-        </div>
-        <div class="tips-slider" id="tipsSlider" role="region" aria-roledescription="carrusel" aria-label="Consejos de aldeanos" aria-live="polite">
-          <div class="tips-track" id="tipsTrack">
-            <!-- Slides generadas por JS -->
-          </div>
-          <div class="tips-dots" id="tipsDots" role="tablist" aria-label="Indicadores de consejos">
-            <!-- Dots generados por JS -->
-          </div>
-        </div>
-      </section>
-    </aside>
-
-    <!-- =========================================
-         DERECHA: Login + HUD post-login
-         ========================================= -->
-    <section class="right-pane" aria-label="Acceso al portal">
-      <!-- Tarjeta Login -->
-      <section class="card login-card" role="form" aria-labelledby="login-title">
-        <header class="card__header">
-          <h2 id="login-title" class="card-title">Inicia sesión</h2>
-        </header>
-
-        <div class="card__body">
-          <p class="subtitle">
-            Entra a tu <strong>mundo</strong>...
-          </p>
-          <form id="loginForm" novalidate>
-            <!-- Correo -->
-            <div class="field">
-              <label for="email">Correo</label>
-              <div class="input-wrap">
-                <span class="icon i-mail" aria-hidden="true"></span>
-                <input id="email"
-                       name="email"
-                       type="email"
-                       inputmode="email"
-                       autocomplete="email"
-                       placeholder="tu@correo.com"
-                       required
-                       aria-describedby="emailHelp"
-                       aria-invalid="false" />
-              </div>
-              <small id="emailHelp" class="help">Usa un correo válido.</small>
-              <small class="error" data-error-for="email" aria-live="polite"></small>
-            </div>
-            <!-- Contraseña -->
-            <div class="field">
-              <label for="password">Contraseña <span id="caps" class="caps" aria-live="polite"></span></label>
-              <div class="input-wrap">
-                <span class="icon i-lock" aria-hidden="true"></span>
-                <input id="password"
-                       name="password"
-                       type="password"
-                       autocomplete="current-password"
-                       minlength="8"
-                       placeholder="••••••••"
-                       required
-                       aria-describedby="passHelp"
-                       aria-invalid="false" />
-                <button type="button" class="icon-btn" id="togglePass" aria-label="Mostrar u ocultar contraseña">
-                  <span class="icon i-eye" aria-hidden="true"></span>
-                </button>
-              </div>
-              <!-- Barra de fuerza -->
-              <div class="strength" id="strength" aria-hidden="true">
-                <div class="bar" data-i="0"></div>
-                <div class="bar" data-i="1"></div>
-                <div class="bar" data-i="2"></div>
-                <div class="bar" data-i="3"></div>
-                <div class="bar" data-i="4"></div>
-              </div>
-             <small id="passHelp" class="help">Mínimo 8 caracteres; mezcla letras, números y símbolos.</small>
-              <small class="error" data-error-for="password" aria-live="polite"></small>
-            </div>
-            <!-- Recordarme y enlaces -->
-            <div class="field field--row">
-              <label class="checkbox" for="remember">
-                <input type="checkbox" id="remember" name="remember" />
-                <span class="check" aria-hidden="true"></span>
-                <span>Recordarme</span>
-              </label>
-
-              <a href="#" class="link" id="forgotLink">¿Olvidaste tu contraseña?</a>
-            </div>
-            <!-- Credenciales de demo -->
-            <div class="field">
-              <div class="demo-creds" id="demoCreds" aria-label="Credenciales de demostración">
-                <!-- Chips generadas por JS -->
-              </div>
-              <small class="help">Haz clic en una credencial para autocompletar.</small>
-            </div>
-            <!-- Botón principal -->
-            <button type="submit" class="btn btn--primary" id="submitBtn" aria-live="polite">
-              <span class="btn__content">
-                <span class="icon i-login" aria-hidden="true"></span>
-                <span>Entrar al portal</span>
-              </span>
-              <span class="btn__spinner" aria-hidden="true"></span>
-            </button>
-            <!-- Divider -->
-            <div class="divider" role="separator" aria-label="o continuar con"></div>
-            <!-- Proveedores simulados -->
-            <div class="social">
-              <button type="button" class="btn btn--ghost" data-oauth="microsoft" aria-label="Continuar con Microsoft">
-                <span class="icon i-ms" aria-hidden="true"></span>
-                <span>Microsoft</span>
-              </button>
-              <button type="button" class="btn btn--ghost" data-oauth="google" aria-label="Continuar con Google">
-                <span class="icon i-google" aria-hidden="true"></span>
-                <span>Google</span>
-              </button>
-            </div>
-          </form>
-        </div>
-        <footer class="card__footer">
-          <p class="hint">
-            ¿No tienes cuenta? <a href="#" class="link" id="createLink">Crear una (proximamente...)</a>
-          </p>
-        </footer>
-      </section>
-
-      <!-- HUD post-login (se muestra tras login exitoso) -->
-      <section class="hud" id="hud" hidden aria-live="polite">
-        <div class="hud__header">
-          <div class="hud__avatar" aria-hidden="true"></div>
-          <div class="hud__info">
-            <h3 class="hud__title">Bienvenido/a</h3>
-            <p class="hud__subtitle">Tu reino te espera…</p>
-          </div>
-          <button class="btn btn--ghost hud__close" id="hudClose" aria-label="Cerrar HUD">
-            <span class="icon i-close" aria-hidden="true"></span>
-            Cerrar
+        <!-- OAuth con animación -->
+        <div class="social-portals">
+          <button type="button" class="portal-btn" data-provider="microsoft">
+            <span class="portal-shimmer"></span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z"/>
+            </svg>
+            <span>Microsoft</span>
+          </button>
+          <button type="button" class="portal-btn" data-provider="google">
+            <span class="portal-shimmer"></span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            <span>Google</span>
           </button>
         </div>
-        <div class="hud__grid">
-          <article class="hud__card">
-            <h4>Estado del mundo</h4>
-            <ul class="hud__list" id="hudWorldList"></ul>
-          </article>
-          <article class="hud__card">
-            <h4>Tus atajos</h4>
-            <div class="hud__actions">
-              <button class="btn btn--primary"><span class="icon i-play"></span> Entrar</button>
-              <button class="btn btn--ghost"><span class="icon i-gear"></span> Ajustes</button>
-              <button class="btn btn--ghost"><span class="icon i-shield"></span> Seguridad</button>
-            </div>
-          </article>
+      </form>
+
+      <!-- Footer elegante -->
+      <div class="card-footer">
+        <p>¿Primera vez? <a href="#" class="neon-link" id="createLink">Crear cuenta</a></p>
+        <div class="trust-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+          </svg>
+          <span>Conexión Segura</span>
         </div>
-      </section>
-    </section>
+      </div>
+    </div>
+
+    <!-- WIDGETS FLOTANTES laterales -->
+    <div class="floating-widgets">
+      
+      <!-- Widget: Pensamientos -->
+      <div class="widget thoughts-widget">
+        <div class="widget-header">
+          <div class="widget-icon">💭</div>
+          <h3>Pensamiento del Momento</h3>
+        </div>
+        <div class="thought-display" id="thoughtDisplay">
+          <p class="thought-text">Cargando sabiduría...</p>
+          <div class="thought-author">— Sand Brill</div>
+        </div>
+        <div class="widget-nav">
+          <button class="widget-btn" id="thoughtPrev">←</button>
+          <div class="thought-dots" id="thoughtDots"></div>
+          <button class="widget-btn" id="thoughtNext">→</button>
+        </div>
+      </div>
+
+      <!-- Widget: Galería Holográfica -->
+      <div class="widget gallery-widget">
+        <div class="widget-header">
+          <div class="widget-icon">🎴</div>
+          <h3>Galería de Recuerdos</h3>
+        </div>
+        <div class="holo-gallery" id="holoGallery">
+          <!-- Generado por JS -->
+        </div>
+        <div class="gallery-info" id="galleryInfo">
+          <span class="gallery-title">Recuerdo 1/6</span>
+        </div>
+      </div>
+
+      <!-- Widget: Consejo Aleatorio -->
+      <div class="widget tip-widget">
+        <div class="widget-header">
+          <div class="widget-icon">✨</div>
+          <h3>Consejo de Sand Brill</h3>
+        </div>
+        <div class="magic-tip" id="magicTip">
+          <div class="tip-shimmer"></div>
+          <p class="tip-content">Haz clic para revelar un consejo...</p>
+        </div>
+        <button class="magic-btn" id="revealTip">
+          <span class="magic-sparkle">✨</span>
+          Revelar Consejo
+        </button>
+      </div>
+    </div>
+
   </main>
 
-  <!-- Toast global -->
-  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <!-- Toast futurista -->
+  <div class="quantum-toast" id="quantumToast">
+    <div class="toast-ring"></div>
+    <div class="toast-content">
+      <div class="toast-icon" id="toastIcon">ℹ</div>
+      <div class="toast-text">
+        <div class="toast-title" id="toastTitle">Notificación</div>
+        <div class="toast-message" id="toastMessage">Mensaje</div>
+      </div>
+    </div>
+    <button class="toast-dismiss" id="toastDismiss">×</button>
+  </div>
 
-  <!-- JS principal -->
-  <script type="module" src="login.js"></script>
+  <script src="login.js"></script>
 </body>
 </html>
