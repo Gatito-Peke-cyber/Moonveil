@@ -877,413 +877,1324 @@ function renderPrice(p){
 
 
 
+/* ═══════════════════════════════════════════════════════════
+   🎨 SISTEMA DE DECORACIONES FESTIVAS PREMIUM v2.0
+   JavaScript con arquitectura profesional
+   ════════════════════════════════════════════════════════════ */
 
-const NAVIDAD_INICIO = new Date("2025-12-01T00:00:00");
-const NAVIDAD_FIN    = new Date("2025-12-30T23:59:59");
+'use strict';
 
-let snowInterval = null;
+// ═══════════════════════════════════════════════════════════
+// 🎯 CONFIGURACIÓN GLOBAL Y CONSTANTES
+// ═══════════════════════════════════════════════════════════
 
-function crearCopo() {
-const cont = document.getElementById("snow-container");
-if (!cont) return;
-
-const flake = document.createElement("div");
-flake.className = "snowflake";
-flake.textContent = "❄";
-flake.style.left = Math.random() * 100 + "%";
-flake.style.opacity = (0.10 + Math.random() * 0.35).toFixed(2);
-flake.style.fontSize = (8 + Math.random() * 18) + "px";
-
-const duration = 6 + Math.random() * 8;
-flake.style.animationDuration = duration + "s";
-
-cont.appendChild(flake);
-
-setTimeout(() => {
-try { flake.remove(); } catch(e){}
-}, duration * 1000 + 200);
-}
-
-function activarNieveSiEsNavidad() {
-const hoy = new Date();
-if (hoy < NAVIDAD_INICIO || hoy > NAVIDAD_FIN) return;
-
-if (!snowInterval) {
-for (let i = 0; i < 15; i++) crearCopo();
-snowInterval = setInterval(crearCopo, 250);
-}
-}
-
-// auto-ejecutar al cargar la página
-document.addEventListener("DOMContentLoaded", activarNieveSiEsNavidad);
-
-
-
-
-const EVENTO_INICIO = new Date("2025-12-31T00:00:00");
-const EVENTO_FIN    = new Date("2026-01-06T23:59:59");
-
-let fireworksInterval = null;
-const COLORES = ["red","blue","green","orange","pink","purple","yellow","cyan","magenta"];
-
-function crearCohete() {
-  const cont = document.getElementById("fireworks-container");
-  if (!cont) return;
-
-  const fw = document.createElement("div");
-  fw.className = "firework";
-
-  const color = COLORES[Math.floor(Math.random() * COLORES.length)];
-  fw.style.background = color;
-  fw.style.color = color;
-  fw.style.left = Math.random() * 90 + "vw";
-  fw.style.width = (4 + Math.random() * 4) + "px";
-  fw.style.height = (15 + Math.random() * 15) + "px";
-  fw.style.animationDuration = (1 + Math.random() * 0.7) + "s";
-
-  cont.appendChild(fw);
-
-  fw.addEventListener("animationend", () => {
-    const rect = fw.getBoundingClientRect();
-    const numParticles = 30 + Math.floor(Math.random() * 20);
-
-    for (let i = 0; i < numParticles; i++) {
-      const p = document.createElement("div");
-      p.className = "particle";
-      const size = 3 + Math.random() * 4;
-      const pColor = COLORES[Math.floor(Math.random() * COLORES.length)];
-      p.style.width = size + "px";
-      p.style.height = size + "px";
-      p.style.background = pColor;
-      p.style.opacity = (0.7 + Math.random() * 0.3);
-      p.style.left = rect.left + rect.width/2 + "px";
-      p.style.top  = rect.top + rect.height/2 + "px";
-      const angle = Math.random() * 2 * Math.PI;
-      const distance = 50 + Math.random() * 60;
-      p.style.setProperty('--x', (Math.cos(angle) * distance) + 'px');
-      p.style.setProperty('--y', (Math.sin(angle) * distance) + 'px');
-      p.style.animationDuration = (0.5 + Math.random() * 0.7) + "s";
-      cont.appendChild(p);
-      setTimeout(() => p.remove(), 1500);
-    }
-
-    const year = document.createElement("span");
-    year.className = "firework-year";
-    year.style.color = color;
-    year.style.left = rect.left + rect.width/2 + "px";
-    year.style.top  = rect.top + rect.height/2 + "px";
-    year.textContent = "2026";
-    cont.appendChild(year);
-    setTimeout(() => year.remove(), 1200);
-
-    fw.remove();
-  });
-}
-
-function activarFuegos() {
-  const hoy = new Date();
-  if (hoy < EVENTO_INICIO || hoy > EVENTO_FIN) return;
-
-  if (!fireworksInterval) {
-    for (let i = 0; i < 3; i++) setTimeout(crearCohete, i * 300);
-    fireworksInterval = setInterval(() => crearCohete(), 800 + Math.random() * 400);
+const FESTIVE_CONFIG = {
+  // Festividades con fechas y prioridades
+  NUEVO_ANO: {
+    id: 'NUEVO_ANO',
+    inicio: new Date('2025-12-31T00:00:00'),
+    fin: new Date('2026-01-06T23:59:59'),
+    prioridad: 100,
+    nombre: 'Año Nuevo'
+  },
+  SAN_VALENTIN: {
+    id: 'SAN_VALENTIN',
+    inicio: new Date('2026-02-13T00:00:00'),
+    fin: new Date('2026-02-15T23:59:59'),
+    prioridad: 95,
+    nombre: 'San Valentín'
+  },
+  CARNAVAL: {
+    id: 'CARNAVAL',
+    inicio: new Date('2026-02-10T00:00:00'),
+    fin: new Date('2026-02-27T23:59:59'),
+    prioridad: 90,
+    nombre: 'Carnaval'
+  },
+  DIA_GATO: {
+    id: 'DIA_GATO',
+    inicio: new Date('2026-02-10T00:00:00'),
+    fin: new Date('2026-02-20T23:59:59'),
+    prioridad: 70,
+    nombre: 'Día del Gato'
+  },
+  SAN_PATRICIO: {
+    id: 'SAN_PATRICIO',
+    inicio: new Date('2026-03-15T00:00:00'),
+    fin: new Date('2026-03-18T23:59:59'),
+    prioridad: 80,
+    nombre: 'San Patricio'
+  },
+  PASCUA: {
+    id: 'PASCUA',
+    inicio: new Date('2026-04-03T00:00:00'),
+    fin: new Date('2026-04-06T23:59:59'),
+    prioridad: 85,
+    nombre: 'Pascua'
+  },
+  DIA_MADRE: {
+    id: 'DIA_MADRE',
+    inicio: new Date('2026-05-08T00:00:00'),
+    fin: new Date('2026-05-11T23:59:59'),
+    prioridad: 75,
+    nombre: 'Día de la Madre'
+  },
+  DIA_PADRE: {
+    id: 'DIA_PADRE',
+    inicio: new Date('2026-06-19T00:00:00'),
+    fin: new Date('2026-06-22T23:59:59'),
+    prioridad: 75,
+    nombre: 'Día del Padre'
+  },
+  HALLOWEEN: {
+    id: 'HALLOWEEN',
+    inicio: new Date('2026-10-25T00:00:00'),
+    fin: new Date('2026-11-01T23:59:59'),
+    prioridad: 95,
+    nombre: 'Halloween'
+  },
+  DIA_MUERTOS: {
+    id: 'DIA_MUERTOS',
+    inicio: new Date('2026-11-01T00:00:00'),
+    fin: new Date('2026-11-03T23:59:59'),
+    prioridad: 90,
+    nombre: 'Día de Muertos'
+  },
+  NAVIDAD: {
+    id: 'NAVIDAD',
+    inicio: new Date('2026-12-01T00:00:00'),
+    fin: new Date('2026-12-30T23:59:59'),
+    prioridad: 100,
+    nombre: 'Navidad'
+  },
+  PRIMAVERA: {
+    id: 'PRIMAVERA',
+    inicio: new Date('2026-03-20T00:00:00'),
+    fin: new Date('2026-06-20T23:59:59'),
+    prioridad: 10,
+    nombre: 'Primavera'
+  },
+  VERANO: {
+    id: 'VERANO',
+    inicio: new Date('2026-06-21T00:00:00'),
+    fin: new Date('2026-09-22T23:59:59'),
+    prioridad: 10,
+    nombre: 'Verano'
+  },
+  OTONO: {
+    id: 'OTONO',
+    inicio: new Date('2026-09-23T00:00:00'),
+    fin: new Date('2026-12-20T23:59:59'),
+    prioridad: 10,
+    nombre: 'Otoño'
   }
-}
+};
 
-document.addEventListener("DOMContentLoaded", activarFuegos);
+// Paletas de colores profesionales
+const COLOR_PALETTES = {
+  NUEVO_ANO: ['#FFD700', '#FF1744', '#2196F3', '#4CAF50', '#FF6B9D', '#9C27B0', '#00BCD4', '#FF5722'],
+  SAN_VALENTIN: ['#FF1493', '#FF69B4', '#DC143C', '#FF6B9D', '#FF1A66', '#FF80AB', '#C71585'],
+  CARNAVAL: ['#FF3B30', '#FF9500', '#FFCC00', '#4CD964', '#007AFF', '#5856D6', '#FF2D55', '#5AC8FA'],
+  SAN_PATRICIO: ['#00FF00', '#32CD32', '#228B22', '#90EE90', '#00FA9A', '#7FFF00'],
+  HALLOWEEN: ['#FF6600', '#8B00FF', '#FF4500', '#9932CC', '#FF8C00', '#9400D3'],
+  NAVIDAD: ['#C41E3A', '#0F8B3E', '#FFD700', '#FFFFFF', '#CD2626', '#228B22']
+};
 
+// ═══════════════════════════════════════════════════════════
+// 🏗️ CLASE BASE PARA GESTIÓN DE FESTIVIDADES
+// ═══════════════════════════════════════════════════════════
 
+class FestividadManager {
+  constructor() {
+    this.intervalosActivos = new Map();
+    this.elementosActivos = new Set();
+    this.festivaActual = null;
+    this.maxElementosPorFestividad = 200;
+  }
 
+  estaActiva(config) {
+    const ahora = new Date();
+    return ahora >= config.inicio && ahora <= config.fin;
+  }
 
-const SAN_VALENTIN_INICIO = new Date("2026-02-10T00:00:00");
-const SAN_VALENTIN_FIN = new Date("2026-02-15T23:59:59");
-
-let petalsInterval = null;
-
-function crearPetalo() {
-    const cont = document.getElementById("petals-container");
-    if (!cont) return;
-
-    const petalo = document.createElement("div");
-    petalo.className = "petal";
+  obtenerFestivaActual() {
+    const festivas = Object.values(FESTIVE_CONFIG)
+      .filter(config => this.estaActiva(config))
+      .sort((a, b) => b.prioridad - a.prioridad);
     
-    // Alternar entre rosas y corazones
-    const tipos = ["🌹", "❤️", "💗", "🌷", "💞"];
-    petalo.textContent = tipos[Math.floor(Math.random() * tipos.length)];
-    
-    petalo.style.left = Math.random() * 100 + "%";
-    petalo.style.opacity = (0.3 + Math.random() * 0.4).toFixed(2);
-    petalo.style.fontSize = (14 + Math.random() * 20) + "px";
-    
-    // Rotación aleatoria
-    const rotacion = Math.random() * 360;
-    petalo.style.setProperty('--rotation', rotacion + 'deg');
-    
-    const duration = 8 + Math.random() * 10;
-    petalo.style.animationDuration = duration + "s";
-    
-    // Oscilación lateral
-    const swingAmount = 30 + Math.random() * 70;
-    petalo.style.setProperty('--swing', swingAmount + 'px');
+    return festivas.length > 0 ? festivas[0] : null;
+  }
 
-    cont.appendChild(petalo);
-
+  limpiarElemento(elemento, tiempo = 0) {
     setTimeout(() => {
-        try { petalo.remove(); } catch(e){}
-    }, duration * 1000 + 200);
-}
-
-function activarPetalosSiEsSanValentin() {
-    const hoy = new Date();
-    if (hoy < SAN_VALENTIN_INICIO || hoy > SAN_VALENTIN_FIN) return;
-
-    if (!petalsInterval) {
-        for (let i = 0; i < 20; i++) crearPetalo();
-        petalsInterval = setInterval(crearPetalo, 350);
-    }
-}
-
-document.addEventListener("DOMContentLoaded", activarPetalosSiEsSanValentin);
-
-// ===== CORAZONES FLOTANTES (equivalente a fuegos artificiales) =====
-const CORAZONES_INICIO = new Date("2026-02-14T00:00:00");
-const CORAZONES_FIN = new Date("2026-02-14T23:59:59");
-
-let heartsInterval = null;
-const COLORES_CORAZONES = ["#ff4081", "#ff6b9d", "#ff3366", "#ff99cc", "#ff6699", "#ff1a66"];
-
-function crearCorazonFlotante() {
-    const cont = document.getElementById("hearts-container");
-    if (!cont) return;
-
-    const heart = document.createElement("div");
-    heart.className = "floating-heart";
-    
-    const color = COLORES_CORAZONES[Math.floor(Math.random() * COLORES_CORAZONES.length)];
-    heart.style.color = color;
-    heart.textContent = "❤️";
-    
-    // Tamaño y posición inicial
-    const size = 24 + Math.random() * 32;
-    heart.style.fontSize = size + "px";
-    heart.style.left = Math.random() * 85 + "vw";
-    heart.style.bottom = "0";
-    
-    // Animación de subida
-    const duration = 3 + Math.random() * 2;
-    heart.style.animationDuration = duration + "s";
-    
-    // Oscilación horizontal
-    const swingDistance = 20 + Math.random() * 60;
-    heart.style.setProperty('--swing-distance', swingDistance + 'px');
-    
-    // Brillo
-    heart.style.filter = `drop-shadow(0 0 6px ${color})`;
-    
-    cont.appendChild(heart);
-
-    // Crear partículas de amor alrededor
-    setTimeout(() => {
-        const rect = heart.getBoundingClientRect();
-        const numParticles = 8 + Math.floor(Math.random() * 12);
-        
-        for (let i = 0; i < numParticles; i++) {
-            const p = document.createElement("div");
-            p.className = "love-particle";
-            p.textContent = ["💖", "💕", "💓", "💘", "💝"][Math.floor(Math.random() * 5)];
-            const pColor = COLORES_CORAZONES[Math.floor(Math.random() * COLORES_CORAZONES.length)];
-            p.style.color = pColor;
-            p.style.fontSize = (10 + Math.random() * 16) + "px";
-            p.style.opacity = 0.8;
-            p.style.left = rect.left + rect.width/2 + "px";
-            p.style.top = rect.top + rect.height/2 + "px";
-            
-            const angle = Math.random() * 2 * Math.PI;
-            const distance = 40 + Math.random() * 80;
-            p.style.setProperty('--x', (Math.cos(angle) * distance) + 'px');
-            p.style.setProperty('--y', (Math.sin(angle) * distance) + 'px');
-            p.style.animationDuration = (1.2 + Math.random() * 0.8) + "s";
-            
-            cont.appendChild(p);
-            setTimeout(() => p.remove(), 1800);
+      try {
+        if (elemento && elemento.parentNode) {
+          elemento.remove();
+          this.elementosActivos.delete(elemento);
         }
-        
-        // Texto romántico que aparece
-        const textos = ["Te amo", "Amor", "Beso", "Eres mía", "Mi vida", "Cariño"];
-        const texto = document.createElement("span");
-        texto.className = "love-text";
-        texto.style.color = color;
-        texto.style.left = rect.left + rect.width/2 + "px";
-        texto.style.top = rect.top + rect.height/2 + "px";
-        texto.textContent = textos[Math.floor(Math.random() * textos.length)];
-        texto.style.textShadow = `0 0 8px ${color}`;
-        cont.appendChild(texto);
-        setTimeout(() => texto.remove(), 1500);
-        
-        heart.remove();
-    }, duration * 1000);
-}
+      } catch (e) {
+        console.warn('Error al limpiar elemento:', e);
+      }
+    }, tiempo);
+  }
 
-function activarCorazones() {
-    const hoy = new Date();
-    if (hoy < CORAZONES_INICIO || hoy > CORAZONES_FIN) return;
+  detenerTodo() {
+    this.intervalosActivos.forEach(intervalo => clearInterval(intervalo));
+    this.intervalosActivos.clear();
+    this.elementosActivos.forEach(elemento => {
+      try { elemento.remove(); } catch (e) {}
+    });
+    this.elementosActivos.clear();
+  }
 
-    if (!heartsInterval) {
-        for (let i = 0; i < 4; i++) setTimeout(crearCorazonFlotante, i * 500);
-        heartsInterval = setInterval(() => crearCorazonFlotante(), 1200 + Math.random() * 600);
-    }
-}
+  random(min, max) {
+    return Math.random() * (max - min) + min;
+  }
 
-document.addEventListener("DOMContentLoaded", activarCorazones);
+  randomInt(min, max) {
+    return Math.floor(this.random(min, max));
+  }
 
-
-
-
-const CARNAVAL_INICIO = new Date("2026-02-13T00:00:00");
-const CARNAVAL_FIN = new Date("2026-02-15T23:59:59");
-
-let confettiInterval = null;
-
-function crearConfeti() {
-  const cont = document.getElementById("carnival-container");
-  if (!cont) return;
-
-  const confeti = document.createElement("div");
-  confeti.className = "confetti";
-  
-  // Formas geométricas en lugar de emojis
-  const formas = ["●", "■", "▲", "◆"];
-  confeti.textContent = formas[Math.floor(Math.random() * formas.length)];
-  
-  confeti.style.left = Math.random() * 100 + "%";
-  confeti.style.opacity = (0.15 + Math.random() * 0.4).toFixed(2);
-  confeti.style.fontSize = (6 + Math.random() * 12) + "px";
-  
-  // Colores vibrantes de carnaval
-  const colores = ["#FF3B30", "#4CD964", "#007AFF", "#FF9500", "#FFCC00", "#5856D6", "#FF2D55", "#5AC8FA"];
-  const color = colores[Math.floor(Math.random() * colores.length)];
-  confeti.style.color = color;
-  confeti.style.textShadow = `0 0 3px ${color}`;
-
-  const duration = 5 + Math.random() * 7;
-  confeti.style.animationDuration = duration + "s";
-
-  cont.appendChild(confeti);
-
-  setTimeout(() => {
-    try { confeti.remove(); } catch(e){}
-  }, duration * 1000 + 200);
-}
-
-function activarConfetiSiEsCarnaval() {
-  const hoy = new Date();
-  if (hoy < CARNAVAL_INICIO || hoy > CARNAVAL_FIN) return;
-
-  if (!confettiInterval) {
-    for (let i = 0; i < 20; i++) crearConfeti();
-    confettiInterval = setInterval(crearConfeti, 200);
+  randomChoice(array) {
+    return array[Math.floor(Math.random() * array.length)];
   }
 }
 
-// auto-ejecutar al cargar la página
-document.addEventListener("DOMContentLoaded", activarConfetiSiEsCarnaval);
+// ═══════════════════════════════════════════════════════════
+// 🎆 AÑO NUEVO - SISTEMA AVANZADO DE FUEGOS ARTIFICIALES
+// ═══════════════════════════════════════════════════════════
 
-// ===== FUEGOS ARTIFICIALES DE CARNAVAL =====
-const CARNAVAL_FUEGOS_INICIO = new Date("2026-02-01T00:00:00");
-const CARNAVAL_FUEGOS_FIN = new Date("2026-02-12T23:59:59");
+class AnoNuevoManager extends FestividadManager {
+  constructor() {
+    super();
+    this.containerId = 'newyear-fireworks';
+  }
 
-let carnivalFireworksInterval = null;
-const COLORES_CARNAVAL = ["#FF3B30", "#FF9500", "#FFCC00", "#4CD964", "#007AFF", "#5856D6", "#FF2D55"];
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.NUEVO_ANO)) return;
+    if (this.intervalosActivos.has('principal')) return;
 
-function crearFuegoCarnaval() {
-  const cont = document.getElementById("carnival-fireworks-container");
-  if (!cont) return;
+    const container = document.getElementById(this.containerId);
+    if (!container) return;
 
-  const fw = document.createElement("div");
-  fw.className = "carnival-firework";
-
-  const color = COLORES_CARNAVAL[Math.floor(Math.random() * COLORES_CARNAVAL.length)];
-  fw.style.background = color;
-  fw.style.color = color;
-  fw.style.left = Math.random() * 90 + "vw";
-  fw.style.width = (3 + Math.random() * 5) + "px";
-  fw.style.height = (12 + Math.random() * 18) + "px";
-  fw.style.animationDuration = (0.8 + Math.random() * 0.9) + "s";
-
-  cont.appendChild(fw);
-
-  fw.addEventListener("animationend", () => {
-    const rect = fw.getBoundingClientRect();
-    const numParticles = 25 + Math.floor(Math.random() * 25);
-
-    for (let i = 0; i < numParticles; i++) {
-      const p = document.createElement("div");
-      p.className = "carnival-particle";
-      
-      // Forma aleatoria para las partículas
-      const formasParticulas = ["circle", "square", "triangle"];
-      const forma = formasParticulas[Math.floor(Math.random() * formasParticulas.length)];
-      
-      if (forma === "circle") {
-        p.style.borderRadius = "50%";
-      } else if (forma === "triangle") {
-        p.style.width = "0";
-        p.style.height = "0";
-        p.style.borderLeft = "4px solid transparent";
-        p.style.borderRight = "4px solid transparent";
-        p.style.borderBottom = `8px solid ${COLORES_CARNAVAL[Math.floor(Math.random() * COLORES_CARNAVAL.length)]}`;
-        p.style.background = "transparent";
-      } else {
-        p.style.borderRadius = "2px";
-      }
-      
-      const size = forma === "triangle" ? 0 : (2 + Math.random() * 5);
-      if (forma !== "triangle") {
-        p.style.width = size + "px";
-        p.style.height = size + "px";
-      }
-      
-      const pColor = COLORES_CARNAVAL[Math.floor(Math.random() * COLORES_CARNAVAL.length)];
-      if (forma !== "triangle") {
-        p.style.background = pColor;
-      }
-      p.style.opacity = (0.6 + Math.random() * 0.4);
-      p.style.left = rect.left + rect.width/2 + "px";
-      p.style.top = rect.top + rect.height/2 + "px";
-      const angle = Math.random() * 2 * Math.PI;
-      const distance = 40 + Math.random() * 80;
-      p.style.setProperty('--x', (Math.cos(angle) * distance) + 'px');
-      p.style.setProperty('--y', (Math.sin(angle) * distance) + 'px');
-      p.style.animationDuration = (0.6 + Math.random() * 0.8) + "s";
-      cont.appendChild(p);
-      setTimeout(() => p.remove(), 1400);
+    // Ráfaga inicial
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => this.lanzarCohete(), i * 500);
     }
 
-    // Texto de carnaval en lugar del año
-    const carnivalText = document.createElement("span");
-    carnivalText.className = "carnival-text";
-    carnivalText.style.color = color;
-    carnivalText.style.left = rect.left + rect.width/2 + "px";
-    carnivalText.style.top = rect.top + rect.height/2 + "px";
+    // Ráfaga continua
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+        this.lanzarCohete();
+      }
+    }, 1000 + Math.random() * 600);
+
+    this.intervalosActivos.set('principal', intervalo);
+  }
+
+  lanzarCohete() {
+    const container = document.getElementById(this.containerId);
+    if (!container) return;
+
+    const cohete = document.createElement('div');
+    cohete.className = 'newyear-rocket festive-element';
     
-    const textos = ["¡Fiesta!", "Carnaval", "¡Celebra!", "Fiesta", "¡Diversión!"];
-    carnivalText.textContent = textos[Math.floor(Math.random() * textos.length)];
+    const color = this.randomChoice(COLOR_PALETTES.NUEVO_ANO);
+    cohete.style.color = color;
+    cohete.style.left = this.random(10, 90) + 'vw';
+    cohete.style.width = this.random(8, 14) + 'px';
+    cohete.style.height = this.random(25, 40) + 'px';
+    cohete.style.animationDuration = this.random(1.2, 2) + 's';
+
+    container.appendChild(cohete);
+    this.elementosActivos.add(cohete);
+
+    cohete.addEventListener('animationend', () => {
+      const rect = cohete.getBoundingClientRect();
+      this.crearExplosion(rect.left + rect.width / 2, rect.top + rect.height / 2, color);
+      this.limpiarElemento(cohete);
+    });
+
+    this.limpiarElemento(cohete, 3000);
+  }
+
+  crearExplosion(x, y, color) {
+    const container = document.getElementById(this.containerId);
+    if (!container) return;
+
+    const numParticulas = this.randomInt(50, 80);
+    const numTrails = this.randomInt(8, 15);
+
+    // Partículas principales
+    for (let i = 0; i < numParticulas; i++) {
+      const particula = document.createElement('div');
+      particula.className = 'newyear-burst festive-element';
+      
+      const colorParticula = Math.random() > 0.7 ? 
+        this.randomChoice(COLOR_PALETTES.NUEVO_ANO) : color;
+      
+      particula.style.background = colorParticula;
+      particula.style.color = colorParticula;
+      particula.style.left = x + 'px';
+      particula.style.top = y + 'px';
+      particula.style.width = this.random(4, 10) + 'px';
+      particula.style.height = this.random(4, 10) + 'px';
+      
+      const angulo = (Math.PI * 2 * i) / numParticulas + this.random(-0.2, 0.2);
+      const distancia = this.random(70, 150);
+      particula.style.setProperty('--dx', Math.cos(angulo) * distancia + 'px');
+      particula.style.setProperty('--dy', Math.sin(angulo) * distancia + 'px');
+      particula.style.animationDuration = this.random(0.8, 1.4) + 's';
+      
+      container.appendChild(particula);
+      this.elementosActivos.add(particula);
+      this.limpiarElemento(particula, 1600);
+    }
+
+    // Trails de estela
+    for (let i = 0; i < numTrails; i++) {
+      const trail = document.createElement('div');
+      trail.className = 'newyear-trail festive-element';
+      trail.style.background = color;
+      trail.style.color = color;
+      trail.style.left = x + 'px';
+      trail.style.top = y + 'px';
+      
+      const angulo = (Math.PI * 2 * i) / numTrails;
+      trail.style.setProperty('--dy', Math.sin(angulo) * 30 + 'px');
+      trail.style.animationDuration = this.random(0.6, 1) + 's';
+      
+      container.appendChild(trail);
+      this.elementosActivos.add(trail);
+      this.limpiarElemento(trail, 1200);
+    }
+
+    // Texto del año
+    const texto = document.createElement('span');
+    texto.className = 'newyear-year-text festive-element';
+    texto.style.left = x + 'px';
+    texto.style.top = y + 'px';
+    texto.textContent = '2026';
     
-    cont.appendChild(carnivalText);
-    setTimeout(() => carnivalText.remove(), 1100);
-
-    fw.remove();
-  });
-}
-
-function activarFuegosCarnaval() {
-  const hoy = new Date();
-  if (hoy < CARNAVAL_FUEGOS_INICIO || hoy > CARNAVAL_FUEGOS_FIN) return;
-
-  if (!carnivalFireworksInterval) {
-    for (let i = 0; i < 4; i++) setTimeout(crearFuegoCarnaval, i * 400);
-    carnivalFireworksInterval = setInterval(() => crearFuegoCarnaval(), 1000 + Math.random() * 500);
+    container.appendChild(texto);
+    this.elementosActivos.add(texto);
+    this.limpiarElemento(texto, 2000);
   }
 }
 
-document.addEventListener("DOMContentLoaded", activarFuegosCarnaval);
+// ═══════════════════════════════════════════════════════════
+// 💕 SAN VALENTÍN - SISTEMA ROMÁNTICO AVANZADO
+// ═══════════════════════════════════════════════════════════
+
+class SanValentinManager extends FestividadManager {
+  constructor() {
+    super();
+    this.elementos = ['🌹', '❤️', '💗', '💖', '💕', '🌷', '💞', '💝', '💘', '🌺'];
+    this.corazones = ['❤️', '💖', '💗', '💕'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.SAN_VALENTIN)) return;
+    if (this.intervalosActivos.has('petalos')) return;
+
+    // Sistema de pétalos
+    const containerPetalos = document.getElementById('valentine-petals');
+    if (containerPetalos) {
+      for (let i = 0; i < 30; i++) {
+        setTimeout(() => this.crearPetalo(), i * 200);
+      }
+      
+      const intervaloPetalos = setInterval(() => {
+        if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+          this.crearPetalo();
+        }
+      }, 350);
+      
+      this.intervalosActivos.set('petalos', intervaloPetalos);
+    }
+
+    // Sistema de corazones flotantes
+    const containerCorazones = document.getElementById('valentine-hearts');
+    if (containerCorazones) {
+      for (let i = 0; i < 6; i++) {
+        setTimeout(() => this.crearCorazonFlotante(), i * 700);
+      }
+      
+      const intervaloCorazones = setInterval(() => {
+        if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+          this.crearCorazonFlotante();
+        }
+      }, 1600 + Math.random() * 800);
+      
+      this.intervalosActivos.set('corazones', intervaloCorazones);
+    }
+  }
+
+  crearPetalo() {
+    const container = document.getElementById('valentine-petals');
+    if (!container) return;
+
+    const petalo = document.createElement('div');
+    petalo.className = 'valentine-rose-petal festive-element';
+    petalo.textContent = this.randomChoice(this.elementos);
+    petalo.style.left = this.random(0, 100) + '%';
+    petalo.style.fontSize = this.random(18, 32) + 'px';
+    
+    // Variables CSS personalizadas para animación compleja
+    petalo.style.setProperty('--swing-1', this.random(-80, 80) + 'px');
+    petalo.style.setProperty('--swing-2', this.random(-100, 100) + 'px');
+    petalo.style.setProperty('--swing-3', this.random(-60, 60) + 'px');
+    petalo.style.setProperty('--rotate-1', this.random(-90, 90) + 'deg');
+    petalo.style.setProperty('--rotate-2', this.random(-180, 180) + 'deg');
+    petalo.style.setProperty('--rotate-3', this.random(-270, 270) + 'deg');
+    
+    const duracion = this.random(10, 16);
+    petalo.style.animationDuration = duracion + 's';
+    
+    container.appendChild(petalo);
+    this.elementosActivos.add(petalo);
+    this.limpiarElemento(petalo, duracion * 1000 + 500);
+  }
+
+  crearCorazonFlotante() {
+    const container = document.getElementById('valentine-hearts');
+    if (!container) return;
+
+    const corazon = document.createElement('div');
+    corazon.className = 'valentine-heart-float festive-element';
+    const color = this.randomChoice(COLOR_PALETTES.SAN_VALENTIN);
+    corazon.style.color = color;
+    corazon.textContent = this.randomChoice(this.corazones);
+    corazon.style.fontSize = this.random(32, 56) + 'px';
+    corazon.style.left = this.random(5, 90) + 'vw';
+    
+    corazon.style.setProperty('--swing-x', this.random(-80, 80) + 'px');
+    corazon.style.setProperty('--swing-x-2', this.random(-100, 100) + 'px');
+    corazon.style.setProperty('--rotate-angle', this.random(-30, 30) + 'deg');
+    corazon.style.setProperty('--rotate-angle-2', this.random(-45, 45) + 'deg');
+    corazon.style.setProperty('--rotate-final', this.random(-360, 360) + 'deg');
+    
+    const duracion = this.random(4, 6);
+    corazon.style.animationDuration = duracion + 's';
+    
+    container.appendChild(corazon);
+    this.elementosActivos.add(corazon);
+
+    setTimeout(() => {
+      const rect = corazon.getBoundingClientRect();
+      this.crearParticulasAmor(rect.left + rect.width / 2, rect.top + rect.height / 2, color);
+      this.mostrarTextoRomantico(rect.left + rect.width / 2, rect.top + rect.height / 2, color);
+      this.limpiarElemento(corazon);
+    }, duracion * 1000);
+  }
+
+  crearParticulasAmor(x, y, color) {
+    const container = document.getElementById('valentine-hearts');
+    if (!container) return;
+
+    const particulasEmojis = ['💖', '💕', '💓', '💘', '💝', '✨', '💗'];
+    const numParticulas = this.randomInt(12, 20);
+
+    for (let i = 0; i < numParticulas; i++) {
+      const particula = document.createElement('div');
+      particula.className = 'valentine-particle-love festive-element';
+      particula.textContent = this.randomChoice(particulasEmojis);
+      particula.style.fontSize = this.random(14, 24) + 'px';
+      particula.style.left = x + 'px';
+      particula.style.top = y + 'px';
+      
+      const angulo = (Math.PI * 2 * i) / numParticulas + this.random(-0.3, 0.3);
+      const distancia = this.random(60, 120);
+      particula.style.setProperty('--px', Math.cos(angulo) * distancia + 'px');
+      particula.style.setProperty('--py', Math.sin(angulo) * distancia + 'px');
+      particula.style.setProperty('--pr', this.random(-360, 360) + 'deg');
+      particula.style.animationDuration = this.random(1.5, 2.3) + 's';
+      
+      container.appendChild(particula);
+      this.elementosActivos.add(particula);
+      this.limpiarElemento(particula, 2500);
+    }
+  }
+
+  mostrarTextoRomantico(x, y, color) {
+    const container = document.getElementById('valentine-hearts');
+    if (!container) return;
+
+    const textos = [
+      'Te Amo', 'Amor Eterno', 'Mi Vida', 'Besos', 'Cariño',
+      'Eres Todo', 'Amor Mío', 'Mi Cielo', 'Forever', 'Juntos'
+    ];
+    
+    const texto = document.createElement('span');
+    texto.className = 'valentine-love-text festive-element';
+    texto.style.color = color;
+    texto.style.left = x + 'px';
+    texto.style.top = y + 'px';
+    texto.textContent = this.randomChoice(textos);
+    
+    container.appendChild(texto);
+    this.elementosActivos.add(texto);
+    this.limpiarElemento(texto, 2200);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🐱 DÍA DEL GATO - ANIMACIÓN REALISTA
+// ═══════════════════════════════════════════════════════════
+
+class DiaGatoManager extends FestividadManager {
+  constructor() {
+    super();
+    this.gatos = ['🐱', '😺', '😸', '😹', '😻', '🐈', '😼', '😽'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.DIA_GATO)) return;
+    if (this.intervalosActivos.has('principal')) return;
+
+    const container = document.getElementById('catday-ground');
+    if (!container) return;
+
+    for (let i = 0; i < 10; i++) {
+      setTimeout(() => this.crearGato(), i * 1200);
+    }
+
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < 20) {
+        this.crearGato();
+      }
+    }, 2500 + Math.random() * 1500);
+
+    this.intervalosActivos.set('principal', intervalo);
+  }
+
+  crearGato() {
+    const container = document.getElementById('catday-ground');
+    if (!container) return;
+
+    const gato = document.createElement('div');
+    gato.className = 'catday-walking festive-element';
+    gato.textContent = this.randomChoice(this.gatos);
+    gato.style.fontSize = this.random(35, 60) + 'px';
+    gato.style.bottom = this.random(5, 35) + 'vh';
+    
+    const duracion = this.random(7, 11);
+    gato.style.animationDuration = duracion + 's';
+    
+    container.appendChild(gato);
+    this.elementosActivos.add(gato);
+    this.limpiarElemento(gato, duracion * 1000 + 500);
+
+    // Huellas de patas opcionales
+    if (Math.random() > 0.6) {
+      this.crearHuellas(gato, duracion);
+    }
+  }
+
+  crearHuellas(gatoElement, duracion) {
+    const container = document.getElementById('catday-ground');
+    if (!container) return;
+
+    const numHuellas = this.randomInt(8, 15);
+    const intervaloHuellas = (duracion * 1000) / numHuellas;
+
+    for (let i = 0; i < numHuellas; i++) {
+      setTimeout(() => {
+        const huella = document.createElement('div');
+        huella.className = 'catday-paw-print festive-element';
+        huella.textContent = '🐾';
+        huella.style.fontSize = this.random(12, 20) + 'px';
+        
+        const rect = gatoElement.getBoundingClientRect();
+        huella.style.left = rect.left + 'px';
+        huella.style.bottom = gatoElement.style.bottom;
+        
+        container.appendChild(huella);
+        this.elementosActivos.add(huella);
+        this.limpiarElemento(huella, 3000);
+      }, i * intervaloHuellas);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🍀 SAN PATRICIO - MAGIA CELTA
+// ═══════════════════════════════════════════════════════════
+
+class SanPatricioManager extends FestividadManager {
+  constructor() {
+    super();
+    this.elementos = ['🍀', '☘️', '💚'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.SAN_PATRICIO)) return;
+    if (this.intervalosActivos.has('principal')) return;
+
+    const container = document.getElementById('stpatrick-clovers');
+    if (!container) return;
+
+    for (let i = 0; i < 25; i++) {
+      setTimeout(() => this.crearTrebol(), i * 250);
+    }
+
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+        this.crearTrebol();
+      }
+    }, 450);
+
+    this.intervalosActivos.set('principal', intervalo);
+
+    // Arcoíris ocasionales
+    setInterval(() => {
+      if (Math.random() > 0.7) {
+        this.crearArcoiris();
+      }
+    }, 5000);
+  }
+
+  crearTrebol() {
+    const container = document.getElementById('stpatrick-clovers');
+    if (!container) return;
+
+    const trebol = document.createElement('div');
+    trebol.className = 'stpatrick-clover festive-element';
+    trebol.textContent = this.randomChoice(this.elementos);
+    trebol.style.left = this.random(0, 100) + '%';
+    trebol.style.fontSize = this.random(20, 36) + 'px';
+    
+    trebol.style.setProperty('--swing-a', this.random(-90, 90) + 'px');
+    trebol.style.setProperty('--swing-b', this.random(-110, 110) + 'px');
+    trebol.style.setProperty('--swing-c', this.random(-70, 70) + 'px');
+    trebol.style.setProperty('--rotate-a', this.random(-120, 120) + 'deg');
+    trebol.style.setProperty('--rotate-b', this.random(-240, 240) + 'deg');
+    trebol.style.setProperty('--rotate-c', this.random(-360, 360) + 'deg');
+    
+    const duracion = this.random(9, 14);
+    trebol.style.animationDuration = duracion + 's';
+    
+    container.appendChild(trebol);
+    this.elementosActivos.add(trebol);
+    this.limpiarElemento(trebol, duracion * 1000 + 500);
+  }
+
+  crearArcoiris() {
+    const container = document.getElementById('stpatrick-clovers');
+    if (!container) return;
+
+    const arcoiris = document.createElement('div');
+    arcoiris.className = 'stpatrick-rainbow festive-element';
+    arcoiris.textContent = '🌈';
+    arcoiris.style.bottom = '0';
+    arcoiris.style.left = this.random(-10, 10) + 'vw';
+    
+    container.appendChild(arcoiris);
+    this.elementosActivos.add(arcoiris);
+    this.limpiarElemento(arcoiris, 3000);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🐰 PASCUA - PRIMAVERA MÁGICA
+// ═══════════════════════════════════════════════════════════
+
+class PascuaManager extends FestividadManager {
+  constructor() {
+    super();
+    this.elementos = ['🐰', '🥚', '🐣', '🐤', '🌷', '🌸', '🐇', '🌺'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.PASCUA)) return;
+    if (this.intervalosActivos.has('principal')) return;
+
+    const container = document.getElementById('easter-elements');
+    if (!container) return;
+
+    for (let i = 0; i < 22; i++) {
+      setTimeout(() => this.crearElemento(), i * 300);
+    }
+
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+        this.crearElemento();
+      }
+    }, 500);
+
+    this.intervalosActivos.set('principal', intervalo);
+  }
+
+  crearElemento() {
+    const container = document.getElementById('easter-elements');
+    if (!container) return;
+
+    const elemento = document.createElement('div');
+    elemento.className = 'easter-bouncing festive-element';
+    elemento.textContent = this.randomChoice(this.elementos);
+    elemento.style.left = this.random(0, 100) + '%';
+    elemento.style.fontSize = this.random(20, 34) + 'px';
+    
+    // Variables para efecto de rebote
+    elemento.style.setProperty('--bounce-y-1', this.random(15, 25) + 'vh');
+    elemento.style.setProperty('--bounce-y-2', this.random(40, 50) + 'vh');
+    elemento.style.setProperty('--bounce-x-1', this.random(-30, 30) + 'px');
+    elemento.style.setProperty('--bounce-x-2', this.random(-50, 50) + 'px');
+    elemento.style.setProperty('--bounce-r-1', this.random(-45, 45) + 'deg');
+    elemento.style.setProperty('--bounce-r-2', this.random(-90, 90) + 'deg');
+    elemento.style.setProperty('--final-x', this.random(-40, 40) + 'px');
+    elemento.style.setProperty('--final-r', this.random(-180, 180) + 'deg');
+    
+    const duracion = this.random(8, 12);
+    elemento.style.animationDuration = duracion + 's';
+    
+    container.appendChild(elemento);
+    this.elementosActivos.add(elemento);
+    this.limpiarElemento(elemento, duracion * 1000 + 500);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🌹 DÍA DE LA MADRE - ELEGANCIA FLORAL
+// ═══════════════════════════════════════════════════════════
+
+class DiaMadreManager extends FestividadManager {
+  constructor() {
+    super();
+    this.flores = ['🌹', '🌺', '🌸', '🌻', '🌷', '💐', '🌼', '🏵️'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.DIA_MADRE)) return;
+    if (this.intervalosActivos.has('principal')) return;
+
+    const container = document.getElementById('mothersday-flowers');
+    if (!container) return;
+
+    for (let i = 0; i < 28; i++) {
+      setTimeout(() => this.crearFlor(), i * 250);
+    }
+
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+        this.crearFlor();
+      }
+    }, 380);
+
+    this.intervalosActivos.set('principal', intervalo);
+  }
+
+  crearFlor() {
+    const container = document.getElementById('mothersday-flowers');
+    if (!container) return;
+
+    const flor = document.createElement('div');
+    flor.className = 'mothersday-elegant-flower festive-element';
+    flor.textContent = this.randomChoice(this.flores);
+    flor.style.left = this.random(0, 100) + '%';
+    flor.style.fontSize = this.random(22, 38) + 'px';
+    
+    flor.style.setProperty('--drift-1', this.random(-70, 70) + 'px');
+    flor.style.setProperty('--drift-2', this.random(-90, 90) + 'px');
+    flor.style.setProperty('--drift-3', this.random(-60, 60) + 'px');
+    flor.style.setProperty('--spin-1', this.random(-90, 90) + 'deg');
+    flor.style.setProperty('--spin-2', this.random(-180, 180) + 'deg');
+    flor.style.setProperty('--spin-3', this.random(-270, 270) + 'deg');
+    
+    const duracion = this.random(10, 15);
+    flor.style.animationDuration = duracion + 's';
+    
+    container.appendChild(flor);
+    this.elementosActivos.add(flor);
+    this.limpiarElemento(flor, duracion * 1000 + 500);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🎃 HALLOWEEN - TERROR CINEMATOGRÁFICO
+// ═══════════════════════════════════════════════════════════
+
+class HalloweenManager extends FestividadManager {
+  constructor() {
+    super();
+    this.elementos = ['🎃', '💀', '🕷️', '🕸️', '🧙', '🧛', '🦇'];
+    this.fantasmas = ['👻'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.HALLOWEEN)) return;
+    if (this.intervalosActivos.has('principal')) return;
+
+    const container = document.getElementById('halloween-spooky');
+    if (!container) return;
+
+    // Elementos cayendo
+    for (let i = 0; i < 30; i++) {
+      setTimeout(() => this.crearElemento(), i * 200);
+    }
+
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+        this.crearElemento();
+      }
+    }, 330);
+
+    this.intervalosActivos.set('principal', intervalo);
+
+    // Fantasmas flotantes
+    for (let i = 0; i < 4; i++) {
+      setTimeout(() => this.crearFantasma(), i * 1500);
+    }
+
+    const intervaloFantasmas = setInterval(() => {
+      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+        this.crearFantasma();
+      }
+    }, 4000 + Math.random() * 3000);
+
+    this.intervalosActivos.set('fantasmas', intervaloFantasmas);
+
+    // Murciélagos
+    const intervaloMurcielagos = setInterval(() => {
+      if (Math.random() > 0.6 && this.elementosActivos.size < this.maxElementosPorFestividad) {
+        this.crearMurcielago();
+      }
+    }, 3000);
+
+    this.intervalosActivos.set('murcielagos', intervaloMurcielagos);
+  }
+
+  crearElemento() {
+    const container = document.getElementById('halloween-spooky');
+    if (!container) return;
+
+    const elemento = document.createElement('div');
+    elemento.className = 'halloween-spooky-element festive-element';
+    elemento.textContent = this.randomChoice(this.elementos);
+    elemento.style.left = this.random(0, 100) + '%';
+    elemento.style.fontSize = this.random(22, 40) + 'px';
+    
+    elemento.style.setProperty('--drift-a', this.random(-80, 80) + 'px');
+    elemento.style.setProperty('--drift-b', this.random(-100, 100) + 'px');
+    elemento.style.setProperty('--drift-c', this.random(-70, 70) + 'px');
+    elemento.style.setProperty('--rot-a', this.random(-120, 120) + 'deg');
+    elemento.style.setProperty('--rot-b', this.random(-240, 240) + 'deg');
+    elemento.style.setProperty('--rot-c', this.random(-360, 360) + 'deg');
+    
+    const duracion = this.random(8, 13);
+    elemento.style.animationDuration = duracion + 's';
+    
+    container.appendChild(elemento);
+    this.elementosActivos.add(elemento);
+    this.limpiarElemento(elemento, duracion * 1000 + 500);
+  }
+
+  crearFantasma() {
+    const container = document.getElementById('halloween-spooky');
+    if (!container) return;
+
+    const fantasma = document.createElement('div');
+    fantasma.className = 'halloween-ghost-float festive-element';
+    fantasma.textContent = this.randomChoice(this.fantasmas);
+    fantasma.style.fontSize = this.random(45, 70) + 'px';
+    fantasma.style.left = this.random(10, 80) + 'vw';
+    
+    const duracion = this.random(4, 6);
+    fantasma.style.animationDuration = duracion + 's';
+    
+    container.appendChild(fantasma);
+    this.elementosActivos.add(fantasma);
+    this.limpiarElemento(fantasma, duracion * 1000 + 500);
+  }
+
+  crearMurcielago() {
+    const container = document.getElementById('halloween-spooky');
+    if (!container) return;
+
+    const murcielago = document.createElement('div');
+    murcielago.className = 'halloween-bat-fly festive-element';
+    murcielago.textContent = '🦇';
+    murcielago.style.fontSize = this.random(25, 45) + 'px';
+    
+    const duracion = this.random(3, 5);
+    murcielago.style.animationDuration = duracion + 's';
+    
+    container.appendChild(murcielago);
+    this.elementosActivos.add(murcielago);
+    this.limpiarElemento(murcielago, duracion * 1000 + 500);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 💀 DÍA DE MUERTOS
+// ═══════════════════════════════════════════════════════════
+
+class DiaMuertosManager extends FestividadManager {
+  constructor() {
+    super();
+    this.elementos = ['🌼', '💀', '🕯️', '🌺', '🦴', '🪦'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.DIA_MUERTOS)) return;
+    if (this.intervalosActivos.has('principal')) return;
+
+    const container = document.getElementById('dayofdead-marigolds');
+    if (!container) return;
+
+    for (let i = 0; i < 25; i++) {
+      setTimeout(() => this.crearFlor(), i * 280);
+    }
+
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+        this.crearFlor();
+      }
+    }, 420);
+
+    this.intervalosActivos.set('principal', intervalo);
+  }
+
+  crearFlor() {
+    const container = document.getElementById('dayofdead-marigolds');
+    if (!container) return;
+
+    const flor = document.createElement('div');
+    flor.className = 'dayofdead-marigold festive-element';
+    flor.textContent = this.randomChoice(this.elementos);
+    flor.style.left = this.random(0, 100) + '%';
+    flor.style.fontSize = this.random(20, 36) + 'px';
+    
+    flor.style.setProperty('--float-1', this.random(-75, 75) + 'px');
+    flor.style.setProperty('--float-2', this.random(-95, 95) + 'px');
+    flor.style.setProperty('--float-3', this.random(-65, 65) + 'px');
+    flor.style.setProperty('--turn-1', this.random(-100, 100) + 'deg');
+    flor.style.setProperty('--turn-2', this.random(-200, 200) + 'deg');
+    flor.style.setProperty('--turn-3', this.random(-300, 300) + 'deg');
+    
+    const duracion = this.random(9, 14);
+    flor.style.animationDuration = duracion + 's';
+    
+    container.appendChild(flor);
+    this.elementosActivos.add(flor);
+    this.limpiarElemento(flor, duracion * 1000 + 500);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ❄️ NAVIDAD - INVIERNO MÁGICO
+// ═══════════════════════════════════════════════════════════
+
+class NavidadManager extends FestividadManager {
+  constructor() {
+    super();
+    this.copos = ['❄', '❅', '❆', '✻', '✼'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.NAVIDAD)) return;
+    if (this.intervalosActivos.has('principal')) return;
+
+    const container = document.getElementById('christmas-snowfall');
+    if (!container) return;
+
+    for (let i = 0; i < 40; i++) {
+      setTimeout(() => this.crearCopo(), i * 150);
+    }
+
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+        this.crearCopo();
+      }
+    }, 180);
+
+    this.intervalosActivos.set('principal', intervalo);
+  }
+
+  crearCopo() {
+    const container = document.getElementById('christmas-snowfall');
+    if (!container) return;
+
+    const copo = document.createElement('div');
+    copo.className = 'christmas-snowflake festive-element';
+    copo.textContent = this.randomChoice(this.copos);
+    copo.style.left = this.random(0, 100) + '%';
+    copo.style.fontSize = this.random(12, 28) + 'px';
+    copo.style.opacity = this.random(0.4, 0.9).toFixed(2);
+    
+    copo.style.setProperty('--drift', this.random(-50, 50) + 'px');
+    copo.style.setProperty('--spin', this.random(-360, 360) + 'deg');
+    
+    const duracion = this.random(10, 18);
+    copo.style.animationDuration = duracion + 's';
+    
+    container.appendChild(copo);
+    this.elementosActivos.add(copo);
+    this.limpiarElemento(copo, duracion * 1000 + 500);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🎭 CARNAVAL - FIESTA EXPLOSIVA
+// ═══════════════════════════════════════════════════════════
+
+class CarnavalManager extends FestividadManager {
+  constructor() {
+    super();
+    this.formas = ['●', '■', '▲', '◆', '★', '♦', '♥', '♣', '♠'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.CARNAVAL)) return;
+    if (this.intervalosActivos.has('confeti')) return;
+
+    // Confeti
+    const containerConfeti = document.getElementById('carnival-confetti');
+    if (containerConfeti) {
+      for (let i = 0; i < 35; i++) {
+        setTimeout(() => this.crearConfeti(), i * 120);
+      }
+
+      const intervaloConfeti = setInterval(() => {
+        if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+          this.crearConfeti();
+        }
+      }, 160);
+
+      this.intervalosActivos.set('confeti', intervaloConfeti);
+    }
+
+    // Fuegos artificiales
+    const containerFuegos = document.getElementById('carnival-fireworks');
+    if (containerFuegos) {
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => this.lanzarCohete(), i * 600);
+      }
+
+      const intervaloFuegos = setInterval(() => {
+        if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+          this.lanzarCohete();
+        }
+      }, 1200 + Math.random() * 700);
+
+      this.intervalosActivos.set('fuegos', intervaloFuegos);
+    }
+  }
+
+  crearConfeti() {
+    const container = document.getElementById('carnival-confetti');
+    if (!container) return;
+
+    const confeti = document.createElement('div');
+    confeti.className = 'carnival-confetti-piece festive-element';
+    confeti.textContent = this.randomChoice(this.formas);
+    confeti.style.left = this.random(0, 100) + '%';
+    confeti.style.fontSize = this.random(10, 20) + 'px';
+    confeti.style.color = this.randomChoice(COLOR_PALETTES.CARNAVAL);
+    
+    confeti.style.setProperty('--drift-confetti', this.random(-80, 80) + 'px');
+    confeti.style.setProperty('--spin-confetti', this.random(-720, 720) + 'deg');
+    
+    const duracion = this.random(6, 10);
+    confeti.style.animationDuration = duracion + 's';
+    
+    container.appendChild(confeti);
+    this.elementosActivos.add(confeti);
+    this.limpiarElemento(confeti, duracion * 1000 + 500);
+  }
+
+  lanzarCohete() {
+    const container = document.getElementById('carnival-fireworks');
+    if (!container) return;
+
+    const cohete = document.createElement('div');
+    cohete.className = 'carnival-rocket festive-element';
+    
+    const color = this.randomChoice(COLOR_PALETTES.CARNAVAL);
+    cohete.style.background = color;
+    cohete.style.left = this.random(15, 85) + 'vw';
+    cohete.style.width = this.random(5, 9) + 'px';
+    cohete.style.height = this.random(16, 24) + 'px';
+    cohete.style.animationDuration = this.random(1, 1.6) + 's';
+
+    container.appendChild(cohete);
+    this.elementosActivos.add(cohete);
+
+    cohete.addEventListener('animationend', () => {
+      const rect = cohete.getBoundingClientRect();
+      this.crearExplosion(rect.left + rect.width / 2, rect.top + rect.height / 2, color);
+      this.limpiarElemento(cohete);
+    });
+
+    this.limpiarElemento(cohete, 2500);
+  }
+
+  crearExplosion(x, y, color) {
+    const container = document.getElementById('carnival-fireworks');
+    if (!container) return;
+
+    const numParticulas = this.randomInt(35, 55);
+
+    for (let i = 0; i < numParticulas; i++) {
+      const particula = document.createElement('div');
+      particula.className = 'carnival-burst-particle festive-element';
+      particula.textContent = this.randomChoice(this.formas);
+      particula.style.fontSize = this.random(10, 18) + 'px';
+      particula.style.color = this.randomChoice(COLOR_PALETTES.CARNAVAL);
+      particula.style.left = x + 'px';
+      particula.style.top = y + 'px';
+      
+      const angulo = (Math.PI * 2 * i) / numParticulas + this.random(-0.2, 0.2);
+      const distancia = this.random(60, 130);
+      particula.style.setProperty('--explode-x', Math.cos(angulo) * distancia + 'px');
+      particula.style.setProperty('--explode-y', Math.sin(angulo) * distancia + 'px');
+      particula.style.setProperty('--explode-r', this.random(-360, 360) + 'deg');
+      particula.style.animationDuration = this.random(0.8, 1.5) + 's';
+      
+      container.appendChild(particula);
+      this.elementosActivos.add(particula);
+      this.limpiarElemento(particula, 1800);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🌸 PRIMAVERA, ☀️ VERANO, 🍂 OTOÑO
+// ═══════════════════════════════════════════════════════════
+
+class PrimaveraManager extends FestividadManager {
+  constructor() {
+    super();
+    this.elementos = ['🌸', '🌺', '🌼', '🌻', '🌷', '🦋', '🐝', '🌱'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.PRIMAVERA)) return;
+    if (this.intervalosActivos.has('principal')) return;
+
+    const container = document.getElementById('spring-blossoms');
+    if (!container) return;
+
+    for (let i = 0; i < 18; i++) {
+      setTimeout(() => this.crearFlor(), i * 450);
+    }
+
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < 50) {
+        this.crearFlor();
+      }
+    }, 650);
+
+    this.intervalosActivos.set('principal', intervalo);
+  }
+
+  crearFlor() {
+    const container = document.getElementById('spring-blossoms');
+    if (!container) return;
+
+    const flor = document.createElement('div');
+    flor.className = 'spring-blossom festive-element';
+    flor.textContent = this.randomChoice(this.elementos);
+    flor.style.left = this.random(0, 100) + '%';
+    flor.style.fontSize = this.random(18, 30) + 'px';
+    
+    flor.style.setProperty('--wind-1', this.random(-60, 60) + 'px');
+    flor.style.setProperty('--wind-2', this.random(-80, 80) + 'px');
+    flor.style.setProperty('--wind-3', this.random(-50, 50) + 'px');
+    flor.style.setProperty('--twirl-1', this.random(-90, 90) + 'deg');
+    flor.style.setProperty('--twirl-2', this.random(-180, 180) + 'deg');
+    flor.style.setProperty('--twirl-3', this.random(-270, 270) + 'deg');
+    
+    const duracion = this.random(12, 18);
+    flor.style.animationDuration = duracion + 's';
+    
+    container.appendChild(flor);
+    this.elementosActivos.add(flor);
+    this.limpiarElemento(flor, duracion * 1000 + 500);
+  }
+}
+
+class VeranoManager extends FestividadManager {
+  constructor() {
+    super();
+    this.elementos = ['☀️', '🌊', '🏖️', '🍉', '🍹', '🌴', '⛱️', '🏄'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.VERANO)) return;
+    if (this.intervalosActivos.has('principal')) return;
+
+    const container = document.getElementById('summer-vibes');
+    if (!container) return;
+
+    for (let i = 0; i < 10; i++) {
+      setTimeout(() => this.crearElemento(), i * 900);
+    }
+
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < 30) {
+        this.crearElemento();
+      }
+    }, 2800 + Math.random() * 1500);
+
+    this.intervalosActivos.set('principal', intervalo);
+  }
+
+  crearElemento() {
+    const container = document.getElementById('summer-vibes');
+    if (!container) return;
+
+    const elemento = document.createElement('div');
+    elemento.className = 'summer-element festive-element';
+    elemento.textContent = this.randomChoice(this.elementos);
+    elemento.style.fontSize = this.random(28, 48) + 'px';
+    elemento.style.left = this.random(10, 85) + 'vw';
+    
+    elemento.style.setProperty('--summer-drift-1', this.random(-60, 60) + 'px');
+    elemento.style.setProperty('--summer-drift-2', this.random(-80, 80) + 'px');
+    elemento.style.setProperty('--summer-drift-3', this.random(-70, 70) + 'px');
+    elemento.style.setProperty('--summer-drift-4', this.random(-50, 50) + 'px');
+    elemento.style.setProperty('--summer-spin-1', this.random(-90, 90) + 'deg');
+    elemento.style.setProperty('--summer-spin-2', this.random(-180, 180) + 'deg');
+    elemento.style.setProperty('--summer-spin-3', this.random(-270, 270) + 'deg');
+    elemento.style.setProperty('--summer-spin-4', this.random(-360, 360) + 'deg');
+    
+    const duracion = this.random(5, 8);
+    elemento.style.animationDuration = duracion + 's';
+    
+    container.appendChild(elemento);
+    this.elementosActivos.add(elemento);
+    this.limpiarElemento(elemento, duracion * 1000 + 500);
+  }
+}
+
+class OtonoManager extends FestividadManager {
+  constructor() {
+    super();
+    this.elementos = ['🍂', '🍁', '🍄', '🌰', '🦔'];
+  }
+
+  iniciar() {
+    if (!this.estaActiva(FESTIVE_CONFIG.OTONO)) return;
+    if (this.intervalosActivos.has('principal')) return;
+
+    const container = document.getElementById('autumn-leaves');
+    if (!container) return;
+
+    for (let i = 0; i < 22; i++) {
+      setTimeout(() => this.crearHoja(), i * 350);
+    }
+
+    const intervalo = setInterval(() => {
+      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
+        this.crearHoja();
+      }
+    }, 480);
+
+    this.intervalosActivos.set('principal', intervalo);
+  }
+
+  crearHoja() {
+    const container = document.getElementById('autumn-leaves');
+    if (!container) return;
+
+    const hoja = document.createElement('div');
+    hoja.className = 'autumn-falling-leaf festive-element';
+    hoja.textContent = this.randomChoice(this.elementos);
+    hoja.style.left = this.random(0, 100) + '%';
+    hoja.style.fontSize = this.random(20, 36) + 'px';
+    
+    hoja.style.setProperty('--autumn-1', this.random(-50, 50) + 'px');
+    hoja.style.setProperty('--autumn-2', this.random(-70, 70) + 'px');
+    hoja.style.setProperty('--autumn-3', this.random(-60, 60) + 'px');
+    hoja.style.setProperty('--autumn-4', this.random(-80, 80) + 'px');
+    hoja.style.setProperty('--autumn-5', this.random(-40, 40) + 'px');
+    hoja.style.setProperty('--leaf-spin-1', this.random(-90, 90) + 'deg');
+    hoja.style.setProperty('--leaf-spin-2', this.random(-180, 180) + 'deg');
+    hoja.style.setProperty('--leaf-spin-3', this.random(-270, 270) + 'deg');
+    hoja.style.setProperty('--leaf-spin-4', this.random(-360, 360) + 'deg');
+    hoja.style.setProperty('--leaf-spin-5', this.random(-450, 450) + 'deg');
+    
+    const duracion = this.random(9, 14);
+    hoja.style.animationDuration = duracion + 's';
+    
+    container.appendChild(hoja);
+    this.elementosActivos.add(hoja);
+    this.limpiarElemento(hoja, duracion * 1000 + 500);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🎯 SISTEMA PRINCIPAL DE INICIALIZACIÓN
+// ═══════════════════════════════════════════════════════════
+
+class SistemaFestividades {
+  constructor() {
+    this.managers = {
+      NUEVO_ANO: new AnoNuevoManager(),
+      SAN_VALENTIN: new SanValentinManager(),
+      DIA_GATO: new DiaGatoManager(),
+      CARNAVAL: new CarnavalManager(),
+      SAN_PATRICIO: new SanPatricioManager(),
+      PASCUA: new PascuaManager(),
+      DIA_MADRE: new DiaMadreManager(),
+      HALLOWEEN: new HalloweenManager(),
+      DIA_MUERTOS: new DiaMuertosManager(),
+      NAVIDAD: new NavidadManager(),
+      PRIMAVERA: new PrimaveraManager(),
+      VERANO: new VeranoManager(),
+      OTONO: new OtonoManager()
+    };
+
+    this.festivaActivaActual = null;
+  }
+
+  inicializar() {
+    // Detectar festiva activa
+    const festivaActiva = this.detectarFestivaActiva();
+    
+    if (!festivaActiva) {
+      console.log('🎉 No hay festividades activas en este momento');
+      return;
+    }
+
+    console.log(`🎊 Festividad activa: ${festivaActiva.nombre}`);
+    
+    // Iniciar manager correspondiente
+    const manager = this.managers[festivaActiva.id];
+    if (manager) {
+      manager.iniciar();
+      this.festivaActivaActual = festivaActiva;
+    }
+  }
+
+  detectarFestivaActiva() {
+    const ahora = new Date();
+    const festivasActivas = Object.values(FESTIVE_CONFIG)
+      .filter(config => ahora >= config.inicio && ahora <= config.fin)
+      .sort((a, b) => b.prioridad - a.prioridad);
+
+    return festivasActivas.length > 0 ? festivasActivas[0] : null;
+  }
+
+  detenerTodo() {
+    Object.values(this.managers).forEach(manager => manager.detenerTodo());
+    this.festivaActivaActual = null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🚀 INICIALIZACIÓN AUTOMÁTICA
+// ═══════════════════════════════════════════════════════════
+
+const sistemaFestividades = new SistemaFestividades();
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🎨 Sistema de Festividades cargado');
+  sistemaFestividades.inicializar();
+});
+
+// Exportar para uso externo si es necesario
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { SistemaFestividades, FESTIVE_CONFIG };
+}

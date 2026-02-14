@@ -452,111 +452,6 @@ a:hover{text-decoration:underline}
 .price .old-price { text-decoration:line-through; margin-right:8px; color:#9aa3b8; font-size:0.95em; }
 .price .new-price { color:#9bd8ff; font-weight:700; font-size:1.05em; }
 
-
-
-
-
-
-
-
-
-
-/* nieve */
-#snow-container { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
-.snowflake {
-  position: absolute;
-  top: -10px;
-  animation-name: fall;
-  animation-timing-function: linear;
-  animation-iteration-count: 1;
-  /* más transparente para no estorbar */
-  opacity: 0.2;
-}
-@keyframes fall {
-  from { transform: translateY(-10px); }
-  to   { transform: translateY(110vh); }
-}
-
-
-
-
-
-
-#fireworks-container {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
-  background: transparent;
-}
-
-/* Cohete */
-.firework {
-  position: absolute;
-  bottom: 0;
-  width: 6px;
-  height: 20px;
-  border-radius: 50%;
-  box-shadow: 0 0 10px currentColor;
-  animation: launch linear forwards;
-}
-
-/* Rastro difuminado */
-.firework::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 15px;
-  background: currentColor;
-  filter: blur(4px);
-}
-
-/* Animación de subida */
-@keyframes launch {
-  0% { transform: translateY(0); opacity: 1; }
-  80% { opacity: 1; }
-  100% { transform: translateY(-80vh); opacity: 0; }
-}
-
-/* Partículas de explosión */
-.particle {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 1;
-  animation: explode linear forwards;
-}
-
-/* Animación radial de partículas */
-@keyframes explode {
-  0% { transform: translate(0,0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--x), var(--y)) scale(0.3); opacity: 0; }
-}
-
-/* Texto del año */
-.firework-year {
-  position: absolute;
-  font-weight: bold;
-  color: white;
-  font-size: 20px;
-  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
-  opacity: 1;
-  animation: floatYear 1.2s forwards;
-}
-
-@keyframes floatYear {
-  0% { transform: translate(0,0) scale(1); opacity: 1; }
-  100% { transform: translate(0,-40px) scale(1.2); opacity: 0; }
-}
-
-
-
-
-
-
 body {
   cursor: url("img/diamond.cur") 0 0, auto;
 }
@@ -567,229 +462,1028 @@ body {
 
 
 
+/* ═══════════════════════════════════════════════════════════
+   🎨 SISTEMA DE DECORACIONES FESTIVAS PREMIUM v2.0
+   Animaciones de nivel profesional para todas las festividades
+   ════════════════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════════════
+   🎯 CONFIGURACIÓN BASE Y VARIABLES GLOBALES
+   ════════════════════════════════════════════════════════════ */
 
-/* Contenedor de pétalos */
-#petals-container {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9998;
-    overflow: hidden;
+:root {
+  --festive-z-base: 9995;
+  --festive-z-mid: 9997;
+  --festive-z-top: 9999;
+  
+  /* Colores temáticos */
+  --color-newyear-gold: #FFD700;
+  --color-newyear-silver: #C0C0C0;
+  --color-valentine-pink: #FF1493;
+  --color-valentine-red: #DC143C;
+  --color-halloween-orange: #FF6600;
+  --color-halloween-purple: #8B00FF;
+  --color-christmas-red: #C41E3A;
+  --color-christmas-green: #0F8B3E;
 }
 
-/* Estilo de pétalo/rosa/corazón */
-.petal {
-    position: absolute;
-    top: -30px;
-    animation-name: fall-petal;
-    animation-timing-function: ease-in-out;
-    animation-iteration-count: 1;
-    opacity: 0.7;
-    filter: drop-shadow(0 0 3px rgba(255, 64, 129, 0.3));
+body {
+  cursor: url("img/diamond.cur") 0 0, auto;
 }
 
-/* Animación de caída con balanceo */
-@keyframes fall-petal {
-    0% {
-        transform: translateY(-10px) rotate(0deg);
-        opacity: 0.8;
-    }
-    50% {
-        transform: translateY(50vh) translateX(var(--swing)) rotate(var(--rotation));
-        opacity: 0.9;
-    }
-    100% {
-        transform: translateY(110vh) translateX(calc(var(--swing) * -0.5)) rotate(calc(var(--rotation) * 2));
-        opacity: 0;
-    }
-}
+/* ═══════════════════════════════════════════════════════════
+   🌟 CONTENEDORES BASE MEJORADOS
+   ════════════════════════════════════════════════════════════ */
 
-/* Contenedor de corazones flotantes */
-#hearts-container {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9999;
-    overflow: hidden;
-}
-
-/* Corazón flotante */
-.floating-heart {
-    position: absolute;
-    animation: float-up linear forwards;
-    opacity: 0.9;
-}
-
-/* Animación de flotación con balanceo */
-@keyframes float-up {
-    0% {
-        transform: translateY(0) translateX(0) scale(0.5);
-        opacity: 0.8;
-    }
-    30% {
-        transform: translateY(-30vh) translateX(var(--swing-distance)) scale(1);
-        opacity: 1;
-    }
-    70% {
-        transform: translateY(-70vh) translateX(calc(var(--swing-distance) * -0.7)) scale(1.1);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-100vh) translateX(0) scale(0.8);
-        opacity: 0;
-    }
-}
-
-/* Partículas de amor */
-.love-particle {
-    position: absolute;
-    opacity: 1;
-    animation: love-explode ease-out forwards;
-}
-
-@keyframes love-explode {
-    0% {
-        transform: translate(0,0) scale(1) rotate(0deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translate(var(--x), var(--y)) scale(0.3) rotate(180deg);
-        opacity: 0;
-    }
-}
-
-/* Texto romántico */
-.love-text {
-    position: absolute;
-    font-weight: bold;
-    font-family: 'Arial', sans-serif;
-    font-size: 22px;
-    animation: float-text 1.5s ease-out forwards;
-    white-space: nowrap;
-    transform: translateX(-50%) translateY(-50%);
-}
-
-@keyframes float-text {
-    0% {
-        transform: translate(-50%, -50%) scale(0.8);
-        opacity: 0.8;
-    }
-    50% {
-        transform: translate(-50%, -120%) scale(1.2);
-        opacity: 1;
-    }
-    100% {
-        transform: translate(-50%, -180%) scale(1);
-        opacity: 0;
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Confeti de Carnaval */
-#carnival-container { 
-  position: fixed; 
-  inset: 0; 
-  pointer-events: none; 
-  z-index: 9999; 
-}
-
-.confetti {
-  position: absolute;
-  top: -10px;
-  animation-name: carnival-fall;
-  animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
-  animation-iteration-count: 1;
-  opacity: 0.25;
-  font-weight: bold;
-}
-
-@keyframes carnival-fall {
-  from { 
-    transform: translateY(-10px) rotate(0deg) translateX(0); 
-  }
-  to { 
-    transform: translateY(110vh) rotate(360deg) translateX(50px); 
-  }
-}
-
-/* Fuegos artificiales de Carnaval */
-#carnival-fireworks-container {
+.festivity-layer-base,
+.festivity-layer-mid,
+.festivity-layer-top {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 9998;
   overflow: hidden;
-  background: transparent;
 }
 
-/* Cohete de Carnaval */
-.carnival-firework {
+.festivity-layer-base { z-index: var(--festive-z-base); }
+.festivity-layer-mid { z-index: var(--festive-z-mid); }
+.festivity-layer-top { z-index: var(--festive-z-top); }
+
+/* Optimización de rendimiento */
+.festive-element {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🎆 AÑO NUEVO - ESPECTÁCULO DE FUEGOS ARTIFICIALES
+   ════════════════════════════════════════════════════════════ */
+
+#newyear-fireworks { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+#newyear-ambient { position: fixed; inset: 0; pointer-events: none; z-index: 9998; }
+#newyear-sparkles { position: fixed; inset: 0; pointer-events: none; z-index: 9997; }
+
+.newyear-rocket {
+  position: absolute;
+  bottom: 0;
+  width: 10px;
+  height: 30px;
+  animation: rocket-launch cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.newyear-rocket::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, currentColor, transparent);
+  border-radius: 50% 50% 0 0;
+  box-shadow: 
+    0 0 20px currentColor,
+    0 0 40px currentColor,
+    0 0 60px currentColor;
+}
+
+.newyear-rocket::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 40px;
+  background: linear-gradient(to bottom, currentColor, transparent);
+  filter: blur(6px);
+  opacity: 0.8;
+}
+
+@keyframes rocket-launch {
+  0% { 
+    transform: translateY(0) scale(1); 
+    opacity: 1; 
+  }
+  70% { 
+    opacity: 1; 
+    filter: brightness(1.5);
+  }
+  85% { 
+    opacity: 0.7; 
+  }
+  100% { 
+    transform: translateY(-90vh) scale(0.8); 
+    opacity: 0; 
+  }
+}
+
+.newyear-burst {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: burst-explode cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 
+    0 0 10px currentColor,
+    0 0 20px currentColor;
+}
+
+@keyframes burst-explode {
+  0% { 
+    transform: translate(0, 0) scale(1.5); 
+    opacity: 1; 
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 
+      0 0 15px currentColor,
+      0 0 30px currentColor,
+      0 0 45px currentColor;
+  }
+  100% { 
+    transform: translate(var(--dx), var(--dy)) scale(0.1); 
+    opacity: 0; 
+  }
+}
+
+.newyear-trail {
+  position: absolute;
+  width: 3px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, currentColor, transparent);
+  animation: trail-fade linear forwards;
+  filter: blur(2px);
+}
+
+@keyframes trail-fade {
+  0% { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.3) translateY(var(--dy)); }
+}
+
+.newyear-year-text {
+  position: absolute;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  animation: year-reveal 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700, #FFA500);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+}
+
+@keyframes year-reveal {
+  0% { 
+    transform: translate(-50%, -50%) scale(0.3) rotate(-20deg); 
+    opacity: 0;
+    filter: drop-shadow(0 0 0 transparent) blur(10px);
+  }
+  40% { 
+    transform: translate(-50%, -90px) scale(1.6) rotate(5deg); 
+    opacity: 1;
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 1)) blur(0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% { 
+    transform: translate(-50%, -180px) scale(1.3) rotate(0); 
+    opacity: 0;
+    filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.5)) blur(5px);
+  }
+}
+
+.newyear-sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: white;
+  border-radius: 50%;
+  animation: sparkle-twinkle 1.5s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(0.5); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.2); 
+    box-shadow: 0 0 20px rgba(255, 255, 255, 1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   💕 SAN VALENTÍN - ROMANCE CINEMATOGRÁFICO
+   ════════════════════════════════════════════════════════════ */
+
+#valentine-petals { position: fixed; inset: 0; pointer-events: none; z-index: 9998; }
+#valentine-hearts { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+#valentine-ambient { position: fixed; inset: 0; pointer-events: none; z-index: 9997; }
+
+.valentine-rose-petal {
+  position: absolute;
+  top: -40px;
+  animation: petal-romantic-fall cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  filter: drop-shadow(0 4px 8px rgba(255, 20, 147, 0.3));
+  transform-origin: center center;
+}
+
+@keyframes petal-romantic-fall {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(30vh) translateX(var(--swing-1)) rotate(var(--rotate-1)) scale(1);
+  }
+  60% {
+    transform: translateY(60vh) translateX(var(--swing-2)) rotate(var(--rotate-2)) scale(1.1);
+    opacity: 0.95;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(110vh) translateX(var(--swing-3)) rotate(var(--rotate-3)) scale(0.9);
+    opacity: 0;
+  }
+}
+
+.valentine-heart-float {
+  position: absolute;
+  animation: heart-ascend cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  transform-origin: center center;
+}
+
+.valentine-heart-float::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, currentColor 0%, transparent 70%);
+  opacity: 0.3;
+  animation: heart-pulse 2s ease-in-out infinite;
+}
+
+@keyframes heart-ascend {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.2) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  35% {
+    transform: translateY(-35vh) translateX(var(--swing-x)) scale(1.3) rotate(var(--rotate-angle));
+  }
+  70% {
+    transform: translateY(-70vh) translateX(var(--swing-x-2)) scale(1.4) rotate(var(--rotate-angle-2));
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-110vh) translateX(0) scale(0.5) rotate(var(--rotate-final));
+    opacity: 0;
+  }
+}
+
+@keyframes heart-pulse {
+  0%, 100% { 
+    transform: translate(-50%, -50%) scale(1); 
+    opacity: 0.3; 
+  }
+  50% { 
+    transform: translate(-50%, -50%) scale(1.2); 
+    opacity: 0.5; 
+  }
+}
+
+.valentine-particle-love {
+  position: absolute;
+  animation: love-particle-burst cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+@keyframes love-particle-burst {
+  0% {
+    transform: translate(0, 0) scale(1.3) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(var(--px), var(--py)) scale(0.2) rotate(var(--pr));
+    opacity: 0;
+  }
+}
+
+.valentine-love-text {
+  position: absolute;
+  font-family: 'Brush Script MT', 'Lucida Handwriting', cursive;
+  font-size: 32px;
+  font-weight: bold;
+  animation: love-text-float 2.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  background: linear-gradient(135deg, #FF1493, #FF69B4, #FF1493);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 15px rgba(255, 20, 147, 0.8));
+  animation: love-text-float 2.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             text-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes love-text-float {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3) rotate(-15deg);
+    opacity: 0;
+    filter: drop-shadow(0 0 0 transparent) blur(10px);
+  }
+  50% {
+    transform: translate(-50%, -150%) scale(1.5) rotate(8deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 25px rgba(255, 20, 147, 1)) blur(0);
+  }
+  100% {
+    transform: translate(-50%, -280%) scale(1.2) rotate(0);
+    opacity: 0;
+    filter: drop-shadow(0 0 30px rgba(255, 20, 147, 0.5)) blur(8px);
+  }
+}
+
+@keyframes text-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🐱 DÍA DEL GATO - ANIMACIÓN REALISTA
+   ════════════════════════════════════════════════════════════ */
+
+#catday-ground { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+.catday-walking {
+  position: absolute;
+  animation: cat-realistic-walk cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.3));
+  transform-origin: bottom center;
+}
+
+@keyframes cat-realistic-walk {
+  0% {
+    transform: translateX(-120px) translateY(0) rotate(-5deg) scale(0.8);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  15% {
+    transform: translateX(15vw) translateY(-3px) rotate(2deg) scale(0.95);
+  }
+  16% {
+    transform: translateX(15vw) translateY(0px) rotate(2deg) scale(0.95);
+  }
+  30% {
+    transform: translateX(30vw) translateY(-3px) rotate(-2deg) scale(1);
+  }
+  31% {
+    transform: translateX(30vw) translateY(0px) rotate(-2deg) scale(1);
+  }
+  45% {
+    transform: translateX(45vw) translateY(-3px) rotate(3deg) scale(1.05);
+  }
+  46% {
+    transform: translateX(45vw) translateY(0px) rotate(3deg) scale(1.05);
+  }
+  60% {
+    transform: translateX(60vw) translateY(-3px) rotate(-1deg) scale(1.1);
+  }
+  61% {
+    transform: translateX(60vw) translateY(0px) rotate(-1deg) scale(1.1);
+  }
+  75% {
+    transform: translateX(75vw) translateY(-3px) rotate(2deg) scale(1);
+  }
+  76% {
+    transform: translateX(75vw) translateY(0px) rotate(2deg) scale(1);
+  }
+  90% {
+    transform: translateX(90vw) translateY(-3px) rotate(-3deg) scale(0.95);
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(110vw) translateY(0) rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+.catday-paw-print {
+  position: absolute;
+  opacity: 0.4;
+  animation: paw-fade 3s ease-out forwards;
+}
+
+@keyframes paw-fade {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.8); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🍀 SAN PATRICIO - MAGIA CELTA
+   ════════════════════════════════════════════════════════════ */
+
+#stpatrick-clovers { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+#stpatrick-magic { position: fixed; inset: 0; pointer-events: none; z-index: 9998; }
+
+.stpatrick-clover {
+  position: absolute;
+  top: -40px;
+  animation: clover-celtic-fall cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.4));
+}
+
+@keyframes clover-celtic-fall {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg) scale(0.7);
+    opacity: 0;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 0, 0.2));
+  }
+  15% {
+    opacity: 1;
+  }
+  40% {
+    transform: translateY(40vh) translateX(var(--swing-a)) rotate(var(--rotate-a)) scale(1.2);
+    filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.6));
+  }
+  70% {
+    transform: translateY(70vh) translateX(var(--swing-b)) rotate(var(--rotate-b)) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) translateX(var(--swing-c)) rotate(var(--rotate-c)) scale(0.8);
+    opacity: 0;
+    filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.3));
+  }
+}
+
+.stpatrick-rainbow {
+  position: absolute;
+  font-size: 80px;
+  animation: rainbow-arc-fly 3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
+}
+
+@keyframes rainbow-arc-fly {
+  0% {
+    transform: translateY(110vh) translateX(-50px) scale(0.3) rotate(-20deg);
+    opacity: 0;
+  }
+  25% {
+    transform: translateY(70vh) translateX(20vw) scale(0.8) rotate(10deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(30vh) translateX(50vw) scale(1.3) rotate(-5deg);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(20vh) translateX(70vw) scale(1.1) rotate(15deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-30vh) translateX(110vw) scale(0.5) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+.stpatrick-sparkle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #00FF00;
+  border-radius: 50%;
+  animation: celtic-sparkle 2s ease-in-out infinite;
+  box-shadow: 0 0 15px #00FF00;
+}
+
+@keyframes celtic-sparkle {
+  0%, 100% { 
+    opacity: 0.2; 
+    transform: scale(0.5) rotate(0deg); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.5) rotate(180deg); 
+    box-shadow: 0 0 25px #00FF00, 0 0 35px #00FF00;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🐰 PASCUA - PRIMAVERA MÁGICA
+   ════════════════════════════════════════════════════════════ */
+
+#easter-elements { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+.easter-bouncing {
+  position: absolute;
+  top: -40px;
+  animation: easter-spring-bounce cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes easter-spring-bounce {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  15%, 35%, 55%, 75%, 95% {
+    transform: translateY(var(--bounce-y-1)) translateX(var(--bounce-x-1)) rotate(var(--bounce-r-1)) scale(1);
+  }
+  25%, 45%, 65%, 85% {
+    transform: translateY(var(--bounce-y-2)) translateX(var(--bounce-x-2)) rotate(var(--bounce-r-2)) scale(1.1);
+  }
+  100% {
+    transform: translateY(110vh) translateX(var(--final-x)) rotate(var(--final-r)) scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🌹 DÍA DE LA MADRE - ELEGANCIA FLORAL
+   ════════════════════════════════════════════════════════════ */
+
+#mothersday-flowers { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+#mothersday-glow { position: fixed; inset: 0; pointer-events: none; z-index: 9998; }
+
+.mothersday-elegant-flower {
+  position: absolute;
+  top: -40px;
+  animation: flower-elegant-descent cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  filter: drop-shadow(0 5px 15px rgba(255, 105, 180, 0.4));
+}
+
+@keyframes flower-elegant-descent {
+  0% {
+    transform: translateY(-30px) translateX(0) rotate(0deg) scale(0.6);
+    opacity: 0;
+    filter: drop-shadow(0 0 5px rgba(255, 105, 180, 0.2)) brightness(1);
+  }
+  20% {
+    opacity: 1;
+    filter: drop-shadow(0 5px 15px rgba(255, 105, 180, 0.5)) brightness(1.2);
+  }
+  40% {
+    transform: translateY(40vh) translateX(var(--drift-1)) rotate(var(--spin-1)) scale(1.2);
+    filter: drop-shadow(0 8px 20px rgba(255, 105, 180, 0.6)) brightness(1.1);
+  }
+  70% {
+    transform: translateY(70vh) translateX(var(--drift-2)) rotate(var(--spin-2)) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) translateX(var(--drift-3)) rotate(var(--spin-3)) scale(0.9);
+    opacity: 0;
+    filter: drop-shadow(0 5px 12px rgba(255, 105, 180, 0.3)) brightness(1);
+  }
+}
+
+.mothersday-petal-burst {
+  position: absolute;
+  animation: petal-burst-explosion 1.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes petal-burst-explosion {
+  0% {
+    transform: translate(0, 0) scale(1.5) rotate(0deg);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: translate(var(--burst-x), var(--burst-y)) scale(0.3) rotate(var(--burst-r));
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🎃 HALLOWEEN - TERROR CINEMATOGRÁFICO
+   ════════════════════════════════════════════════════════════ */
+
+#halloween-spooky { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+#halloween-fog { position: fixed; bottom: 0; left: 0; right: 0; height: 30vh; pointer-events: none; z-index: 9997; background: linear-gradient(to top, rgba(138, 43, 226, 0.1), transparent); }
+
+.halloween-spooky-element {
+  position: absolute;
+  top: -50px;
+  animation: spooky-descent cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  filter: drop-shadow(0 0 15px rgba(255, 102, 0, 0.6));
+}
+
+@keyframes spooky-descent {
+  0% {
+    transform: translateY(-30px) translateX(0) rotate(0deg) scale(0.7);
+    opacity: 0;
+    filter: drop-shadow(0 0 10px rgba(255, 102, 0, 0.4)) brightness(1);
+  }
+  15% {
+    opacity: 1;
+    filter: drop-shadow(0 0 20px rgba(255, 102, 0, 0.7)) brightness(1.3);
+  }
+  30% {
+    transform: translateY(30vh) translateX(var(--drift-a)) rotate(var(--rot-a)) scale(1.1);
+  }
+  60% {
+    transform: translateY(60vh) translateX(var(--drift-b)) rotate(var(--rot-b)) scale(1.2);
+    filter: drop-shadow(0 0 25px rgba(255, 102, 0, 0.8)) brightness(1.4);
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(110vh) translateX(var(--drift-c)) rotate(var(--rot-c)) scale(0.8);
+    opacity: 0;
+    filter: drop-shadow(0 0 15px rgba(255, 102, 0, 0.5)) brightness(1);
+  }
+}
+
+.halloween-ghost-float {
+  position: absolute;
+  animation: ghost-haunting 4s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+  filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.9));
+}
+
+@keyframes ghost-haunting {
+  0% {
+    transform: translate(0, 110vh) scale(0.4) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  20% {
+    transform: translate(-40px, 75vh) scale(0.8) rotate(-5deg);
+  }
+  40% {
+    transform: translate(50px, 45vh) scale(1.2) rotate(5deg);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(-30px, 25vh) scale(1.3) rotate(-3deg);
+  }
+  80% {
+    transform: translate(40px, 10vh) scale(1.1) rotate(3deg);
+    opacity: 0.9;
+  }
+  95% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(0, -30vh) scale(0.5) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+.halloween-bat-fly {
+  position: absolute;
+  animation: bat-flight 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.8));
+}
+
+@keyframes bat-flight {
+  0% {
+    transform: translate(-100px, 50vh) scale(0.6) rotateY(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  20% {
+    transform: translate(20vw, 45vh) scale(0.8) rotateY(180deg);
+  }
+  40% {
+    transform: translate(40vw, 35vh) scale(1) rotateY(0deg);
+  }
+  60% {
+    transform: translate(60vw, 40vh) scale(1.1) rotateY(180deg);
+  }
+  80% {
+    transform: translate(80vw, 30vh) scale(0.9) rotateY(0deg);
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(110vw, 25vh) scale(0.6) rotateY(180deg);
+    opacity: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   💀 DÍA DE MUERTOS - TRADICIÓN COLORIDA
+   ════════════════════════════════════════════════════════════ */
+
+#dayofdead-marigolds { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+.dayofdead-marigold {
+  position: absolute;
+  top: -40px;
+  animation: marigold-sacred-fall cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  filter: drop-shadow(0 0 12px rgba(255, 165, 0, 0.6));
+}
+
+@keyframes marigold-sacred-fall {
+  0% {
+    transform: translateY(-25px) translateX(0) rotate(0deg) scale(0.7);
+    opacity: 0;
+    filter: drop-shadow(0 0 8px rgba(255, 165, 0, 0.4)) brightness(1);
+  }
+  15% {
+    opacity: 1;
+    filter: drop-shadow(0 0 15px rgba(255, 165, 0, 0.7)) brightness(1.2);
+  }
+  40% {
+    transform: translateY(40vh) translateX(var(--float-1)) rotate(var(--turn-1)) scale(1.2);
+    filter: drop-shadow(0 0 20px rgba(255, 165, 0, 0.8)) brightness(1.3);
+  }
+  70% {
+    transform: translateY(70vh) translateX(var(--float-2)) rotate(var(--turn-2)) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) translateX(var(--float-3)) rotate(var(--turn-3)) scale(0.85);
+    opacity: 0;
+    filter: drop-shadow(0 0 12px rgba(255, 165, 0, 0.5)) brightness(1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ❄️ NAVIDAD - INVIERNO MÁGICO
+   ════════════════════════════════════════════════════════════ */
+
+#christmas-snowfall { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+#christmas-ambience { position: fixed; inset: 0; pointer-events: none; z-index: 9998; background: radial-gradient(ellipse at top, rgba(200, 230, 255, 0.05), transparent); }
+
+.christmas-snowflake {
+  position: absolute;
+  top: -20px;
+  animation: snowflake-winter-fall linear forwards;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+  color: white;
+}
+
+@keyframes snowflake-winter-fall {
+  0% { 
+    transform: translateY(-15px) translateX(0) rotate(0deg); 
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.9;
+  }
+  95% {
+    opacity: 0.8;
+  }
+  100% { 
+    transform: translateY(110vh) translateX(var(--drift)) rotate(var(--spin)); 
+    opacity: 0;
+  }
+}
+
+.christmas-ornament {
+  position: absolute;
+  animation: ornament-swing 3s ease-in-out infinite;
+  filter: drop-shadow(0 5px 10px rgba(200, 0, 0, 0.4));
+}
+
+@keyframes ornament-swing {
+  0%, 100% { 
+    transform: translateX(0) rotate(0deg); 
+  }
+  50% { 
+    transform: translateX(var(--swing-distance)) rotate(var(--swing-angle)); 
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🎭 CARNAVAL - FIESTA EXPLOSIVA
+   ════════════════════════════════════════════════════════════ */
+
+#carnival-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+#carnival-fireworks { position: fixed; inset: 0; pointer-events: none; z-index: 9998; }
+
+.carnival-confetti-piece {
+  position: absolute;
+  top: -15px;
+  animation: confetti-carnival-fall cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  font-weight: bold;
+}
+
+@keyframes confetti-carnival-fall {
+  0% { 
+    transform: translateY(-10px) translateX(0) rotate(0deg) scale(1); 
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  100% { 
+    transform: translateY(110vh) translateX(var(--drift-confetti)) rotate(var(--spin-confetti)) scale(0.8); 
+    opacity: 0;
+  }
+}
+
+.carnival-rocket {
   position: absolute;
   bottom: 0;
   border-radius: 50%;
-  box-shadow: 0 0 8px currentColor;
-  animation: carnival-launch linear forwards;
+  box-shadow: 0 0 15px currentColor;
+  animation: carnival-rocket-launch linear forwards;
 }
 
-/* Rastro difuminado */
-.carnival-firework::after {
-  content: '';
+@keyframes carnival-rocket-launch {
+  0% { 
+    transform: translateY(0) scale(1); 
+    opacity: 1; 
+  }
+  80% { 
+    opacity: 1; 
+  }
+  100% { 
+    transform: translateY(-85vh) scale(0.8); 
+    opacity: 0; 
+  }
+}
+
+.carnival-burst-particle {
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 12px;
-  background: currentColor;
-  filter: blur(3px);
+  animation: carnival-particle-explode cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
 }
 
-/* Animación de subida */
-@keyframes carnival-launch {
-  0% { transform: translateY(0); opacity: 1; }
-  80% { opacity: 1; }
-  100% { transform: translateY(-75vh); opacity: 0; }
+@keyframes carnival-particle-explode {
+  0% { 
+    transform: translate(0, 0) scale(1.4) rotate(0deg); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: translate(var(--explode-x), var(--explode-y)) scale(0.2) rotate(var(--explode-r)); 
+    opacity: 0; 
+  }
 }
 
-/* Partículas de explosión de Carnaval */
-.carnival-particle {
+/* ═══════════════════════════════════════════════════════════
+   🌸 PRIMAVERA - RENACIMIENTO
+   ════════════════════════════════════════════════════════════ */
+
+#spring-blossoms { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+.spring-blossom {
   position: absolute;
-  opacity: 1;
-  animation: carnival-explode linear forwards;
+  top: -40px;
+  animation: blossom-spring-drift cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  filter: drop-shadow(0 3px 8px rgba(150, 255, 150, 0.4));
 }
 
-/* Animación radial de partículas */
-@keyframes carnival-explode {
-  0% { transform: translate(0,0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--x), var(--y)) scale(0.2); opacity: 0; }
+@keyframes blossom-spring-drift {
+  0% {
+    transform: translateY(-25px) translateX(0) rotate(0deg) scale(0.7);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  40% {
+    transform: translateY(40vh) translateX(var(--wind-1)) rotate(var(--twirl-1)) scale(1.1);
+  }
+  70% {
+    transform: translateY(70vh) translateX(var(--wind-2)) rotate(var(--twirl-2)) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) translateX(var(--wind-3)) rotate(var(--twirl-3)) scale(0.85);
+    opacity: 0;
+  }
 }
 
-/* Texto de Carnaval */
-.carnival-text {
+/* ═══════════════════════════════════════════════════════════
+   ☀️ VERANO - ENERGÍA SOLAR
+   ════════════════════════════════════════════════════════════ */
+
+#summer-vibes { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+.summer-element {
   position: absolute;
-  font-weight: bold;
-  font-family: 'Arial', sans-serif;
-  font-size: 18px;
-  text-shadow: 0 0 4px currentColor, 0 0 8px currentColor;
-  opacity: 1;
-  animation: carnival-float 1.1s forwards;
-  transform: translateX(-50%) translateY(-50%);
+  animation: summer-rise cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  filter: drop-shadow(0 0 15px rgba(255, 200, 50, 0.6));
 }
 
-@keyframes carnival-float {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(-50%, -100px) scale(1.3); opacity: 0; }
+@keyframes summer-rise {
+  0% {
+    transform: translate(0, 110vh) rotate(0deg) scale(0.4);
+    opacity: 0;
+  }
+  25% {
+    transform: translate(var(--summer-drift-1), 70vh) rotate(var(--summer-spin-1)) scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(var(--summer-drift-2), 35vh) rotate(var(--summer-spin-2)) scale(1.3);
+    opacity: 1;
+  }
+  75% {
+    transform: translate(var(--summer-drift-3), 15vh) rotate(var(--summer-spin-3)) scale(1.1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(var(--summer-drift-4), -25vh) rotate(var(--summer-spin-4)) scale(0.6);
+    opacity: 0;
+  }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   🍂 OTOÑO - CAÍDA MELANCÓLICA
+   ════════════════════════════════════════════════════════════ */
+
+#autumn-leaves { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+.autumn-falling-leaf {
+  position: absolute;
+  top: -40px;
+  animation: leaf-autumn-tumble cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  filter: drop-shadow(0 4px 8px rgba(139, 69, 19, 0.3));
+}
+
+@keyframes leaf-autumn-tumble {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg) scale(0.9);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  20% {
+    transform: translateY(20vh) translateX(var(--autumn-1)) rotate(var(--leaf-spin-1)) scale(1.1);
+  }
+  40% {
+    transform: translateY(40vh) translateX(var(--autumn-2)) rotate(var(--leaf-spin-2)) scale(1);
+  }
+  60% {
+    transform: translateY(60vh) translateX(var(--autumn-3)) rotate(var(--leaf-spin-3)) scale(1.1);
+  }
+  80% {
+    transform: translateY(80vh) translateX(var(--autumn-4)) rotate(var(--leaf-spin-4)) scale(1);
+  }
+  100% {
+    transform: translateY(110vh) translateX(var(--autumn-5)) rotate(var(--leaf-spin-5)) scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🎯 EFECTOS GLOBALES Y UTILIDADES
+   ════════════════════════════════════════════════════════════ */
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    filter: brightness(1) drop-shadow(0 0 5px currentColor); 
+  }
+  50% { 
+    filter: brightness(1.3) drop-shadow(0 0 15px currentColor); 
+  }
+}
+
+@keyframes rotate-continuous {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Mejora de rendimiento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

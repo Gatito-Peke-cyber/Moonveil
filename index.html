@@ -1,288 +1,281 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Moonveil Portal — Nueva Era</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Press+Start+2P&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-
-  <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
-
-  <link rel="stylesheet" href="login.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moonveil Portal — Tu Aventura Comienza Aquí</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+  
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3C/svg%3E">
+  
+  <link rel="stylesheet" href="login.css">
 </head>
 <body>
-  <!-- Fondo animado futurista -->
-  <div class="cosmic-bg">
-    <div class="stars-layer" id="starsLayer"></div>
-    <canvas class="aurora-canvas" id="auroraCanvas"></canvas>
-    <div class="grid-overlay"></div>
+
+  <!-- Background Particles -->
+  <canvas id="particlesCanvas" class="particles-bg"></canvas>
+
+  <!-- Music Player (Abajo para no tapar la fecha) -->
+  <div class="music-player" id="musicPlayer">
+    <button class="music-btn" id="musicBtn">
+      <svg class="music-icon playing-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      <svg class="music-icon paused-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+      </svg>
+    </button>
+    <div class="music-info">
+      <span class="music-title">🎵 ¡Aqui el tocadiscos!</span>
+    </div>
   </div>
 
-  <!-- Container principal CENTRADO -->
-  <main class="portal-container">
-    
-    <!-- HEADER con logo ORIGINAL (arriba centro) -->
-    <header class="portal-header">
-      <div class="brand">
-        <div class="brand__cube" aria-hidden="true"></div>
-        <h1 class="brand__title">
-          Moonveil <span>Portal</span>
-        </h1>
+  <!-- Main Container -->
+  <div class="main-container">
+
+    <!-- Header -->
+    <header class="top-header">
+      <div class="logo-brand">
+        <div class="brand__cube"></div>
+        <h1 class="brand__title">Moonveil <span class="brand__accent">Portal</span></h1>
       </div>
+      <div class="header-time" id="headerTime">Cargando...</div>
     </header>
 
-    <!-- LOGIN CARD CENTRAL con diseño glassmorphism -->
-    <div class="login-glass-card">
-      <!-- Aro de energía giratorio -->
-      <div class="energy-ring">
-        <div class="ring-segment"></div>
-        <div class="ring-segment"></div>
-        <div class="ring-segment"></div>
-      </div>
+    <!-- Content Grid -->
+    <div class="content-grid">
 
-      <!-- Avatar holográfico -->
-      <div class="holo-avatar">
-        <div class="holo-layers">
-          <div class="holo-layer"></div>
-          <div class="holo-layer"></div>
-          <div class="holo-layer"></div>
-        </div>
-        <div class="avatar-icon">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Título animado -->
-      <h2 class="login-title">
-        <span class="title-word" data-delay="0">Bienvenido</span>
-        <span class="title-word" data-delay="1">al</span>
-        <span class="title-word" data-delay="2">Portal</span>
-      </h2>
-      <p class="login-subtitle">Ingresa tus credenciales para acceder</p>
-
-      <!-- Formulario minimalista -->
-      <form class="portal-form" id="portalForm">
-        
-        <!-- Campo Email con animación -->
-        <div class="form-field">
-          <div class="field-container">
-            <input 
-              type="email" 
-              id="email" 
-              required 
-              autocomplete="email"
-              placeholder=" "
-            />
-            <label for="email">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                <polyline points="22,6 12,13 2,6"/>
+      <!-- LEFT: Login Section -->
+      <div class="login-section">
+        <div class="login-card">
+          
+          <div class="card-glow"></div>
+          
+          <div class="login-header">
+            <div class="avatar-circle">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
               </svg>
-              <span>Correo Electrónico</span>
-            </label>
-            <div class="field-glow"></div>
+              <div class="avatar-ring"></div>
+              <div class="avatar-ring ring-2"></div>
+              <div class="avatar-ring ring-3"></div>
+            </div>
+            <h2 class="card-title">Iniciar Sesión</h2>
+            <p class="card-subtitle">Accede a tu cuenta para continuar</p>
           </div>
-          <span class="field-error" data-error="email"></span>
-        </div>
 
-        <!-- Campo Password con medidor -->
-        <div class="form-field">
-          <div class="field-container">
-            <input 
-              type="password" 
-              id="password" 
-              required 
-              minlength="8"
-              autocomplete="current-password"
-              placeholder=" "
-            />
-            <label for="password">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-              <span>Contraseña</span>
-            </label>
-            <button type="button" class="toggle-password" id="togglePassword">
-              <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
+          <form class="login-form" id="loginForm" novalidate>
+            
+            <div class="form-group">
+              <label class="form-label">Correo Electrónico</label>
+              <div class="input-container">
+                <input 
+                  type="email" 
+                  id="email" 
+                  class="form-input" 
+                  placeholder="tu@correo.com"
+                  autocomplete="email"
+                  required
+                >
+                <div class="input-glow"></div>
+                <div class="input-check">✓</div>
+              </div>
+              <span class="form-error" data-error="email"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Contraseña</label>
+              <div class="input-container">
+                <input 
+                  type="password" 
+                  id="password" 
+                  class="form-input" 
+                  placeholder="Tu contraseña segura"
+                  autocomplete="current-password"
+                  minlength="8"
+                  required
+                >
+                <button type="button" class="input-toggle" id="togglePassword">
+                  <svg class="eye-show" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="eye-hide" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+                    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+                    <line x1="2" x2="22" y1="2" y2="22"/>
+                  </svg>
+                </button>
+                <div class="input-glow"></div>
+              </div>
+              <div class="password-strength" id="strengthMeter">
+                <div class="strength-bar">
+                  <div class="strength-progress" id="strengthProgress"></div>
+                </div>
+                <span class="strength-text" id="strengthText"></span>
+              </div>
+              <span class="form-error" data-error="password"></span>
+            </div>
+
+            <div class="form-options">
+              <label class="checkbox-label">
+                <input type="checkbox" id="remember">
+                <span class="checkbox-box"></span>
+                <span>Recordarme</span>
+              </label>
+              <a href="#" class="link-forgot" id="forgotLink">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <!--<details class="demo-dropdown">
+              <summary class="demo-summary">
+                <span class="demo-icon">🎮</span>
+                <span class="demo-text">Cuentas de prueba disponibles</span>
+                <span class="demo-badge">8</span>
+              </summary>
+              <div class="demo-list" id="demoList">
+                
+              </div>
+            </details>-->
+
+            <button type="submit" class="btn-login" id="btnLogin">
+              <span class="btn-bg"></span>
+              <span class="btn-content">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                  <polyline points="10 17 15 12 10 7"/>
+                  <line x1="15" x2="3" y1="12" y2="12"/>
+                </svg>
+                <span>Iniciar Sesión</span>
+              </span>
+              <span class="btn-loader">
+                <span></span><span></span><span></span>
+              </span>
             </button>
-            <div class="field-glow"></div>
+
+            <div class="divider">
+              <span></span>
+              <span class="divider-text">O continúa con</span>
+              <span></span>
+            </div>
+
+            <div class="social-login">
+              <button type="button" class="social-btn" data-provider="google">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Google
+              </button>
+              <button type="button" class="social-btn" data-provider="microsoft">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                  <path fill="#f35325" d="M1 1h10v10H1z"/>
+                  <path fill="#81bc06" d="M1 13h10v10H1z"/>
+                  <path fill="#05a6f0" d="M13 1h10v10H13z"/>
+                  <path fill="#ffba08" d="M13 13h10v10H13z"/>
+                </svg>
+                Microsoft
+              </button>
+            </div>
+
+          </form>
+
+          <div class="card-footer">
+            <p>¿Primera vez aquí? <a href="#" class="link-signup" id="signupLink">Crear cuenta gratis</a></p>
           </div>
-          
-          <!-- Medidor circular de seguridad -->
-          <div class="security-gauge" id="securityGauge">
-            <svg class="gauge-svg" viewBox="0 0 100 100">
-              <circle class="gauge-bg" cx="50" cy="50" r="45"/>
-              <circle class="gauge-progress" cx="50" cy="50" r="45" id="gaugeCircle"/>
-            </svg>
-            <div class="gauge-text" id="gaugeText">-</div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: Content Section -->
+      <div class="content-section">
+
+        <!-- Active Events -->
+        <div class="content-card events-card">
+          <div class="card-header">
+            <div class="card-icon">🎯</div>
+            <h3 class="card-title">Eventos Activos</h3>
           </div>
-          
-          <span class="field-error" data-error="password"></span>
-          <div class="caps-warning" id="capsWarning">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-            </svg>
-            Bloq Mayús activado
+          <div class="events-list" id="eventsList">
+            <!-- JS generated -->
           </div>
         </div>
 
-        <!-- Opciones -->
-        <div class="form-options">
-          <label class="neon-checkbox">
-            <input type="checkbox" id="remember" />
-            <span class="checkbox-mark">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </span>
-            <span>Mantener sesión</span>
-          </label>
-          <a href="#" class="neon-link" id="forgotLink">Recuperar acceso</a>
+        <!-- Enhanced Gallery -->
+        <div class="content-card gallery-card">
+          <div class="card-header">
+            <div class="card-icon">🖼️</div>
+            <h3 class="card-title">Galería de Momentos</h3>
+          </div>
+          <div class="gallery-enhanced" id="galleryEnhanced">
+            <div class="gallery-main" id="galleryMain">
+              <!-- JS generated -->
+            </div>
+            <div class="gallery-thumbs" id="galleryThumbs">
+              <!-- JS generated -->
+            </div>
+          </div>
         </div>
 
-        <!-- Demo accounts flotante -->
-        <!--<div class="demo-floating" id="demoFloating">
-          <button type="button" class="demo-trigger" id="demoTrigger">
-            <span class="demo-pulse"></span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+        <!-- Enhanced Tips -->
+        <div class="content-card tips-card">
+          <div class="card-header">
+            <div class="card-icon">💡</div>
+            <h3 class="card-title">Sabiduría de Sand Brill</h3>
+          </div>
+          <div class="tip-enhanced" id="tipEnhanced">
+            <div class="tip-quote-mark">"</div>
+            <p class="tip-text">Cargando sabiduría ancestral...</p>
+            <span class="tip-author">— Sand Brill</span>
+          </div>
+          <button class="btn-new-tip" id="newTipBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
             </svg>
-            <span>Cuentas Demo</span>
-            <span class="demo-count">8</span>
-          </button>
-          <div class="demo-panel" id="demoPanel">-->
-            <!-- Generado por JS -->
-          <!--</div>
-        </div>-->
-
-        <!-- Botón holográfico -->
-        <button type="submit" class="holo-button" id="submitButton">
-          <span class="button-glow"></span>
-          <span class="button-content">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-            </svg>
-            <span class="button-text">Iniciar Sesión</span>
-          </span>
-          <div class="button-particles" id="buttonParticles"></div>
-        </button>
-
-        <!-- Separador con efecto -->
-        <div class="quantum-divider">
-          <div class="divider-line"></div>
-          <span class="divider-orb">
-            <span class="orb-core"></span>
-          </span>
-          <div class="divider-line"></div>
-        </div>
-
-        <!-- OAuth con animación -->
-        <div class="social-portals">
-          <button type="button" class="portal-btn" data-provider="microsoft">
-            <span class="portal-shimmer"></span>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z"/>
-            </svg>
-            <span>Microsoft</span>
-          </button>
-          <button type="button" class="portal-btn" data-provider="google">
-            <span class="portal-shimmer"></span>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            <span>Google</span>
+            Nuevo Consejo
           </button>
         </div>
-      </form>
 
-      <!-- Footer elegante -->
-      <div class="card-footer">
-        <p>¿Primera vez? <a href="#" class="neon-link" id="createLink">Crear cuenta</a></p>
-        <div class="trust-badge">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-links">
+          <a href="#" class="footer-link">Términos de Uso</a>
+          <span>•</span>
+          <a href="#" class="footer-link">Privacidad</a>
+          <span>•</span>
+          <a href="#" class="footer-link">Soporte</a>
+          <span>•</span>
+          <a href="#" class="footer-link">Contacto</a>
+        </div>
+        <p class="footer-copy">© 2026 Moonveil Portal. Todos los derechos reservados con diversion.</p>
+        <div class="footer-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
           </svg>
-          <span>Conexión Segura</span>
+          <span>Aqui conectados con bloques</span>
         </div>
       </div>
+    </footer>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <div class="toast-icon" id="toastIcon"></div>
+    <div class="toast-body">
+      <p class="toast-title" id="toastTitle">Título</p>
+      <p class="toast-message" id="toastMessage">Mensaje</p>
     </div>
-
-    <!-- WIDGETS FLOTANTES laterales -->
-    <div class="floating-widgets">
-      
-      <!-- Widget: Pensamientos -->
-      <div class="widget thoughts-widget">
-        <div class="widget-header">
-          <div class="widget-icon">💭</div>
-          <h3>Pensamiento del Momento</h3>
-        </div>
-        <div class="thought-display" id="thoughtDisplay">
-          <p class="thought-text">Cargando sabiduría...</p>
-          <div class="thought-author">— Sand Brill</div>
-        </div>
-        <div class="widget-nav">
-          <button class="widget-btn" id="thoughtPrev">←</button>
-          <div class="thought-dots" id="thoughtDots"></div>
-          <button class="widget-btn" id="thoughtNext">→</button>
-        </div>
-      </div>
-
-      <!-- Widget: Galería Holográfica -->
-      <div class="widget gallery-widget">
-        <div class="widget-header">
-          <div class="widget-icon">🎴</div>
-          <h3>Galería de Recuerdos</h3>
-        </div>
-        <div class="holo-gallery" id="holoGallery">
-          <!-- Generado por JS -->
-        </div>
-        <div class="gallery-info" id="galleryInfo">
-          <span class="gallery-title">Recuerdo 1/6</span>
-        </div>
-      </div>
-
-      <!-- Widget: Consejo Aleatorio -->
-      <div class="widget tip-widget">
-        <div class="widget-header">
-          <div class="widget-icon">✨</div>
-          <h3>Consejo de Sand Brill</h3>
-        </div>
-        <div class="magic-tip" id="magicTip">
-          <div class="tip-shimmer"></div>
-          <p class="tip-content">Haz clic para revelar un consejo...</p>
-        </div>
-        <button class="magic-btn" id="revealTip">
-          <span class="magic-sparkle">✨</span>
-          Revelar Consejo
-        </button>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- Toast futurista -->
-  <div class="quantum-toast" id="quantumToast">
-    <div class="toast-ring"></div>
-    <div class="toast-content">
-      <div class="toast-icon" id="toastIcon">ℹ</div>
-      <div class="toast-text">
-        <div class="toast-title" id="toastTitle">Notificación</div>
-        <div class="toast-message" id="toastMessage">Mensaje</div>
-      </div>
-    </div>
-    <button class="toast-dismiss" id="toastDismiss">×</button>
+    <button class="toast-close" id="toastClose">×</button>
   </div>
 
   <script src="login.js"></script>
