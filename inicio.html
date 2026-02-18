@@ -1,16 +1,6 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <!-- =========================================================
-       Moonveil Portal — Inicio / Bienvenida
-       - HUD estilo Minecraft (decorativo/funcional básico)
-       - Hero con parallax + partículas
-       - Descripción/ventajas
-       - Filtros + búsqueda + acciones (mezclar / ordenar)
-       - Galería 12 ítems (imagen, nombre, categoría, descripción)
-       - Lightbox accesible con teclado
-       - CTA + Footer
-       ========================================================= -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark light" />
@@ -25,11 +15,10 @@
 
   <!-- CSS principal -->
   <link rel="stylesheet" href="inicio.css" />
-
   <link rel="stylesheet" href="loader.css">
-<script defer src="loader.js"></script>
+  <script defer src="loader.js"></script>
 
-  <meta name="description" content="Moonveil Portal — Página de bienvenida con HUD tipo Minecraft, parallax, partículas, filtros y galería de 12 objetos con imagen, nombre, descripción y categoría." />
+  <meta name="description" content="Moonveil Portal — Página de bienvenida con HUD tipo Minecraft, parallax, partículas, filtros y galería." />
 </head>
 <body class="theme-auto">
   <!-- Fondo global: partículas y capas parallax -->
@@ -43,7 +32,20 @@
     </div>
   </div>
 
-  <!-- HUD + Navbar -->
+  <!-- HUD + Navbar 
+  class="nav-special" data-effect="profiles"
+  class="nav-special" data-effect="anniversary"
+  class="nav-special" data-effect="news"
+  class="nav-special" data-effect="trade"
+  class="nav-special" data-effect="events" data-days="44"
+  class="nav-special" data-effect="forum"
+  class="nav-special" data-effect="contact"
+  class="nav-special" data-effect="draw"
+  class="nav-special" data-effect="updates"
+  class="nav-special" data-effect="roulette" data-days="44"
+  class="nav-special" data-effect="history"
+  class="nav-special" data-effect="planet" data-days="30"
+  class="nav-special" data-effect="posts"-->
   <header class="top-hud" role="banner">
     <nav class="navbar" aria-label="Navegación principal">
       <a class="brand" href="inicio.html" aria-label="Ir a inicio">
@@ -53,10 +55,11 @@
       <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
       <ul class="nav-links" id="navLinks">
         <li><a href="inicio.html" class="active">Inicio</a></li>
+        <li><a href="dragon.html">Dragon</a></li>
         <li><a href="perfiles.html" tabindex="-1">Perfiles</a></li>
-        <!--<li><a href="ann.html" tabindex="-1">An</a></li>
+        <!--<li><a href="ann.html" tabindex="-1">An</a></li>-->
         <!--<li><a href="ranking.html" tabindex="-1">Ranking</a></li>-->
-        <li><a href="noticias.html" tabindex="-1">Noticias</a></li>
+        <!--<li><a href="noticias.html" tabindex="-1">Noticias</a></li>-->
         <li><a href="tradeos.html" tabindex="-1">Tradeos</a></li>
         <li><a href="tienda.html" tabindex="-1">Tienda</a></li>
         <li><a href="eventos.html" tabindex="-1">Eventos</a></li>
@@ -64,21 +67,23 @@
         <!--<li><a href="asistencia.html" tabindex="-1">Asistencia</a></li>-->
         <!--<li><a href="mapa.html" tabindex="-1">Mapa</a></li>-->
         <li><a href="contactos.html" tabindex="-1">Contacto</a></li>
-        <!--<li><a href="moon.html" tabindex="-1">Game</a></li>
+        <!--<li><a href="moon.html" tabindex="-1">Game</a></li>-->
         <!--<li><a href="game.html" tabindex="-1">1234</a></li>-->
         <li><a href="draw.html" tabindex="-1">Drawing</a></li>
         <li><a href="updates.html" tabindex="-1">Updates</a></li>
-        <li><a href="calendar.html" tabindex="-1">Calendar</a></li>
+        <li><a href="calendar.html" tabindex="-1" class="nav-special" data-effect="calendar">Calendar</a></li>
         <li><a href="premios.html" tabindex="-1">Ruleta</a></li>
         <!--<li><a href="premios_final.html" tabindex="-1">Ruleta</a></li>-->
         <!--<li><a href="noticias.html" aria-disabled="true" tabindex="-1">█████</a></li>-->
-        <!--<li><a href="aniversario.html" tabindex="-1">Anniversary!!</a></li>
+        <!--<li><a href="aniversario.html" tabindex="-1">Anniversary!!</a></li>-->
         <!--<li><a href="juego.html" tabindex="-1">Juego</a></li>-->
-        <!--<li><a href="SBM-G.html" tabindex="-1">Sand</a></li>-->
+        <li><a href="SBM-G.html" tabindex="-1" class="nav-special" data-effect="code">Sand</a></li>
         <li><a href="historia.html" tabindex="-1">History</a></li>
         <!--<li><a href="pase.html" tabindex="-1">Pass</a></li>-->
-        <li><a href="banco.html" tabindex="-1">Bank</a></li>
+        <li><a href="banco.html" tabindex="-1" class="nav-special" data-effect="sparkle">Bank</a></li>
         <li><a href="ins.html">Posts</a></li>
+        <li><a href="sv.html" class="nav-special" data-effect="valentine">Valentine</a></li>
+        <li><a href="lny.html">Año Lunar</a></li>
         <li><a href="index.html">Salir</a></li>
       </ul>
     </nav>
@@ -100,12 +105,8 @@
   <section class="hero" role="region" aria-labelledby="heroTitle">
     <div class="hero__inner">
       <div class="hero__text reveal">
-        <h1 id="heroTitle">
-          ¡Bienvenido al <span>Reino de Moonveil</span>!
-        </h1>
-        <p class="lead">
-          Tu base central de aventuras: aldeanos expertos, biomas únicos y recursos — todo aqui.
-        </p>
+        <h1 id="heroTitle">¡Bienvenido al <span>Reino de Moonveil</span>!</h1>
+        <p class="lead">Tu base central de aventuras: aldeanos expertos, biomas únicos y recursos — todo aqui.</p>
         <div class="hero__cta">
           <a href="#desc" class="btn btn--primary">Conocer más</a>
           <a href="#gallery" class="btn btn--ghost">Ir a la galería</a>
@@ -117,9 +118,7 @@
         <div class="vox vox--torch"></div>
       </div>
     </div>
-    <div class="scroll-hint" aria-hidden="true">
-      <span>↓ Scroll</span>
-    </div>
+    <div class="scroll-hint" aria-hidden="true"><span>↓ Scroll</span></div>
   </section>
 
   <!-- Descripción -->
@@ -128,10 +127,7 @@
       <div class="grid-2">
         <div class="desc__text reveal">
           <h2 id="descTitle">Moonveil en pocas palabras</h2>
-          <p>
-            Un espacio donde los aldeanos prosperan, los biomas cuentan historias y cada objeto impulsa tu estrategia.
-            Explora, descubre y comparte con una comunidad vibrante — todo con rendimiento y accesibilidad.
-          </p>
+          <p>Un espacio donde los aldeanos prosperan, los biomas cuentan historias y cada objeto impulsa tu estrategia. Explora, descubre y comparte con una comunidad vibrante — todo con rendimiento y accesibilidad.</p>
           <ul class="benefits">
             <li><span class="i i-shield"></span> Seguridad y rendimiento</li>
             <li><span class="i i-star"></span> Experiencia inmersiva</li>
@@ -140,9 +136,7 @@
           </ul>
         </div>
         <aside class="desc__card reveal" aria-label="Resumen del mundo">
-          <header>
-            <h3>Resumen del mundo</h3>
-          </header>
+          <header><h3>Resumen del mundo</h3></header>
           <dl class="stats">
             <div><dt>Aldeanos activos</dt><dd id="stVillagers">48</dd></div>
             <div><dt>Trueques hoy</dt><dd id="stTrades">132</dd></div>
@@ -170,7 +164,6 @@
           <button class="chip" role="tab" aria-selected="false" data-filter="comida">Comida</button>
           <button class="chip" role="tab" aria-selected="false" data-filter="decoración">Decoración</button>
         </div>
-
         <div class="tools">
           <label class="search" for="q">
             <input id="q" type="search" placeholder="Buscar por nombre o descripción…" aria-label="Buscar en la galería" />
@@ -198,9 +191,8 @@
           <span id="countVisible">12</span> / <span id="countTotal">12</span> visibles
         </div>
       </header>
-
       <div class="cards" id="cards">
-        <!-- Tarjetas generadas por JS (inicio.js) -->
+        <!-- Tarjetas generadas por JS -->
       </div>
     </div>
   </section>
@@ -235,10 +227,7 @@
   <!-- Footer -->
   <footer class="footer" role="contentinfo">
     <div class="container footer__inner">
-      <div class="foot__brand">
-        <span class="cube"></span>
-        <strong>Moonveil</strong> Portal
-      </div>
+      <div class="foot__brand"><span class="cube"></span><strong>Moonveil</strong> Portal</div>
       <nav class="foot__links" aria-label="Enlaces del sitio">
         <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
         <a href="#" aria-disabled="true" tabindex="-1">Términos</a>

@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Moonveil — El Caso del Corazón Roto 💔</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23ef4444'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="sv.css" />
+</head>
+<body>
+  <div class="bg">
+    <canvas id="bgParticles"></canvas>
+    <div class="hearts-fall"></div>
+  </div>
+
+  <header class="top-hud">
+    <nav class="navbar">
+      <a class="brand" href="inicio.html">
+        <span class="cube"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="contactos.html">Contactos</a></li>
+        <li><a href="sv.html" class="active">💔 Caso Especial</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats">
+      <div class="hud__bars">
+        <div class="hud-bar progress">
+          <span class="bar-label">Progreso: <span id="progressPercent">0</span>%</span>
+        </div>
+        <div class="hud-bar clues">
+          <span class="bar-label">Pistas: <span id="clueCount">0</span>/30</span>
+        </div>
+      </div>
+      <div class="hud__inv">
+        <button class="slot" id="inventoryBtn" title="Inventario"><span class="i">🎒</span><span class="count" id="invCount">0</span></button>
+        <button class="slot" id="notebookBtn" title="Cuaderno"><span class="i">📓</span></button>
+        <button class="slot" id="keysBtn" title="Llaves"><span class="i">🔑</span><span class="count" id="keyCount">0</span></button>
+        <button class="slot" id="rewardsBtn" title="Recompensas"><span class="i">🏆</span><span class="count" id="rewardCount">0</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div id="introScreen" class="intro-screen">
+    <div class="intro-content">
+      <div class="intro-badge">💔 CASO ESPECIAL 💔</div>
+      <h1 class="intro-title">El Corazón Roto de Moonveil</h1>
+      <div class="intro-story">
+        <p><strong>14 de Febrero, 2026</strong></p>
+        <p>Una serie de cartas anónimas crueles están destruyendo vidas en Moonveil. Múltiples víctimas han caído en depresión. Secretos oscuros, amores no correspondidos, y venganzas ocultas. Tu misión: encontrar al culpable antes del 20 de Febrero.</p>
+        <div class="intro-objectives">
+          <h3>🎯 Modo Detective:</h3>
+          <ul>
+            <li>🕵️ Interroga - cada chat es independiente</li>
+            <li>🔍 Muestra evidencia - desbloquea nuevos diálogos</li>
+            <li>🗺️ Explora locaciones con múltiples áreas</li>
+            <li>🔑 Encuentra llaves para áreas secretas</li>
+            <li>📦 Descubre cofres y objetos clave</li>
+            <li>💡 Las pistas correctas abren nuevas opciones</li>
+            <li>🔄 Reinicia chats para reinterrogar</li>
+            <li>⚖️ Declara culpable con evidencia sólida</li>
+            <li>🎭 ¡Cuidado! Hay múltiples sospechosos con motivos</li>
+          </ul>
+        </div>
+        <p class="intro-warning">⚠️ <strong>Dificultad Alta:</strong> Pistas engañosas, múltiples sospechosos con motivos sólidos, evidencia contradictoria. ¡El verdadero culpable podría sorprenderte!</p>
+      </div>
+      <div class="save-options">
+        <button class="btn btn--start" id="newGameBtn">
+          <span class="btn-icon">🔍</span>
+          <span class="btn-text">Nueva Investigación</span>
+          <span class="btn-shine"></span>
+        </button>
+        <button class="btn btn--secondary" id="continueGameBtn" style="display:none;">
+          <span class="btn-icon">📂</span>
+          <span class="btn-text">Continuar Caso</span>
+          <span class="btn-shine"></span>
+        </button>
+        <button class="btn btn--danger" id="resetGameBtn" style="display:none; margin-top:10px;">
+          <span class="btn-icon">🗑️</span>
+          <span class="btn-text">Borrar Progreso</span>
+          <span class="btn-shine"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <main class="game-container" id="gameContainer" style="display:none;">
+    <aside class="panel panel--suspects">
+      <header class="panel__head">
+        <h2>🕵️ Investigación</h2>
+        <div class="case-timer" id="caseTimer">Día 1</div>
+      </header>
+      <div class="tabs">
+        <button class="tab active" data-tab="suspects">Sospechosos</button>
+        <button class="tab" data-tab="locations">Locaciones</button>
+      </div>
+      <div class="tab-content active" id="suspectsTab">
+        <div class="suspects-scroll"><ul id="suspectsList" class="suspects-list"></ul></div>
+      </div>
+      <div class="tab-content" id="locationsTab">
+        <div class="locations-scroll"><ul id="locationsList" class="locations-list"></ul></div>
+      </div>
+    </aside>
+
+    <section class="panel panel--main">
+      <header class="chat__head">
+        <div class="dialog__peer">
+          <div class="avatar peer__avatar" id="dialogAvatar"></div>
+          <div class="peer__meta">
+            <strong id="dialogName">Selecciona un sospechoso o locación</strong>
+            <small id="dialogRole" class="muted">—</small>
+          </div>
+        </div>
+        <div class="dialog__actions">
+          <button class="icon-btn" id="btnShowEvidence" title="Mostrar Evidencia" disabled>🔍</button>
+          <button class="icon-btn" id="btnResetChat" title="Reiniciar Chat" disabled>🔄</button>
+          <button class="icon-btn" id="btnDeclare" title="Declarar Culpable" disabled>⚖️</button>
+        </div>
+      </header>
+
+      <div id="dialogThread" class="dialog__thread">
+        <div class="empty-hint">
+          <h3>🔎 Comienza tu Investigación</h3>
+          <p class="muted">Interroga, muestra evidencia, desbloquea diálogos.</p>
+        </div>
+      </div>
+
+      <div id="dialogOptions" class="dialog__options hidden"></div>
+
+      <div id="locationExplorer" class="location-explorer hidden">
+        <div class="location-header">
+          <h3 id="locationTitle">Locación</h3>
+          <button class="btn-back" id="btnBackToAreas">⬅ Volver</button>
+        </div>
+        <div class="areas-grid" id="areasGrid"></div>
+        <div class="search-area" id="searchArea"></div>
+      </div>
+    </section>
+
+    <aside class="panel panel--info">
+      <header class="panel__head"><h2>📋 Información</h2></header>
+      <div class="tabs">
+        <button class="tab active" data-tab="notebook">Cuaderno</button>
+        <button class="tab" data-tab="inventory">Inventario</button>
+        <button class="tab" data-tab="profiles">Perfiles</button>
+      </div>
+      <div class="tab-content active" id="notebookTab">
+        <div class="notebook-scroll"><div id="notebookContent" class="notebook-content"></div></div>
+      </div>
+      <div class="tab-content" id="inventoryTab">
+        <div class="inventory-scroll"><div class="inventory-grid" id="inventoryGrid"><div class="empty-inventory"><span class="icon">📦</span><p>No tienes objetos</p></div></div></div>
+      </div>
+      <div class="tab-content" id="profilesTab">
+        <div class="profiles-scroll"><div id="profilesContent" class="profiles-content"></div></div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Modales -->
+  <div class="modal" id="evidenceModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__dialog">
+      <header class="modal__head">
+        <h3>🔍 Mostrar Evidencia</h3>
+        <button class="modal-close">
+          <span class="close-icon">✕</span>
+          <span class="close-bg"></span>
+        </button>
+      </header>
+      <section class="modal__body">
+        <p>Selecciona qué mostrarle a <strong id="evidenceTarget"></strong>:</p>
+        <div id="evidenceList" class="evidence-list"></div>
+      </section>
+      <footer class="modal__foot">
+        <button class="btn btn--secondary modal-close">
+          <span class="btn-text">Cancelar</span>
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal" id="itemModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__dialog">
+      <header class="modal__head">
+        <h3 id="itemModalTitle">Objeto</h3>
+        <button class="modal-close">
+          <span class="close-icon">✕</span>
+          <span class="close-bg"></span>
+        </button>
+      </header>
+      <section class="modal__body" id="itemModalBody"></section>
+      <footer class="modal__foot">
+        <button class="btn btn--primary modal-close">
+          <span class="btn-text">Cerrar</span>
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal" id="declareModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__dialog">
+      <header class="modal__head">
+        <h3>⚖️ Declarar Culpable</h3>
+        <button class="modal-close">
+          <span class="close-icon">✕</span>
+          <span class="close-bg"></span>
+        </button>
+      </header>
+      <section class="modal__body">
+        <p class="warning">⚠️ Solo UNA oportunidad. Elige sabiamente.</p>
+        <p>¿Estás seguro que <strong id="declareTarget"></strong> es el culpable?</p>
+        <div class="declare-reasons">
+          <label><strong>¿Por qué crees que es culpable?</strong></label>
+          <textarea id="declareReasons" placeholder="Escribe tus razones y evidencia..."></textarea>
+        </div>
+        <div id="evidenceSummary" class="evidence-summary"></div>
+      </section>
+      <footer class="modal__foot">
+        <button class="btn btn--secondary modal-close">
+          <span class="btn-text">Cancelar</span>
+        </button>
+        <button class="btn btn--danger" id="confirmDeclare">
+          <span class="btn-text">Declarar Culpable</span>
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal" id="chestModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__dialog modal-chest">
+      <div class="chest-animation">
+        <div class="chest-icon">📦</div>
+        <h3>¡Cofre Encontrado!</h3>
+        <p id="chestContents"></p>
+      </div>
+      <button class="btn btn--primary modal-close">
+        <span class="btn-text">Continuar</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="modal" id="endingModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__dialog modal-ending"><div class="ending-content" id="endingContent"></div></div>
+  </div>
+
+  <div class="modal" id="resetChatModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__dialog">
+      <header class="modal__head">
+        <h3>🔄 Reiniciar Chat</h3>
+        <button class="modal-close">
+          <span class="close-icon">✕</span>
+          <span class="close-bg"></span>
+        </button>
+      </header>
+      <section class="modal__body">
+        <p>¿Reiniciar conversación con <strong id="resetTarget"></strong>?</p>
+        <div class="reset-warning">⚠️ Perderás el historial pero NO las recompensas ya obtenidas ni las locaciones/evidencia desbloqueadas.</div>
+      </section>
+      <footer class="modal__foot">
+        <button class="btn btn--secondary modal-close">
+          <span class="btn-text">Cancelar</span>
+        </button>
+        <button class="btn btn--danger" id="confirmReset">
+          <span class="btn-text">Reiniciar</span>
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal" id="keyModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__dialog modal-key">
+      <div class="key-animation">
+        <div class="key-icon">🔑</div>
+        <h3>¡Llave Encontrada!</h3>
+        <p id="keyDescription"></p>
+      </div>
+      <button class="btn btn--primary modal-close">
+        <span class="btn-text">Continuar</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <audio id="bg-music" loop><source src="music/8.mp3" type="audio/mpeg" /></audio>
+  <button class="pixel-button floating-music" onclick="toggleMusic()">🎵</button>
+  <button class="pixel-button floating-save" id="btnSave" title="Guardar">💾</button>
+  <script type="module" src="sv.js"></script>
+</body>
+</html>

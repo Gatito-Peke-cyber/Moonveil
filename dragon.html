@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Dragon Hunter</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Cinzel:wght@400;600;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23d946ef'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%239333ea'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="dragon.css" />
+
+  <meta name="description" content="Cazador de Dragones - Rastrea tu progreso épico en la cacería del Ender Dragon" />
+</head>
+<body class="theme-auto">
+  <!-- Fondo con dragón -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+    <!-- Dragón de fondo -->
+    <div class="dragon-silhouette" aria-hidden="true"></div>
+  </div>
+
+  <!-- HUD / Navbar (IDÉNTICO al original) -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="dragon.html" class="active">Dragon</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
+        <div class="hud-bar xp" data-val="62" aria-label="Experiencia 62%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Mapa"><span class="i i-map" aria-hidden="true"></span></button>
+        <button class="slot" title="Pluma"><span class="i i-feather" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="dragon-main" role="main">
+    <!-- Header de la página -->
+    <section class="dragon-hero">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          <span class="title-line">CAZADOR</span>
+          <span class="title-line dragon-text">DEL DRAGÓN</span>
+        </h1>
+        <p class="hero-subtitle">Conquista el End · Derrota al Ender Dragon · 20 Veces</p>
+        
+        <!-- Estadísticas -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="dragonCount">0</div>
+            <div class="stat-label">Dragones Derrotados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="progressPercent">0%</div>
+            <div class="stat-label">Progreso Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="remainingCount">20</div>
+            <div class="stat-label">Por Completar</div>
+          </div>
+        </div>
+
+        <!-- Barra de progreso global -->
+        <div class="global-progress">
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="globalProgressBar"></div>
+            <div class="progress-glow"></div>
+          </div>
+          <div class="progress-marks">
+            <span>0</span>
+            <span>5</span>
+            <span>10</span>
+            <span>15</span>
+            <span>20</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Línea de Tiempo -->
+    <section class="timeline-section">
+      <h2 class="section-title">
+        <span class="title-icon">⚔️</span>
+        Línea de Batalla
+        <span class="title-icon">⚔️</span>
+      </h2>
+
+      <div class="timeline-container">
+        <div class="timeline-line" aria-hidden="true"></div>
+        
+        <!-- 20 Checkpoints del dragón -->
+        <div class="timeline" id="dragonTimeline">
+          <!-- Los checkpoints se generan dinámicamente con JS -->
+        </div>
+      </div>
+
+      <!-- Panel de detalles -->
+      <div class="details-panel" id="detailsPanel">
+        <div class="panel-header">
+          <h3>Detalles de la Batalla</h3>
+          <button class="close-btn" id="closeDetails">✕</button>
+        </div>
+        <div class="panel-content" id="panelContent">
+          <p class="muted">Selecciona un checkpoint para ver los detalles</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de logros -->
+    <section class="achievements-section">
+      <h2 class="section-title">
+        <span class="title-icon">🏆</span>
+        Logros Épicos
+        <span class="title-icon">🏆</span>
+      </h2>
+
+      <div class="achievements-grid">
+        <div class="achievement-card locked" data-unlock="5">
+          <div class="achievement-icon">🛡️</div>
+          <div class="achievement-info">
+            <h4>Primer Cazador</h4>
+            <p>Derrota 5 dragones</p>
+          </div>
+          <div class="achievement-lock">🔒</div>
+        </div>
+
+        <div class="achievement-card locked" data-unlock="10">
+          <div class="achievement-icon">⚔️</div>
+          <div class="achievement-info">
+            <h4>Maestro del End</h4>
+            <p>Derrota 10 dragones</p>
+          </div>
+          <div class="achievement-lock">🔒</div>
+        </div>
+
+        <div class="achievement-card locked" data-unlock="15">
+          <div class="achievement-icon">👑</div>
+          <div class="achievement-info">
+            <h4>Leyenda Viviente</h4>
+            <p>Derrota 15 dragones</p>
+          </div>
+          <div class="achievement-lock">🔒</div>
+        </div>
+
+        <div class="achievement-card locked" data-unlock="20">
+          <div class="achievement-icon">🐉</div>
+          <div class="achievement-info">
+            <h4>Domador de Dragones</h4>
+            <p>Derrota los 20 dragones</p>
+          </div>
+          <div class="achievement-lock">🔒</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="dragon-footer">
+    <div class="footer-content">
+      <p class="footer-text">
+        <span class="dragon-icon">🐉</span>
+        Moonveil Portal — Dragon Hunter Challenge
+        <span class="dragon-icon">🐉</span>
+      </p>
+      <p class="footer-subtitle">Que tu valentía sea tan grande como el dragón que enfrentas</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Botón flotante de música -->
+  <button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
+
+  <!-- Música de fondo -->
+  <audio id="bg-music" loop>
+    <source src="music/dragon-epic.mp3" type="audio/mpeg" />
+  </audio>
+
+  <!-- JS -->
+  <script src="dragon.js"></script>
+</body>
+</html>

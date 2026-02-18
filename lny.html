@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>Moonveil — Año del Caballo 🐎</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Outfit:wght@300;400;600;700;900&family=Noto+Serif+SC:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Favicon rojo -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23170202'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23e11d48'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%23f59e0b'/%3E%3C/svg%3E">
+
+  <link rel="stylesheet" href="lny.css" />
+  <meta name="description" content="Año Nuevo Lunar 2026 — Año del Caballo. Celebra los 15 días con cartas diarias de fortuna." />
+</head>
+<body>
+
+  <!-- Fondo festivo -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="bg-parallax">
+      <div class="layer sky" aria-hidden="true"></div>
+      <div class="layer far" aria-hidden="true"></div>
+      <div class="layer mid" aria-hidden="true"></div>
+      <div class="layer near" aria-hidden="true"></div>
+    </div>
+    <div class="horse-silhouette" aria-hidden="true"></div>
+    <!-- Linternas decorativas -->
+    <div class="lantern lantern-1" aria-hidden="true"></div>
+    <div class="lantern lantern-2" aria-hidden="true"></div>
+    <div class="lantern lantern-3" aria-hidden="true"></div>
+  </div>
+
+  <!-- HUD / Navbar -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="lny.html" class="active">Año Lunar</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
+        <div class="hud-bar xp" data-val="88" aria-label="Experiencia 88%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Oro"><span class="i i-gold" aria-hidden="true"></span></button>
+        <button class="slot" title="Mapa"><span class="i i-map" aria-hidden="true"></span></button>
+        <button class="slot" title="Linterna"><span class="i i-lantern" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="lny-main" role="main">
+
+    <!-- Hero -->
+    <section class="lny-hero">
+      <div class="hero-top-chars" aria-hidden="true">
+        <span class="han-char">福</span>
+        <span class="han-char">马</span>
+        <span class="han-char">年</span>
+        <span class="han-char">吉</span>
+        <span class="han-char">祥</span>
+      </div>
+      <div class="hero-content">
+        <div class="year-badge">2026 · 丙午年</div>
+        <h1 class="hero-title">
+          <span class="title-line">AÑO NUEVO</span>
+          <span class="title-line horse-text">DEL CABALLO</span>
+        </h1>
+        <p class="hero-subtitle">春节快乐 · Feliz Año Nuevo Lunar · 15 Días de Fortuna</p>
+
+        <!-- Stats de los 15 días -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="daysOpened">0</div>
+            <div class="stat-label">Cartas Abiertas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="dayProgress">0%</div>
+            <div class="stat-label">Progreso Festival</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="currentDay">--</div>
+            <div class="stat-label">Día del Festival</div>
+          </div>
+        </div>
+
+        <!-- Barra de progreso -->
+        <div class="global-progress">
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="globalProgressBar"></div>
+          </div>
+          <div class="progress-marks">
+            <span>初一</span>
+            <span>初五</span>
+            <span>初十</span>
+            <span>十五</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de cartas diarias -->
+    <section class="cards-section">
+      <h2 class="section-title">
+        <span class="title-icon">🏮</span>
+        Cartas de Fortuna
+        <span class="title-icon">🏮</span>
+      </h2>
+      <p class="section-subtitle">Abre una carta cada día durante los 15 días del Año Nuevo Lunar</p>
+
+      <div class="fortune-grid" id="fortuneGrid">
+        <!-- Generado por JS -->
+      </div>
+
+      <!-- Modal de carta -->
+      <div class="card-modal" id="cardModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-overlay" id="modalOverlay"></div>
+        <div class="modal-content">
+          <button class="modal-close" id="modalClose" aria-label="Cerrar">✕</button>
+          <div class="modal-header">
+            <div class="modal-day-badge" id="modalDayBadge"></div>
+            <div class="modal-han" id="modalHan"></div>
+          </div>
+          <h3 class="modal-title" id="modalTitle"></h3>
+          <div class="modal-divider">❀ ❀ ❀</div>
+          <p class="modal-message" id="modalMessage"></p>
+          <div class="modal-fortune" id="modalFortune"></div>
+          <div class="modal-reward" id="modalReward">
+            <div class="reward-label">🧧 Recompensa del Día</div>
+            <div class="reward-text" id="rewardText"></div>
+          </div>
+          <button class="open-btn" id="openCardBtn">✨ Abrir Carta</button>
+          <div class="opened-mark hidden" id="openedMark">
+            <span>🎊 ¡Carta ya abierta hoy!</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timeline: Tradiciones del Festival -->
+    <section class="timeline-section">
+      <h2 class="section-title">
+        <span class="title-icon">🎋</span>
+        Tradiciones del Festival
+        <span class="title-icon">🎋</span>
+      </h2>
+
+      <div class="timeline-container">
+        <div class="timeline-line" aria-hidden="true"></div>
+        <div class="timeline" id="lnyTimeline">
+          <!-- Generado por JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="lny-footer">
+    <div class="footer-content">
+      <p class="footer-text">
+        <span class="horse-icon">🐎</span>
+        Moonveil Portal — Año del Caballo 2026
+        <span class="horse-icon">🐎</span>
+      </p>
+      <p class="footer-subtitle">马到成功 · Que el Caballo traiga éxito y prosperidad</p>
+      <p class="footer-han">福 禄 寿 喜 财</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Botón música -->
+  <button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
+
+  <!-- Música -->
+  <audio id="bg-music" loop>
+    <source src="music/lny-festive.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script src="lny.js"></script>
+</body>
+</html>
