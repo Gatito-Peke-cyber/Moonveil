@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Moonveil — Hub de Páginas</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Cinzel:wght@400;600;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23d946ef'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%239333ea'/%3E%3C/svg%3E">
+
+  <link rel="stylesheet" href="events.css" />
+  <meta name="description" content="Moonveil Portal — Hub central de todas las páginas" />
+</head>
+<body>
+
+  <!-- Fondo partículas -->
+  <div class="bg">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+  </div>
+
+  <!-- ===== HEADER ORIGINAL ===== -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="events.html" class="active">Hub</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
+        <div class="hud-bar xp" data-val="62" aria-label="Experiencia 62%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Mapa"><span class="i i-map" aria-hidden="true"></span></button>
+        <button class="slot" title="Pluma"><span class="i i-feather" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main class="hub-main" role="main">
+
+    <!-- Hero -->
+    <section class="hub-hero">
+      <h1 class="hub-title">
+        <span class="ht-line">MOONVEIL</span>
+        <span class="ht-line ht-accent">HUB</span>
+      </h1>
+      <p class="hub-subtitle">Todas las secciones del portal en un solo lugar</p>
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        <span><b id="heroBadgeCount">—</b> secciones activas ahora mismo</span>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         CARDS CONTAINER — data generada por events.js
+         =================================================== -->
+    <div class="hub-body" id="hubBody">
+      <!-- Las categorías y tarjetas se inyectan con JS -->
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="hub-footer">
+    <p>🌙 Moonveil Portal · Hub Central · <span id="footerYear"></span></p>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="events.js"></script>
+</body>
+</html>

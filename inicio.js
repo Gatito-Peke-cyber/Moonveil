@@ -1,6 +1,6 @@
 /* =========================================================
    Moonveil Portal — JS: Inicio / Bienvenida
-   CON EFECTOS ESPECIALES COMPLETOS PARA TODOS LOS ENLACES
+   CON COUNTDOWN REAL QUE BAJA A LAS 12:00 AM
    ========================================================= */
 
 const $ = (q, ctx = document) => ctx.querySelector(q);
@@ -26,34 +26,64 @@ const setHudBars = () => {
 };
 setHudBars();
 
-/* ========== SISTEMA DE COUNTDOWN MEJORADO ========== */
-function getDetailedCountdown(targetDays) {
-  const now = new Date();
-  const endDate = new Date(now);
-  endDate.setDate(now.getDate() + targetDays);
+/* ========== SISTEMA DE COUNTDOWN REAL (BAJA A LAS 12:00 AM) ========== */
+
+// Función para obtener la fecha de inicio del evento (guardada en localStorage)
+function getEventStartDate(eventId, initialDays) {
+  const storageKey = `moonveil_event_${eventId}`;
+  let startDate = localStorage.getItem(storageKey);
   
+  if (!startDate) {
+    // Primera vez - guardar fecha de inicio
+    startDate = new Date().toISOString();
+    localStorage.setItem(storageKey, startDate);
+  }
+  
+  return new Date(startDate);
+}
+
+// Función para calcular días COMPLETOS restantes (basado en medianoche)
+function getRealCountdown(eventId, totalDays) {
+  const startDate = getEventStartDate(eventId, totalDays);
+  const now = new Date();
+  
+  // Calcular la fecha final (medianoche del día final)
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + totalDays);
+  endDate.setHours(0, 0, 0, 0);
+  
+  // Diferencia total en milisegundos
   const diff = endDate - now;
   
+  if (diff <= 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0, expired: true };
+  }
+  
+  // Calcular componentes
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((diff % (1000 * 60)) / 1000);
   
-  return { days, hours, minutes, seconds, total: diff };
+  return { days, hours, minutes, seconds, total: diff, expired: false };
 }
 
-function formatCountdown(countdown, short = false) {
-  const { days, hours, minutes, seconds } = countdown;
+// Formatear countdown de forma inteligente
+function formatCountdown(countdown) {
+  const { days, hours, minutes, seconds, expired } = countdown;
   
-  if (short) {
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
+  if (expired) return 'Finalizado';
+  
+  if (days > 0) {
+    return `${days}d ${hours}h`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else {
     return `${minutes}m ${seconds}s`;
   }
-  
-  return `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
+// Obtener días restantes del mes actual
 function getDaysInCurrentMonth() {
   const now = new Date();
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -64,22 +94,23 @@ function getDaysInCurrentMonth() {
 /* ========== EFECTOS ESPECIALES PARA CADA ENLACE ========== */
 (function navSpecialEffects() {
   
-  // 1. VALENTINE - Corazones flotantes
+  // ===== VALENTINE - Corazones flotantes con countdown REAL =====
   const valentineLink = $('[data-effect="valentine"]');
   if (valentineLink) {
-    const targetDays = parseInt(valentineLink.dataset.days) || 2;
+    const targetDays = parseInt(valentineLink.dataset.days) || 60;
     
     function updateValentine() {
-      const countdown = getDetailedCountdown(targetDays);
-      valentineLink.setAttribute('data-days-left', `♥ ${formatCountdown(countdown, true)}`);
+      const countdown = getRealCountdown('valentine', targetDays);
+      valentineLink.setAttribute('data-countdown', `♥ ${formatCountdown(countdown)}`);
     }
     updateValentine();
     setInterval(updateValentine, 1000);
     
+    // Corazones flotantes al hover
     setInterval(() => {
       if (!valentineLink.matches(':hover')) return;
       const heart = document.createElement('span');
-      heart.textContent = ['♥', '💕', '💖'][Math.floor(Math.random() * 3)];
+      heart.textContent = ['♥', '💕', '💖', '💗', '💓'][Math.floor(Math.random() * 5)];
       heart.style.cssText = `
         position: fixed; color: #ff69b4; font-size: ${Math.random() * 10 + 10}px;
         pointer-events: none; z-index: 9999; animation: float-up 2s ease-out forwards; opacity: 0.8;
@@ -104,122 +135,112 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 2. PASS - Contador de días con planetas
+  // ===== DRAGON - Dragones y fuego con countdown REAL =====
+  const dragonLink = $('[data-effect="dragon"]');
+  if (dragonLink) {
+    const targetDays = parseInt(dragonLink.dataset.days) || 20;
+    
+    function updateDragon() {
+      const countdown = getRealCountdown('dragon', targetDays);
+      dragonLink.setAttribute('data-countdown', `🐉 ${formatCountdown(countdown)}`);
+    }
+    updateDragon();
+    setInterval(updateDragon, 1000);
+    
+    // Fuego y dragones flotantes
+    setInterval(() => {
+      if (!dragonLink.matches(':hover')) return;
+      const particle = document.createElement('span');
+      particle.textContent = ['🐉', '🔥', '🌋', '🐲'][Math.floor(Math.random() * 4)];
+      particle.style.cssText = `
+        position: fixed; color: ${['#ef4444', '#f97316', '#dc2626'][Math.floor(Math.random() * 3)]};
+        font-size: ${Math.random() * 10 + 12}px;
+        pointer-events: none; z-index: 9999; animation: dragon-burst 2s ease-out forwards; opacity: 0.9;
+      `;
+      const rect = dragonLink.getBoundingClientRect();
+      particle.style.left = rect.left + Math.random() * rect.width + 'px';
+      particle.style.top = rect.top + Math.random() * rect.height + 'px';
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 2000);
+    }, 250);
+    
+    if (!$('#dragon-burst-style')) {
+      const style = document.createElement('style');
+      style.id = 'dragon-burst-style';
+      style.textContent = `
+        @keyframes dragon-burst {
+          0% { transform: scale(0.5) rotate(0deg); opacity: 1; }
+          100% { transform: scale(1.5) rotate(360deg) translateY(-60px); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  // ===== LNY - Año Nuevo Lunar con linternas y fuegos artificiales =====
+  const lnyLink = $('[data-effect="lny"]');
+  if (lnyLink) {
+    const targetDays = parseInt(lnyLink.dataset.days) || 18;
+    
+    function updateLNY() {
+      const countdown = getRealCountdown('lny', targetDays);
+      lnyLink.setAttribute('data-countdown', `🏮 ${formatCountdown(countdown)}`);
+    }
+    updateLNY();
+    setInterval(updateLNY, 1000);
+    
+    // Linternas y fuegos artificiales
+    setInterval(() => {
+      if (!lnyLink.matches(':hover')) return;
+      const particle = document.createElement('span');
+      particle.textContent = ['🏮', '🎆', '🎇', '✨', '🧧'][Math.floor(Math.random() * 5)];
+      particle.style.cssText = `
+        position: fixed; color: ${['#ef4444', '#fbbf24', '#fb923c'][Math.floor(Math.random() * 3)]};
+        font-size: ${Math.random() * 8 + 12}px;
+        pointer-events: none; z-index: 9999; animation: lny-sparkle 2.5s ease-out forwards; opacity: 1;
+      `;
+      const rect = lnyLink.getBoundingClientRect();
+      particle.style.left = rect.left + Math.random() * rect.width + 'px';
+      particle.style.top = rect.top - 20 + 'px';
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 2500);
+    }, 200);
+    
+    if (!$('#lny-sparkle-style')) {
+      const style = document.createElement('style');
+      style.id = 'lny-sparkle-style';
+      style.textContent = `
+        @keyframes lny-sparkle {
+          0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 1; }
+          50% { opacity: 1; }
+          100% { transform: translateY(80px) scale(1) rotate(180deg); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  // ===== PASS - Planetas con countdown REAL =====
   const passLink = $('[data-effect="planet"]');
   if (passLink) {
     const targetDays = parseInt(passLink.dataset.days) || 30;
     
     function updatePass() {
-      const countdown = getDetailedCountdown(targetDays);
-      passLink.setAttribute('data-days-left', formatCountdown(countdown, true));
+      const countdown = getRealCountdown('pass', targetDays);
+      passLink.setAttribute('data-countdown', formatCountdown(countdown));
     }
     updatePass();
     setInterval(updatePass, 1000);
   }
 
-  // 3. BANK - Estrellitas flotantes
-  const bankLink = $('[data-effect="sparkle"]');
-  if (bankLink) {
-    setInterval(() => {
-      if (!bankLink.matches(':hover')) return;
-      const sparkle = document.createElement('span');
-      sparkle.textContent = ['✦', '✧', '✨', '💰', '💵'][Math.floor(Math.random() * 5)];
-      sparkle.style.cssText = `
-        position: fixed; color: #ffd700; font-size: ${Math.random() * 8 + 8}px;
-        pointer-events: none; z-index: 9999; animation: sparkle-burst 1.5s ease-out forwards; opacity: 1;
-      `;
-      const rect = bankLink.getBoundingClientRect();
-      sparkle.style.left = rect.left + Math.random() * rect.width + 'px';
-      sparkle.style.top = rect.top + Math.random() * rect.height + 'px';
-      document.body.appendChild(sparkle);
-      setTimeout(() => sparkle.remove(), 1500);
-    }, 200);
-    
-    if (!$('#sparkle-burst-style')) {
-      const style = document.createElement('style');
-      style.id = 'sparkle-burst-style';
-      style.textContent = `
-        @keyframes sparkle-burst {
-          0% { transform: scale(0) rotate(0deg); opacity: 1; }
-          50% { opacity: 1; }
-          100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }
-
-  // 4. SAND - Texto de terminal cambiante
-  const codeLink = $('[data-effect="code"]');
-  if (codeLink) {
-    const commands = [
-      'sudo mkdir', 'npm install', 'git commit', 'docker run', 'apt-get',
-      'chmod +x', 'ls -la', './compile', 'make build', 'rm -rf'
-    ];
-    let cmdIndex = 0;
-    const originalText = codeLink.textContent;
-    
-    setInterval(() => {
-      if (codeLink.matches(':hover')) {
-        codeLink.textContent = commands[cmdIndex];
-        cmdIndex = (cmdIndex + 1) % commands.length;
-      } else {
-        codeLink.textContent = originalText;
-        cmdIndex = 0;
-      }
-    }, 800);
-  }
-
-  // 5. PERFILES - Avatares flotantes
-  const profilesLink = $('[data-effect="profiles"]');
-  if (profilesLink) {
-    setInterval(() => {
-      if (!profilesLink.matches(':hover')) return;
-      const avatar = document.createElement('span');
-      avatar.textContent = ['👤', '👥', '🧑', '👨', '👩'][Math.floor(Math.random() * 5)];
-      avatar.style.cssText = `
-        position: fixed; font-size: ${Math.random() * 8 + 10}px;
-        pointer-events: none; z-index: 9999; animation: profiles-float 2s ease-out forwards; opacity: 0.8;
-      `;
-      const rect = profilesLink.getBoundingClientRect();
-      avatar.style.left = rect.left + Math.random() * rect.width + 'px';
-      avatar.style.top = rect.top + 'px';
-      document.body.appendChild(avatar);
-      setTimeout(() => avatar.remove(), 2000);
-    }, 400);
-    
-    if (!$('#profiles-float-style')) {
-      const style = document.createElement('style');
-      style.id = 'profiles-float-style';
-      style.textContent = `
-        @keyframes profiles-float {
-          0% { transform: translateY(0) scale(1); opacity: 0.8; }
-          100% { transform: translateY(-60px) scale(0.5); opacity: 0; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }
-
-  // 6. CALENDAR - Contador de días del mes
-  const calendarLink = $('[data-effect="calendar"]');
-  if (calendarLink) {
-    function updateCalendar() {
-      const daysLeft = getDaysInCurrentMonth();
-      calendarLink.setAttribute('data-days-month', `${daysLeft} días restantes`);
-    }
-    updateCalendar();
-    setInterval(updateCalendar, 3600000); // Actualizar cada hora
-  }
-
-  // 7. EVENTOS - Animales con countdown
+  // ===== EVENTOS - Animales con countdown REAL =====
   const eventsLink = $('[data-effect="events"]');
   if (eventsLink) {
     const targetDays = parseInt(eventsLink.dataset.days) || 44;
     
     function updateEvents() {
-      const countdown = getDetailedCountdown(targetDays);
-      eventsLink.setAttribute('data-countdown', formatCountdown(countdown, true));
+      const countdown = getRealCountdown('events', targetDays);
+      eventsLink.setAttribute('data-countdown', formatCountdown(countdown));
     }
     updateEvents();
     setInterval(updateEvents, 1000);
@@ -252,20 +273,115 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 8. RULETA - Contador con giro
+  // ===== RULETA - Countdown REAL =====
   const rouletteLink = $('[data-effect="roulette"]');
   if (rouletteLink) {
     const targetDays = parseInt(rouletteLink.dataset.days) || 44;
     
     function updateRoulette() {
-      const countdown = getDetailedCountdown(targetDays);
-      rouletteLink.setAttribute('data-countdown', formatCountdown(countdown, true));
+      const countdown = getRealCountdown('roulette', targetDays);
+      rouletteLink.setAttribute('data-countdown', formatCountdown(countdown));
     }
     updateRoulette();
     setInterval(updateRoulette, 1000);
   }
 
-  // 9. FORO - Burbujas de comentarios
+  // ===== BANK - Estrellitas flotantes =====
+  const bankLink = $('[data-effect="sparkle"]');
+  if (bankLink) {
+    setInterval(() => {
+      if (!bankLink.matches(':hover')) return;
+      const sparkle = document.createElement('span');
+      sparkle.textContent = ['✦', '✧', '✨', '💰', '💵'][Math.floor(Math.random() * 5)];
+      sparkle.style.cssText = `
+        position: fixed; color: #ffd700; font-size: ${Math.random() * 8 + 8}px;
+        pointer-events: none; z-index: 9999; animation: sparkle-burst 1.5s ease-out forwards; opacity: 1;
+      `;
+      const rect = bankLink.getBoundingClientRect();
+      sparkle.style.left = rect.left + Math.random() * rect.width + 'px';
+      sparkle.style.top = rect.top + Math.random() * rect.height + 'px';
+      document.body.appendChild(sparkle);
+      setTimeout(() => sparkle.remove(), 1500);
+    }, 200);
+    
+    if (!$('#sparkle-burst-style')) {
+      const style = document.createElement('style');
+      style.id = 'sparkle-burst-style';
+      style.textContent = `
+        @keyframes sparkle-burst {
+          0% { transform: scale(0) rotate(0deg); opacity: 1; }
+          50% { opacity: 1; }
+          100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  // ===== SAND - Texto de terminal cambiante =====
+  const codeLink = $('[data-effect="code"]');
+  if (codeLink) {
+    const commands = [
+      'sudo mkdir', 'npm install', 'git commit', 'docker run', 'apt-get',
+      'chmod +x', 'ls -la', './compile', 'make build', 'rm -rf'
+    ];
+    let cmdIndex = 0;
+    const originalText = codeLink.textContent;
+    
+    setInterval(() => {
+      if (codeLink.matches(':hover')) {
+        codeLink.textContent = commands[cmdIndex];
+        cmdIndex = (cmdIndex + 1) % commands.length;
+      } else {
+        codeLink.textContent = originalText;
+        cmdIndex = 0;
+      }
+    }, 800);
+  }
+
+  // ===== PERFILES - Avatares flotantes =====
+  const profilesLink = $('[data-effect="profiles"]');
+  if (profilesLink) {
+    setInterval(() => {
+      if (!profilesLink.matches(':hover')) return;
+      const avatar = document.createElement('span');
+      avatar.textContent = ['👤', '👥', '🧑', '👨', '👩'][Math.floor(Math.random() * 5)];
+      avatar.style.cssText = `
+        position: fixed; font-size: ${Math.random() * 8 + 10}px;
+        pointer-events: none; z-index: 9999; animation: profiles-float 2s ease-out forwards; opacity: 0.8;
+      `;
+      const rect = profilesLink.getBoundingClientRect();
+      avatar.style.left = rect.left + Math.random() * rect.width + 'px';
+      avatar.style.top = rect.top + 'px';
+      document.body.appendChild(avatar);
+      setTimeout(() => avatar.remove(), 2000);
+    }, 400);
+    
+    if (!$('#profiles-float-style')) {
+      const style = document.createElement('style');
+      style.id = 'profiles-float-style';
+      style.textContent = `
+        @keyframes profiles-float {
+          0% { transform: translateY(0) scale(1); opacity: 0.8; }
+          100% { transform: translateY(-60px) scale(0.5); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  // ===== CALENDAR - Contador de días del mes =====
+  const calendarLink = $('[data-effect="calendar"]');
+  if (calendarLink) {
+    function updateCalendar() {
+      const daysLeft = getDaysInCurrentMonth();
+      calendarLink.setAttribute('data-days-month', `${daysLeft} días`);
+    }
+    updateCalendar();
+    setInterval(updateCalendar, 3600000); // Actualizar cada hora
+  }
+
+  // ===== FORO - Burbujas de comentarios =====
   const forumLink = $('[data-effect="forum"]');
   if (forumLink) {
     setInterval(() => {
@@ -297,7 +413,7 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 10. CONTACTO - Notificaciones estilo WhatsApp
+  // ===== CONTACTO - Notificaciones estilo WhatsApp =====
   const contactLink = $('[data-effect="contact"]');
   if (contactLink) {
     setInterval(() => {
@@ -328,7 +444,7 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 11. DRAWING - Trazos de pincel
+  // ===== DRAWING - Trazos de pincel =====
   const drawLink = $('[data-effect="draw"]');
   if (drawLink) {
     setInterval(() => {
@@ -359,7 +475,7 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 12. UPDATES - Flechas ascendentes
+  // ===== UPDATES - Flechas ascendentes =====
   const updatesLink = $('[data-effect="updates"]');
   if (updatesLink) {
     setInterval(() => {
@@ -390,7 +506,8 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 13. NOTICIAS - Papeles volando
+  // ===== Todos los demás efectos (News, Trade, Shop, History, Posts, Anniversary) =====
+  
   const newsLink = $('[data-effect="news"]');
   if (newsLink) {
     setInterval(() => {
@@ -421,7 +538,6 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 14. TRADEOS - Esmeraldas intercambiándose
   const tradeLink = $('[data-effect="trade"]');
   if (tradeLink) {
     setInterval(() => {
@@ -453,7 +569,6 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 15. TIENDA - Tickets y bolsas
   const shopLink = $('[data-effect="shop"]');
   if (shopLink) {
     setInterval(() => {
@@ -484,7 +599,6 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 16. HISTORY - Páginas de libro
   const historyLink = $('[data-effect="history"]');
   if (historyLink) {
     setInterval(() => {
@@ -515,7 +629,6 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 17. POSTS - Notas volando
   const postsLink = $('[data-effect="posts"]');
   if (postsLink) {
     setInterval(() => {
@@ -546,7 +659,6 @@ function getDaysInCurrentMonth() {
     }
   }
 
-  // 18. ANNIVERSARY - Confetti
   const anniversaryLink = $('[data-effect="anniversary"]');
   if (anniversaryLink) {
     setInterval(() => {

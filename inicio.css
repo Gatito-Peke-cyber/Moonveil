@@ -68,6 +68,72 @@ a:hover{text-decoration:underline}
 
 /* ========== EFECTOS ESPECIALES PARA CADA ENLACE ========== */
 
+/* NUEVOS: Dragon y LNY */
+
+/* Dragon - Fuego y dragones */
+.nav-special[data-effect="dragon"] {
+  background: linear-gradient(135deg, rgba(239,68,68,.15), rgba(220,38,38,.1));
+  border-color: rgba(239,68,68,.35) !important;
+  color: #fca5a5 !important;
+  animation: dragon-flame 2s ease-in-out infinite;
+  overflow: visible;
+}
+.nav-special[data-effect="dragon"]::before {
+  content: '🐉';
+  position: absolute; top: -10px; right: -10px; font-size: 14px;
+  animation: dragon-fly 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(239,68,68,.6));
+}
+.nav-special[data-effect="dragon"]::after {
+  content: attr(data-countdown);
+  position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white; font-size: 8px; padding: 2px 6px; border-radius: 8px;
+  white-space: nowrap; box-shadow: 0 2px 8px rgba(239,68,68,.4);
+  font-weight: 600; pointer-events: none;
+}
+@keyframes dragon-flame {
+  0%, 100% { box-shadow: 0 0 12px rgba(239,68,68,.3), 0 0 24px rgba(220,38,38,.2); }
+  50% { box-shadow: 0 0 24px rgba(239,68,68,.6), 0 0 40px rgba(220,38,38,.4); }
+}
+@keyframes dragon-fly {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-4px) rotate(-10deg); }
+  75% { transform: translateY(-4px) rotate(10deg); }
+}
+
+/* LNY - Año Nuevo Lunar Chino */
+.nav-special[data-effect="lny"] {
+  background: linear-gradient(135deg, rgba(239,68,68,.15), rgba(251,146,60,.1));
+  border-color: rgba(239,68,68,.35) !important;
+  color: #fca5a5 !important;
+  animation: lny-lantern 2.5s ease-in-out infinite;
+  overflow: visible;
+}
+.nav-special[data-effect="lny"]::before {
+  content: '🏮';
+  position: absolute; top: -10px; left: -10px; font-size: 14px;
+  animation: lny-swing 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(239,68,68,.6));
+}
+.nav-special[data-effect="lny"]::after {
+  content: attr(data-countdown);
+  position: absolute; top: -20px; right: 0;
+  background: linear-gradient(135deg, #ef4444, #fb923c);
+  color: white; font-size: 8px; padding: 2px 6px; border-radius: 8px;
+  white-space: nowrap; box-shadow: 0 2px 8px rgba(239,68,68,.4);
+  font-weight: 600; pointer-events: none;
+}
+@keyframes lny-lantern {
+  0%, 100% { box-shadow: 0 0 12px rgba(239,68,68,.3), 0 0 20px rgba(251,146,60,.2); }
+  50% { box-shadow: 0 0 24px rgba(239,68,68,.5), 0 0 35px rgba(251,146,60,.4); }
+}
+@keyframes lny-swing {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25% { transform: rotate(-8deg) translateY(-2px); }
+  75% { transform: rotate(8deg) translateY(-2px); }
+}
+
 /* 1. Perfiles - Personitas animadas */
 .nav-special[data-effect="profiles"] {
   background: linear-gradient(135deg, rgba(96,165,250,.15), rgba(59,130,246,.1));
@@ -424,7 +490,7 @@ a:hover{text-decoration:underline}
   50% { transform: translateX(2px); }
 }
 
-/* Valentine, Bank, Sand, Pass - Ya existentes, mantenidos igual */
+/* Valentine, Bank, Sand, Pass - Con countdown REAL */
 .nav-special[data-effect="valentine"] {
   background: linear-gradient(135deg, rgba(255,105,180,.15), rgba(255,20,147,.1));
   border-color: rgba(255,105,180,.3) !important; color: #ffb3d9 !important;
@@ -435,9 +501,9 @@ a:hover{text-decoration:underline}
   font-size: 12px; color: #ff69b4; animation: heart-float 3s ease-in-out infinite;
 }
 .nav-special[data-effect="valentine"]::after {
-  content: attr(data-days-left); position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+  content: attr(data-countdown); position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
   background: linear-gradient(135deg, #ff1493, #ff69b4); color: white;
-  font-size: 9px; padding: 2px 6px; border-radius: 8px; white-space: nowrap;
+  font-size: 8px; padding: 2px 6px; border-radius: 8px; white-space: nowrap;
   box-shadow: 0 2px 8px rgba(255,20,147,.4); font-weight: 600; pointer-events: none;
 }
 @keyframes valentine-pulse {
@@ -504,9 +570,9 @@ a:hover{text-decoration:underline}
   animation: planet-rotate 6s linear infinite; filter: drop-shadow(0 0 8px rgba(147,51,234,.6));
 }
 .nav-special[data-effect="planet"]::after {
-  content: attr(data-days-left); position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+  content: attr(data-countdown); position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
   background: linear-gradient(135deg, #9333ea, #3b82f6); color: white;
-  font-size: 9px; padding: 2px 6px; border-radius: 8px; white-space: nowrap;
+  font-size: 8px; padding: 2px 6px; border-radius: 8px; white-space: nowrap;
   box-shadow: 0 2px 8px rgba(147,51,234,.4); font-weight: 600; pointer-events: none;
 }
 @keyframes planet-orbit {

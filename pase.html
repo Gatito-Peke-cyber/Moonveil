@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moonveil | Pase Galáctico</title>
+    
+    <!-- Fuentes futuristas -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="pase.css">
+    
+    <!-- Íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    
+    <meta name="description" content="Moonveil Galactic Pass - Sistema de recompensas galáctico con 5 niveles de pase y 60 marcas exclusivas.">
+</head>
+<body>
+    <!-- Fondo de partículas -->
+    <div id="particles-js"></div>
+    
+    <!-- Header completo -->
+    <header class="top-hud" role="banner">
+        <nav class="navbar" aria-label="Navegación principal">
+            <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+                <span class="cube" aria-hidden="true"></span>
+                <span class="brand__title">Moonveil <b>Portal</b></span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="inicio.html">Inicio</a></li>
+                <li><a href="perfiles.html">Perfiles</a></li>
+                <li><a href="juego.html">Juego</a></li>
+                <li><a href="historia.html">Historias</a></li>
+                <li><a href="pase.html" class="active">Pase Galáctico</a></li>
+                <li><a href="contactos.html">Contacto</a></li>
+            </ul>
+        </nav>
+
+        <!-- HUD Stats -->
+        <div class="hud-stats" aria-label="Indicadores del jugador">
+            <div class="hud__bars">
+                <div class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
+                <div class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
+            </div>
+            <div class="hud__inv" aria-label="Inventario rápido">
+                <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+                <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
+                <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Bonificación del Día -->
+    <div class="daily-bonus-notification" id="dailyBonusNotification">
+        <div class="bonus-content">
+            <i class="fas fa-gift"></i>
+            <div class="bonus-text">
+                <strong>¡Bonificación del Día!</strong>
+                <span id="bonusDescription">Cargando...</span>
+            </div>
+            <button class="bonus-close" onclick="this.parentElement.parentElement.style.display='none'">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Navegación galáctica -->
+    <div class="galactic-nav">
+        <div class="nav-orbits">
+            <div class="orbit" data-orbit="1"></div>
+            <div class="orbit" data-orbit="2"></div>
+            <div class="orbit" data-orbit="3"></div>
+        </div>
+        <div class="nav-planets">
+            <button class="planet-btn active" data-section="pass">
+                <div class="planet-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <span>Pase Actual</span>
+            </button>
+            <button class="planet-btn" data-section="missions">
+                <div class="planet-icon">
+                    <i class="fas fa-satellite"></i>
+                </div>
+                <span>Misiones</span>
+            </button>
+            <button class="planet-btn" data-section="rewards">
+                <div class="planet-icon">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <span>Tesoro</span>
+            </button>
+            <button class="planet-btn" data-section="upgrade">
+                <div class="planet-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <span>Mejorar</span>
+            </button>
+            <button class="planet-btn" data-section="timeline">
+                <div class="planet-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <span>Próximos Pases</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <main class="galactic-container">
+        
+        <!-- Sección 1: Pase Actual -->
+        <section class="galactic-section active" id="pass-section">
+            <!-- Cabecera del Pase -->
+            <div class="galactic-header">
+                <div class="header-content">
+                    <div class="season-display">
+                        <span class="season-label">ÓRBITA GALÁCTICA</span>
+                        <h1 class="season-title" id="currentSeasonTitle">ESFERA NEBULOSA</h1>
+                        <div class="season-number-badge">
+                            Temporada <span id="currentSeasonNumber">1</span>
+                        </div>
+                        <div class="season-progress">
+                            <div class="progress-ring">
+                                <svg width="120" height="120">
+                                    <circle class="progress-ring-circle" cx="60" cy="60" r="54" 
+                                            stroke-width="8" fill="transparent"/>
+                                </svg>
+                                <div class="progress-text">
+                                    <span class="progress-percent" id="progressPercent">0%</span>
+                                    <span class="progress-label">COMPLETADO</span>
+                                </div>
+                            </div>
+                            <div class="progress-info">
+                                <div class="level-info">
+                                    <span class="level-label">NIVEL ESTELAR</span>
+                                    <div class="level-value">
+                                        <span class="current-level" id="currentLevel">1</span>
+                                        <span class="total-level">/ 60</span>
+                                    </div>
+                                </div>
+                                <div class="xp-info">
+                                    <span class="xp-label">ENERGÍA CÓSMICA</span>
+                                    <div class="xp-value">
+                                        <span id="currentXP">0</span>
+                                        <span> / </span>
+                                        <span id="maxXP">1,000</span>
+                                    </div>
+                                    <div class="xp-boost" id="xpBoostIndicator" style="display: none;">
+                                        <i class="fas fa-bolt"></i>
+                                        <span id="xpBoostValue">+0%</span> XP Boost
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="time-display">
+                        <div class="time-container">
+                            <div class="time-label">TIEMPO RESTANTE</div>
+                            <div class="time-values">
+                                <div class="time-unit">
+                                    <span class="time-number" id="days">00</span>
+                                    <span class="time-label">DÍAS</span>
+                                </div>
+                                <div class="time-unit">
+                                    <span class="time-number" id="hours">00</span>
+                                    <span class="time-label">HORAS</span>
+                                </div>
+                                <div class="time-unit">
+                                    <span class="time-number" id="minutes">00</span>
+                                    <span class="time-label">MIN</span>
+                                </div>
+                                <div class="time-unit">
+                                    <span class="time-number" id="seconds">00</span>
+                                    <span class="time-label">SEG</span>
+                                </div>
+                            </div>
+                            <div class="time-end-date">
+                                Finaliza: <span id="endDateDisplay">--/--/----</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistema de Pases -->
+            <div class="pass-system">
+                <!-- Niveles de Pase -->
+                <div class="pass-tiers">
+                    <div class="tier-card" data-tier="free">
+                        <div class="tier-header">
+                            <div class="tier-icon">
+                                <i class="fas fa-user-astronaut"></i>
+                            </div>
+                            <h3>ESTELAR</h3>
+                            <div class="tier-badge">GRATIS</div>
+                        </div>
+                        <div class="tier-stats">
+                            <div class="stat">
+                                <i class="fas fa-gem"></i>
+                                <span>15 Recompensas</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-bolt"></i>
+                                <span>+0% XP</span>
+                            </div>
+                        </div>
+                        <div class="tier-status active">
+                            <i class="fas fa-check-circle"></i>
+                            <span>ACTIVO</span>
+                        </div>
+                    </div>
+
+                    <div class="tier-card" data-tier="premium">
+                        <div class="tier-header">
+                            <div class="tier-icon">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <h3>NEBULOSA</h3>
+                            <div class="tier-badge premium">PREMIUM</div>
+                        </div>
+                        <div class="tier-stats">
+                            <div class="stat">
+                                <i class="fas fa-gem"></i>
+                                <span>40 Recompensas</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-bolt"></i>
+                                <span>+20% XP</span>
+                            </div>
+                        </div>
+                        <div class="tier-status locked">
+                            <i class="fas fa-lock"></i>
+                            <span>BLOQUEADO</span>
+                        </div>
+                    </div>
+
+                    <div class="tier-card" data-tier="crystal">
+                        <div class="tier-header">
+                            <div class="tier-icon">
+                                <i class="fas fa-gem"></i>
+                            </div>
+                            <h3>CRISTAL</h3>
+                            <div class="tier-badge crystal">CRISTAL</div>
+                        </div>
+                        <div class="tier-stats">
+                            <div class="stat">
+                                <i class="fas fa-gem"></i>
+                                <span>55 Recompensas</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-bolt"></i>
+                                <span>+50% XP</span>
+                            </div>
+                        </div>
+                        <div class="tier-status locked">
+                            <i class="fas fa-lock"></i>
+                            <span>BLOQUEADO</span>
+                        </div>
+                    </div>
+
+                    <div class="tier-card" data-tier="village">
+                        <div class="tier-header">
+                            <div class="tier-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <h3>ALDEANIL</h3>
+                            <div class="tier-badge village">ALDEANIL</div>
+                        </div>
+                        <div class="tier-stats">
+                            <div class="stat">
+                                <i class="fas fa-gem"></i>
+                                <span>60 Recompensas</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-bolt"></i>
+                                <span>+75% XP</span>
+                            </div>
+                        </div>
+                        <div class="tier-status locked">
+                            <i class="fas fa-lock"></i>
+                            <span>BLOQUEADO</span>
+                        </div>
+                    </div>
+
+                    <div class="tier-card" data-tier="vip">
+                        <div class="tier-header">
+                            <div class="tier-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <h3>GALÁCTICO</h3>
+                            <div class="tier-badge vip">VIP</div>
+                        </div>
+                        <div class="tier-stats">
+                            <div class="stat">
+                                <i class="fas fa-gem"></i>
+                                <span>80 Recompensas</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-bolt"></i>
+                                <span>+100% XP</span>
+                            </div>
+                        </div>
+                        <div class="tier-status locked">
+                            <i class="fas fa-lock"></i>
+                            <span>BLOQUEADO</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid de Niveles -->
+                <div class="levels-grid-container">
+                    <div class="grid-controls">
+                        <button class="grid-nav" id="prevGrid">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="grid-info">
+                            <span class="grid-range" id="gridRange">1 - 12</span>
+                            <span class="grid-total">de 60 niveles</span>
+                        </div>
+                        <button class="grid-nav" id="nextGrid">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="levels-grid" id="levelsGrid">
+                        <!-- Niveles cargados dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 2: Misiones -->
+        <section class="galactic-section" id="missions-section">
+            <div class="section-header">
+                <h2><i class="fas fa-satellite"></i> MISIONES CÓSMICAS</h2>
+                <div class="total-xp-available">
+                    <i class="fas fa-bolt"></i>
+                    <span id="totalXP">0</span> XP Disponible
+                </div>
+            </div>
+
+            <div class="missions-container">
+                <!-- Misiones Diarias -->
+                <div class="mission-category">
+                    <div class="category-header">
+                        <h3><i class="fas fa-sun"></i> ÓRBITA DIARIA</h3>
+                        <span class="reset-time">Renueva en: <span id="dailyReset">--:--:--</span></span>
+                    </div>
+                    <div class="missions-grid" id="dailyMissions">
+                        <!-- Misiones diarias cargadas dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Misiones Semanales -->
+                <div class="mission-category">
+                    <div class="category-header">
+                        <h3><i class="fas fa-moon"></i> CICLO SEMANAL</h3>
+                        <span class="reset-time">Renueva en: <span id="weeklyReset">--:--:--</span></span>
+                    </div>
+                    <div class="missions-grid" id="weeklyMissions">
+                        <!-- Misiones semanales cargadas dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Misiones Mensuales -->
+                <div class="mission-category">
+                    <div class="category-header">
+                        <h3><i class="fas fa-globe"></i> FASE MENSUAL</h3>
+                        <span class="reset-time">Renueva en: <span id="monthlyReset">--:--:--</span></span>
+                    </div>
+                    <div class="missions-grid" id="monthlyMissions">
+                        <!-- Misiones mensuales cargadas dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 3: Tesoro Galáctico (Recompensas) -->
+        <section class="galactic-section" id="rewards-section">
+            <div class="section-header">
+                <h2><i class="fas fa-gem"></i> TESORO GALÁCTICO</h2>
+                <div class="total-rewards-count">
+                    <i class="fas fa-trophy"></i>
+                    <span id="rewardsCount">0</span> / 60 Recompensas
+                </div>
+            </div>
+
+            <div class="rewards-container">
+                <!-- Estadísticas del Tesoro -->
+                <div class="treasure-stats-grid">
+                    <div class="treasure-stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                            <i class="fas fa-gem"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalGemsCollected">0</div>
+                            <div class="stat-label">Gemas Totales</div>
+                        </div>
+                    </div>
+                    <div class="treasure-stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalCoinsCollected">0</div>
+                            <div class="stat-label">Esmeraldas Ganadas</div>
+                        </div>
+                    </div>
+                    <div class="treasure-stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalSkinsCollected">0</div>
+                            <div class="stat-label">Skins Desbloqueadas</div>
+                        </div>
+                    </div>
+                    <div class="treasure-stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalRareItems">0</div>
+                            <div class="stat-label">Objetos Raros</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventario del Tesoro -->
+                <div class="treasure-inventory">
+                    <h3><i class="fas fa-box-open"></i> INVENTARIO COMPLETO</h3>
+                    <div class="inventory-filters">
+                        <button class="filter-btn active" data-filter="all">Todos</button>
+                        <button class="filter-btn" data-filter="weapons">Armas</button>
+                        <button class="filter-btn" data-filter="skins">Skins</button>
+                        <button class="filter-btn" data-filter="items">Objetos</button>
+                        <button class="filter-btn" data-filter="currency">Monedas</button>
+                    </div>
+                    <div class="inventory-grid" id="treasureInventory">
+                        <!-- Items del inventario cargados dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Progreso por Temporada -->
+                <div class="season-progress-history">
+                    <h3><i class="fas fa-chart-line"></i> PROGRESO DE TEMPORADAS</h3>
+                    <div id="seasonHistoryContainer">
+                        <!-- Historial de temporadas -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 4: Mejorar -->
+        <section class="galactic-section" id="upgrade-section">
+            <div class="section-header">
+                <h2><i class="fas fa-crown"></i> ASCENSO GALÁCTICO</h2>
+                <div class="upgrade-info">
+                    Desbloquea todo el potencial cósmico
+                </div>
+            </div>
+
+            <div class="upgrade-container">
+                <!-- Opciones de Mejora -->
+                <div class="upgrade-options">
+                    <div class="upgrade-card" data-tier="premium">
+                        <div class="daily-discount" style="display: none;">
+                            <i class="fas fa-tag"></i>
+                            <span class="discount-percent">-0%</span>
+                        </div>
+                        <div class="upgrade-header">
+                            <div class="upgrade-icon">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <h3>NEBULOSA</h3>
+                            <div class="upgrade-price">
+                                <span class="price original-price" style="display: none;">500</span>
+                                <span class="price final-price">500</span>
+                                <span class="currency">Puntos</span>
+                            </div>
+                        </div>
+                        <ul class="upgrade-benefits">
+                            <li><i class="fas fa-check"></i> 25 recompensas exclusivas</li>
+                            <li><i class="fas fa-check"></i> +20% XP galáctico</li>
+                            <li><i class="fas fa-check"></i> Acceso a misiones premium</li>
+                            <li><i class="fas fa-check"></i> 3 skins estelares</li>
+                            <li><i class="fas fa-check"></i> Música de fondo exclusiva</li>
+                        </ul>
+                        <button class="upgrade-btn" data-tier="premium">ASCENDER</button>
+                    </div>
+
+                    <div class="upgrade-card featured" data-tier="crystal">
+                        <div class="daily-discount" style="display: none;">
+                            <i class="fas fa-tag"></i>
+                            <span class="discount-percent">-0%</span>
+                        </div>
+                        <div class="upgrade-header">
+                            <div class="upgrade-icon">
+                                <i class="fas fa-gem"></i>
+                            </div>
+                            <h3>CRISTAL</h3>
+                            <div class="upgrade-price">
+                                <span class="price original-price" style="display: none;">1000</span>
+                                <span class="price final-price">1000</span>
+                                <span class="currency">Puntos</span>
+                            </div>
+                        </div>
+                        <ul class="upgrade-benefits">
+                            <li><i class="fas fa-check"></i> Todo Nebulosa +</li>
+                            <li><i class="fas fa-check"></i> 15 recompensas cristal</li>
+                            <li><i class="fas fa-check"></i> +50% XP galáctico</li>
+                            <li><i class="fas fa-check"></i> Desbloqueo 10 niveles</li>
+                            <li><i class="fas fa-check"></i> Música épica exclusiva</li>
+                        </ul>
+                        <button class="upgrade-btn" data-tier="crystal">ASCENDER</button>
+                    </div>
+
+                    <div class="upgrade-card" data-tier="village">
+                        <div class="daily-discount" style="display: none;">
+                            <i class="fas fa-tag"></i>
+                            <span class="discount-percent">-0%</span>
+                        </div>
+                        <div class="upgrade-header">
+                            <div class="upgrade-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <h3>ALDEANIL</h3>
+                            <div class="upgrade-price">
+                                <span class="price original-price" style="display: none;">1500</span>
+                                <span class="price final-price">1500</span>
+                                <span class="currency">Puntos</span>
+                            </div>
+                        </div>
+                        <ul class="upgrade-benefits">
+                            <li><i class="fas fa-check"></i> Todo Cristal +</li>
+                            <li><i class="fas fa-check"></i> Skin aldeana exclusiva</li>
+                            <li><i class="fas fa-check"></i> +75% XP galáctico</li>
+                            <li><i class="fas fa-check"></i> Mascota cósmica</li>
+                            <li><i class="fas fa-check"></i> Banda sonora especial</li>
+                        </ul>
+                        <button class="upgrade-btn" data-tier="village">ASCENDER</button>
+                    </div>
+
+                    <div class="upgrade-card" data-tier="vip">
+                        <div class="daily-discount" style="display: none;">
+                            <i class="fas fa-tag"></i>
+                            <span class="discount-percent">-0%</span>
+                        </div>
+                        <div class="upgrade-header">
+                            <div class="upgrade-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <h3>GALÁCTICO</h3>
+                            <div class="upgrade-price">
+                                <span class="price original-price" style="display: none;">2500</span>
+                                <span class="price final-price">2500</span>
+                                <span class="currency">Puntos</span>
+                            </div>
+                        </div>
+                        <ul class="upgrade-benefits">
+                            <li><i class="fas fa-check"></i> Todo Aldeanil +</li>
+                            <li><i class="fas fa-check"></i> +100% XP galáctico</li>
+                            <li><i class="fas fa-check"></i> Desbloqueo 25 niveles</li>
+                            <li><i class="fas fa-check"></i> Acceso anticipado</li>
+                            <li><i class="fas fa-check"></i> OST completo premium</li>
+                        </ul>
+                        <button class="upgrade-btn" data-tier="vip">ASCENDER</button>
+                    </div>
+                </div>
+
+                <!-- Comparación -->
+                <div class="comparison-table">
+                    <h3><i class="fas fa-chart-bar"></i> COMPARACIÓN DE NIVELES</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Beneficio</th>
+                                    <th>Estelar</th>
+                                    <th>Nebulosa</th>
+                                    <th>Cristal</th>
+                                    <th>Aldeanil</th>
+                                    <th>Galáctico</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Recompensas Totales</td>
+                                    <td>15</td>
+                                    <td>40</td>
+                                    <td>55</td>
+                                    <td>60</td>
+                                    <td>80</td>
+                                </tr>
+                                <tr>
+                                    <td>XP Boost</td>
+                                    <td>0%</td>
+                                    <td>+20%</td>
+                                    <td>+50%</td>
+                                    <td>+75%</td>
+                                    <td>+100%</td>
+                                </tr>
+                                <tr>
+                                    <td>Skins Exclusivas</td>
+                                    <td>1</td>
+                                    <td>3</td>
+                                    <td>5</td>
+                                    <td>8</td>
+                                    <td>12</td>
+                                </tr>
+                                <tr>
+                                    <td>Misiones Especiales</td>
+                                    <td>No</td>
+                                    <td>Sí</td>
+                                    <td>Sí</td>
+                                    <td>Sí</td>
+                                    <td>Sí</td>
+                                </tr>
+                                <tr>
+                                    <td>Música de Fondo</td>
+                                    <td>Básica</td>
+                                    <td>Premium</td>
+                                    <td>Épica</td>
+                                    <td>Especial</td>
+                                    <td>OST Completo</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 5: Próximos Pases (Timeline) -->
+        <section class="galactic-section" id="timeline-section">
+            <div class="section-header">
+                <h2><i class="fas fa-calendar-alt"></i> LÍNEA TEMPORAL DE PASES</h2>
+                <div class="timeline-info">
+                    Próximas 5 temporadas galácticas
+                </div>
+            </div>
+
+            <div class="timeline-container">
+                <div class="timeline-track">
+                    <div class="timeline-line"></div>
+                    <div id="timelineItems">
+                        <!-- Items de timeline cargados dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Botón Flotante de Acción -->
+        <div class="floating-action">
+            <button class="action-btn" id="claimAllBtn">
+                <i class="fas fa-bolt"></i>
+                <span>RECLAMAR TODO</span>
+            </button>
+            <button class="action-btn secondary" id="quickUpgrade">
+                <i class="fas fa-arrow-up"></i>
+                <span>ASCENDER</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- Modal de Recompensa -->
+    <div id="rewardModal" class="galactic-modal">
+        <div class="modal-content">
+            <div class="modal-animation">
+                <div class="stars"></div>
+                <div class="reward-glow">
+                    <i class="fas fa-trophy"></i>
+                </div>
+            </div>
+            <div class="modal-body">
+                <h3>¡RECOMPENSA GALÁCTICA OBTENIDA!</h3>
+                <div class="reward-details">
+                    <div class="reward-icon-large" id="modalRewardIcon"></div>
+                    <div class="reward-info">
+                        <div class="reward-tier-modal" id="modalRewardTier">NEBULOSA</div>
+                        <h4 id="modalRewardName">Armadura Estelar</h4>
+                        <p class="reward-level" id="modalRewardLevel">Nivel 25</p>
+                        <p class="reward-description" id="modalRewardDesc">Una armadura forjada en el corazón de una estrella</p>
+                    </div>
+                </div>
+                <button class="modal-btn confirm-btn">CONTINUAR EXPLORACIÓN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Elements (música de fondo por tier) -->
+    <audio id="musicFree" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-space-game-668.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="musicPremium" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-galaxy-waves-838.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="musicCrystal" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="musicVillage" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-ethereal-fairy-win-sound-2019.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="musicVip" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-winning-elevation-2026.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="container footer__inner">
+            <div class="foot__brand">
+                <span class="cube"></span>
+                <strong>Moonveil</strong> Galactic
+            </div>
+            <nav class="foot__links" aria-label="Enlaces del sitio">
+                <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
+                <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
+                <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
+            </nav>
+            <p class="foot__copy">
+                © <span id="currentYear">2024</span> Moonveil. Órbita Actual: <span id="footerSeasonName">Esfera Nebulosa</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="pase.js"></script>
+    <script>
+        // Inicializar partículas
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#ffffff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: "#ffffff",
+                        opacity: 0.2,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: "none",
+                        random: true,
+                        straight: false,
+                        out_mode: "out",
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                },
+                retina_detect: true
+            });
+        });
+    </script>
+</body>
+</html>
