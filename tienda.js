@@ -1,663 +1,793 @@
 /* =========================================================
-   Moonveil Portal — Tienda (JS)
-   - Navbar responsive + HUD
-   - Partículas + Parallax
-   - Dataset de productos (7 secciones)
-   - Render dinámico por grillas
-   - Estados: destacado, agotado, restock automático (24h/7d/30d)
-   - Búsqueda y filtro por sección
-   - Modal de producto y compra (sin saldo)
-   - Reveal on scroll + Toast
-   - Persistencia en localStorage de stocks y timers
+   Moonveil Portal — Tienda (JS v3) — Restock por medianoche local
+   =========================================================
+
+   CAMBIO PRINCIPAL:
+   El restock ya NO se calcula desde el momento de compra.
+   Ahora se calcula a partir de la MEDIANOCHE LOCAL:
+     - "24h"  → medianoche del día siguiente (00:00:00 de mañana)
+     - "7d"   → medianoche de dentro de 7 días
+     - "30d"  → medianoche de dentro de 30 días
+   Así, si compras a las 14:00 con restock "24h", el stock
+   se restablece a las 00:00:00 del día siguiente, no 24h después.
+
+   CÓMO AGREGAR UN PRODUCTO:
+   Añade un objeto al array `products`:
+   {
+     id, name, img, emoji, quality, price, stock,
+     restock: null | '24h' | '7d' | '30d',
+     expiresAt: null | 'YYYY-MM-DD' | 'YYYY-MM-DDTHH:MM:SS',
+     section, gold, desc, tags[], amount (solo tickets)
+   }
    ========================================================= */
 
+'use strict';
+
+/* ─────────────────────────────────────
+   Utilidades básicas
+───────────────────────────────────── */
 const $ = (q, ctx = document) => ctx.querySelector(q);
 const $$ = (q, ctx = document) => Array.from(ctx.querySelectorAll(q));
+const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const now  = () => Date.now();
+const H24  = 86400000;
+const H1   = 3600000;
+const M1   = 60000;
+const S1   = 1000;
+const fmt  = { format: n => `⟡${n}` };
 
-/* ---------- Navbar responsive ---------- */
-const navToggle = $('#navToggle');
-const navLinks = $('#navLinks');
-navToggle?.addEventListener('click', ()=> navLinks.classList.toggle('open'));
+/* ─────────────────────────────────────
+   Medianoche local
+   Devuelve el timestamp de las 00:00:00 del día
+   que resulta de sumar `days` días enteros al día actual.
+   Ej: nextMidnightLocal(1) → medianoche de mañana
+       nextMidnightLocal(7) → medianoche de dentro de 7 días
+───────────────────────────────────── */
+function nextMidnightLocal(days) {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);          // ir a medianoche de HOY (hora local)
+  d.setDate(d.getDate() + days);    // sumar los días enteros
+  return d.getTime();
+}
 
-/* ---------- Año footer ---------- */
-$('#y').textContent = new Date().getFullYear();
+/* ─────────────────────────────────────
+   Countdown: años / días / horas / min / seg
+───────────────────────────────────── */
+function calcCountdown(targetMs) {
+  const diff = Math.max(0, targetMs - now());
+  if (diff === 0) return { yr: 0, d: 0, h: 0, m: 0, s: 0, expired: true };
+  const yr = Math.floor(diff / (365 * H24));
+  const rem1 = diff - yr * 365 * H24;
+  const d  = Math.floor(rem1 / H24);
+  const rem2 = rem1 - d * H24;
+  const h  = Math.floor(rem2 / H1);
+  const rem3 = rem2 - h * H1;
+  const m  = Math.floor(rem3 / M1);
+  const s  = Math.floor((rem3 - m * M1) / S1);
+  return { yr, d, h, m, s, expired: false };
+}
 
-/* ---------- HUD ---------- */
-(function setHudBars(){
-  $$('.hud-bar').forEach(b=>{
-    const v = +b.dataset.val || 50;
-    b.style.setProperty('--v', v);
-  });
-})();
+function fmtCD(v) { return String(v).padStart(2, '0') }
 
-/* ---------- Partículas ---------- */
-(function particles(){
-  const c = $('#bgParticles');
-  if (!c) return;
-  const ctx = c.getContext('2d');
-  const dpi = Math.max(1, window.devicePixelRatio || 1);
-  let w, h, parts;
+function cdBlocksHTML(prefix) {
+  return `
+    <div class="p-expiry-cd" id="${prefix}-cd">
+      <div class="p-cd-block"><span class="p-cd-val" id="${prefix}-yr">--</span><span class="p-cd-lbl">años</span></div>
+      <div class="p-cd-block"><span class="p-cd-val" id="${prefix}-d">--</span><span class="p-cd-lbl">días</span></div>
+      <div class="p-cd-block"><span class="p-cd-val" id="${prefix}-h">--</span><span class="p-cd-lbl">hrs</span></div>
+      <div class="p-cd-block"><span class="p-cd-val" id="${prefix}-m">--</span><span class="p-cd-lbl">min</span></div>
+      <div class="p-cd-block"><span class="p-cd-val" id="${prefix}-s">--</span><span class="p-cd-lbl">seg</span></div>
+    </div>`;
+}
 
-  const init = () => {
-    w = c.width = innerWidth * dpi;
-    h = c.height = innerHeight * dpi;
-    parts = new Array(90).fill(0).map(() => ({
-      x: Math.random()*w, y: Math.random()*h,
-      r: 1 + Math.random()*2*dpi,
-      s: .25 + Math.random()*1.1,
-      a: .15 + Math.random()*.35
-    }));
-  };
+const _cdIntervals = new Map();
+function startCountdown(prefix, targetMs) {
+  if (_cdIntervals.has(prefix)) { clearInterval(_cdIntervals.get(prefix)); _cdIntervals.delete(prefix); }
+  function tick() {
+    const el = (id) => document.getElementById(`${prefix}-${id}`);
+    const { yr, d, h, m, s, expired } = calcCountdown(targetMs);
+    if (el('yr')) el('yr').textContent = fmtCD(yr);
+    if (el('d'))  el('d').textContent  = fmtCD(d);
+    if (el('h'))  el('h').textContent  = fmtCD(h);
+    if (el('m'))  el('m').textContent  = fmtCD(m);
+    if (el('s'))  el('s').textContent  = fmtCD(s);
+    if (expired) { clearInterval(_cdIntervals.get(prefix)); _cdIntervals.delete(prefix); }
+  }
+  tick();
+  const iv = setInterval(tick, 1000);
+  _cdIntervals.set(prefix, iv);
+}
+function clearAllCountdowns() {
+  _cdIntervals.forEach(iv => clearInterval(iv));
+  _cdIntervals.clear();
+}
 
-  const tick = () => {
-    ctx.clearRect(0,0,w,h);
-    parts.forEach(p=>{
-      p.y += p.s; p.x += Math.sin(p.y*0.002)*0.35;
-      if (p.y > h) { p.y = -10; p.x = Math.random()*w; }
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle = `rgba(135,243,157,${p.a})`;
-      ctx.fill();
-    });
-    requestAnimationFrame(tick);
-  };
+function parseDate(str) {
+  if (!str) return null;
+  const d = new Date(str.includes('T') ? str : str + 'T23:59:59');
+  return isNaN(d) ? null : d.getTime();
+}
 
-  init(); tick();
-  addEventListener('resize', init);
-})();
-
-/* ---------- Parallax ---------- */
-(function parallax(){
-  const layers = $$('.layer');
-  if (!layers.length) return;
-  const k = [0, 0.03, 0.06, 0.1];
-  const onScroll = () => {
-    const y = scrollY || 0;
-    layers.forEach((el, i) => el.style.transform = `translateY(${y*k[i]}px)`);
-  };
-  onScroll();
-  addEventListener('scroll', onScroll, { passive:true });
-})();
-
-/* =========================================================
-   Helpers
-   ========================================================= */
-/*esto es para soles*/
-/*const fmt = new Intl.NumberFormat('es-PE', { style:'currency', currency:'PEN', maximumFractionDigits:0 });*/
-
-const fmt = { format: (n) => `⟡${n}` };
-
-const now = () => Date.now();
-const H24 = 24*60*60*1000;
-const D7  = 7*H24;
-const D30 = 30*H24;
-
-function escapeHTML(s){return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function cls(...xs){return xs.filter(Boolean).join(' ')}
-
-/* =========================================================
-   DATASET (muestra; puedes añadir más items si deseas)
-   Campos:
-   id, name, img, quality ('common','rare','epic','legendary'),
-   price, stock, restock ('24h'|'7d'|'30d'|null),
-   section ('pases'|'llaves'|'cosas'|'historia'|'materiales'|'eventos'|'monedas'),
-   gold (destacado), desc, tags[]
-   ========================================================= */
-
+/* ─────────────────────────────────────
+   DATASET DE PRODUCTOS
+───────────────────────────────────── */
 const products = [
   /* ===== PASES DE TEMPORADA ===== */
-  { id:'s1', name:'Pase Lamento — Temporada I', img:'img-pass/banwar.jpg', quality:'legendary', price:128, stock:1,  restock:null, section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Septiembre.', tags:['pase','cosmético','reto'] },
-  { id:'s2', name:'Pase Alma — Temporada II', img:'img-pass/banhall.jpg', quality:'legendary', price:128,  stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Octubre.', tags:['pase','acelerado'] },
-  { id:'s3', name:'Pase 404 — Temporada III', img:'img-pass/partymine.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Noviembre.', tags:['pase','xp'] },
-  { id:'s4', name:'Pase Árboreo — Temporada IV', img:'img-pass/chrismine.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Diciembre.', tags:['pase','xp'] },
-  { id:'s5', name:'Pase Resurge — Temporada V', img:'img-pass/añomine.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Enero.', tags:['pase','xp'] },
-  { id:'s6', name:'Pase Carbón — Temporada VI', img:'img-pass/banair.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Febrero.', tags:['pase','xp'] },
-  { id:'s7', name:'Pase Carbón — Temporada VII', img:'img-pass/dancingmine.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Marzo.', tags:['pase','xp'] },
-  { id:'s8', name:'Pase Carbón — Temporada VIII', img:'img-pass/squemine.jpg', quality:'legendary', price:128, stock:1, restock:null, section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Abril.', tags:['pase','xp'] },
+  { id:'s1', emoji:'🏆', name:'Pase Lamento — Temporada I',   img:'img-pass/banwar.jpg',     quality:'legendary', price:128, stock:1, restock:null, expiresAt:null, section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Septiembre.', tags:['pase','cosmético','reto'] },
+  { id:'s2', emoji:'🏆', name:'Pase Alma — Temporada II',     img:'img-pass/banhall.jpg',    quality:'legendary', price:128, stock:1, restock:null, expiresAt:null, section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Octubre.', tags:['pase','acelerado'] },
+  { id:'s3', emoji:'🏆', name:'Pase 404 — Temporada III',     img:'img-pass/partymine.jpg',  quality:'legendary', price:128, stock:1, restock:null, expiresAt:null, section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Noviembre.', tags:['pase','xp'] },
+  { id:'s4', emoji:'🏆', name:'Pase Árboreo — Temporada IV',  img:'img-pass/chrismine.jpg',  quality:'legendary', price:128, stock:1, restock:null, expiresAt:null, section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Diciembre.', tags:['pase','xp'] },
+  { id:'s5', emoji:'🏆', name:'Pase Resurge — Temporada V',   img:'img-pass/añomine.jpg',    quality:'legendary', price:128, stock:1, restock:null, expiresAt:null, section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Enero.', tags:['pase','xp'] },
+  { id:'s6', emoji:'🏆', name:'Pase Carbón — Temporada VI',   img:'img-pass/banair.jpg',     quality:'legendary', price:128, stock:1, restock:null, expiresAt:null, section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Febrero.', tags:['pase','xp'] },
+  { id:'s7', emoji:'🏆', name:'Pase Carbón — Temporada VII',  img:'img-pass/dancingmine.jpg',quality:'legendary', price:128, stock:1, restock:null, expiresAt:null, section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Marzo.', tags:['pase','xp'] },
+  { id:'s8', emoji:'🏆', name:'Pase Carbón — Temporada VIII', img:'img-pass/squemine.jpg',   quality:'legendary', price:128, stock:1, restock:null, expiresAt:null, section:'pases', gold:true,  desc:'Desbloquea recompensas de la temporada de Abril.', tags:['pase','xp'] },
 
-  /* ===== LLAVES ===== común*/
-  { id:'k1', name:'Cofre de Ambar', img:'img/chest2.gif', quality:'epic', price:30,  stock:10, restock:'7d', section:'llaves', gold:false, desc:'Abre este cofre de Ambar.', tags:['cofre','epico'] },
-  { id:'k2', name:'Cofre de Sueños', img:'img/chest2.gif', quality:'epic', price:30, stock:10, restock:'7d', section:'llaves', gold:false, desc:'Abre este cofre de los Sueños que algunas vez hubo...', tags:['cofre','epico'] },
-  { id:'k3', name:'Cofre de Moonveil', img:'img/chest2.gif', quality:'legendary', price:10, stock:10, restock:'7d', section:'llaves', gold:true, desc:'Abre este cofre Moon-Veil.', tags:['cofre','legendario'] },
-  { id:'k4', name:'Cofre de Moonveil II', img:'img/chest2.gif', quality:'legendary', price:30, stock:5, restock:'7d', section:'llaves', gold:true, desc:'Abre este cofre Moon por ████.', tags:['cofre','█████'] },
+  /* ===== COFRES ===== */
+  { id:'k1', emoji:'🗝️', name:'Cofre de Ámbar',       img:'img/chest2.gif', quality:'epic',      price:30,  stock:10, restock:'7d', expiresAt:null, section:'llaves', gold:false, desc:'Abre este cofre de Ámbar.', tags:['cofre','epico'] },
+  { id:'k2', emoji:'🗝️', name:'Cofre de Sueños',      img:'img/chest2.gif', quality:'epic',      price:30,  stock:10, restock:'7d', expiresAt:null, section:'llaves', gold:false, desc:'Abre este cofre de los Sueños que alguna vez hubo…', tags:['cofre','epico'] },
+  { id:'k3', emoji:'🗝️', name:'Cofre de Moonveil',    img:'img/chest2.gif', quality:'legendary', price:10,  stock:10, restock:'7d', expiresAt:null, section:'llaves', gold:true,  desc:'Abre este cofre Moon-Veil.', tags:['cofre','legendario'] },
+  { id:'k4', emoji:'🗝️', name:'Cofre de Moonveil II', img:'img/chest2.gif', quality:'legendary', price:30,  stock:5,  restock:'7d', expiresAt:null, section:'llaves', gold:true,  desc:'Abre este cofre Moon por ████.', tags:['cofre','█████'] },
 
-  /* ===== COSAS INTERESANTES ===== */
-  { id:'f1', name:'Rieles (x64)', img:'imagen/phantom.gif', quality:'epic', price:64, stock:10, restock:'24h', section:'cosas', gold:false, desc:'Unos rieles que siempre vienen bien.', tags:['Rieles'] },
-  { id:'f2', name:'Rieles Activadores (x64)', img:'imagen/phantom.gif', quality:'epic', price:128, stock:10, restock:'24h', section:'cosas', gold:false, desc:'Activemos estos rieles...', tags:['Rieles','velocidad'] },
-  { id:'f3', name:'Rieles (x64) x2', img:'imagen/phantom.gif', quality:'epic', price:64, stock:2, restock:'7d', section:'cosas', gold:true, desc:'Un x2 en rieles, ¡guau! y con Descuento!!', tags:['Rieles'] },
-  { id:'f4', name:'Concreto (x64)', img:'imagen/phantom.gif', quality:'epic', price:64, stock:20, restock:'24h', section:'cosas', gold:false, desc:'Para construir', tags:['Concreto','construccion'] },
-  { id:'f5', name:'Bloques de Hierro (x64)', img:'imagen/phantom.gif', quality:'epic', price:128, stock:10, restock:'7d', section:'cosas', gold:false, desc:'Algunos bloques...', tags:['Bloques'] },
-  { id:'f6', name:'Bloques de Hierro (x64) x4', img:'imagen/phantom.gif', quality:'legendary', price:128, stock:1, restock:null, section:'cosas', gold:true, desc:'Oferta y demanda, ¿seguro?', tags:['Bloques','Oferta'] },
-  { id:'f7', name:'Bloques de Diamante (x64) x4', img:'imagen/phantom.gif', quality:'legendary', price:128, stock:1, restock:null, section:'cosas', gold:true, desc:'Bueno brillemos...', tags:['Bloques','Oferta'] },
-  { id:'f8', name:'Esmeralda x1', img:'imagen/phantom.gif', quality:'legendary', price:1, stock:1, restock:null, section:'cosas', gold:true, desc:'Sand Brill, te desae una ¡Gran Navidad!, pero es tan tacaño que no da mas de 1 esmeralda...', tags:['Sand','Brill'] },
+  /* ===== MATERIALES ===== */
+  { id:'f1', emoji:'⚙️', name:'Rieles (x64)',              img:'imagen/phantom.gif', quality:'epic',      price:64,  stock:10, restock:'24h', expiresAt:null, section:'cosas', gold:false, desc:'Unos rieles que siempre vienen bien.', tags:['Rieles'] },
+  { id:'f2', emoji:'⚙️', name:'Rieles Activadores (x64)',  img:'imagen/phantom.gif', quality:'epic',      price:128, stock:10, restock:'24h', expiresAt:null, section:'cosas', gold:false, desc:'Activemos estos rieles…', tags:['Rieles','velocidad'] },
+  { id:'f3', emoji:'⚙️', name:'Rieles (x64) x2',           img:'imagen/phantom.gif', quality:'epic',      price:64,  stock:2,  restock:'7d',  expiresAt:null, section:'cosas', gold:true,  desc:'Un x2 en rieles, ¡guau! Con descuento!', tags:['Rieles'] },
+  { id:'f4', emoji:'🧱', name:'Concreto (x64)',             img:'imagen/phantom.gif', quality:'epic',      price:64,  stock:20, restock:'24h', expiresAt:null, section:'cosas', gold:false, desc:'Para construir.', tags:['Concreto','construccion'] },
+  { id:'f5', emoji:'🔩', name:'Bloques de Hierro (x64)',    img:'imagen/phantom.gif', quality:'epic',      price:128, stock:10, restock:'7d',  expiresAt:null, section:'cosas', gold:false, desc:'Algunos bloques…', tags:['Bloques'] },
+  { id:'f6', emoji:'🔩', name:'Bloques de Hierro (x64) x4', img:'imagen/phantom.gif', quality:'legendary', price:128, stock:1,  restock:null,  expiresAt:null, section:'cosas', gold:true,  desc:'Oferta y demanda, ¿seguro?', tags:['Bloques','Oferta'] },
+  { id:'f7', emoji:'💎', name:'Bloques de Diamante (x64) x4',img:'imagen/phantom.gif',quality:'legendary', price:128, stock:1,  restock:null,  expiresAt:null, section:'cosas', gold:true,  desc:'Bueno brillemos…', tags:['Bloques','Oferta'] },
+  { id:'f8', emoji:'💚', name:'Esmeralda x1',               img:'imagen/phantom.gif', quality:'legendary', price:1,   stock:1,  restock:null,  expiresAt:null, section:'cosas', gold:true,  desc:'Sand Brill te desea una ¡Gran Navidad!, pero es tan tacaño que no da más de 1 esmeralda…', tags:['Sand','Brill'] },
 
   /* ===== HISTORIA ===== */
-  { id:'l1', name:'Libro: “Bosque de Jade”', img:'img/bookmine.jpg', quality:'rare', price:256, stock:1, restock:null, section:'historia', gold:false, desc:'Leyendas de...', tags:['lore','bioma'] },
-  { id:'l2', name:'Libro: “La Negra Noche”', img:'img/bookmine.jpg', quality:'epic', price:256, stock:1, restock:null, section:'historia', gold:false, desc:'Símbolos...', tags:['runas','forja'] },
-  { id:'l3', name:'Libro: “El lado ███ de S██ B███”', img:'img/bookcat.gif', quality:'legendary', price:384, stock:1, restock:null, section:'historia', gold:true, desc:'█████████.', tags:['reliquia','desierto'] },
-  { id:'l4', name:'Libro A1', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
-  { id:'l5', name:'Libro B2', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
-  { id:'l6', name:'Libro A2', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
-  { id:'l7', name:'Libro C3', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
+  { id:'l1', emoji:'📚', name:'Libro: "Bosque de Jade"',             img:'img/bookmine.jpg', quality:'rare',      price:256, stock:1, restock:null, expiresAt:null, section:'historia', gold:false, desc:'Leyendas de…', tags:['lore','bioma'] },
+  { id:'l2', emoji:'📚', name:'Libro: "La Negra Noche"',             img:'img/bookmine.jpg', quality:'epic',      price:256, stock:1, restock:null, expiresAt:null, section:'historia', gold:false, desc:'Símbolos…', tags:['runas','forja'] },
+  { id:'l3', emoji:'📚', name:'Libro: "El lado ███ de S██ B███"',    img:'img/bookcat.gif',  quality:'legendary', price:384, stock:1, restock:null, expiresAt:null, section:'historia', gold:true,  desc:'█████████.', tags:['reliquia','desierto'] },
+  { id:'l4', emoji:'📖', name:'Libro A1', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, expiresAt:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
+  { id:'l5', emoji:'📖', name:'Libro B2', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, expiresAt:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
+  { id:'l6', emoji:'📖', name:'Libro A2', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, expiresAt:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
+  { id:'l7', emoji:'📖', name:'Libro C3', img:'img/book.jpg', quality:'epic', price:128, stock:1, restock:null, expiresAt:null, section:'historia', gold:false, desc:'Un libro.', tags:['libro','lectura'] },
 
-  /* ===== MATERIALES ===== metal, cristal, madera*/
-  { id:'m1', name:'Pegatina de 1c.', img:'img/coin.jpg', quality:'common', price:0, stock:1, restock:'24h', section:'materiales', gold:false, desc:'Gratis.', tags:['coin','monedas'] },
-  { id:'m2', name:'Bolsita de 30c.', img:'img/coin.jpg', quality:'rare', price:15, stock:10, restock:'7d', section:'materiales', gold:false, desc:'Para trueques y consumibles básicos.', tags:['coin','monedas'] },
-  { id:'m3', name:'Pack de 90c.', img:'img/packcoin.jpg', quality:'epic', price:30, stock:10, restock:'7d', section:'materiales', gold:false, desc:'Relación costo/beneficio equilibrada.', tags:['pack-coin','monedas'] },
-  { id:'m4', name:'Lote de 120c.', img:'img/stackcoin.jpg', quality:'legendary', price:60, stock:10, restock:'30d', section:'materiales', gold:true, desc:'Ideal para temporadas.', tags:['stack-coin','monedas'] },
+  /* ===== LOTE MONEDAS ===== */
+  { id:'m1', emoji:'🪙', name:'Pegatina de 1c.',  img:'img/coin.jpg',      quality:'common',    price:0,  stock:1,  restock:'24h', expiresAt:null, section:'materiales', gold:false, desc:'Gratis.', tags:['coin','monedas'] },
+  { id:'m2', emoji:'🪙', name:'Bolsita de 30c.',  img:'img/coin.jpg',      quality:'rare',      price:15, stock:10, restock:'7d',  expiresAt:null, section:'materiales', gold:false, desc:'Para trueques y consumibles básicos.', tags:['coin','monedas'] },
+  { id:'m3', emoji:'🪙', name:'Pack de 90c.',     img:'img/packcoin.jpg',  quality:'epic',      price:30, stock:10, restock:'7d',  expiresAt:null, section:'materiales', gold:false, desc:'Relación costo/beneficio equilibrada.', tags:['pack-coin','monedas'] },
+  { id:'m4', emoji:'🪙', name:'Lote de 120c.',    img:'img/stackcoin.jpg', quality:'legendary', price:60, stock:10, restock:'30d', expiresAt:null, section:'materiales', gold:true,  desc:'Ideal para temporadas.', tags:['stack-coin','monedas'] },
 
   /* ===== PASES DE EVENTO ===== */
-  { id:'e1', name:'Pase en la Oscuridad', img:'img-pass/banhall.jpg', quality:'legendary', price:256, stock:1, restock:'30d', section:'eventos', gold:true, desc:'Algo tal vez... Se acerca...', tags:['evento','acuático'] },
-  { id:'e2', name:'Pase Gatos 😺✨', img:'img-pass/catsparty.jpg', quality:'legendary', price:256, stock:1, restock:'30d', section:'eventos', gold:false, desc:'Gatos y mas gatos...¿Gatos?', tags:['evento','nocturno'] },
+  { id:'e1', emoji:'🎪', name:'Pase en la Oscuridad', img:'img-pass/banhall.jpg',   quality:'legendary', price:256, stock:1, restock:'30d', expiresAt:'2026-12-31', section:'eventos', gold:true,  desc:'Algo tal vez... Se acerca…', tags:['evento','acuático'] },
+  { id:'e2', emoji:'🐱', name:'Pase Gatos 😺✨',       img:'img-pass/catsparty.jpg', quality:'legendary', price:256, stock:1, restock:'30d', expiresAt:'2026-08-17', section:'eventos', gold:false, desc:'Gatos y más gatos… ¿Gatos?', tags:['evento','nocturno'] },
 
-  /* ===== MONEDAS ===== */
-  { id:'c1', name:'Pack de 128r.', img:'img/coin.jpg', quality:'common', price:64, stock:999, restock:null, section:'monedas', gold:false, desc:'Para trueques y consumibles básicos.(2 stacks)', tags:['monedas','pack'] },
-  { id:'c2', name:'Pack de 256r.', img:'img/packcoin.jpg', quality:'rare', price:128, stock:999, restock:null, section:'monedas', gold:false, desc:'Relación costo/beneficio equilibrada.(4 stacks)', tags:['monedas','pack'] },
-  { id:'c3', name:'Pack de 384r.', img:'img/stackcoin.jpg', quality:'epic', price:256, stock:999, restock:null, section:'monedas', gold:true, desc:'Ideal para temporadas completas.(6 stacks)', tags:['monedas','pack'] },
+  /* ===== PACK DE MONEDAS ===== */
+  { id:'c1', emoji:'💰', name:'Pack de 128r.', img:'img/coin.jpg',      quality:'common', price:64,  stock:999, restock:null, expiresAt:null, section:'monedas', gold:false, desc:'Para trueques y consumibles básicos. (2 stacks)', tags:['monedas','pack'] },
+  { id:'c2', emoji:'💰', name:'Pack de 256r.', img:'img/packcoin.jpg',  quality:'rare',   price:128, stock:999, restock:null, expiresAt:null, section:'monedas', gold:false, desc:'Relación costo/beneficio equilibrada. (4 stacks)', tags:['monedas','pack'] },
+  { id:'c3', emoji:'💰', name:'Pack de 384r.', img:'img/stackcoin.jpg', quality:'epic',   price:256, stock:999, restock:null, expiresAt:null, section:'monedas', gold:true,  desc:'Ideal para temporadas completas. (6 stacks)', tags:['monedas','pack'] },
 
-
-  /* ===== TICKETS DE RULETA ===== */
-
-  { id:'t_classic_1', name:'Ticket Clasico', img:'imagen/ticket5.jpg', quality:'epic', price:10,  stock:10, restock:'24h', amount:1 , section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','clasico'] },
-  //{ id:'t_mystic_1', name:'Ticket Halloween', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','Halloween'] },
-  { id:'t_elemental_1', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','elemental'] },
-  { id:'t_event_1', name:'Ticket evento', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h',  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta', tags:['ticket','evento'] },
-  { id:'t_classic_2', name:'Ticket Clasico', img:'imagen/ticket5.jpg', quality:'epic', price:30,  stock:10, restock:'24h', amount:5 , section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','clasico'] },
-  //{ id:'t_mystic_2', name:'Ticket Halloween', img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','Halloween'] },
-  { id:'t_elemental_2', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','elemental'] },
-  { id:'t_event_2', name:'Ticket evento', img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h',  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','evento'] },
-  { id:'t_classic_3', name:'Bienvenida a los tickets!!', img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1, restock:null, amount:10 , section:'tickets', gold:true, desc:'Ticket para la ruleta clasica x10', tags:['ticket','clasico'] },
-  { id:'t_classic_4', name:'Tiros Gratis!!', img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1, restock:'30d', amount:10 , section:'tickets', gold:true, desc:'Ticket para la ruleta clasica x10', tags:['ticket','clasico'] },
-  { id:'t_elemental_3', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:1, restock:null,  amount:5, section:'tickets', gold:false, desc:'Ticket para la ruleta x5', tags:['ticket','elemental'] },
-  { id:'t_elemental_4', name:'Ticket 1 de Cobre', img:'imagen/ticket5.jpg', quality:'epic', price:1, stock:1, restock:null,  amount:1, section:'tickets', gold:false, desc:'Ticket para la ruleta x1', tags:['ticket','elemental'] },
-
-/* ===== TICKETS PARA RULETAS ===== */
-
+  /* ===== TICKETS ===== */
+  { id:'t_classic_1',   emoji:'🎫', name:'Ticket Clásico',              img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h', expiresAt:null, amount:1,  section:'tickets', gold:false, desc:'Ticket para la ruleta clásica.', tags:['ticket','clasico'] },
+  { id:'t_elemental_1', emoji:'🎫', name:'Ticket 1 de Cobre',           img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h', expiresAt:null, amount:1,  section:'tickets', gold:false, desc:'Ticket para la ruleta elemental.', tags:['ticket','elemental'] },
+  { id:'t_event_1',     emoji:'🎫', name:'Ticket Evento',               img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:10, restock:'24h', expiresAt:null, amount:1,  section:'tickets', gold:false, desc:'Ticket para la ruleta de eventos.', tags:['ticket','evento'] },
+  { id:'t_classic_2',   emoji:'🎫', name:'Ticket Clásico x5',           img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h', expiresAt:null, amount:5,  section:'tickets', gold:false, desc:'Ticket para la ruleta clásica x5.', tags:['ticket','clasico'] },
+  { id:'t_elemental_2', emoji:'🎫', name:'Ticket 1 de Cobre x5',        img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h', expiresAt:null, amount:5,  section:'tickets', gold:false, desc:'Ticket para la ruleta elemental x5.', tags:['ticket','elemental'] },
+  { id:'t_event_2',     emoji:'🎫', name:'Ticket Evento x5',            img:'imagen/ticket5.jpg', quality:'epic', price:30, stock:10, restock:'24h', expiresAt:null, amount:5,  section:'tickets', gold:false, desc:'Ticket para la ruleta de eventos x5.', tags:['ticket','evento'] },
+  { id:'t_classic_3',   emoji:'🎉', name:'¡Bienvenida a los tickets!!', img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1,  restock:null,  expiresAt:null, amount:10, section:'tickets', gold:true,  desc:'Ticket para la ruleta clásica x10.', tags:['ticket','clasico'] },
+  { id:'t_classic_4',   emoji:'🎰', name:'Tiros Gratis!!',              img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1,  restock:'30d', expiresAt:null, amount:10, section:'tickets', gold:true,  desc:'Ticket para la ruleta clásica x10.', tags:['ticket','clasico'] },
+  { id:'t_elemental_3', emoji:'🎫', name:'Ticket 1 de Cobre x5',        img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:1,  restock:null,  expiresAt:null, amount:5,  section:'tickets', gold:false, desc:'Ticket para la ruleta elemental x5.', tags:['ticket','elemental'] },
+  { id:'t_elemental_4', emoji:'🎫', name:'Ticket 1 de Cobre x1',        img:'imagen/ticket5.jpg', quality:'epic', price:1,  stock:1,  restock:null,  expiresAt:null, amount:1,  section:'tickets', gold:false, desc:'Ticket para la ruleta elemental x1.', tags:['ticket','elemental'] },
 ];
 
-/* =========================================================
-   Persistencia de stock por producto en localStorage
-   Claves:
-   - mv_stock_<id> = número
-   - mv_restock_<id> = timestamp en ms del próximo restock (o null)
-   ========================================================= */
-function keyStock(id){return `mv_stock_${id}`}
-function keyRestock(id){return `mv_restock_${id}`}
+/* ─────────────────────────────────────
+   Persistencia en localStorage
+   ─────────────────────────────────────
+   CAMBIO CLAVE: calcNext ahora calcula la medianoche local
+   en vez de now() + intervalo.
 
-function getStock(p){
-  const v = localStorage.getItem(keyStock(p.id));
-  return v==null ? p.stock : Math.max(0, parseInt(v,10) || 0);
+   Tabla de conversión restock → días:
+     '24h'  → 1 día  (medianoche de mañana)
+     '7d'   → 7 días (medianoche en 7 días)
+     '30d'  → 30 días (medianoche en 30 días)
+───────────────────────────────────── */
+const RESTOCK_DAYS = { '24h': 1, '7d': 7, '30d': 30 };
+
+const LS = {
+  stock:   id => `mv_stock_${id}`,
+  restock: id => `mv_restock_${id}`,
+
+  getStock(p)  {
+    const v = localStorage.getItem(this.stock(p.id));
+    return v == null ? p.stock : Math.max(0, parseInt(v, 10) || 0);
+  },
+  setStock(p, v) {
+    localStorage.setItem(this.stock(p.id), String(Math.max(0, v|0)));
+  },
+  getNext(p) {
+    const v = localStorage.getItem(this.restock(p.id));
+    return v == null ? this.calcNext(p) : (v === 'null' ? null : Number(v));
+  },
+  setNext(p, ts) {
+    localStorage.setItem(this.restock(p.id), ts == null ? 'null' : String(ts));
+  },
+
+  /* ── NUEVA LÓGICA: medianoche local ── */
+  calcNext(p) {
+    if (!p.restock) return null;
+    const days = RESTOCK_DAYS[p.restock];
+    if (!days) return null;
+    return nextMidnightLocal(days);
+  },
+};
+
+function syncStocks() {
+  products.forEach(p => {
+    // Primera vez: inicializar stock
+    if (localStorage.getItem(LS.stock(p.id)) == null) {
+      LS.setStock(p, p.stock);
+    }
+    // Primera vez: inicializar timestamp de restock
+    if (localStorage.getItem(LS.restock(p.id)) == null) {
+      // No programamos restock al inicio, solo cuando se agote
+      LS.setNext(p, null);
+    } else {
+      // Ya existe: comprobar si ya llegó el momento de restock
+      const ts = LS.getNext(p);
+      if (ts && ts <= now()) {
+        // Restablecer stock y calcular SIGUIENTE medianoche
+        LS.setStock(p, p.stock);
+        LS.setNext(p, LS.calcNext(p));
+      }
+    }
+  });
 }
-function setStock(p, val){
-  localStorage.setItem(keyStock(p.id), String(Math.max(0, val|0)));
-}
-function getNextRestock(p){
-  const v = localStorage.getItem(keyRestock(p.id));
-  return v==null ? computeNextRestock(p) : (v==='null'?null:Number(v));
-}
-function setNextRestock(p, ts){
-  localStorage.setItem(keyRestock(p.id), ts==null ? 'null' : String(ts));
-}
-function intervalMs(tag){
-  if (tag==='24h') return H24;
-  if (tag==='7d')  return D7;
-  if (tag==='30d') return D30;
-  return null;
-}
-function computeNextRestock(p){
-  if (!p.restock) return null;
-  return now()+intervalMs(p.restock);
+
+/* ─────────────────────────────────────
+   Tiempo amigable
+───────────────────────────────────── */
+function timeLeft(ts) {
+  const diff = Math.max(0, ts - now());
+  const rD = Math.floor(diff / H24);
+  const h = Math.floor((diff % H24) / H1);
+  const m = Math.floor((diff % H1) / M1);
+  const s = Math.floor((diff % M1) / S1);
+  if (rD >= 1) return `${rD}d ${h}h`;
+  if (h  >= 1) return `${h}h ${m}m`;
+  return `${m}m ${s}s`;
 }
 
-/* =========================================================
-   Selectores de grillas + filtros
-   ========================================================= */
-const gridSeason = $('#gridSeason');
-const gridKeys   = $('#gridKeys');
-const gridFun    = $('#gridFun');
-const gridLore   = $('#gridLore');
-const gridMats   = $('#gridMats');
-const gridEvents = $('#gridEvents');
-const gridTickets  = $('#gridTickets');
-const gridCoins  = $('#gridCoins');
-
-
-
-
-const chipSections = $('#chipSections');
-const searchInput = $('#searchInput');
-const clearSearch = $('#clearSearch');
-
-/* Modal */
-const modal = $('#productModal');
-const modalOverlay = $('#modalOverlay');
-const modalClose = $('#modalClose');
-const modalTitle = $('#modalTitle');
-const modalBody = $('#modalBody');
-const modalBuy = $('#modalBuy');
-
+/* ─────────────────────────────────────
+   Estado UI
+───────────────────────────────────── */
 let filteredSection = 'all';
 let searchText = '';
 let currentProduct = null;
 
-/* =========================================================
-   Init
-   ========================================================= */
-document.addEventListener('DOMContentLoaded', ()=>{
-  // Revelado
-  observeReveal();
-  // Render
-  synchronizeStocks();
-  renderAll();
-  // Events filtros/busqueda
-  // dentro de renderAll(), al principio:
-  renderCouponUI();
+/* ─────────────────────────────────────
+   RENDER PRINCIPAL
+───────────────────────────────────── */
+function renderAll() {
+  clearAllCountdowns();
 
-  chipSections.addEventListener('click', onChipSection);
-  searchInput.addEventListener('input', onSearch);
-  clearSearch.addEventListener('click', ()=>{ searchInput.value=''; searchText=''; renderAll(); });
-});
-
-/* =========================================================
-   Sincronización de stock y restocks programados
-   ========================================================= */
-function synchronizeStocks(){
-  products.forEach(p=>{
-    // Inicializar stock si no existe
-    if (localStorage.getItem(keyStock(p.id))==null) setStock(p, p.stock);
-    // Inicializar/restaurar próximo restock
-    if (localStorage.getItem(keyRestock(p.id))==null){
-      const n = computeNextRestock(p);
-      setNextRestock(p, n);
-    }else{
-      const ts = getNextRestock(p);
-      if (ts && ts <= now()){
-        // Reponer
-        setStock(p, p.stock);
-        setNextRestock(p, computeNextRestock(p));
-      }
-    }
-  });
-}
-
-/* =========================================================
-   Render principal: filtra por sección + búsqueda
-   ========================================================= */
-function renderAll(){
-  const matches = (p)=>{
-    const secOk = filteredSection==='all' || p.section===filteredSection;
-    const q = searchText.trim().toLowerCase();
-    const txt = `${p.name} ${p.quality} ${p.desc} ${p.tags.join(' ')}`.toLowerCase();
-    const searchOk = !q || txt.includes(q);
-    return secOk && searchOk;
+  const matches = p => {
+    const secOk = filteredSection === 'all' || p.section === filteredSection;
+    const q = (searchText || '').trim().toLowerCase();
+    const txt = `${p.name} ${p.quality} ${p.desc} ${(p.tags||[]).join(' ')}`.toLowerCase();
+    return secOk && (!q || txt.includes(q));
   };
   const arr = products.filter(matches);
 
-  // Partición por secciones
-  const S = arr.filter(p=>p.section==='pases');
-  const K = arr.filter(p=>p.section==='llaves');
-  const F = arr.filter(p=>p.section==='cosas');
-  const L = arr.filter(p=>p.section==='historia');
-  const M = arr.filter(p=>p.section==='materiales');
-  const E = arr.filter(p=>p.section==='eventos');
-  const C = arr.filter(p=>p.section==='monedas');
-  const T = arr.filter(p=>p.section==='tickets');
+  const grids = {
+    pases:     'gridSeason',
+    llaves:    'gridKeys',
+    cosas:     'gridFun',
+    historia:  'gridLore',
+    materiales:'gridMats',
+    eventos:   'gridEvents',
+    monedas:   'gridCoins',
+    tickets:   'gridTickets',
+  };
+  const secNames = {
+    pases:'No hay pases disponibles.',llaves:'No hay cofres por ahora.',
+    cosas:'Sin materiales disponibles.',historia:'No hay historia disponible.',
+    materiales:'Sin monedas disponibles.',eventos:'No hay eventos activos.',
+    monedas:'No hay packs de monedas.',tickets:'No hay tickets en este momento.',
+  };
 
-  gridSeason.innerHTML = S.map(cardTemplate).join('') || emptyBlock('No hay pases disponibles.');
-  gridKeys.innerHTML   = K.map(cardTemplate).join('') || emptyBlock('No hay llaves por ahora.');
-  gridFun.innerHTML    = F.map(cardTemplate).join('') || emptyBlock('No hay curiosidades ahora.');
-  gridLore.innerHTML   = L.map(cardTemplate).join('') || emptyBlock('No hay historia disponible.');
-  gridMats.innerHTML   = M.map(cardTemplate).join('') || emptyBlock('Sin materiales.');
-  gridEvents.innerHTML = E.map(cardTemplate).join('') || emptyBlock('No hay eventos activos.');
-  gridCoins.innerHTML  = C.map(cardTemplate).join('') || emptyBlock('No hay packs de monedas.');
-  gridTickets.innerHTML  = T.map(cardTemplate).join('') || emptyBlock('No hay tickets en estos momentos.');
+  const pendingCDs = [];
 
-  // Bind eventos
-  $$('[data-open]').forEach(b=> b.addEventListener('click', ()=> openModal(b.getAttribute('data-open'))));
-  $$('[data-buy]').forEach(b=> b.addEventListener('click', ()=> buyItem(b.getAttribute('data-buy'))));
+  Object.entries(grids).forEach(([sec, gridId]) => {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    const items = arr.filter(p => p.section === sec);
+    if (!items.length) {
+      grid.innerHTML = `<div class="p-empty">${esc(secNames[sec] || 'Sin productos.')}</div>`;
+      return;
+    }
+    grid.innerHTML = items.map((p, i) => {
+      const { html, cdEntry } = cardHTML(p, i);
+      if (cdEntry) pendingCDs.push(cdEntry);
+      return html;
+    }).join('');
+  });
+
+  $$('[data-open]').forEach(b => b.addEventListener('click', () => openModal(b.dataset.open)));
+  $$('[data-buy]').forEach(b  => b.addEventListener('click', () => buyItem(b.dataset.buy)));
+
+  pendingCDs.forEach(({ prefix, targetMs }) => startCountdown(prefix, targetMs));
+
+  $$('.shop-sec').forEach(sec => {
+    const s = sec.dataset.sec;
+    const hasContent = filteredSection === 'all' || filteredSection === s;
+    sec.style.display = hasContent ? '' : 'none';
+  });
 }
 
-/* =========================================================
-   Tarjeta de producto
-   ========================================================= */
-function cardTemplate(p){
-  const st = getStock(p);
-  const next = getNextRestock(p);
-  const isOut = st<=0;
-  const qCl = p.quality==='legendary' ? 'q-legendary' : p.quality==='epic' ? 'q-epic' : p.quality==='rare' ? 'q-rare' : 'q-common';
+/* ─────────────────────────────────────
+   TEMPLATE DE TARJETA
+───────────────────────────────────── */
+function cardHTML(p, idx) {
+  const st    = LS.getStock(p);
+  const next  = LS.getNext(p);
+  const isOut = st <= 0;
+  const qCl   = `q-${p.quality}`;
   const goldCl = p.gold ? 'gold' : '';
-  const restockInfo = p.restock ? `<span class="badge">Restock: ${p.restock}</span>` : '';
+  const expiryMs = parseDate(p.expiresAt);
+
+  let expirySection = '';
+  let cdEntry = null;
+  if (expiryMs && !isOut) {
+    const prefix = `cd-card-${p.id}`;
+    expirySection = `
+      <div class="p-expiry-wrap">
+        <div class="p-expiry-lbl">⏰ Caduca en:</div>
+        ${cdBlocksHTML(prefix)}
+      </div>`;
+    cdEntry = { prefix, targetMs: expiryMs };
+  }
+
+  const restockTag = p.restock
+    ? `<span class="p-restock-tag">↻ Restock: ${p.restock}</span>`
+    : '';
+
   const outOverlay = `
-    <div class="out-wrap">
+    <div class="out-overlay">
       <div class="out-badge">
-        <span class="title">AGOTADO</span>
-        ${next ? `<span class="restock-time">Reabastece en: ${timeLeft(next)}</span>` : `<span class="sub">Sin fecha de restock</span>`}
+        <strong>AGOTADO</strong>
+        ${next ? `<span class="out-restock">↻ en: ${timeLeft(next)}</span>` : '<span style="font-size:.75rem;color:#9ca3af">Sin restock</span>'}
       </div>
     </div>`;
 
-  return `
-    <article class="card ${goldCl} ${isOut?'out':''}">
-      <div class="card-media">
-        <img src="${escapeHTML(p.img)}" alt="Imagen de ${escapeHTML(p.name)}" loading="lazy">
+  const tags = (p.tags || []).map(t => `<span class="p-tag">#${esc(t)}</span>`).join('');
+
+  const amountBadge = p.amount && p.amount > 1
+    ? `<span class="p-tag" style="background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.3);color:#93c5fd">🎫 x${p.amount}</span>`
+    : '';
+
+  return {
+    html: `
+    <article class="p-card ${qCl} ${goldCl} ${isOut ? 'is-out' : ''}" style="animation-delay:${idx * .05}s">
+      <div class="p-card-img">
+        <img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy">
         ${isOut ? outOverlay : ''}
-      </div>
-      <div class="card-body">
-        <h3 class="card-title">${escapeHTML(p.name)}</h3>
-        <p class="card-desc">${escapeHTML(p.desc)}</p>
-        <div class="card-meta">
-          <span class="quality"><span class="qdot ${qCl}"></span>${labelQuality(p.quality)}</span>
-
-          <span class="price">${renderPrice(p)}</span>
-
+        <div class="p-chips">
+          <span class="p-chip ${qCl}">${qualityLabel(p.quality)}</span>
+          ${p.gold ? '<span class="p-chip c-gold">★ Destacado</span>' : ''}
         </div>
       </div>
-      <div class="card-foot">
-        <span class="stock">Stock: ${st}</span>
-        <div class="actions">
-          <button class="btn-sm" data-open="${p.id}">Detalles</button>
-          <button class="btn btn-buy" data-buy="${p.id}" ${isOut?'disabled':''}>Comprar</button>
+      <div class="p-card-body">
+        <h3 class="p-card-name">${p.emoji ? p.emoji+' ' : ''}${esc(p.name)}</h3>
+        <p class="p-card-desc">${esc(p.desc)}</p>
+        <div class="p-divider"></div>
+        <div class="p-price-row">${renderPrice(p)}</div>
+        ${expirySection}
+        ${restockTag}
+        <div class="p-tags">${tags}${amountBadge}</div>
+      </div>
+      <div class="p-card-foot">
+        <span class="p-stock">📦 Stock: ${st}</span>
+        <div class="p-actions">
+          <button class="btn-detail" data-open="${p.id}">Detalles</button>
+          <button class="btn-buy" data-buy="${p.id}" ${isOut ? 'disabled' : ''}>Comprar</button>
         </div>
       </div>
-      <div class="card-foot" style="padding-top:0">
-        ${restockInfo}
-      </div>
-    </article>
-  `;
+    </article>`,
+    cdEntry
+  };
 }
 
-function emptyBlock(text){
-  return `<div class="card" style="grid-column:1/-1"><div class="card-body"><p class="muted">${escapeHTML(text)}</p></div></div>`;
+function qualityLabel(q) {
+  return { legendary:'Legendario', epic:'Épico', rare:'Raro', common:'Común' }[q] || q;
+}
+function sectionLabel(s) {
+  return { pases:'Pases de temporada', llaves:'Cofres', cosas:'Materiales', historia:'Historia', materiales:'Lote de Monedas', eventos:'Pases de Evento', monedas:'Pack de Monedas', tickets:'Tickets' }[s] || s;
 }
 
-function labelQuality(q){
-  if (q==='legendary') return 'Legendario';
-  if (q==='epic') return 'Épico';
-  if (q==='rare') return 'Raro';
-  return 'Común';
-}
-
-/* =========================================================
-   Búsqueda y filtros
-   ========================================================= */
-function onChipSection(e){
+/* ─────────────────────────────────────
+   FILTROS Y BÚSQUEDA
+───────────────────────────────────── */
+$('#chipSections')?.addEventListener('click', e => {
   const btn = e.target.closest('.chip');
   if (!btn) return;
-  $$('.chip', chipSections).forEach(c=> c.classList.remove('is-on'));
+  $$('.chip', $('#chipSections')).forEach(c => c.classList.remove('is-on'));
   btn.classList.add('is-on');
   filteredSection = btn.dataset.section;
   renderAll();
-  toast(`Filtro: ${filteredSection==='all'?'Todo':btn.textContent.trim()}`);
-}
-function onSearch(){
-  searchText = searchInput.value || '';
-  renderAll();
-}
+  toast(`Filtro: ${filteredSection === 'all' ? 'Todo' : btn.textContent.trim()}`);
+});
+$('#searchInput')?.addEventListener('input', e => { searchText = e.target.value || ''; renderAll(); });
+$('#clearSearch')?.addEventListener('click', () => { if ($('#searchInput')) $('#searchInput').value = ''; searchText = ''; renderAll(); });
 
-/* =========================================================
-   Modal de producto
-   ========================================================= */
-function openModal(id){
-  const p = products.find(x=> x.id===id);
+/* ─────────────────────────────────────
+   MODAL
+───────────────────────────────────── */
+function openModal(id) {
+  const p = products.find(x => x.id === id);
   if (!p) return;
   currentProduct = p;
 
-  modalTitle.textContent = p.name;
+  const st = LS.getStock(p);
+  const next = LS.getNext(p);
+  const expiryMs = parseDate(p.expiresAt);
 
-  const st = getStock(p);
-  const next = getNextRestock(p);
-  const qCl = p.quality==='legendary' ? 'q-legendary' : p.quality==='epic' ? 'q-epic' : p.quality==='rare' ? 'q-rare' : 'q-common';
+  if ($('#modalEmoji')) $('#modalEmoji').textContent = p.emoji || '🛒';
+  if ($('#modalTitle')) $('#modalTitle').textContent  = p.name;
 
-  modalBody.innerHTML = `
-    <div class="modal-hero">
-      <div class="media"><img src="${escapeHTML(p.img)}" alt="Imagen de ${escapeHTML(p.name)}"></div>
-      <div class="info">
-        <h3>${escapeHTML(p.name)}</h3>
-        <div class="meta">
-          <span class="quality"><span class="qdot ${qCl}"></span>${labelQuality(p.quality)}</span>
-          <span>Precio: <b>${fmt.format(p.price)}</b></span>
-          <span>Stock: <b>${st}</b></span>
-          ${p.restock? `<span>Restock: <b>${p.restock}</b></span>`:''}
+  let cdSection = '';
+  if (expiryMs) {
+    cdSection = `
+      <div class="m-section">
+        <div class="m-sec-title">⏰ Fecha de caducidad</div>
+        <div class="m-cd-wrap">
+          <div class="m-cd-block"><span class="m-cd-val" id="mcd-yr">--</span><span class="m-cd-lbl">años</span></div>
+          <div class="m-cd-block"><span class="m-cd-val" id="mcd-d">--</span><span class="m-cd-lbl">días</span></div>
+          <div class="m-cd-block"><span class="m-cd-val" id="mcd-h">--</span><span class="m-cd-lbl">horas</span></div>
+          <div class="m-cd-block"><span class="m-cd-val" id="mcd-m">--</span><span class="m-cd-lbl">minutos</span></div>
+          <div class="m-cd-block"><span class="m-cd-val" id="mcd-s">--</span><span class="m-cd-lbl">segundos</span></div>
+          <span class="m-cd-note">Expira el ${p.expiresAt}</span>
         </div>
-        <p>${escapeHTML(p.desc)}</p>
-        <div class="tags">${p.tags.map(t=>`<span class="badge">#${escapeHTML(t)}</span>`).join(' ')}</div>
+      </div>`;
+  }
+
+  const tags = (p.tags||[]).map(t=>`<span class="p-tag">#${esc(t)}</span>`).join('');
+  const qColor = {legendary:'rgba(245,158,11,.2)',epic:'rgba(168,85,247,.18)',rare:'rgba(56,189,248,.18)',common:'rgba(156,163,175,.12)'}[p.quality]||'rgba(255,255,255,.08)';
+  const qBorder = {legendary:'rgba(245,158,11,.45)',epic:'rgba(168,85,247,.38)',rare:'rgba(56,189,248,.3)',common:'rgba(156,163,175,.2)'}[p.quality]||'rgba(255,255,255,.1)';
+  const qText = {legendary:'#fde68a',epic:'#d8b4fe',rare:'#7dd3fc',common:'#d1d5db'}[p.quality]||'#e5e7eb';
+
+  // Descripción del restock usando medianoche local
+  let restockDesc = 'Este artículo no se reabastece automáticamente.';
+  if (p.restock) {
+    const days = RESTOCK_DAYS[p.restock] || 0;
+    const labels = { '24h': 'cada día a medianoche', '7d': 'cada 7 días a medianoche', '30d': 'cada 30 días a medianoche' };
+    restockDesc = `Se reabastece <strong style="color:var(--text)">${labels[p.restock] || p.restock}</strong> (hora local).${next ? ` Próximo en <strong style="color:var(--a)">${timeLeft(next)}</strong>.` : ''}`;
+  }
+
+  $('#modalBody').innerHTML = `
+    <div class="m-hero">
+      <div class="m-img"><img src="${esc(p.img)}" alt="${esc(p.name)}"></div>
+      <div class="m-info">
+        <span class="m-quality-chip" style="background:${qColor};border:1px solid ${qBorder};color:${qText}">
+          ${qualityLabel(p.quality)}${p.gold?' · ★ Destacado':''}
+        </span>
+        <p class="m-desc">${esc(p.desc)}</p>
+        <div class="m-meta-grid">
+          <div class="m-meta-item">💰 Precio: <strong>${fmt.format(p.price)}</strong></div>
+          <div class="m-meta-item">📦 Stock: <strong>${st}</strong></div>
+          <div class="m-meta-item">🏷️ Sección: <strong>${sectionLabel(p.section)}</strong></div>
+          <div class="m-meta-item">↻ Restock: <strong>${p.restock || 'No aplica'}</strong></div>
+        </div>
+        <div class="p-tags">${tags}</div>
       </div>
     </div>
-
-    <div class="modal-grid">
-      <div class="modal-block">
-        <h4>Detalles</h4>
-        <p>Este objeto pertenece a la sección <b>${sectionLabel(p.section)}</b>. Es de calidad <b>${labelQuality(p.quality)}</b> y su precio actual es <b>${fmt.format(p.price)}</b>.</p>
-      </div>
-      <div class="modal-block">
-        <h4>Restock</h4>
-        <p>${p.restock ? `Se reabastece automáticamente cada <b>${p.restock}</b>. ${next?`Próximo en <b>${timeLeft(next)}</b>.`:''}` : 'Este artículo no se reabastece automáticamente.'}</p>
-      </div>
-      <div class="modal-block full">
-        <h4>Notas</h4>
-        <p>La compra es directa sobre el stock. Si el stock llega a 0, el artículo quedará marcado como <b>Agotado</b> hasta el próximo restock.</p>
-      </div>
+    ${cdSection}
+    <div class="m-section">
+      <div class="m-sec-title">📋 Notas</div>
+      <p style="font-size:.88rem;color:var(--muted);line-height:1.65">
+        ${restockDesc}
+        La compra descuenta directamente el stock disponible.
+        ${p.amount ? `<br>Otorga <strong style="color:var(--a)">${p.amount} ticket${p.amount>1?'s':''}</strong> al completar la compra.` : ''}
+      </p>
     </div>
   `;
 
-  modalBuy.disabled = st<=0;
-  modal.classList.add('show');
-  modal.setAttribute('aria-hidden','false');
+  if (expiryMs) {
+    setTimeout(() => {
+      function tickModal() {
+        const { yr, d, h, m, s, expired } = calcCountdown(expiryMs);
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = fmtCD(v) };
+        set('mcd-yr', yr); set('mcd-d', d); set('mcd-h', h); set('mcd-m', m); set('mcd-s', s);
+        if (expired) clearInterval(window._modalCDIv);
+      }
+      clearInterval(window._modalCDIv);
+      tickModal();
+      window._modalCDIv = setInterval(tickModal, 1000);
+    }, 50);
+  }
+
+  $('#modalBuy').disabled = st <= 0;
+  const modal = $('#productModal');
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
 }
 
-function sectionLabel(s){
-  return ({
-    pases:'Pases de temporada',
-    llaves:'Llaves',
-    cosas:'Cosas interesantes',
-    historia:'Historia',
-    materiales:'Materiales',
-    eventos:'Pases de evento',
-    monedas:'Monedas del juego'
-  })[s] || s;
-}
-
-function closeModal(){
-  modal.classList.remove('show');
-  modal.setAttribute('aria-hidden','true');
+function closeModal() {
+  const modal = $('#productModal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
+  clearInterval(window._modalCDIv);
   currentProduct = null;
 }
 
-modalOverlay.addEventListener('click', closeModal);
-modalClose.addEventListener('click', closeModal);
-document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeModal(); });
+$('#modalOverlay')?.addEventListener('click', closeModal);
+$('#modalClose')?.addEventListener('click', closeModal);
+$('#modalCloseBtn')?.addEventListener('click', closeModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal() });
+$('#modalBuy')?.addEventListener('click', () => { if (currentProduct) buyItem(currentProduct.id, { keepModal: true }) });
 
-modalBuy.addEventListener('click', ()=>{
-  if (!currentProduct) return;
-  buyItem(currentProduct.id, { toastMsg:true, keepModal:true });
-});
+/* ─────────────────────────────────────
+   DETECCIÓN DE TICKETS
+───────────────────────────────────── */
+function detectTicketInfo(product) {
+  const info = { isTicket: false, wheelId: null, count: 0 };
 
-/* =========================================================
-   Comprar (sin saldo): descuenta stock y actualiza UI
-   ========================================================= */
-/* =========================================================
-   Comprar (sin saldo): descuenta stock y actualiza UI
-   - Si el item es un ticket (id empezando con "t_" o tag 'ticket'), 
-     se añadirá el/los ticket(s) a la ruleta correspondiente.
-   ========================================================= */
-function buyItem(id, opts={}){
-  const p = products.find(x=> x.id===id);
-  if (!p) return;
-
-  let st = getStock(p);
-  if (st<=0){ toast('Artículo agotado'); return; }
-
-  // decrement stock
-  st -= 1;
-  setStock(p, st);
-
-  // Si se agotó, calcula/asegura próximo restock
-  if (st<=0){
-    let next = getNextRestock(p);
-    if (!next && p.restock) {
-      next = computeNextRestock(p);
-      setNextRestock(p, next);
+  if (typeof product.id === 'string' && product.id.startsWith('t_')) {
+    const parts = product.id.split('_');
+    if (parts.length >= 2 && parts[1]) {
+      let wheel = parts.slice(1).join('_');
+      wheel = wheel.replace(/_\d+$/, '');
+      info.isTicket = true;
+      info.wheelId  = wheel;
+      info.count    = product.amount ?? 1;
+      return info;
     }
   }
 
-  // ---------- NUEVO: detectar si es un producto "ticket" ----------
-  // Regla simple y robusta:
-  //  - Si el id comienza por "t_<wheelId>" -> otorga 1 ticket a wheelId
-  //  - Si el producto tiene tag 'ticket' puedes personalizar (ej. name, desc)
-  //  - Puedes ajustar la 'count' si quieres dar >1 tickets por compra
-  function detectTicketInfo(product){
-    // default: no es ticket
-    const info = { isTicket:false, wheelId:null, count:0 };
-
-    // prioridad 1: id con prefijo t_
-    if (typeof product.id === 'string' && product.id.startsWith('t_')){
-      const parts = product.id.split('_'); // t_classic -> ['t','classic']
-      if (parts.length >= 2 && parts[1]) {
-        info.isTicket = true;
-        //info.wheelId = parts.slice(1).join('_'); // por si usa t_some_wheel
-        // Quitar sufijo numérico opcional ( _1 , _2 , _99 , etc. )
-let wheel = parts.slice(1).join('_');
-wheel = wheel.replace(/_\d+$/, ''); // <-- elimina _1, _2, _3, etc.
-info.wheelId = wheel;
-
-        //info.count = 1;
-        info.count = product.amount ?? 1;
-        return info;
-      }
+  if (Array.isArray(product.tags) && product.tags.includes('ticket')) {
+    const name = (product.name || '').toLowerCase();
+    if (name.includes('clásic') || name.includes('classic')) {
+      info.isTicket = true; info.wheelId = 'classic'; info.count = product.amount ?? 1; return info;
     }
-
-    // prioridad 2: tag 'ticket' -> intentar inferir wheel a partir del nombre
-    if (Array.isArray(product.tags) && product.tags.includes('ticket')){
-      // intenta extraer wheelId desde name: 'Ticket Ruleta Clásica' -> 'classic'
-      const name = (product.name||'').toLowerCase();
-      if (name.includes('clásic') || name.includes('classic')) { info.isTicket=true; info.wheelId='classic'; info.count=1; return info; }
-      if (name.includes('místic') || name.includes('mystic') || name.includes('mística')) { info.isTicket=true; info.wheelId='mystic'; info.count=1; return info; }
-      if (name.includes('elemental')) { info.isTicket=true; info.wheelId='elemental'; info.count=1; return info; }
-      // si no se puede inferir, marcar como ticket genérico (no asigna)
-      info.isTicket = true;
-      info.wheelId = null;
-      //info.count = 1;
-      info.count = product.amount ?? 1;
-      return info;
+    if (name.includes('místic') || name.includes('mystic') || name.includes('mística')) {
+      info.isTicket = true; info.wheelId = 'mystic'; info.count = product.amount ?? 1; return info;
     }
-
+    if (name.includes('elemental')) {
+      info.isTicket = true; info.wheelId = 'elemental'; info.count = product.amount ?? 1; return info;
+    }
+    if (name.includes('evento') || name.includes('event')) {
+      info.isTicket = true; info.wheelId = 'event'; info.count = product.amount ?? 1; return info;
+    }
+    info.isTicket = true; info.wheelId = null; info.count = product.amount ?? 1;
     return info;
   }
 
-  function awardTicketsToWheel(wheelId, count){
-    if (!wheelId) return false;
-    // si existe función global addTickets (de tu código de ruleta), úsala
-    try {
-      if (typeof addTickets === 'function') {
-        addTickets(wheelId, count);
-      } else {
-        // fallback directo a localStorage con la misma clave usada por la ruleta
-        const key = `mv_tickets_${wheelId}`;
-        const cur = parseInt(localStorage.getItem(key) || '0', 10);
-        localStorage.setItem(key, String(Math.max(0, cur + (count|0))));
-      }
-      // intenta actualizar UI si las funciones renderTicketCounts/renderHUDTickets existen
-      if (typeof renderTicketCounts === 'function') try{ renderTicketCounts(); }catch(e){}
-      if (typeof renderHUDTickets === 'function') try{ renderHUDTickets(); }catch(e){}
-      return true;
-    } catch(e){
-      console.warn('awardTicketsToWheel error', e);
-      return false;
+  return info;
+}
+
+/* ─────────────────────────────────────
+   ENTREGA DE TICKETS A LA RULETA
+───────────────────────────────────── */
+function awardTicketsToWheel(wheelId, count) {
+  if (!wheelId) return false;
+  try {
+    if (typeof addTickets === 'function') {
+      addTickets(wheelId, count);
+    } else {
+      const key = `mv_tickets_${wheelId}`;
+      const cur = parseInt(localStorage.getItem(key) || '0', 10);
+      localStorage.setItem(key, String(Math.max(0, cur + (count|0))));
     }
+    if (typeof renderTicketCounts === 'function') try { renderTicketCounts(); } catch(e) {}
+    if (typeof renderHUDTickets   === 'function') try { renderHUDTickets();   } catch(e) {}
+    return true;
+  } catch(e) {
+    console.warn('awardTicketsToWheel error:', e);
+    return false;
+  }
+}
+
+/* ─────────────────────────────────────
+   COMPRA DE ITEMS
+   ─────────────────────────────────────
+   CAMBIO: Al agotar el stock, se programa el restock
+   para la próxima medianoche local según el intervalo.
+───────────────────────────────────── */
+function buyItem(id, opts = {}) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+
+  let st = LS.getStock(p);
+  if (st <= 0) { toast('Artículo agotado ❌'); return; }
+
+  st -= 1;
+  LS.setStock(p, st);
+
+  // Cuando se agota: programar restock en medianoche local
+  if (st <= 0 && p.restock) {
+    LS.setNext(p, LS.calcNext(p));
   }
 
-  // detectar ticket y aplicarlo
+  // Detectar si es ticket y aplicarlo a la ruleta
   const ticketInfo = detectTicketInfo(p);
-  if (ticketInfo.isTicket){
+  if (ticketInfo.isTicket) {
     const gave = ticketInfo.wheelId ? awardTicketsToWheel(ticketInfo.wheelId, ticketInfo.count) : false;
-    if (gave){
-      // mensaje claro según si se reconoció la ruleta
+    if (gave) {
       const displayWheel = ticketInfo.wheelId ? ticketInfo.wheelId : 'ruleta';
-      if (opts.toastMsg!==false) toast(`Comprado: ${p.name} — +${ticketInfo.count} ticket(s) para ${displayWheel}`);
+      if (opts.toastMsg !== false) toast(`Comprado: ${p.name} — +${ticketInfo.count} ticket(s) para ${displayWheel}`);
     } else {
-      if (opts.toastMsg!==false) toast(`Comprado: ${p.name} — Ticket guardado localmente`);
+      if (opts.toastMsg !== false) toast(`Comprado: ${p.name} — Ticket guardado localmente`);
     }
   } else {
-    if (opts.toastMsg!==false) toast(`Comprado: ${p.name}`);
+    if (opts.toastMsg !== false) toast(`Comprado: ${p.name}`);
   }
 
+  // Cupón cooldown
+  if (currentCoupon && currentCoupon !== 0) {
+    setCouponCooldown(currentCoupon, nextCouponMidnight());
+    currentCoupon = 0;
+    saveCurrentCoupon();
+    renderCouponUI();
+  }
 
-
-  // Si había un cupón aplicado, poner solo ese cupón en cooldown hasta medianoche
-if (currentCoupon && currentCoupon !== 0){
-  // marcar cooldown (timestamp de la próxima medianoche)
-  setCouponCooldown(currentCoupon, nextMidnight());
-  // reset selección
-  currentCoupon = 0;
-  saveCurrentCoupon();
-  // actualizar UI de cupones inmediatamente
-  renderCouponUI();
-}
-
-
-  // refrescar la tienda
   renderAll();
+  if (opts.keepModal && currentProduct?.id === id) openModal(id);
+}
 
-  // Actualiza modal si está abierto
-  if (opts.keepModal && currentProduct && currentProduct.id===id){
-    openModal(id);
+// Función global para entregar tickets desde fuera de la tienda
+window.buyTickets = function(wheelId, amount) {
+  try {
+    addTickets(wheelId, amount);
+    toast(`Has recibido ${amount} ticket(s) de la ruleta ${wheelId}`);
+  } catch(e) {
+    console.error(e);
+    toast('Error al entregar los tickets.');
   }
+};
+
+/* ─────────────────────────────────────
+   CUPONES
+───────────────────────────────────── */
+const ALL_COUPONS = [10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100];
+const COUPON_LS_KEY = 'mv_coupon_state';
+const CURRENT_COUPON_KEY = 'mv_current_coupon';
+
+function loadCouponState() {
+  try {
+    const raw = localStorage.getItem(COUPON_LS_KEY);
+    if (!raw) { const s={}; ALL_COUPONS.forEach(c=>s[c]=0); localStorage.setItem(COUPON_LS_KEY,JSON.stringify(s)); return s; }
+    return JSON.parse(raw);
+  } catch(e) { const s={}; ALL_COUPONS.forEach(c=>s[c]=0); return s; }
 }
+function saveCouponState(s) { localStorage.setItem(COUPON_LS_KEY, JSON.stringify(s)) }
+function getCouponCooldown(pct) { return Number(loadCouponState()[String(pct)] || 0) }
+function setCouponCooldown(pct, ts) { const s=loadCouponState(); s[String(pct)]=ts||0; saveCouponState(s) }
 
+/* Medianoche local para cupones (igual que el restock) */
+function nextCouponMidnight() { return nextMidnightLocal(1); }
 
+let currentCoupon = Number(localStorage.getItem(CURRENT_COUPON_KEY) || 0);
+function saveCurrentCoupon() { localStorage.setItem(CURRENT_COUPON_KEY, String(currentCoupon)) }
 
-/* =========================================================
-   Tiempos amigables
-   ========================================================= */
-function timeLeft(ts){
-  const diff = Math.max(0, ts - now());
-  const d = Math.floor(diff / D7); // días en bloques de 7d
-  const rD = Math.floor(diff / H24);
-  if (d>=1) return `${rD}d`;
-  const h = Math.floor((diff % H24) / (60*60*1000));
-  const m = Math.floor((diff % (60*60*1000)) / (60*1000));
-  if (rD>=1) return `${rD}d ${h}h`;
-  if (h>=1) return `${h}h ${m}m`;
-  const s = Math.floor((diff % (60*1000))/1000);
-  return `${m}m ${s}s`;
-}
+function renderCouponUI() {
+  const box = $('#couponList');
+  if (!box) return;
+  const nowTs = now();
 
-/* =========================================================
-   Reveal on scroll + Toast
-   ========================================================= */
-let revealObs;
-function observeReveal(){
-  if (revealObs) revealObs.disconnect();
-  revealObs = new IntersectionObserver((entries)=>{
-    entries.forEach(ent=>{
-      if (ent.isIntersecting){
-        ent.target.classList.add('is-in');
-        revealObs.unobserve(ent.target);
-      }
+  const state = loadCouponState();
+  let dirty = false;
+  ALL_COUPONS.forEach(c => { const cd=Number(state[c]||0); if (cd>0&&cd<=nowTs){state[c]=0;dirty=true;} });
+  if (dirty) saveCouponState(state);
+
+  box.innerHTML = ALL_COUPONS.map(c => {
+    const cd = getCouponCooldown(c);
+    const active = cd > nowTs;
+    const selected = currentCoupon === c;
+    if (active) return `<button class="coupon-card" aria-disabled="true" data-percent="${c}">${c}%<span class="cd">↻ ${timeLeft(cd)}</span></button>`;
+    return `<button class="coupon-card" data-percent="${c}" data-active="${selected}">${c}%${selected?'<span class="cd">✓ activo</span>':''}</button>`;
+  }).join('');
+
+  box.querySelectorAll('.coupon-card:not([aria-disabled="true"])').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pct = Number(btn.dataset.percent);
+      currentCoupon = currentCoupon === pct ? 0 : pct;
+      saveCurrentCoupon(); renderCouponUI(); renderAll();
     });
-  },{threshold:.15});
-  $$('.reveal').forEach(el=>revealObs.observe(el));
+  });
 }
-function toast(msg){
+setInterval(renderCouponUI, 1000);
+
+document.addEventListener('click', e => {
+  if (e.target?.id === 'couponClearBtn') { currentCoupon=0; saveCurrentCoupon(); renderCouponUI(); renderAll(); }
+});
+
+function renderPrice(p) {
+  const base = Number(p.price);
+  if (!currentCoupon) return `<span class="p-price-main">${fmt.format(base)}</span>`;
+  const final = Math.max(0, Math.round(base - base * currentCoupon / 100));
+  return `<span class="p-price-old">${fmt.format(base)}</span><span class="p-price-new">${fmt.format(final)}</span>`;
+}
+
+/* ─────────────────────────────────────
+   NAVBAR
+───────────────────────────────────── */
+const navToggle = $('#navToggle');
+const navLinks  = $('#navLinks');
+navToggle?.addEventListener('click', e => { e.stopPropagation(); navLinks.classList.toggle('open') });
+document.addEventListener('click', e => { if (!navToggle?.contains(e.target) && !navLinks?.contains(e.target)) navLinks?.classList.remove('open') });
+
+/* ─────────────────────────────────────
+   HUD bars
+───────────────────────────────────── */
+$$('.hud-bar').forEach(b => b.style.setProperty('--v', b.dataset.val || 50));
+
+/* ─────────────────────────────────────
+   PARTÍCULAS (ámbar)
+───────────────────────────────────── */
+(function particles() {
+  const c = $('#bgParticles');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const dpi = Math.max(1, devicePixelRatio || 1);
+  let w, h, parts;
+  const init = () => {
+    w = c.width = innerWidth * dpi;
+    h = c.height = innerHeight * dpi;
+    parts = Array.from({ length: 80 }, () => ({
+      x: Math.random()*w, y: Math.random()*h,
+      r: (.5 + Math.random()*1.6)*dpi, s: .2 + Math.random()*.7,
+      a: .06 + Math.random()*.2,
+      hue: 28 + Math.random()*24
+    }));
+  };
+  const tick = () => {
+    ctx.clearRect(0, 0, w, h);
+    parts.forEach(p => {
+      p.y += p.s; p.x += Math.sin(p.y * .0012) * .3;
+      if (p.y > h) { p.y = -10; p.x = Math.random()*w; }
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `hsla(${p.hue},80%,62%,${p.a})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  };
+  init(); tick(); addEventListener('resize', init);
+})();
+
+/* ─────────────────────────────────────
+   PARALLAX
+───────────────────────────────────── */
+(function parallax() {
+  const layers = $$('.layer');
+  if (!layers.length) return;
+  const k = [0, .025, .055, .09];
+  const onScroll = () => { const y = scrollY; layers.forEach((el, i) => el.style.transform = `translateY(${y*k[i]}px)`) };
+  onScroll(); addEventListener('scroll', onScroll, { passive: true });
+})();
+
+/* ─────────────────────────────────────
+   REVEAL ON SCROLL
+───────────────────────────────────── */
+(function reveal() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-in'); obs.unobserve(e.target) } });
+  }, { threshold: .12 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+})();
+
+/* ─────────────────────────────────────
+   TOAST
+───────────────────────────────────── */
+function toast(msg) {
   const t = $('#toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   clearTimeout(toast._id);
-  t._id = setTimeout(()=> t.classList.remove('show'), 1400);
+  toast._id = setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-
-
-
-
-// ---------- Música de fondo ----------
+/* ─────────────────────────────────────
+   MÚSICA
+───────────────────────────────────── */
 const audio = document.getElementById("bg-music");
 const musicButton = document.querySelector(".floating-music");
 
-// Asegúrate de que el botón y el audio existan
 if (audio && musicButton) {
-  // Alternar música al hacer clic
   musicButton.addEventListener("click", () => {
     if (audio.paused) {
       audio.play().then(() => {
@@ -673,11 +803,9 @@ if (audio && musicButton) {
     }
   });
 
-  // Revisar estado al cargar
   window.addEventListener("DOMContentLoaded", () => {
     const musicState = localStorage.getItem("music");
     if (musicState === "on") {
-      // Solo reproducir si el usuario ya interactuó antes
       audio.play().then(() => {
         musicButton.classList.add("active");
       }).catch(() => {
@@ -687,1514 +815,483 @@ if (audio && musicButton) {
   });
 }
 
+/* ─────────────────────────────────────
+   INIT
+───────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  const yr = document.getElementById('y');
+  if (yr) yr.textContent = new Date().getFullYear();
 
+  syncStocks();
+  renderCouponUI();
+  renderAll();
 
-
-
-
-
-
-
-
-
-
-
-
-
-// --- COMPRA DE TICKETS DESDE TIENDA ---
-// Recibe: id de ruleta ("classic", "mystic", etc) y cantidad
-window.buyTickets = function(wheelId, amount) {
-    try {
-        addTickets(wheelId, amount); // tu propia función, ya funcional
-        toast(`Has recibido ${amount} ticket(s) de la ruleta ${wheelId}`);
-    } catch (e) {
-        console.error(e);
-        toast("Error al entregar los tickets.");
-    }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ========== SISTEMA CUPONES (INSERTAR EN TIENDA.JS - GLOBALES) ========== */
-// Lista de cupones (porcentaje)
-const ALL_COUPONS = [10,15,20,25,30,40,50,60,70,80,90,100];
-
-// estado guardado en localStorage bajo 'mv_coupon_state'
-// formato: { "10": 0 | timestamp, "20": 0 | timestamp, ... }
-const COUPON_LS_KEY = 'mv_coupon_state';
-const CURRENT_COUPON_KEY = 'mv_current_coupon';
-
-function loadCouponState(){
-  try { 
-    const raw = localStorage.getItem(COUPON_LS_KEY);
-    if (!raw) {
-      const init = {};
-      ALL_COUPONS.forEach(c=> init[String(c)] = 0);
-      localStorage.setItem(COUPON_LS_KEY, JSON.stringify(init));
-      return init;
-    }
-    return JSON.parse(raw);
-  } catch(e){ 
-    const init = {}; ALL_COUPONS.forEach(c=> init[String(c)] = 0); return init;
+  if (localStorage.getItem('music') === 'on' && audio) {
+    audio.play().then(() => { musicButton?.classList.add('active') }).catch(() => {});
   }
-}
-function saveCouponState(state){ localStorage.setItem(COUPON_LS_KEY, JSON.stringify(state)); }
 
-function getCouponCooldown(percent){
-  const s = loadCouponState();
-  return Number(s[String(percent)] || 0);
-}
-function setCouponCooldown(percent, ts){
-  const s = loadCouponState();
-  s[String(percent)] = ts || 0;
-  saveCouponState(s);
-}
-
-function nextMidnight(){ const d=new Date(); d.setHours(24,0,0,0); return d.getTime(); }
-
-let currentCoupon = Number(localStorage.getItem(CURRENT_COUPON_KEY) || 0); // 0 = sin cupón
-
-function saveCurrentCoupon(){
-  localStorage.setItem(CURRENT_COUPON_KEY, String(currentCoupon));
-}
-
-/* Render del UI de cupones */
-function renderCouponUI(){
-  const box = $('#couponList');
-  if(!box) return;
-  const nowTs = now();
-
-  // auto-liberar cupones vencidos (por si recargas pasada medianoche)
-  const state = loadCouponState();
-  let dirty=false;
-  ALL_COUPONS.forEach(c=>{
-    const cd = Number(state[String(c)] || 0);
-    if (cd > 0 && cd <= nowTs){ state[String(c)] = 0; dirty=true; }
-  });
-  if (dirty) saveCouponState(state);
-
-  box.innerHTML = ALL_COUPONS.map(c=>{
-    const cd = getCouponCooldown(c);
-    const active = cd > nowTs;
-    const isSelected = currentCoupon === c;
-    if (active){
-      return `<button class="coupon-card" aria-disabled="true" data-percent="${c}">
-                ${c}% <span class="cd">recargando ${timeLeft(cd)}</span>
-              </button>`;
-    } else {
-      return `<button class="coupon-card" data-percent="${c}" data-active="${isSelected}">
-                ${c}% ${isSelected?'<span class="cd">activado</span>':''}
-              </button>`;
-    }
-  }).join('');
-
-  // botón "sin cupón" visual (local)
-  const clearBtn = $('#couponClearBtn');
-  if (clearBtn) clearBtn.disabled = false;
-
-  // listeners
-  box.querySelectorAll('.coupon-card:not([aria-disabled="true"])').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const pct = Number(btn.getAttribute('data-percent'));
-      // toggle
-      currentCoupon = (currentCoupon === pct) ? 0 : pct;
-      saveCurrentCoupon();
-      renderCouponUI();
-      renderAll(); // re-render precios
-    });
-  });
-}
-setInterval(()=> { renderCouponUI(); }, 1000); // actualiza contadores cada 1s
-
-// boton "no usar cupón"
-document.addEventListener('click',(e)=>{
-  if (e.target && e.target.id === 'couponClearBtn'){
-    currentCoupon = 0; saveCurrentCoupon(); renderCouponUI(); renderAll();
-  }
+  toast('✨ Tienda Moonveil cargada — ¡Bienvenido!');
 });
-
-/* función que devuelve HTML del precio (usar en cardTemplate) */
-/*function renderPrice(p){
-  // p puede ser objeto producto o precio numérico; preferimos objeto para acceder a p.price
-  const base = (typeof p === 'object' && p.price != null) ? Number(p.price) : Number(p);
-  if (!currentCoupon || currentCoupon === 0) {
-    return `${fmt.format(base)}`;
-  }
-  const discount = Number(currentCoupon);
-  const finalPrice = Math.max(0, base - (base * (discount / 100)));
-  return `<span class="old-price">${fmt.format(base)}</span><span class="new-price">${fmt.format(finalPrice)}</span>`;
-}*/
-
-
-/* función que devuelve HTML del precio (usar en cardTemplate) */
-function renderPrice(p){
-  const base = (typeof p === 'object' && p.price != null) ? Number(p.price) : Number(p);
-
-  if (!currentCoupon || currentCoupon === 0) {
-    return `${fmt.format(base)}`;
-  }
-
-  const discount = Number(currentCoupon);
-  let finalPrice = base - (base * (discount / 100));
-
-  // 🔥 convertimos a número entero sin decimales:
-  finalPrice = Math.round(finalPrice);
-
-  // nunca permitir negativos
-  finalPrice = Math.max(0, finalPrice);
-
-  return `
-    <span class="old-price">${fmt.format(base)}</span>
-    <span class="new-price">${fmt.format(finalPrice)}</span>
-  `;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* ═══════════════════════════════════════════════════════════
-   🎨 SISTEMA DE DECORACIONES FESTIVAS PREMIUM v2.0
-   JavaScript con arquitectura profesional
-   ════════════════════════════════════════════════════════════ */
-
-'use strict';
-
-// ═══════════════════════════════════════════════════════════
-// 🎯 CONFIGURACIÓN GLOBAL Y CONSTANTES
-// ═══════════════════════════════════════════════════════════
+   SISTEMA DE FESTIVIDADES
+   ══════════════════════════════════════════════════════════ */
 
 const FESTIVE_CONFIG = {
-  // Festividades con fechas y prioridades
-  NUEVO_ANO: {
-    id: 'NUEVO_ANO',
-    inicio: new Date('2025-12-31T00:00:00'),
-    fin: new Date('2026-01-06T23:59:59'),
-    prioridad: 100,
-    nombre: 'Año Nuevo'
-  },
-  SAN_VALENTIN: {
-    id: 'SAN_VALENTIN',
-    inicio: new Date('2026-02-13T00:00:00'),
-    fin: new Date('2026-02-15T23:59:59'),
-    prioridad: 95,
-    nombre: 'San Valentín'
-  },
-  CARNAVAL: {
-    id: 'CARNAVAL',
-    inicio: new Date('2026-02-10T00:00:00'),
-    fin: new Date('2026-02-27T23:59:59'),
-    prioridad: 90,
-    nombre: 'Carnaval'
-  },
-  DIA_GATO: {
-    id: 'DIA_GATO',
-    inicio: new Date('2026-02-10T00:00:00'),
-    fin: new Date('2026-02-20T23:59:59'),
-    prioridad: 70,
-    nombre: 'Día del Gato'
-  },
-  SAN_PATRICIO: {
-    id: 'SAN_PATRICIO',
-    inicio: new Date('2026-03-15T00:00:00'),
-    fin: new Date('2026-03-18T23:59:59'),
-    prioridad: 80,
-    nombre: 'San Patricio'
-  },
-  PASCUA: {
-    id: 'PASCUA',
-    inicio: new Date('2026-04-03T00:00:00'),
-    fin: new Date('2026-04-06T23:59:59'),
-    prioridad: 85,
-    nombre: 'Pascua'
-  },
-  DIA_MADRE: {
-    id: 'DIA_MADRE',
-    inicio: new Date('2026-05-08T00:00:00'),
-    fin: new Date('2026-05-11T23:59:59'),
-    prioridad: 75,
-    nombre: 'Día de la Madre'
-  },
-  DIA_PADRE: {
-    id: 'DIA_PADRE',
-    inicio: new Date('2026-06-19T00:00:00'),
-    fin: new Date('2026-06-22T23:59:59'),
-    prioridad: 75,
-    nombre: 'Día del Padre'
-  },
-  HALLOWEEN: {
-    id: 'HALLOWEEN',
-    inicio: new Date('2026-10-25T00:00:00'),
-    fin: new Date('2026-11-01T23:59:59'),
-    prioridad: 95,
-    nombre: 'Halloween'
-  },
-  DIA_MUERTOS: {
-    id: 'DIA_MUERTOS',
-    inicio: new Date('2026-11-01T00:00:00'),
-    fin: new Date('2026-11-03T23:59:59'),
-    prioridad: 90,
-    nombre: 'Día de Muertos'
-  },
-  NAVIDAD: {
-    id: 'NAVIDAD',
-    inicio: new Date('2026-12-01T00:00:00'),
-    fin: new Date('2026-12-30T23:59:59'),
-    prioridad: 100,
-    nombre: 'Navidad'
-  },
-  PRIMAVERA: {
-    id: 'PRIMAVERA',
-    inicio: new Date('2026-03-20T00:00:00'),
-    fin: new Date('2026-06-20T23:59:59'),
-    prioridad: 10,
-    nombre: 'Primavera'
-  },
-  VERANO: {
-    id: 'VERANO',
-    inicio: new Date('2026-06-21T00:00:00'),
-    fin: new Date('2026-09-22T23:59:59'),
-    prioridad: 10,
-    nombre: 'Verano'
-  },
-  OTONO: {
-    id: 'OTONO',
-    inicio: new Date('2026-09-23T00:00:00'),
-    fin: new Date('2026-12-20T23:59:59'),
-    prioridad: 10,
-    nombre: 'Otoño'
-  }
+  NUEVO_ANO:   { id:'NUEVO_ANO',   inicio:new Date('2025-12-31'), fin:new Date('2026-01-06T23:59:59'), prioridad:100, nombre:'Año Nuevo' },
+  SAN_VALENTIN:{ id:'SAN_VALENTIN',inicio:new Date('2026-02-13'), fin:new Date('2026-02-15T23:59:59'), prioridad:95,  nombre:'San Valentín' },
+  CARNAVAL:    { id:'CARNAVAL',    inicio:new Date('2026-02-10'), fin:new Date('2026-02-27T23:59:59'), prioridad:90,  nombre:'Carnaval' },
+  DIA_GATO:    { id:'DIA_GATO',    inicio:new Date('2026-08-01'), fin:new Date('2026-08-30T23:59:59'), prioridad:70,  nombre:'Día del Gato' },
+  SAN_PATRICIO:{ id:'SAN_PATRICIO',inicio:new Date('2026-03-15'), fin:new Date('2026-03-18T23:59:59'), prioridad:80,  nombre:'San Patricio' },
+  PASCUA:      { id:'PASCUA',      inicio:new Date('2026-04-03'), fin:new Date('2026-04-06T23:59:59'), prioridad:85,  nombre:'Pascua' },
+  DIA_MADRE:   { id:'DIA_MADRE',   inicio:new Date('2026-05-08'), fin:new Date('2026-05-11T23:59:59'), prioridad:75,  nombre:'Día de la Madre' },
+  DIA_PADRE:   { id:'DIA_PADRE',   inicio:new Date('2026-06-19'), fin:new Date('2026-06-22T23:59:59'), prioridad:75,  nombre:'Día del Padre' },
+  HALLOWEEN:   { id:'HALLOWEEN',   inicio:new Date('2026-10-25'), fin:new Date('2026-11-01T23:59:59'), prioridad:95,  nombre:'Halloween' },
+  DIA_MUERTOS: { id:'DIA_MUERTOS', inicio:new Date('2026-11-01'), fin:new Date('2026-11-03T23:59:59'), prioridad:90,  nombre:'Día de Muertos' },
+  NAVIDAD:     { id:'NAVIDAD',     inicio:new Date('2026-12-01'), fin:new Date('2026-12-30T23:59:59'), prioridad:100, nombre:'Navidad' },
+  PRIMAVERA:   { id:'PRIMAVERA',   inicio:new Date('2026-03-20'), fin:new Date('2026-06-20T23:59:59'), prioridad:10,  nombre:'Primavera' },
+  VERANO:      { id:'VERANO',      inicio:new Date('2026-06-21'), fin:new Date('2026-09-22T23:59:59'), prioridad:10,  nombre:'Verano' },
+  OTONO:       { id:'OTONO',       inicio:new Date('2026-09-23'), fin:new Date('2026-12-20T23:59:59'), prioridad:10,  nombre:'Otoño' },
 };
 
-// Paletas de colores profesionales
 const COLOR_PALETTES = {
-  NUEVO_ANO: ['#FFD700', '#FF1744', '#2196F3', '#4CAF50', '#FF6B9D', '#9C27B0', '#00BCD4', '#FF5722'],
-  SAN_VALENTIN: ['#FF1493', '#FF69B4', '#DC143C', '#FF6B9D', '#FF1A66', '#FF80AB', '#C71585'],
-  CARNAVAL: ['#FF3B30', '#FF9500', '#FFCC00', '#4CD964', '#007AFF', '#5856D6', '#FF2D55', '#5AC8FA'],
-  SAN_PATRICIO: ['#00FF00', '#32CD32', '#228B22', '#90EE90', '#00FA9A', '#7FFF00'],
-  HALLOWEEN: ['#FF6600', '#8B00FF', '#FF4500', '#9932CC', '#FF8C00', '#9400D3'],
-  NAVIDAD: ['#C41E3A', '#0F8B3E', '#FFD700', '#FFFFFF', '#CD2626', '#228B22']
+  NUEVO_ANO:   ['#FFD700','#FF1744','#2196F3','#4CAF50','#FF6B9D','#9C27B0','#00BCD4','#FF5722'],
+  SAN_VALENTIN:['#FF1493','#FF69B4','#DC143C','#FF6B9D','#C71585'],
+  CARNAVAL:    ['#FF3B30','#FF9500','#FFCC00','#4CD964','#007AFF','#5856D6','#FF2D55'],
+  SAN_PATRICIO:['#00FF00','#32CD32','#228B22','#90EE90'],
+  HALLOWEEN:   ['#FF6600','#8B00FF','#FF4500','#9932CC'],
+  NAVIDAD:     ['#C41E3A','#0F8B3E','#FFD700','#FFFFFF'],
 };
 
-// ═══════════════════════════════════════════════════════════
-// 🏗️ CLASE BASE PARA GESTIÓN DE FESTIVIDADES
-// ═══════════════════════════════════════════════════════════
-
-class FestividadManager {
-  constructor() {
-    this.intervalosActivos = new Map();
-    this.elementosActivos = new Set();
-    this.festivaActual = null;
-    this.maxElementosPorFestividad = 200;
+class FestMgr {
+  constructor() { this.ivs = new Map(); this.els = new Set(); this.maxEls = 200; }
+  isActive(c) { const n = new Date(); return n >= c.inicio && n <= c.fin; }
+  clean(el, t=0) {
+    setTimeout(() => { try { if (el?.parentNode) { el.remove(); this.els.delete(el); } } catch(e) {} }, t);
   }
-
-  estaActiva(config) {
-    const ahora = new Date();
-    return ahora >= config.inicio && ahora <= config.fin;
+  stopAll() {
+    this.ivs.forEach(iv => clearInterval(iv)); this.ivs.clear();
+    this.els.forEach(el => { try { el.remove(); } catch(e) {} }); this.els.clear();
   }
+  rnd(a,b) { return Math.random()*(b-a)+a; }
+  rndI(a,b){ return Math.floor(this.rnd(a,b)); }
+  pick(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+}
 
-  obtenerFestivaActual() {
-    const festivas = Object.values(FESTIVE_CONFIG)
-      .filter(config => this.estaActiva(config))
-      .sort((a, b) => b.prioridad - a.prioridad);
-    
-    return festivas.length > 0 ? festivas[0] : null;
+class AnoNuevoMgr extends FestMgr {
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.NUEVO_ANO) || this.ivs.has('p')) return;
+    const c = document.getElementById('newyear-fireworks'); if (!c) return;
+    for (let i=0; i<5; i++) setTimeout(()=>this.rocket(), i*500);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<this.maxEls) this.rocket(); }, 1000+Math.random()*600));
   }
-
-  limpiarElemento(elemento, tiempo = 0) {
-    setTimeout(() => {
-      try {
-        if (elemento && elemento.parentNode) {
-          elemento.remove();
-          this.elementosActivos.delete(elemento);
-        }
-      } catch (e) {
-        console.warn('Error al limpiar elemento:', e);
-      }
-    }, tiempo);
-  }
-
-  detenerTodo() {
-    this.intervalosActivos.forEach(intervalo => clearInterval(intervalo));
-    this.intervalosActivos.clear();
-    this.elementosActivos.forEach(elemento => {
-      try { elemento.remove(); } catch (e) {}
+  rocket() {
+    const c = document.getElementById('newyear-fireworks'); if (!c) return;
+    const el = document.createElement('div');
+    el.className = 'newyear-rocket festive-element';
+    const col = this.pick(COLOR_PALETTES.NUEVO_ANO);
+    el.style.cssText = `color:${col};left:${this.rnd(10,90)}vw;width:${this.rnd(8,14)}px;height:${this.rnd(25,40)}px;animation-duration:${this.rnd(1.2,2)}s`;
+    c.appendChild(el); this.els.add(el);
+    el.addEventListener('animationend', () => {
+      const r = el.getBoundingClientRect();
+      this.explode(r.left + r.width/2, r.top + r.height/2, col);
+      this.clean(el);
     });
-    this.elementosActivos.clear();
+    this.clean(el, 3000);
   }
-
-  random(min, max) {
-    return Math.random() * (max - min) + min;
-  }
-
-  randomInt(min, max) {
-    return Math.floor(this.random(min, max));
-  }
-
-  randomChoice(array) {
-    return array[Math.floor(Math.random() * array.length)];
+  explode(x, y, col) {
+    const c = document.getElementById('newyear-fireworks'); if (!c) return;
+    for (let i=0; i<60; i++) {
+      const p = document.createElement('div'); p.className = 'newyear-burst festive-element';
+      const pc = Math.random()>.7 ? this.pick(COLOR_PALETTES.NUEVO_ANO) : col;
+      const ang = (Math.PI*2*i)/60 + this.rnd(-0.2,0.2);
+      const dist = this.rnd(70,150);
+      p.style.cssText = `background:${pc};color:${pc};left:${x}px;top:${y}px;width:${this.rnd(4,10)}px;height:${this.rnd(4,10)}px;animation-duration:${this.rnd(0.8,1.4)}s`;
+      p.style.setProperty('--dx', Math.cos(ang)*dist+'px');
+      p.style.setProperty('--dy', Math.sin(ang)*dist+'px');
+      c.appendChild(p); this.els.add(p); this.clean(p, 1600);
+    }
+    for (let i=0; i<12; i++) {
+      const t = document.createElement('div'); t.className = 'newyear-trail festive-element';
+      t.style.cssText = `background:${col};left:${x}px;top:${y}px;animation-duration:${this.rnd(0.6,1)}s`;
+      const ang = (Math.PI*2*i)/12;
+      t.style.setProperty('--dy', Math.sin(ang)*30+'px');
+      c.appendChild(t); this.els.add(t); this.clean(t, 1200);
+    }
+    const txt = document.createElement('span'); txt.className = 'newyear-year-text festive-element';
+    txt.style.cssText = `left:${x}px;top:${y}px`;
+    txt.textContent = '2026';
+    c.appendChild(txt); this.els.add(txt); this.clean(txt, 2200);
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🎆 AÑO NUEVO - SISTEMA AVANZADO DE FUEGOS ARTIFICIALES
-// ═══════════════════════════════════════════════════════════
-
-class AnoNuevoManager extends FestividadManager {
-  constructor() {
-    super();
-    this.containerId = 'newyear-fireworks';
-  }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.NUEVO_ANO)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById(this.containerId);
-    if (!container) return;
-
-    // Ráfaga inicial
-    for (let i = 0; i < 5; i++) {
-      setTimeout(() => this.lanzarCohete(), i * 500);
+class SanValentinMgr extends FestMgr {
+  constructor() { super(); this.elementos = ['🌹','❤️','💗','💖','💕','🌷','💞','💝','💘']; this.corazones = ['❤️','💖','💗','💕']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.SAN_VALENTIN) || this.ivs.has('p')) return;
+    const cp = document.getElementById('valentine-petals');
+    const ch = document.getElementById('valentine-hearts');
+    if (cp) {
+      for (let i=0; i<30; i++) setTimeout(()=>this.petal(), i*200);
+      this.ivs.set('p', setInterval(()=>{ if(this.els.size<this.maxEls) this.petal(); }, 350));
     }
-
-    // Ráfaga continua
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-        this.lanzarCohete();
-      }
-    }, 1000 + Math.random() * 600);
-
-    this.intervalosActivos.set('principal', intervalo);
+    if (ch) {
+      for (let i=0; i<6; i++) setTimeout(()=>this.heart(), i*700);
+      this.ivs.set('h', setInterval(()=>{ if(this.els.size<this.maxEls) this.heart(); }, 1600+Math.random()*800));
+    }
   }
+  petal() {
+    const c = document.getElementById('valentine-petals'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'valentine-rose-petal festive-element';
+    el.textContent = this.pick(this.elementos);
+    el.style.left = this.rnd(0,100)+'%'; el.style.fontSize = this.rnd(18,32)+'px';
+    el.style.setProperty('--swing-1', this.rnd(-80,80)+'px');
+    el.style.setProperty('--swing-2', this.rnd(-100,100)+'px');
+    el.style.setProperty('--swing-3', this.rnd(-60,60)+'px');
+    el.style.setProperty('--rotate-1', this.rnd(-90,90)+'deg');
+    el.style.setProperty('--rotate-2', this.rnd(-180,180)+'deg');
+    el.style.setProperty('--rotate-3', this.rnd(-270,270)+'deg');
+    const dur = this.rnd(10,16); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+  heart() {
+    const c = document.getElementById('valentine-hearts'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'valentine-heart-float festive-element';
+    el.textContent = this.pick(this.corazones);
+    el.style.fontSize = this.rnd(32,56)+'px'; el.style.left = this.rnd(5,90)+'vw';
+    el.style.setProperty('--swing-x', this.rnd(-80,80)+'px');
+    el.style.setProperty('--swing-x-2', this.rnd(-100,100)+'px');
+    el.style.setProperty('--rotate-angle', this.rnd(-30,30)+'deg');
+    el.style.setProperty('--rotate-final', this.rnd(-360,360)+'deg');
+    const dur = this.rnd(4,6); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+}
 
-  lanzarCohete() {
-    const container = document.getElementById(this.containerId);
-    if (!container) return;
+class DiaGatoMgr extends FestMgr {
+  constructor() { super(); this.gatos = ['🐱','😺','😸','😹','😻','🐈','😼','😽']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.DIA_GATO) || this.ivs.has('p')) return;
+    const c = document.getElementById('catday-ground'); if (!c) return;
+    for (let i=0; i<8; i++) setTimeout(()=>this.gato(), i*1200);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<20) this.gato(); }, 2500+Math.random()*1500));
+  }
+  gato() {
+    const c = document.getElementById('catday-ground'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'catday-walking festive-element';
+    el.textContent = this.pick(this.gatos);
+    el.style.fontSize = this.rnd(35,60)+'px'; el.style.bottom = this.rnd(5,35)+'vh';
+    const dur = this.rnd(7,11); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+}
 
-    const cohete = document.createElement('div');
-    cohete.className = 'newyear-rocket festive-element';
-    
-    const color = this.randomChoice(COLOR_PALETTES.NUEVO_ANO);
-    cohete.style.color = color;
-    cohete.style.left = this.random(10, 90) + 'vw';
-    cohete.style.width = this.random(8, 14) + 'px';
-    cohete.style.height = this.random(25, 40) + 'px';
-    cohete.style.animationDuration = this.random(1.2, 2) + 's';
+class SanPatricioMgr extends FestMgr {
+  constructor() { super(); this.elementos = ['🍀','☘️','💚']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.SAN_PATRICIO) || this.ivs.has('p')) return;
+    const c = document.getElementById('stpatrick-clovers'); if (!c) return;
+    for (let i=0; i<25; i++) setTimeout(()=>this.trebol(), i*250);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<this.maxEls) this.trebol(); }, 450));
+  }
+  trebol() {
+    const c = document.getElementById('stpatrick-clovers'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'stpatrick-clover festive-element';
+    el.textContent = this.pick(this.elementos);
+    el.style.left = this.rnd(0,100)+'%'; el.style.fontSize = this.rnd(20,36)+'px';
+    el.style.setProperty('--swing-a', this.rnd(-90,90)+'px');
+    el.style.setProperty('--swing-b', this.rnd(-110,110)+'px');
+    el.style.setProperty('--swing-c', this.rnd(-70,70)+'px');
+    el.style.setProperty('--rotate-a', this.rnd(-120,120)+'deg');
+    el.style.setProperty('--rotate-b', this.rnd(-240,240)+'deg');
+    el.style.setProperty('--rotate-c', this.rnd(-360,360)+'deg');
+    const dur = this.rnd(9,14); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+}
 
-    container.appendChild(cohete);
-    this.elementosActivos.add(cohete);
+class PascuaMgr extends FestMgr {
+  constructor() { super(); this.elementos = ['🐰','🥚','🐣','🐤','🌷','🌸','🐇','🌺']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.PASCUA) || this.ivs.has('p')) return;
+    const c = document.getElementById('easter-elements'); if (!c) return;
+    for (let i=0; i<22; i++) setTimeout(()=>this.elem(), i*300);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<this.maxEls) this.elem(); }, 500));
+  }
+  elem() {
+    const c = document.getElementById('easter-elements'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'easter-bouncing festive-element';
+    el.textContent = this.pick(this.elementos);
+    el.style.left = this.rnd(0,100)+'%'; el.style.fontSize = this.rnd(20,34)+'px';
+    el.style.setProperty('--bounce-y-1', this.rnd(15,25)+'vh');
+    el.style.setProperty('--bounce-y-2', this.rnd(40,50)+'vh');
+    el.style.setProperty('--bounce-x-1', this.rnd(-30,30)+'px');
+    el.style.setProperty('--bounce-x-2', this.rnd(-50,50)+'px');
+    el.style.setProperty('--bounce-r-1', this.rnd(-45,45)+'deg');
+    el.style.setProperty('--bounce-r-2', this.rnd(-90,90)+'deg');
+    el.style.setProperty('--final-x', this.rnd(-40,40)+'px');
+    el.style.setProperty('--final-r', this.rnd(-180,180)+'deg');
+    const dur = this.rnd(8,12); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+}
 
-    cohete.addEventListener('animationend', () => {
-      const rect = cohete.getBoundingClientRect();
-      this.crearExplosion(rect.left + rect.width / 2, rect.top + rect.height / 2, color);
-      this.limpiarElemento(cohete);
+class DiaMadreMgr extends FestMgr {
+  constructor() { super(); this.flores = ['🌹','🌺','🌸','🌻','🌷','💐','🌼','🏵️']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.DIA_MADRE) || this.ivs.has('p')) return;
+    const c = document.getElementById('mothersday-flowers'); if (!c) return;
+    for (let i=0; i<28; i++) setTimeout(()=>this.flor(), i*250);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<this.maxEls) this.flor(); }, 380));
+  }
+  flor() {
+    const c = document.getElementById('mothersday-flowers'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'mothersday-elegant-flower festive-element';
+    el.textContent = this.pick(this.flores);
+    el.style.left = this.rnd(0,100)+'%'; el.style.fontSize = this.rnd(22,38)+'px';
+    el.style.setProperty('--drift-1', this.rnd(-70,70)+'px');
+    el.style.setProperty('--drift-2', this.rnd(-90,90)+'px');
+    el.style.setProperty('--drift-3', this.rnd(-60,60)+'px');
+    el.style.setProperty('--spin-1', this.rnd(-90,90)+'deg');
+    el.style.setProperty('--spin-2', this.rnd(-180,180)+'deg');
+    el.style.setProperty('--spin-3', this.rnd(-270,270)+'deg');
+    const dur = this.rnd(10,15); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+}
+
+class HalloweenMgr extends FestMgr {
+  constructor() { super(); this.elementos = ['🎃','💀','🕷️','🧙','🦇']; this.fantasmas = ['👻']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.HALLOWEEN) || this.ivs.has('p')) return;
+    const c = document.getElementById('halloween-spooky'); if (!c) return;
+    for (let i=0; i<30; i++) setTimeout(()=>this.elem(), i*200);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<this.maxEls) this.elem(); }, 330));
+    for (let i=0; i<3; i++) setTimeout(()=>this.fantasma(), i*1500);
+    this.ivs.set('f', setInterval(()=>{ if(this.els.size<this.maxEls) this.fantasma(); }, 4000+Math.random()*3000));
+    this.ivs.set('b', setInterval(()=>{ if(Math.random()>.6&&this.els.size<this.maxEls) this.murcielago(); }, 3000));
+  }
+  elem() {
+    const c = document.getElementById('halloween-spooky'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'halloween-spooky-element festive-element';
+    el.textContent = this.pick(this.elementos);
+    el.style.left = this.rnd(0,100)+'%'; el.style.fontSize = this.rnd(22,40)+'px';
+    el.style.setProperty('--drift-a', this.rnd(-80,80)+'px');
+    el.style.setProperty('--drift-b', this.rnd(-100,100)+'px');
+    el.style.setProperty('--drift-c', this.rnd(-70,70)+'px');
+    el.style.setProperty('--rot-a', this.rnd(-120,120)+'deg');
+    el.style.setProperty('--rot-b', this.rnd(-240,240)+'deg');
+    el.style.setProperty('--rot-c', this.rnd(-360,360)+'deg');
+    const dur = this.rnd(8,13); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+  fantasma() {
+    const c = document.getElementById('halloween-spooky'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'halloween-ghost-float festive-element';
+    el.textContent = this.pick(this.fantasmas);
+    el.style.fontSize = this.rnd(45,70)+'px'; el.style.left = this.rnd(10,80)+'vw';
+    const dur = this.rnd(4,6); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+  murcielago() {
+    const c = document.getElementById('halloween-spooky'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'halloween-bat-fly festive-element';
+    el.textContent = '🦇'; el.style.fontSize = this.rnd(25,45)+'px';
+    el.style.top = this.rnd(10,60)+'vh';
+    const dur = this.rnd(3,5); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+}
+
+class DiaMuertosMgr extends FestMgr {
+  constructor() { super(); this.elementos = ['🌼','💀','🕯️','🌺','🦴','🪦']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.DIA_MUERTOS) || this.ivs.has('p')) return;
+    const c = document.getElementById('dayofdead-marigolds'); if (!c) return;
+    for (let i=0; i<25; i++) setTimeout(()=>this.flor(), i*280);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<this.maxEls) this.flor(); }, 420));
+  }
+  flor() {
+    const c = document.getElementById('dayofdead-marigolds'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'dayofdead-marigold festive-element';
+    el.textContent = this.pick(this.elementos);
+    el.style.left = this.rnd(0,100)+'%'; el.style.fontSize = this.rnd(20,36)+'px';
+    el.style.setProperty('--float-1', this.rnd(-75,75)+'px');
+    el.style.setProperty('--float-2', this.rnd(-95,95)+'px');
+    el.style.setProperty('--float-3', this.rnd(-65,65)+'px');
+    el.style.setProperty('--turn-1', this.rnd(-100,100)+'deg');
+    el.style.setProperty('--turn-2', this.rnd(-200,200)+'deg');
+    el.style.setProperty('--turn-3', this.rnd(-300,300)+'deg');
+    const dur = this.rnd(9,14); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+}
+
+class NavidadMgr extends FestMgr {
+  constructor() { super(); this.copos = ['❄','❅','❆']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.NAVIDAD) || this.ivs.has('p')) return;
+    const c = document.getElementById('christmas-snowfall'); if (!c) return;
+    for (let i=0; i<40; i++) setTimeout(()=>this.copo(), i*150);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<this.maxEls) this.copo(); }, 180));
+  }
+  copo() {
+    const c = document.getElementById('christmas-snowfall'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'christmas-snowflake festive-element';
+    el.textContent = this.pick(this.copos);
+    el.style.left = this.rnd(0,100)+'%'; el.style.fontSize = this.rnd(12,28)+'px';
+    el.style.opacity = this.rnd(0.4,0.9).toFixed(2);
+    el.style.setProperty('--drift', this.rnd(-50,50)+'px');
+    el.style.setProperty('--spin', this.rnd(-360,360)+'deg');
+    const dur = this.rnd(10,18); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+}
+
+class CarnavalMgr extends FestMgr {
+  constructor() { super(); this.formas = ['●','■','▲','◆','★','♦','♥','♣','♠']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.CARNAVAL) || this.ivs.has('confeti')) return;
+    const cc = document.getElementById('carnival-confetti');
+    const cf = document.getElementById('carnival-fireworks');
+    if (cc) {
+      for (let i=0; i<35; i++) setTimeout(()=>this.confeti(), i*120);
+      this.ivs.set('confeti', setInterval(()=>{ if(this.els.size<this.maxEls) this.confeti(); }, 160));
+    }
+    if (cf) {
+      for (let i=0; i<5; i++) setTimeout(()=>this.rocket(), i*600);
+      this.ivs.set('fuegos', setInterval(()=>{ if(this.els.size<this.maxEls) this.rocket(); }, 1200+Math.random()*700));
+    }
+  }
+  confeti() {
+    const c = document.getElementById('carnival-confetti'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'carnival-confetti-piece festive-element';
+    el.textContent = this.pick(this.formas);
+    el.style.left = this.rnd(0,100)+'%'; el.style.fontSize = this.rnd(10,20)+'px';
+    el.style.color = this.pick(COLOR_PALETTES.CARNAVAL);
+    el.style.setProperty('--drift-confetti', this.rnd(-80,80)+'px');
+    el.style.setProperty('--spin-confetti', this.rnd(-720,720)+'deg');
+    const dur = this.rnd(6,10); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
+  }
+  rocket() {
+    const c = document.getElementById('carnival-fireworks'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'carnival-rocket festive-element';
+    const col = this.pick(COLOR_PALETTES.CARNAVAL);
+    el.style.cssText = `background:${col};left:${this.rnd(15,85)}vw;width:${this.rnd(5,9)}px;height:${this.rnd(16,24)}px;animation-duration:${this.rnd(1,1.6)}s`;
+    c.appendChild(el); this.els.add(el);
+    el.addEventListener('animationend', () => {
+      const r = el.getBoundingClientRect();
+      this.explode(r.left + r.width/2, r.top + r.height/2, col);
+      this.clean(el);
     });
-
-    this.limpiarElemento(cohete, 3000);
+    this.clean(el, 2500);
   }
-
-  crearExplosion(x, y, color) {
-    const container = document.getElementById(this.containerId);
-    if (!container) return;
-
-    const numParticulas = this.randomInt(50, 80);
-    const numTrails = this.randomInt(8, 15);
-
-    // Partículas principales
-    for (let i = 0; i < numParticulas; i++) {
-      const particula = document.createElement('div');
-      particula.className = 'newyear-burst festive-element';
-      
-      const colorParticula = Math.random() > 0.7 ? 
-        this.randomChoice(COLOR_PALETTES.NUEVO_ANO) : color;
-      
-      particula.style.background = colorParticula;
-      particula.style.color = colorParticula;
-      particula.style.left = x + 'px';
-      particula.style.top = y + 'px';
-      particula.style.width = this.random(4, 10) + 'px';
-      particula.style.height = this.random(4, 10) + 'px';
-      
-      const angulo = (Math.PI * 2 * i) / numParticulas + this.random(-0.2, 0.2);
-      const distancia = this.random(70, 150);
-      particula.style.setProperty('--dx', Math.cos(angulo) * distancia + 'px');
-      particula.style.setProperty('--dy', Math.sin(angulo) * distancia + 'px');
-      particula.style.animationDuration = this.random(0.8, 1.4) + 's';
-      
-      container.appendChild(particula);
-      this.elementosActivos.add(particula);
-      this.limpiarElemento(particula, 1600);
-    }
-
-    // Trails de estela
-    for (let i = 0; i < numTrails; i++) {
-      const trail = document.createElement('div');
-      trail.className = 'newyear-trail festive-element';
-      trail.style.background = color;
-      trail.style.color = color;
-      trail.style.left = x + 'px';
-      trail.style.top = y + 'px';
-      
-      const angulo = (Math.PI * 2 * i) / numTrails;
-      trail.style.setProperty('--dy', Math.sin(angulo) * 30 + 'px');
-      trail.style.animationDuration = this.random(0.6, 1) + 's';
-      
-      container.appendChild(trail);
-      this.elementosActivos.add(trail);
-      this.limpiarElemento(trail, 1200);
-    }
-
-    // Texto del año
-    const texto = document.createElement('span');
-    texto.className = 'newyear-year-text festive-element';
-    texto.style.left = x + 'px';
-    texto.style.top = y + 'px';
-    texto.textContent = '2026';
-    
-    container.appendChild(texto);
-    this.elementosActivos.add(texto);
-    this.limpiarElemento(texto, 2000);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// 💕 SAN VALENTÍN - SISTEMA ROMÁNTICO AVANZADO
-// ═══════════════════════════════════════════════════════════
-
-class SanValentinManager extends FestividadManager {
-  constructor() {
-    super();
-    this.elementos = ['🌹', '❤️', '💗', '💖', '💕', '🌷', '💞', '💝', '💘', '🌺'];
-    this.corazones = ['❤️', '💖', '💗', '💕'];
-  }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.SAN_VALENTIN)) return;
-    if (this.intervalosActivos.has('petalos')) return;
-
-    // Sistema de pétalos
-    const containerPetalos = document.getElementById('valentine-petals');
-    if (containerPetalos) {
-      for (let i = 0; i < 30; i++) {
-        setTimeout(() => this.crearPetalo(), i * 200);
-      }
-      
-      const intervaloPetalos = setInterval(() => {
-        if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-          this.crearPetalo();
-        }
-      }, 350);
-      
-      this.intervalosActivos.set('petalos', intervaloPetalos);
-    }
-
-    // Sistema de corazones flotantes
-    const containerCorazones = document.getElementById('valentine-hearts');
-    if (containerCorazones) {
-      for (let i = 0; i < 6; i++) {
-        setTimeout(() => this.crearCorazonFlotante(), i * 700);
-      }
-      
-      const intervaloCorazones = setInterval(() => {
-        if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-          this.crearCorazonFlotante();
-        }
-      }, 1600 + Math.random() * 800);
-      
-      this.intervalosActivos.set('corazones', intervaloCorazones);
-    }
-  }
-
-  crearPetalo() {
-    const container = document.getElementById('valentine-petals');
-    if (!container) return;
-
-    const petalo = document.createElement('div');
-    petalo.className = 'valentine-rose-petal festive-element';
-    petalo.textContent = this.randomChoice(this.elementos);
-    petalo.style.left = this.random(0, 100) + '%';
-    petalo.style.fontSize = this.random(18, 32) + 'px';
-    
-    // Variables CSS personalizadas para animación compleja
-    petalo.style.setProperty('--swing-1', this.random(-80, 80) + 'px');
-    petalo.style.setProperty('--swing-2', this.random(-100, 100) + 'px');
-    petalo.style.setProperty('--swing-3', this.random(-60, 60) + 'px');
-    petalo.style.setProperty('--rotate-1', this.random(-90, 90) + 'deg');
-    petalo.style.setProperty('--rotate-2', this.random(-180, 180) + 'deg');
-    petalo.style.setProperty('--rotate-3', this.random(-270, 270) + 'deg');
-    
-    const duracion = this.random(10, 16);
-    petalo.style.animationDuration = duracion + 's';
-    
-    container.appendChild(petalo);
-    this.elementosActivos.add(petalo);
-    this.limpiarElemento(petalo, duracion * 1000 + 500);
-  }
-
-  crearCorazonFlotante() {
-    const container = document.getElementById('valentine-hearts');
-    if (!container) return;
-
-    const corazon = document.createElement('div');
-    corazon.className = 'valentine-heart-float festive-element';
-    const color = this.randomChoice(COLOR_PALETTES.SAN_VALENTIN);
-    corazon.style.color = color;
-    corazon.textContent = this.randomChoice(this.corazones);
-    corazon.style.fontSize = this.random(32, 56) + 'px';
-    corazon.style.left = this.random(5, 90) + 'vw';
-    
-    corazon.style.setProperty('--swing-x', this.random(-80, 80) + 'px');
-    corazon.style.setProperty('--swing-x-2', this.random(-100, 100) + 'px');
-    corazon.style.setProperty('--rotate-angle', this.random(-30, 30) + 'deg');
-    corazon.style.setProperty('--rotate-angle-2', this.random(-45, 45) + 'deg');
-    corazon.style.setProperty('--rotate-final', this.random(-360, 360) + 'deg');
-    
-    const duracion = this.random(4, 6);
-    corazon.style.animationDuration = duracion + 's';
-    
-    container.appendChild(corazon);
-    this.elementosActivos.add(corazon);
-
-    setTimeout(() => {
-      const rect = corazon.getBoundingClientRect();
-      this.crearParticulasAmor(rect.left + rect.width / 2, rect.top + rect.height / 2, color);
-      this.mostrarTextoRomantico(rect.left + rect.width / 2, rect.top + rect.height / 2, color);
-      this.limpiarElemento(corazon);
-    }, duracion * 1000);
-  }
-
-  crearParticulasAmor(x, y, color) {
-    const container = document.getElementById('valentine-hearts');
-    if (!container) return;
-
-    const particulasEmojis = ['💖', '💕', '💓', '💘', '💝', '✨', '💗'];
-    const numParticulas = this.randomInt(12, 20);
-
-    for (let i = 0; i < numParticulas; i++) {
-      const particula = document.createElement('div');
-      particula.className = 'valentine-particle-love festive-element';
-      particula.textContent = this.randomChoice(particulasEmojis);
-      particula.style.fontSize = this.random(14, 24) + 'px';
-      particula.style.left = x + 'px';
-      particula.style.top = y + 'px';
-      
-      const angulo = (Math.PI * 2 * i) / numParticulas + this.random(-0.3, 0.3);
-      const distancia = this.random(60, 120);
-      particula.style.setProperty('--px', Math.cos(angulo) * distancia + 'px');
-      particula.style.setProperty('--py', Math.sin(angulo) * distancia + 'px');
-      particula.style.setProperty('--pr', this.random(-360, 360) + 'deg');
-      particula.style.animationDuration = this.random(1.5, 2.3) + 's';
-      
-      container.appendChild(particula);
-      this.elementosActivos.add(particula);
-      this.limpiarElemento(particula, 2500);
-    }
-  }
-
-  mostrarTextoRomantico(x, y, color) {
-    const container = document.getElementById('valentine-hearts');
-    if (!container) return;
-
-    const textos = [
-      'Te Amo', 'Amor Eterno', 'Mi Vida', 'Besos', 'Cariño',
-      'Eres Todo', 'Amor Mío', 'Mi Cielo', 'Forever', 'Juntos'
-    ];
-    
-    const texto = document.createElement('span');
-    texto.className = 'valentine-love-text festive-element';
-    texto.style.color = color;
-    texto.style.left = x + 'px';
-    texto.style.top = y + 'px';
-    texto.textContent = this.randomChoice(textos);
-    
-    container.appendChild(texto);
-    this.elementosActivos.add(texto);
-    this.limpiarElemento(texto, 2200);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// 🐱 DÍA DEL GATO - ANIMACIÓN REALISTA
-// ═══════════════════════════════════════════════════════════
-
-class DiaGatoManager extends FestividadManager {
-  constructor() {
-    super();
-    this.gatos = ['🐱', '😺', '😸', '😹', '😻', '🐈', '😼', '😽'];
-  }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.DIA_GATO)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById('catday-ground');
-    if (!container) return;
-
-    for (let i = 0; i < 10; i++) {
-      setTimeout(() => this.crearGato(), i * 1200);
-    }
-
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < 20) {
-        this.crearGato();
-      }
-    }, 2500 + Math.random() * 1500);
-
-    this.intervalosActivos.set('principal', intervalo);
-  }
-
-  crearGato() {
-    const container = document.getElementById('catday-ground');
-    if (!container) return;
-
-    const gato = document.createElement('div');
-    gato.className = 'catday-walking festive-element';
-    gato.textContent = this.randomChoice(this.gatos);
-    gato.style.fontSize = this.random(35, 60) + 'px';
-    gato.style.bottom = this.random(5, 35) + 'vh';
-    
-    const duracion = this.random(7, 11);
-    gato.style.animationDuration = duracion + 's';
-    
-    container.appendChild(gato);
-    this.elementosActivos.add(gato);
-    this.limpiarElemento(gato, duracion * 1000 + 500);
-
-    // Huellas de patas opcionales
-    if (Math.random() > 0.6) {
-      this.crearHuellas(gato, duracion);
-    }
-  }
-
-  crearHuellas(gatoElement, duracion) {
-    const container = document.getElementById('catday-ground');
-    if (!container) return;
-
-    const numHuellas = this.randomInt(8, 15);
-    const intervaloHuellas = (duracion * 1000) / numHuellas;
-
-    for (let i = 0; i < numHuellas; i++) {
-      setTimeout(() => {
-        const huella = document.createElement('div');
-        huella.className = 'catday-paw-print festive-element';
-        huella.textContent = '🐾';
-        huella.style.fontSize = this.random(12, 20) + 'px';
-        
-        const rect = gatoElement.getBoundingClientRect();
-        huella.style.left = rect.left + 'px';
-        huella.style.bottom = gatoElement.style.bottom;
-        
-        container.appendChild(huella);
-        this.elementosActivos.add(huella);
-        this.limpiarElemento(huella, 3000);
-      }, i * intervaloHuellas);
+  explode(x, y, col) {
+    const c = document.getElementById('carnival-fireworks'); if (!c) return;
+    const num = this.rndI(35,55);
+    for (let i=0; i<num; i++) {
+      const p = document.createElement('div'); p.className = 'carnival-burst-particle festive-element';
+      p.textContent = this.pick(this.formas);
+      p.style.fontSize = this.rnd(10,18)+'px';
+      p.style.color = this.pick(COLOR_PALETTES.CARNAVAL);
+      p.style.left = x+'px'; p.style.top = y+'px';
+      const ang = (Math.PI*2*i)/num + this.rnd(-0.2,0.2);
+      const dist = this.rnd(60,130);
+      p.style.setProperty('--explode-x', Math.cos(ang)*dist+'px');
+      p.style.setProperty('--explode-y', Math.sin(ang)*dist+'px');
+      p.style.setProperty('--explode-r', this.rnd(-360,360)+'deg');
+      p.style.animationDuration = this.rnd(0.8,1.5)+'s';
+      c.appendChild(p); this.els.add(p); this.clean(p, 1800);
     }
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🍀 SAN PATRICIO - MAGIA CELTA
-// ═══════════════════════════════════════════════════════════
-
-class SanPatricioManager extends FestividadManager {
-  constructor() {
-    super();
-    this.elementos = ['🍀', '☘️', '💚'];
+class PrimaveraMgr extends FestMgr {
+  constructor() { super(); this.elementos = ['🌸','🌺','🌼','🌻','🌷','🦋','🐝','🌱']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.PRIMAVERA) || this.ivs.has('p')) return;
+    const c = document.getElementById('spring-blossoms'); if (!c) return;
+    for (let i=0; i<18; i++) setTimeout(()=>this.flor(), i*450);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<50) this.flor(); }, 650));
   }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.SAN_PATRICIO)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById('stpatrick-clovers');
-    if (!container) return;
-
-    for (let i = 0; i < 25; i++) {
-      setTimeout(() => this.crearTrebol(), i * 250);
-    }
-
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-        this.crearTrebol();
-      }
-    }, 450);
-
-    this.intervalosActivos.set('principal', intervalo);
-
-    // Arcoíris ocasionales
-    setInterval(() => {
-      if (Math.random() > 0.7) {
-        this.crearArcoiris();
-      }
-    }, 5000);
-  }
-
-  crearTrebol() {
-    const container = document.getElementById('stpatrick-clovers');
-    if (!container) return;
-
-    const trebol = document.createElement('div');
-    trebol.className = 'stpatrick-clover festive-element';
-    trebol.textContent = this.randomChoice(this.elementos);
-    trebol.style.left = this.random(0, 100) + '%';
-    trebol.style.fontSize = this.random(20, 36) + 'px';
-    
-    trebol.style.setProperty('--swing-a', this.random(-90, 90) + 'px');
-    trebol.style.setProperty('--swing-b', this.random(-110, 110) + 'px');
-    trebol.style.setProperty('--swing-c', this.random(-70, 70) + 'px');
-    trebol.style.setProperty('--rotate-a', this.random(-120, 120) + 'deg');
-    trebol.style.setProperty('--rotate-b', this.random(-240, 240) + 'deg');
-    trebol.style.setProperty('--rotate-c', this.random(-360, 360) + 'deg');
-    
-    const duracion = this.random(9, 14);
-    trebol.style.animationDuration = duracion + 's';
-    
-    container.appendChild(trebol);
-    this.elementosActivos.add(trebol);
-    this.limpiarElemento(trebol, duracion * 1000 + 500);
-  }
-
-  crearArcoiris() {
-    const container = document.getElementById('stpatrick-clovers');
-    if (!container) return;
-
-    const arcoiris = document.createElement('div');
-    arcoiris.className = 'stpatrick-rainbow festive-element';
-    arcoiris.textContent = '🌈';
-    arcoiris.style.bottom = '0';
-    arcoiris.style.left = this.random(-10, 10) + 'vw';
-    
-    container.appendChild(arcoiris);
-    this.elementosActivos.add(arcoiris);
-    this.limpiarElemento(arcoiris, 3000);
+  flor() {
+    const c = document.getElementById('spring-blossoms'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'spring-blossom festive-element';
+    el.textContent = this.pick(this.elementos);
+    el.style.left = this.rnd(0,100)+'%'; el.style.fontSize = this.rnd(18,30)+'px';
+    el.style.setProperty('--wind-1', this.rnd(-60,60)+'px');
+    el.style.setProperty('--wind-2', this.rnd(-80,80)+'px');
+    el.style.setProperty('--wind-3', this.rnd(-50,50)+'px');
+    el.style.setProperty('--twirl-1', this.rnd(-90,90)+'deg');
+    el.style.setProperty('--twirl-2', this.rnd(-180,180)+'deg');
+    el.style.setProperty('--twirl-3', this.rnd(-270,270)+'deg');
+    const dur = this.rnd(12,18); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🐰 PASCUA - PRIMAVERA MÁGICA
-// ═══════════════════════════════════════════════════════════
-
-class PascuaManager extends FestividadManager {
-  constructor() {
-    super();
-    this.elementos = ['🐰', '🥚', '🐣', '🐤', '🌷', '🌸', '🐇', '🌺'];
+class VeranoMgr extends FestMgr {
+  constructor() { super(); this.elementos = ['☀️','🌊','🏖️','🍉','🍹','🌴','⛱️']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.VERANO) || this.ivs.has('p')) return;
+    const c = document.getElementById('summer-vibes'); if (!c) return;
+    for (let i=0; i<10; i++) setTimeout(()=>this.elem(), i*900);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<30) this.elem(); }, 2800+Math.random()*1500));
   }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.PASCUA)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById('easter-elements');
-    if (!container) return;
-
-    for (let i = 0; i < 22; i++) {
-      setTimeout(() => this.crearElemento(), i * 300);
-    }
-
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-        this.crearElemento();
-      }
-    }, 500);
-
-    this.intervalosActivos.set('principal', intervalo);
-  }
-
-  crearElemento() {
-    const container = document.getElementById('easter-elements');
-    if (!container) return;
-
-    const elemento = document.createElement('div');
-    elemento.className = 'easter-bouncing festive-element';
-    elemento.textContent = this.randomChoice(this.elementos);
-    elemento.style.left = this.random(0, 100) + '%';
-    elemento.style.fontSize = this.random(20, 34) + 'px';
-    
-    // Variables para efecto de rebote
-    elemento.style.setProperty('--bounce-y-1', this.random(15, 25) + 'vh');
-    elemento.style.setProperty('--bounce-y-2', this.random(40, 50) + 'vh');
-    elemento.style.setProperty('--bounce-x-1', this.random(-30, 30) + 'px');
-    elemento.style.setProperty('--bounce-x-2', this.random(-50, 50) + 'px');
-    elemento.style.setProperty('--bounce-r-1', this.random(-45, 45) + 'deg');
-    elemento.style.setProperty('--bounce-r-2', this.random(-90, 90) + 'deg');
-    elemento.style.setProperty('--final-x', this.random(-40, 40) + 'px');
-    elemento.style.setProperty('--final-r', this.random(-180, 180) + 'deg');
-    
-    const duracion = this.random(8, 12);
-    elemento.style.animationDuration = duracion + 's';
-    
-    container.appendChild(elemento);
-    this.elementosActivos.add(elemento);
-    this.limpiarElemento(elemento, duracion * 1000 + 500);
+  elem() {
+    const c = document.getElementById('summer-vibes'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'summer-element festive-element';
+    el.textContent = this.pick(this.elementos);
+    el.style.fontSize = this.rnd(28,48)+'px'; el.style.left = this.rnd(10,85)+'vw';
+    el.style.setProperty('--summer-drift-1', this.rnd(-60,60)+'px');
+    el.style.setProperty('--summer-drift-2', this.rnd(-80,80)+'px');
+    el.style.setProperty('--summer-drift-3', this.rnd(-70,70)+'px');
+    el.style.setProperty('--summer-drift-4', this.rnd(-50,50)+'px');
+    el.style.setProperty('--summer-spin-1', this.rnd(-90,90)+'deg');
+    el.style.setProperty('--summer-spin-2', this.rnd(-180,180)+'deg');
+    el.style.setProperty('--summer-spin-3', this.rnd(-270,270)+'deg');
+    el.style.setProperty('--summer-spin-4', this.rnd(-360,360)+'deg');
+    const dur = this.rnd(5,8); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🌹 DÍA DE LA MADRE - ELEGANCIA FLORAL
-// ═══════════════════════════════════════════════════════════
-
-class DiaMadreManager extends FestividadManager {
-  constructor() {
-    super();
-    this.flores = ['🌹', '🌺', '🌸', '🌻', '🌷', '💐', '🌼', '🏵️'];
+class OtonoMgr extends FestMgr {
+  constructor() { super(); this.elementos = ['🍂','🍁','🍄','🌰']; }
+  start() {
+    if (!this.isActive(FESTIVE_CONFIG.OTONO) || this.ivs.has('p')) return;
+    const c = document.getElementById('autumn-leaves'); if (!c) return;
+    for (let i=0; i<22; i++) setTimeout(()=>this.hoja(), i*350);
+    this.ivs.set('p', setInterval(()=>{ if(this.els.size<this.maxEls) this.hoja(); }, 480));
   }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.DIA_MADRE)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById('mothersday-flowers');
-    if (!container) return;
-
-    for (let i = 0; i < 28; i++) {
-      setTimeout(() => this.crearFlor(), i * 250);
-    }
-
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-        this.crearFlor();
-      }
-    }, 380);
-
-    this.intervalosActivos.set('principal', intervalo);
-  }
-
-  crearFlor() {
-    const container = document.getElementById('mothersday-flowers');
-    if (!container) return;
-
-    const flor = document.createElement('div');
-    flor.className = 'mothersday-elegant-flower festive-element';
-    flor.textContent = this.randomChoice(this.flores);
-    flor.style.left = this.random(0, 100) + '%';
-    flor.style.fontSize = this.random(22, 38) + 'px';
-    
-    flor.style.setProperty('--drift-1', this.random(-70, 70) + 'px');
-    flor.style.setProperty('--drift-2', this.random(-90, 90) + 'px');
-    flor.style.setProperty('--drift-3', this.random(-60, 60) + 'px');
-    flor.style.setProperty('--spin-1', this.random(-90, 90) + 'deg');
-    flor.style.setProperty('--spin-2', this.random(-180, 180) + 'deg');
-    flor.style.setProperty('--spin-3', this.random(-270, 270) + 'deg');
-    
-    const duracion = this.random(10, 15);
-    flor.style.animationDuration = duracion + 's';
-    
-    container.appendChild(flor);
-    this.elementosActivos.add(flor);
-    this.limpiarElemento(flor, duracion * 1000 + 500);
+  hoja() {
+    const c = document.getElementById('autumn-leaves'); if (!c) return;
+    const el = document.createElement('div'); el.className = 'autumn-falling-leaf festive-element';
+    el.textContent = this.pick(this.elementos);
+    el.style.left = this.rnd(0,100)+'%'; el.style.fontSize = this.rnd(20,36)+'px';
+    for (let i=1;i<=5;i++) el.style.setProperty(`--autumn-${i}`, this.rnd(-80,80)+'px');
+    for (let i=1;i<=5;i++) el.style.setProperty(`--leaf-spin-${i}`, this.rnd(-450,450)+'deg');
+    const dur = this.rnd(9,14); el.style.animationDuration = dur+'s';
+    c.appendChild(el); this.els.add(el); this.clean(el, dur*1000+500);
   }
 }
-
-// ═══════════════════════════════════════════════════════════
-// 🎃 HALLOWEEN - TERROR CINEMATOGRÁFICO
-// ═══════════════════════════════════════════════════════════
-
-class HalloweenManager extends FestividadManager {
-  constructor() {
-    super();
-    this.elementos = ['🎃', '💀', '🕷️', '🕸️', '🧙', '🧛', '🦇'];
-    this.fantasmas = ['👻'];
-  }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.HALLOWEEN)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById('halloween-spooky');
-    if (!container) return;
-
-    // Elementos cayendo
-    for (let i = 0; i < 30; i++) {
-      setTimeout(() => this.crearElemento(), i * 200);
-    }
-
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-        this.crearElemento();
-      }
-    }, 330);
-
-    this.intervalosActivos.set('principal', intervalo);
-
-    // Fantasmas flotantes
-    for (let i = 0; i < 4; i++) {
-      setTimeout(() => this.crearFantasma(), i * 1500);
-    }
-
-    const intervaloFantasmas = setInterval(() => {
-      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-        this.crearFantasma();
-      }
-    }, 4000 + Math.random() * 3000);
-
-    this.intervalosActivos.set('fantasmas', intervaloFantasmas);
-
-    // Murciélagos
-    const intervaloMurcielagos = setInterval(() => {
-      if (Math.random() > 0.6 && this.elementosActivos.size < this.maxElementosPorFestividad) {
-        this.crearMurcielago();
-      }
-    }, 3000);
-
-    this.intervalosActivos.set('murcielagos', intervaloMurcielagos);
-  }
-
-  crearElemento() {
-    const container = document.getElementById('halloween-spooky');
-    if (!container) return;
-
-    const elemento = document.createElement('div');
-    elemento.className = 'halloween-spooky-element festive-element';
-    elemento.textContent = this.randomChoice(this.elementos);
-    elemento.style.left = this.random(0, 100) + '%';
-    elemento.style.fontSize = this.random(22, 40) + 'px';
-    
-    elemento.style.setProperty('--drift-a', this.random(-80, 80) + 'px');
-    elemento.style.setProperty('--drift-b', this.random(-100, 100) + 'px');
-    elemento.style.setProperty('--drift-c', this.random(-70, 70) + 'px');
-    elemento.style.setProperty('--rot-a', this.random(-120, 120) + 'deg');
-    elemento.style.setProperty('--rot-b', this.random(-240, 240) + 'deg');
-    elemento.style.setProperty('--rot-c', this.random(-360, 360) + 'deg');
-    
-    const duracion = this.random(8, 13);
-    elemento.style.animationDuration = duracion + 's';
-    
-    container.appendChild(elemento);
-    this.elementosActivos.add(elemento);
-    this.limpiarElemento(elemento, duracion * 1000 + 500);
-  }
-
-  crearFantasma() {
-    const container = document.getElementById('halloween-spooky');
-    if (!container) return;
-
-    const fantasma = document.createElement('div');
-    fantasma.className = 'halloween-ghost-float festive-element';
-    fantasma.textContent = this.randomChoice(this.fantasmas);
-    fantasma.style.fontSize = this.random(45, 70) + 'px';
-    fantasma.style.left = this.random(10, 80) + 'vw';
-    
-    const duracion = this.random(4, 6);
-    fantasma.style.animationDuration = duracion + 's';
-    
-    container.appendChild(fantasma);
-    this.elementosActivos.add(fantasma);
-    this.limpiarElemento(fantasma, duracion * 1000 + 500);
-  }
-
-  crearMurcielago() {
-    const container = document.getElementById('halloween-spooky');
-    if (!container) return;
-
-    const murcielago = document.createElement('div');
-    murcielago.className = 'halloween-bat-fly festive-element';
-    murcielago.textContent = '🦇';
-    murcielago.style.fontSize = this.random(25, 45) + 'px';
-    
-    const duracion = this.random(3, 5);
-    murcielago.style.animationDuration = duracion + 's';
-    
-    container.appendChild(murcielago);
-    this.elementosActivos.add(murcielago);
-    this.limpiarElemento(murcielago, duracion * 1000 + 500);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// 💀 DÍA DE MUERTOS
-// ═══════════════════════════════════════════════════════════
-
-class DiaMuertosManager extends FestividadManager {
-  constructor() {
-    super();
-    this.elementos = ['🌼', '💀', '🕯️', '🌺', '🦴', '🪦'];
-  }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.DIA_MUERTOS)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById('dayofdead-marigolds');
-    if (!container) return;
-
-    for (let i = 0; i < 25; i++) {
-      setTimeout(() => this.crearFlor(), i * 280);
-    }
-
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-        this.crearFlor();
-      }
-    }, 420);
-
-    this.intervalosActivos.set('principal', intervalo);
-  }
-
-  crearFlor() {
-    const container = document.getElementById('dayofdead-marigolds');
-    if (!container) return;
-
-    const flor = document.createElement('div');
-    flor.className = 'dayofdead-marigold festive-element';
-    flor.textContent = this.randomChoice(this.elementos);
-    flor.style.left = this.random(0, 100) + '%';
-    flor.style.fontSize = this.random(20, 36) + 'px';
-    
-    flor.style.setProperty('--float-1', this.random(-75, 75) + 'px');
-    flor.style.setProperty('--float-2', this.random(-95, 95) + 'px');
-    flor.style.setProperty('--float-3', this.random(-65, 65) + 'px');
-    flor.style.setProperty('--turn-1', this.random(-100, 100) + 'deg');
-    flor.style.setProperty('--turn-2', this.random(-200, 200) + 'deg');
-    flor.style.setProperty('--turn-3', this.random(-300, 300) + 'deg');
-    
-    const duracion = this.random(9, 14);
-    flor.style.animationDuration = duracion + 's';
-    
-    container.appendChild(flor);
-    this.elementosActivos.add(flor);
-    this.limpiarElemento(flor, duracion * 1000 + 500);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// ❄️ NAVIDAD - INVIERNO MÁGICO
-// ═══════════════════════════════════════════════════════════
-
-class NavidadManager extends FestividadManager {
-  constructor() {
-    super();
-    this.copos = ['❄', '❅', '❆', '✻', '✼'];
-  }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.NAVIDAD)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById('christmas-snowfall');
-    if (!container) return;
-
-    for (let i = 0; i < 40; i++) {
-      setTimeout(() => this.crearCopo(), i * 150);
-    }
-
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-        this.crearCopo();
-      }
-    }, 180);
-
-    this.intervalosActivos.set('principal', intervalo);
-  }
-
-  crearCopo() {
-    const container = document.getElementById('christmas-snowfall');
-    if (!container) return;
-
-    const copo = document.createElement('div');
-    copo.className = 'christmas-snowflake festive-element';
-    copo.textContent = this.randomChoice(this.copos);
-    copo.style.left = this.random(0, 100) + '%';
-    copo.style.fontSize = this.random(12, 28) + 'px';
-    copo.style.opacity = this.random(0.4, 0.9).toFixed(2);
-    
-    copo.style.setProperty('--drift', this.random(-50, 50) + 'px');
-    copo.style.setProperty('--spin', this.random(-360, 360) + 'deg');
-    
-    const duracion = this.random(10, 18);
-    copo.style.animationDuration = duracion + 's';
-    
-    container.appendChild(copo);
-    this.elementosActivos.add(copo);
-    this.limpiarElemento(copo, duracion * 1000 + 500);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// 🎭 CARNAVAL - FIESTA EXPLOSIVA
-// ═══════════════════════════════════════════════════════════
-
-class CarnavalManager extends FestividadManager {
-  constructor() {
-    super();
-    this.formas = ['●', '■', '▲', '◆', '★', '♦', '♥', '♣', '♠'];
-  }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.CARNAVAL)) return;
-    if (this.intervalosActivos.has('confeti')) return;
-
-    // Confeti
-    const containerConfeti = document.getElementById('carnival-confetti');
-    if (containerConfeti) {
-      for (let i = 0; i < 35; i++) {
-        setTimeout(() => this.crearConfeti(), i * 120);
-      }
-
-      const intervaloConfeti = setInterval(() => {
-        if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-          this.crearConfeti();
-        }
-      }, 160);
-
-      this.intervalosActivos.set('confeti', intervaloConfeti);
-    }
-
-    // Fuegos artificiales
-    const containerFuegos = document.getElementById('carnival-fireworks');
-    if (containerFuegos) {
-      for (let i = 0; i < 5; i++) {
-        setTimeout(() => this.lanzarCohete(), i * 600);
-      }
-
-      const intervaloFuegos = setInterval(() => {
-        if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-          this.lanzarCohete();
-        }
-      }, 1200 + Math.random() * 700);
-
-      this.intervalosActivos.set('fuegos', intervaloFuegos);
-    }
-  }
-
-  crearConfeti() {
-    const container = document.getElementById('carnival-confetti');
-    if (!container) return;
-
-    const confeti = document.createElement('div');
-    confeti.className = 'carnival-confetti-piece festive-element';
-    confeti.textContent = this.randomChoice(this.formas);
-    confeti.style.left = this.random(0, 100) + '%';
-    confeti.style.fontSize = this.random(10, 20) + 'px';
-    confeti.style.color = this.randomChoice(COLOR_PALETTES.CARNAVAL);
-    
-    confeti.style.setProperty('--drift-confetti', this.random(-80, 80) + 'px');
-    confeti.style.setProperty('--spin-confetti', this.random(-720, 720) + 'deg');
-    
-    const duracion = this.random(6, 10);
-    confeti.style.animationDuration = duracion + 's';
-    
-    container.appendChild(confeti);
-    this.elementosActivos.add(confeti);
-    this.limpiarElemento(confeti, duracion * 1000 + 500);
-  }
-
-  lanzarCohete() {
-    const container = document.getElementById('carnival-fireworks');
-    if (!container) return;
-
-    const cohete = document.createElement('div');
-    cohete.className = 'carnival-rocket festive-element';
-    
-    const color = this.randomChoice(COLOR_PALETTES.CARNAVAL);
-    cohete.style.background = color;
-    cohete.style.left = this.random(15, 85) + 'vw';
-    cohete.style.width = this.random(5, 9) + 'px';
-    cohete.style.height = this.random(16, 24) + 'px';
-    cohete.style.animationDuration = this.random(1, 1.6) + 's';
-
-    container.appendChild(cohete);
-    this.elementosActivos.add(cohete);
-
-    cohete.addEventListener('animationend', () => {
-      const rect = cohete.getBoundingClientRect();
-      this.crearExplosion(rect.left + rect.width / 2, rect.top + rect.height / 2, color);
-      this.limpiarElemento(cohete);
-    });
-
-    this.limpiarElemento(cohete, 2500);
-  }
-
-  crearExplosion(x, y, color) {
-    const container = document.getElementById('carnival-fireworks');
-    if (!container) return;
-
-    const numParticulas = this.randomInt(35, 55);
-
-    for (let i = 0; i < numParticulas; i++) {
-      const particula = document.createElement('div');
-      particula.className = 'carnival-burst-particle festive-element';
-      particula.textContent = this.randomChoice(this.formas);
-      particula.style.fontSize = this.random(10, 18) + 'px';
-      particula.style.color = this.randomChoice(COLOR_PALETTES.CARNAVAL);
-      particula.style.left = x + 'px';
-      particula.style.top = y + 'px';
-      
-      const angulo = (Math.PI * 2 * i) / numParticulas + this.random(-0.2, 0.2);
-      const distancia = this.random(60, 130);
-      particula.style.setProperty('--explode-x', Math.cos(angulo) * distancia + 'px');
-      particula.style.setProperty('--explode-y', Math.sin(angulo) * distancia + 'px');
-      particula.style.setProperty('--explode-r', this.random(-360, 360) + 'deg');
-      particula.style.animationDuration = this.random(0.8, 1.5) + 's';
-      
-      container.appendChild(particula);
-      this.elementosActivos.add(particula);
-      this.limpiarElemento(particula, 1800);
-    }
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// 🌸 PRIMAVERA, ☀️ VERANO, 🍂 OTOÑO
-// ═══════════════════════════════════════════════════════════
-
-class PrimaveraManager extends FestividadManager {
-  constructor() {
-    super();
-    this.elementos = ['🌸', '🌺', '🌼', '🌻', '🌷', '🦋', '🐝', '🌱'];
-  }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.PRIMAVERA)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById('spring-blossoms');
-    if (!container) return;
-
-    for (let i = 0; i < 18; i++) {
-      setTimeout(() => this.crearFlor(), i * 450);
-    }
-
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < 50) {
-        this.crearFlor();
-      }
-    }, 650);
-
-    this.intervalosActivos.set('principal', intervalo);
-  }
-
-  crearFlor() {
-    const container = document.getElementById('spring-blossoms');
-    if (!container) return;
-
-    const flor = document.createElement('div');
-    flor.className = 'spring-blossom festive-element';
-    flor.textContent = this.randomChoice(this.elementos);
-    flor.style.left = this.random(0, 100) + '%';
-    flor.style.fontSize = this.random(18, 30) + 'px';
-    
-    flor.style.setProperty('--wind-1', this.random(-60, 60) + 'px');
-    flor.style.setProperty('--wind-2', this.random(-80, 80) + 'px');
-    flor.style.setProperty('--wind-3', this.random(-50, 50) + 'px');
-    flor.style.setProperty('--twirl-1', this.random(-90, 90) + 'deg');
-    flor.style.setProperty('--twirl-2', this.random(-180, 180) + 'deg');
-    flor.style.setProperty('--twirl-3', this.random(-270, 270) + 'deg');
-    
-    const duracion = this.random(12, 18);
-    flor.style.animationDuration = duracion + 's';
-    
-    container.appendChild(flor);
-    this.elementosActivos.add(flor);
-    this.limpiarElemento(flor, duracion * 1000 + 500);
-  }
-}
-
-class VeranoManager extends FestividadManager {
-  constructor() {
-    super();
-    this.elementos = ['☀️', '🌊', '🏖️', '🍉', '🍹', '🌴', '⛱️', '🏄'];
-  }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.VERANO)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById('summer-vibes');
-    if (!container) return;
-
-    for (let i = 0; i < 10; i++) {
-      setTimeout(() => this.crearElemento(), i * 900);
-    }
-
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < 30) {
-        this.crearElemento();
-      }
-    }, 2800 + Math.random() * 1500);
-
-    this.intervalosActivos.set('principal', intervalo);
-  }
-
-  crearElemento() {
-    const container = document.getElementById('summer-vibes');
-    if (!container) return;
-
-    const elemento = document.createElement('div');
-    elemento.className = 'summer-element festive-element';
-    elemento.textContent = this.randomChoice(this.elementos);
-    elemento.style.fontSize = this.random(28, 48) + 'px';
-    elemento.style.left = this.random(10, 85) + 'vw';
-    
-    elemento.style.setProperty('--summer-drift-1', this.random(-60, 60) + 'px');
-    elemento.style.setProperty('--summer-drift-2', this.random(-80, 80) + 'px');
-    elemento.style.setProperty('--summer-drift-3', this.random(-70, 70) + 'px');
-    elemento.style.setProperty('--summer-drift-4', this.random(-50, 50) + 'px');
-    elemento.style.setProperty('--summer-spin-1', this.random(-90, 90) + 'deg');
-    elemento.style.setProperty('--summer-spin-2', this.random(-180, 180) + 'deg');
-    elemento.style.setProperty('--summer-spin-3', this.random(-270, 270) + 'deg');
-    elemento.style.setProperty('--summer-spin-4', this.random(-360, 360) + 'deg');
-    
-    const duracion = this.random(5, 8);
-    elemento.style.animationDuration = duracion + 's';
-    
-    container.appendChild(elemento);
-    this.elementosActivos.add(elemento);
-    this.limpiarElemento(elemento, duracion * 1000 + 500);
-  }
-}
-
-class OtonoManager extends FestividadManager {
-  constructor() {
-    super();
-    this.elementos = ['🍂', '🍁', '🍄', '🌰', '🦔'];
-  }
-
-  iniciar() {
-    if (!this.estaActiva(FESTIVE_CONFIG.OTONO)) return;
-    if (this.intervalosActivos.has('principal')) return;
-
-    const container = document.getElementById('autumn-leaves');
-    if (!container) return;
-
-    for (let i = 0; i < 22; i++) {
-      setTimeout(() => this.crearHoja(), i * 350);
-    }
-
-    const intervalo = setInterval(() => {
-      if (this.elementosActivos.size < this.maxElementosPorFestividad) {
-        this.crearHoja();
-      }
-    }, 480);
-
-    this.intervalosActivos.set('principal', intervalo);
-  }
-
-  crearHoja() {
-    const container = document.getElementById('autumn-leaves');
-    if (!container) return;
-
-    const hoja = document.createElement('div');
-    hoja.className = 'autumn-falling-leaf festive-element';
-    hoja.textContent = this.randomChoice(this.elementos);
-    hoja.style.left = this.random(0, 100) + '%';
-    hoja.style.fontSize = this.random(20, 36) + 'px';
-    
-    hoja.style.setProperty('--autumn-1', this.random(-50, 50) + 'px');
-    hoja.style.setProperty('--autumn-2', this.random(-70, 70) + 'px');
-    hoja.style.setProperty('--autumn-3', this.random(-60, 60) + 'px');
-    hoja.style.setProperty('--autumn-4', this.random(-80, 80) + 'px');
-    hoja.style.setProperty('--autumn-5', this.random(-40, 40) + 'px');
-    hoja.style.setProperty('--leaf-spin-1', this.random(-90, 90) + 'deg');
-    hoja.style.setProperty('--leaf-spin-2', this.random(-180, 180) + 'deg');
-    hoja.style.setProperty('--leaf-spin-3', this.random(-270, 270) + 'deg');
-    hoja.style.setProperty('--leaf-spin-4', this.random(-360, 360) + 'deg');
-    hoja.style.setProperty('--leaf-spin-5', this.random(-450, 450) + 'deg');
-    
-    const duracion = this.random(9, 14);
-    hoja.style.animationDuration = duracion + 's';
-    
-    container.appendChild(hoja);
-    this.elementosActivos.add(hoja);
-    this.limpiarElemento(hoja, duracion * 1000 + 500);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// 🎯 SISTEMA PRINCIPAL DE INICIALIZACIÓN
-// ═══════════════════════════════════════════════════════════
-
-class SistemaFestividades {
-  constructor() {
-    this.managers = {
-      NUEVO_ANO: new AnoNuevoManager(),
-      SAN_VALENTIN: new SanValentinManager(),
-      DIA_GATO: new DiaGatoManager(),
-      CARNAVAL: new CarnavalManager(),
-      SAN_PATRICIO: new SanPatricioManager(),
-      PASCUA: new PascuaManager(),
-      DIA_MADRE: new DiaMadreManager(),
-      HALLOWEEN: new HalloweenManager(),
-      DIA_MUERTOS: new DiaMuertosManager(),
-      NAVIDAD: new NavidadManager(),
-      PRIMAVERA: new PrimaveraManager(),
-      VERANO: new VeranoManager(),
-      OTONO: new OtonoManager()
-    };
-
-    this.festivaActivaActual = null;
-  }
-
-  inicializar() {
-    // Detectar festiva activa
-    const festivaActiva = this.detectarFestivaActiva();
-    
-    if (!festivaActiva) {
-      console.log('🎉 No hay festividades activas en este momento');
-      return;
-    }
-
-    console.log(`🎊 Festividad activa: ${festivaActiva.nombre}`);
-    
-    // Iniciar manager correspondiente
-    const manager = this.managers[festivaActiva.id];
-    if (manager) {
-      manager.iniciar();
-      this.festivaActivaActual = festivaActiva;
-    }
-  }
-
-  detectarFestivaActiva() {
-    const ahora = new Date();
-    const festivasActivas = Object.values(FESTIVE_CONFIG)
-      .filter(config => ahora >= config.inicio && ahora <= config.fin)
-      .sort((a, b) => b.prioridad - a.prioridad);
-
-    return festivasActivas.length > 0 ? festivasActivas[0] : null;
-  }
-
-  detenerTodo() {
-    Object.values(this.managers).forEach(manager => manager.detenerTodo());
-    this.festivaActivaActual = null;
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// 🚀 INICIALIZACIÓN AUTOMÁTICA
-// ═══════════════════════════════════════════════════════════
-
-const sistemaFestividades = new SistemaFestividades();
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🎨 Sistema de Festividades cargado');
-  sistemaFestividades.inicializar();
+  const mgrs = [
+    new AnoNuevoMgr(),
+    new SanValentinMgr(),
+    new DiaGatoMgr(),
+    new SanPatricioMgr(),
+    new PascuaMgr(),
+    new DiaMadreMgr(),
+    new HalloweenMgr(),
+    new DiaMuertosMgr(),
+    new NavidadMgr(),
+    new CarnavalMgr(),
+    new PrimaveraMgr(),
+    new VeranoMgr(),
+    new OtonoMgr(),
+  ];
+  mgrs.forEach(m => { try { m.start(); } catch(e) { console.warn('Festivity error:', e); } });
 });
-
-// Exportar para uso externo si es necesario
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { SistemaFestividades, FESTIVE_CONFIG };
-}

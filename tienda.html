@@ -1,47 +1,58 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <!-- =========================================================
-       Moonveil Portal — Tienda
-       Secciones:
-       - Pases de temporada (fondo hero especial)
-       - Llaves
-       - Cosas interesantes
-       - Historia
-       - Materiales
-       - Pases de evento (fondo hero especial)
-       - Monedas del juego
-       ========================================================= -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark light" />
+  <meta name="color-scheme" content="dark" />
   <title>Moonveil — Tienda</title>
 
-  <!-- Fuentes -->
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
-  <!-- Favicon -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Cinzel:wght@600;900&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
   <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
 
-  <!-- CSS -->
   <link rel="stylesheet" href="tienda.css" />
-
-
-  <meta name="description" content="Tienda Moonveil: Pases de temporada, llaves, objetos raros, historia, materiales, pases de evento y monedas. Stock dinámico y reabastecimiento automático." />
+  <meta name="description" content="Tienda Moonveil: Pases, cofres, materiales, historia y más." />
 </head>
-<body class="theme-auto">
+<body>
+
   <!-- Fondo global -->
-  <div class="bg">
-    <canvas id="bgParticles" aria-hidden="true"></canvas>
+  <div class="bg" aria-hidden="true">
+    <canvas id="bgParticles"></canvas>
     <div class="bg-parallax">
-      <div class="layer sky" aria-hidden="true"></div>
-      <div class="layer far" aria-hidden="true"></div>
-      <div class="layer mid" aria-hidden="true"></div>
-      <div class="layer near" aria-hidden="true"></div>
+      <div class="layer sky"></div>
+      <div class="layer far"></div>
+      <div class="layer mid"></div>
+      <div class="layer near"></div>
     </div>
   </div>
 
-  <!-- Navbar + HUD -->
+  <!-- Capas festividades -->
+  <div id="newyear-fireworks"   class="festivity-layer-top"></div>
+  <div id="newyear-ambient"     class="festivity-layer-mid"></div>
+  <div id="newyear-sparkles"    class="festivity-layer-base"></div>
+  <div id="valentine-petals"    class="festivity-layer-base"></div>
+  <div id="valentine-hearts"    class="festivity-layer-top"></div>
+  <div id="valentine-ambient"   class="festivity-layer-mid"></div>
+  <div id="catday-ground"       class="festivity-layer-top"></div>
+  <div id="stpatrick-clovers"   class="festivity-layer-top"></div>
+  <div id="stpatrick-magic"     class="festivity-layer-base"></div>
+  <div id="easter-elements"     class="festivity-layer-top"></div>
+  <div id="mothersday-flowers"  class="festivity-layer-top"></div>
+  <div id="mothersday-glow"     class="festivity-layer-base"></div>
+  <div id="fathersday-elements" class="festivity-layer-top"></div>
+  <div id="halloween-spooky"    class="festivity-layer-top"></div>
+  <div id="halloween-fog"       class="festivity-layer-base"></div>
+  <div id="dayofdead-marigolds" class="festivity-layer-top"></div>
+  <div id="christmas-snowfall"  class="festivity-layer-top"></div>
+  <div id="christmas-ambience"  class="festivity-layer-base"></div>
+  <div id="carnival-confetti"   class="festivity-layer-top"></div>
+  <div id="carnival-fireworks"  class="festivity-layer-mid"></div>
+  <div id="spring-blossoms"     class="festivity-layer-top"></div>
+  <div id="summer-vibes"        class="festivity-layer-top"></div>
+  <div id="autumn-leaves"       class="festivity-layer-top"></div>
+
+  <!-- HEADER / HUD -->
   <header class="top-hud" role="banner">
     <nav class="navbar" aria-label="Navegación principal">
       <a class="brand" href="inicio.html" aria-label="Ir a inicio">
@@ -59,7 +70,7 @@
     <div class="hud-stats" aria-label="Indicadores">
       <div class="hud__bars">
         <div class="hud-bar hp" data-val="96" aria-label="Vida 96%"></div>
-        <div class="hud-bar xp" data-val="67" aria-label="Experiencia 67%"></div>
+        <div class="hud-bar xp" data-val="67" aria-label="XP 67%"></div>
       </div>
       <div class="hud__inv" aria-label="Inventario rápido">
         <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
@@ -69,267 +80,258 @@
     </div>
   </header>
 
-  <!-- Hero -->
-  <section class="hero hero-store" role="region" aria-labelledby="title">
-    <div class="container hero__inner">
-      <div class="hero__text reveal">
-        <h1 id="title">Tienda <span>Moonveil</span></h1>
-        <p class="lead">La tienda de Moonveil tiene: pases, tickets, materiales y más. Con descuentos y por su confianza en la primera compra tiene el 100%. (No incluye Historia / Monedas)</p>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner reveal">
+
+        <div class="hero-eyebrow">
+          <span class="amber-dot"></span>
+          Tienda oficial del reino
+        </div>
+
+        <h1 class="hero-title">
+          <span class="ht-sm">BIENVENIDO A</span>
+          <span class="ht-big">LA TIENDA</span>
+        </h1>
+
+        <p class="hero-lead">Pases, tickets, materiales y más. Primera compra con <strong>100% de descuento</strong>. <span class="muted">(No incluye Historia / Monedas)</span></p>
+
+        <!-- Cupones -->
+        <div class="coupon-wrap reveal">
+          <div class="coupon-header">
+            <span class="coupon-ico">🎟️</span>
+            <span class="coupon-ttl">Cupones de descuento</span>
+            <button id="couponClearBtn" class="btn-ghost-sm">Sin cupón</button>
+          </div>
+          <div id="couponList" class="coupon-list" aria-live="polite"></div>
+        </div>
+
+        <!-- Filtros de sección -->
+        <div class="filter-wrap reveal">
+          <span class="filter-lbl">Sección</span>
+          <div class="chip-group" id="chipSections" role="group" aria-label="Filtrar por sección">
+            <button class="chip is-on" data-section="all">✦ Todo</button>
+            <button class="chip" data-section="pases">🏆 Pases</button>
+            <button class="chip" data-section="llaves">🗝️ Cofres</button>
+            <button class="chip" data-section="cosas">⚙️ Materiales</button>
+            <button class="chip" data-section="historia">📚 Historia</button>
+            <button class="chip" data-section="materiales">🪙 Monedas</button>
+            <button class="chip" data-section="eventos">🎪 Eventos</button>
+            <button class="chip" data-section="monedas">💰 Pack coins</button>
+            <button class="chip" data-section="tickets">🎫 Tickets</button>
+          </div>
+        </div>
+
+        <!-- Búsqueda -->
+        <div class="search-wrap reveal">
+          <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input id="searchInput" type="search" placeholder="Buscar por nombre, calidad o etiqueta…" autocomplete="off"/>
+          <button id="clearSearch" class="clear-btn">✕</button>
+        </div>
+
+        <!-- Leyenda -->
+        <div class="legend-row reveal">
+          <span><span class="ldot gold"></span> Destacado</span>
+          <span><span class="ldot red"></span> Agotado</span>
+          <span><span class="ldot blue"></span> Restock próximo</span>
+        </div>
+
       </div>
-      <div class="hero__controls reveal">
-        <div class="chip-group" id="chipSections" role="group" aria-label="Filtrar por sección">
-          <button class="chip is-on" data-section="all">Todo</button>
-          <button class="chip" data-section="pases">Pases de temporada</button>
-          <button class="chip" data-section="llaves">Cofres</button>
-          <button class="chip" data-section="cosas">Materiales</button>
-          <button class="chip" data-section="historia">Historia</button>
-          <button class="chip" data-section="materiales">Monedas</button>
-          <button class="chip" data-section="eventos">Pases de evento</button>
-          <button class="chip" data-section="monedas">Monedas</button>
-          <button class="chip" data-section="tickets">Tickets</button>
-        </div>
-        <!-- COLOCAR: dentro de .hero__controls (por ejemplo, justo después de #chipSections) -->
-<div class="coupon-area reveal" id="couponArea">
-  <label class="coupon-label">Usar cupón</label>
-  <div id="couponList" class="coupon-list" aria-live="polite"></div>
-  <div style="margin-top:8px;">
-    <button id="couponClearBtn" class="btn btn--ghost" type="button">No usar cupón</button>
-  </div>
-</div>
+    </div>
+  </section>
 
-        <div class="search">
-          <input id="searchInput" type="search" placeholder="Buscar por nombre, calidad o etiqueta…" aria-label="Buscar en tienda" />
-          <button class="btn btn--ghost" id="clearSearch" aria-label="Limpiar búsqueda">Limpiar</button>
+  <!-- SECCIONES DE PRODUCTOS -->
+
+  <!-- PASES DE TEMPORADA -->
+  <section class="shop-sec" id="secPases" data-sec="pases"
+           style="--sec-bg: url('https://wallpapercave.com/wp/wp14831793.webp')">
+    <div class="sec-bg-layer" aria-hidden="true"></div>
+    <div class="container">
+      <header class="sec-head reveal">
+        <span class="sec-icon">🏆</span>
+        <div>
+          <h2>Pases de temporada</h2>
+          <p class="sec-sub">Acceso a retos y recompensas exclusivas de cada temporada.</p>
+        </div>
+      </header>
+      <div class="products-grid" id="gridSeason"></div>
+    </div>
+  </section>
+
+  <!-- COFRES -->
+  <section class="shop-sec" id="secLlaves" data-sec="llaves">
+    <div class="sec-bg-layer" aria-hidden="true"></div>
+    <div class="container">
+      <header class="sec-head reveal">
+        <span class="sec-icon">🗝️</span>
+        <div>
+          <h2>Cofres</h2>
+          <p class="sec-sub">Ábrelos y que la suerte te acompañe. Sand Brill no fue generoso.</p>
+        </div>
+      </header>
+      <div class="products-grid" id="gridKeys"></div>
+    </div>
+  </section>
+
+  <!-- MATERIALES -->
+  <section class="shop-sec" id="secCosas" data-sec="cosas">
+    <div class="sec-bg-layer" aria-hidden="true"></div>
+    <div class="container">
+      <header class="sec-head reveal">
+        <span class="sec-icon">⚙️</span>
+        <div>
+          <h2>Materiales</h2>
+          <p class="sec-sub">Algunos materiales que capaz te sirvan… o ¿quién sabe?</p>
+        </div>
+      </header>
+      <div class="products-grid" id="gridFun"></div>
+    </div>
+  </section>
+
+  <!-- HISTORIA -->
+  <section class="shop-sec" id="secHistoria" data-sec="historia">
+    <div class="sec-bg-layer" aria-hidden="true"></div>
+    <div class="container">
+      <header class="sec-head reveal">
+        <span class="sec-icon">📚</span>
+        <div>
+          <h2>Historia</h2>
+          <p class="sec-sub">Libros de lo que pasa en el mundo de Moonveil. ¿Espero que sí…?</p>
+        </div>
+      </header>
+      <div class="products-grid" id="gridLore"></div>
+    </div>
+  </section>
+
+  <!-- LOTE DE MONEDAS -->
+  <section class="shop-sec" id="secMateriales" data-sec="materiales">
+    <div class="sec-bg-layer" aria-hidden="true"></div>
+    <div class="container">
+      <header class="sec-head reveal">
+        <span class="sec-icon">🪙</span>
+        <div>
+          <h2>Lote de Monedas</h2>
+          <p class="sec-sub">Rebajado un 50% en los packs.</p>
+        </div>
+      </header>
+      <div class="products-grid" id="gridMats"></div>
+    </div>
+  </section>
+
+  <!-- PASES DE EVENTO -->
+  <section class="shop-sec" id="secEventos" data-sec="eventos"
+           style="--sec-bg: url('https://wallpapercave.com/wp/wp14014986.webp')">
+    <div class="sec-bg-layer" aria-hidden="true"></div>
+    <div class="container">
+      <header class="sec-head reveal">
+        <span class="sec-icon">🎪</span>
+        <div>
+          <h2>Pases de evento</h2>
+          <p class="sec-sub">Eventos temporales con misiones y recompensas únicas.</p>
+        </div>
+      </header>
+      <div class="products-grid" id="gridEvents"></div>
+    </div>
+  </section>
+
+  <!-- PACK DE MONEDAS -->
+  <section class="shop-sec" id="secMonedas" data-sec="monedas">
+    <div class="sec-bg-layer" aria-hidden="true"></div>
+    <div class="container">
+      <header class="sec-head reveal">
+        <span class="sec-icon">💰</span>
+        <div>
+          <h2>Pack de monedas</h2>
+          <p class="sec-sub">Packs para comerciar. No se restablece, ¿y por qué? Ni idea…</p>
+        </div>
+      </header>
+      <div class="products-grid" id="gridCoins"></div>
+    </div>
+  </section>
+
+  <!-- TICKETS -->
+  <section class="shop-sec" id="secTickets" data-sec="tickets">
+    <div class="sec-bg-layer" aria-hidden="true"></div>
+    <div class="container">
+      <header class="sec-head reveal">
+        <span class="sec-icon">🎫</span>
+        <div>
+          <h2>Tickets</h2>
+          <p class="sec-sub">Tickets especiales para la ruleta. ¿Y giramos algunas?</p>
+        </div>
+      </header>
+      <div class="products-grid" id="gridTickets"></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="cube"></span>
+            <span>Moonveil <b>Portal</b></span>
+          </div>
+          <p class="footer-tagline">La tienda oficial del reino. Pases, cofres, materiales y más, con descuentos y restock automático.</p>
+          <div class="footer-live">
+            <span class="amber-dot small"></span>
+            Tienda activa · Stock en tiempo real
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Navegar</h4>
+          <ul>
+            <li><a href="inicio.html">🏠 Inicio</a></li>
+            <li><a href="eventos.html">🎉 Eventos</a></li>
+            <li><a href="premios.html">🎰 Ruleta</a></li>
+            <li><a href="banco.html">🏦 Bank</a></li>
+            <li><a href="tradeos.html">🔀 Tradeos</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Secciones</h4>
+          <ul>
+            <li><a href="#secPases">🏆 Pases</a></li>
+            <li><a href="#secLlaves">🗝️ Cofres</a></li>
+            <li><a href="#secHistoria">📚 Historia</a></li>
+            <li><a href="#secTickets">🎫 Tickets</a></li>
+            <li><a href="#secEventos">🎪 Eventos</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Info</h4>
+          <ul>
+            <li><a href="#">📩 Soporte</a></li>
+            <li><a href="#">📜 Términos</a></li>
+            <li><a href="#">🔒 Privacidad</a></li>
+            <li><a href="index.html">🚪 Salir</a></li>
+          </ul>
         </div>
       </div>
-      <div class="legend reveal">
-        <span class="dot gold"></span> Destacado ·
-        <span class="dot out"></span> Agotado ·
-        <span class="dot restock"></span> Reabastece en 24h/7d/30d
+      <div class="footer-bottom">
+        <span>© <span id="y"></span> Moonveil Portal — Hecho con ☕ + bloques de diamante</span>
+        <span class="footer-live-txt">⚡ Restock automático activo</span>
       </div>
-    </div>
-  </section>
-
-
- 
-<!-- ═══════════════════════════════════════════════════════════
-     🎨 CONTENEDORES DE FESTIVIDADES PREMIUM v2.0
-     Copiar este código en tu HTML antes del </body>
-     ════════════════════════════════════════════════════════════ -->
-
-<!-- ══════════════════════════════════════════════
-     AÑO NUEVO
-     ══════════════════════════════════════════════ -->
-<div id="newyear-fireworks" class="festivity-layer-top"></div>
-<div id="newyear-ambient" class="festivity-layer-mid"></div>
-<div id="newyear-sparkles" class="festivity-layer-base"></div>
-
-<!-- ══════════════════════════════════════════════
-     SAN VALENTÍN
-     ══════════════════════════════════════════════ -->
-<div id="valentine-petals" class="festivity-layer-base"></div>
-<div id="valentine-hearts" class="festivity-layer-top"></div>
-<div id="valentine-ambient" class="festivity-layer-mid"></div>
-
-<!-- ══════════════════════════════════════════════
-     DÍA DEL GATO
-     ══════════════════════════════════════════════ -->
-<div id="catday-ground" class="festivity-layer-top"></div>
-
-<!-- ══════════════════════════════════════════════
-     SAN PATRICIO
-     ══════════════════════════════════════════════ -->
-<div id="stpatrick-clovers" class="festivity-layer-top"></div>
-<div id="stpatrick-magic" class="festivity-layer-base"></div>
-
-<!-- ══════════════════════════════════════════════
-     PASCUA
-     ══════════════════════════════════════════════ -->
-<div id="easter-elements" class="festivity-layer-top"></div>
-
-<!-- ══════════════════════════════════════════════
-     DÍA DE LA MADRE
-     ══════════════════════════════════════════════ -->
-<div id="mothersday-flowers" class="festivity-layer-top"></div>
-<div id="mothersday-glow" class="festivity-layer-base"></div>
-
-<!-- ══════════════════════════════════════════════
-     DÍA DEL PADRE
-     ══════════════════════════════════════════════ -->
-<div id="fathersday-elements" class="festivity-layer-top"></div>
-
-<!-- ══════════════════════════════════════════════
-     HALLOWEEN
-     ══════════════════════════════════════════════ -->
-<div id="halloween-spooky" class="festivity-layer-top"></div>
-<div id="halloween-fog" class="festivity-layer-base"></div>
-
-<!-- ══════════════════════════════════════════════
-     DÍA DE MUERTOS
-     ══════════════════════════════════════════════ -->
-<div id="dayofdead-marigolds" class="festivity-layer-top"></div>
-
-<!-- ══════════════════════════════════════════════
-     NAVIDAD
-     ══════════════════════════════════════════════ -->
-<div id="christmas-snowfall" class="festivity-layer-top"></div>
-<div id="christmas-ambience" class="festivity-layer-base"></div>
-
-<!-- ══════════════════════════════════════════════
-     CARNAVAL
-     ══════════════════════════════════════════════ -->
-<div id="carnival-confetti" class="festivity-layer-top"></div>
-<div id="carnival-fireworks" class="festivity-layer-mid"></div>
-
-<!-- ══════════════════════════════════════════════
-     PRIMAVERA
-     ══════════════════════════════════════════════ -->
-<div id="spring-blossoms" class="festivity-layer-top"></div>
-
-<!-- ══════════════════════════════════════════════
-     VERANO
-     ══════════════════════════════════════════════ -->
-<div id="summer-vibes" class="festivity-layer-top"></div>
-
-<!-- ══════════════════════════════════════════════
-     OTOÑO
-     ══════════════════════════════════════════════ -->
-<div id="autumn-leaves" class="festivity-layer-top"></div>
-
-
-  <!-- Sección: Pases de temporada -->
-  <section class="section section-pass season" aria-labelledby="seasonTitle">
-    <div class="container">
-      <header class="section__head reveal">
-        <div>
-          <h2 id="seasonTitle">Pases de temporada</h2>
-          <p class="muted">Acceso a retos y recompensas.</p>
-        </div>
-      </header>
-      <div class="grid cards" id="gridSeason"></div>
-    </div>
-  </section>
-
-  <!-- Sección: Llaves -->
-  <section class="section" aria-labelledby="keysTitle">
-    <div class="container">
-      <header class="section__head reveal">
-        <div>
-          <h2 id="keysTitle">Cofres</h2>
-          <p class="muted">Ábrelos y que la suerte te acompañe. Ya que Sand Brill no fue generoso.</p>
-        </div>
-      </header>
-      <div class="grid cards" id="gridKeys"></div>
-    </div>
-  </section>
-
-  <!-- Sección: Cosas interesantes -->
-  <section class="section" aria-labelledby="funTitle">
-    <div class="container">
-      <header class="section__head reveal">
-        <div>
-          <h2 id="funTitle">Materiales</h2>
-          <p class="muted">Algunos materiales, que capaz te sirvan, o ¿quien sabe? y su fantasma de los productos...</p>
-        </div>
-      </header>
-      <div class="grid cards" id="gridFun"></div>
-    </div>
-  </section>
-
-  <!-- Sección: Historia -->
-  <section class="section" aria-labelledby="loreTitle">
-    <div class="container">
-      <header class="section__head reveal">
-        <div>
-          <h2 id="loreTitle">Historia</h2>
-          <p class="muted">Libros de lo que pasa en el mundo de Moonveil. ¿Espero que si...?</p>
-        </div>
-      </header>
-      <div class="grid cards" id="gridLore"></div>
-    </div>
-  </section>
-
-  <!-- Sección: Materiales -->
-  <section class="section" aria-labelledby="matsTitle">
-    <div class="container">
-      <header class="section__head reveal">
-        <div>
-          <h2 id="matsTitle">Lote de Monedas</h2>
-          <p class="muted">Rebajado un 50% en los packs.</p>
-        </div>
-      </header>
-      <div class="grid cards" id="gridMats"></div>
-    </div>
-  </section>
-
-  <!-- Sección: Pases de evento -->
-  <section class="section section-pass event" aria-labelledby="eventTitle">
-    <div class="container">
-      <header class="section__head reveal">
-        <div>
-          <h2 id="eventTitle">Pases de evento</h2>
-          <p class="muted">Eventos temporales con misiones y recompensas.</p>
-        </div>
-      </header>
-      <div class="grid cards" id="gridEvents"></div>
-    </div>
-  </section>
-
-  <!-- Sección: Monedas del juego -->
-  <section class="section" aria-labelledby="coinsTitle">
-    <div class="container">
-      <header class="section__head reveal">
-        <div>
-          <h2 id="coinsTitle">Pack de monedas</h2>
-          <p class="muted">Packs para comerciar. No se reestablece, ¿Y porque? Ni idea...</p>
-        </div>
-      </header>
-      <div class="grid cards" id="gridCoins"></div>
-    </div>
-  </section>
-
-  <!-- Sección: Tickets -->
-<section class="section" aria-labelledby="ticketsTitle">
-  <div class="container">
-    <header class="section__head reveal">
-      <div>
-        <h2 id="ticketsTitle">Tickets</h2>
-        <p class="muted">Tickets especiales para eventos y recompensas. ¿Y giramos algunas?</p>
-      </div>
-    </header>
-    <div class="grid cards" id="gridTickets"></div>
-  </div>
-</section>
-
-
-  
-  <!-- Footer -->
-  <footer class="footer" role="contentinfo">
-    <div class="container footer__inner">
-      <div class="foot__brand">
-        <span class="cube"></span>
-        <strong>Moonveil</strong> Portal
-      </div>
-      <nav class="foot__links" aria-label="Enlaces">
-        <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
-        <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
-        <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
-      </nav>
-      <p class="foot__copy">© <span id="y"></span> Moonveil. Hecho con ☕ + bloques.</p>
     </div>
   </footer>
 
   <!-- Modal Producto -->
   <div class="modal" id="productModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal__overlay" id="modalOverlay"></div>
-    <div class="modal__dialog" role="document">
-      <header class="modal__head">
-        <h3 id="modalTitle">—</h3>
-        <button class="icon-btn" id="modalClose" aria-label="Cerrar"><span class="i i-close"></span></button>
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="modal-dialog">
+      <header class="modal-head">
+        <div class="modal-head-l">
+          <span class="modal-emoji" id="modalEmoji">🛒</span>
+          <h2 class="modal-title" id="modalTitle">—</h2>
+        </div>
+        <button class="modal-close-x" id="modalClose" aria-label="Cerrar">✕</button>
       </header>
-      <section class="modal__body" id="modalBody"></section>
-      <footer class="modal__foot">
-        <button class="btn btn--primary" id="modalBuy">Comprar</button>
+      <div class="modal-body" id="modalBody"></div>
+      <footer class="modal-foot">
+        <button class="modal-buy-btn" id="modalBuy">🛒 Comprar</button>
+        <button class="modal-sec-btn" id="modalCloseBtn">Cerrar</button>
       </footer>
     </div>
   </div>
@@ -337,15 +339,14 @@
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-
-  <!-- Botón flotante de música -->
+  <!-- Botón música flotante -->
   <button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
 
   <!-- Música de fondo -->
   <audio id="bg-music" loop>
     <source src="music/8.mp3" type="audio/mpeg" />
   </audio>
-  <!-- JS -->
-  <script type="module" src="tienda.js"></script>
+
+  <script src="tienda.js"></script>
 </body>
 </html>
