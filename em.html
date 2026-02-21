@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>Moonveil — Harvest Corp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Cinzel:wght@400;600;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230a0700'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle'%3E🌾%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="em.css" />
+</head>
+<body>
+
+<div class="bg">
+  <canvas id="bgParticles" aria-hidden="true"></canvas>
+  <div class="soil-texture" aria-hidden="true"></div>
+</div>
+
+<!-- ═══ HEADER (mismo diseño Moonveil) ═══ -->
+<header class="top-hud" role="banner">
+  <nav class="navbar" aria-label="Navegación principal">
+    <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+      <span class="cube" aria-hidden="true"></span>
+      <span class="brand__title">Moonveil <b>Portal</b></span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="em.html" class="active">Harvest Corp</a></li>
+      <li><a href="index.html">Salir</a></li>
+    </ul>
+  </nav>
+  <div class="hud-stats" aria-label="Estado del juego" id="game-hud" style="display:none">
+    <div class="hud-chip money-chip"><span>💰</span><span id="h-money">500</span> monedas</div>
+    <div class="hud-chip day-chip"><span>📅</span>Día <span id="h-day">1</span>/30</div>
+    <div class="hud-chip rep-chip"><span>⭐</span>Rep: <span id="h-rep">0</span></div>
+    <div class="hud-chip inv-chip"><span>🧺</span><span id="h-inv">Vacío</span></div>
+    <button class="btn-nextday" id="btn-nextday">Día Siguiente →</button>
+  </div>
+</header>
+
+<!-- ═══ PANTALLA TÍTULO ═══ -->
+<div id="screen-title" class="screen screen-title active">
+  <div class="title-wrap">
+    <div class="title-badge">MINIJUEGO DE GESTIÓN</div>
+    <h1 class="game-title">
+      <span class="amber-text">HARVEST</span>
+      <span class="lime-text">CORP</span>
+    </h1>
+    <p class="game-tagline">Planta · Cosecha · Negocia · Domina el Mercado</p>
+    <div class="title-rules">
+      <div class="trule"><span>🌱</span><div><b>Cultiva</b><small>6 parcelas de alimentos</small></div></div>
+      <div class="trule"><span>🏪</span><div><b>Vende</b><small>Compradores con ofertas únicas</small></div></div>
+      <div class="trule"><span>⚡</span><div><b>Subasta</b><small>Varios compradores, elige el mejor</small></div></div>
+      <div class="trule"><span>📢</span><div><b>Marketing</b><small>Chat en vivo con comentarios reales</small></div></div>
+    </div>
+    <div class="title-crops" aria-hidden="true">
+      <span>🌾</span><span>🥔</span><span>🥕</span><span>🍉</span><span>🫚</span><span>🎃</span><span>🫐</span><span>🍎</span><span>🍏</span>
+    </div>
+    <button class="btn-main" id="btn-start">🚜 Fundar mi Empresa</button>
+  </div>
+</div>
+
+<!-- ═══ PANTALLA PRINCIPAL ═══ -->
+<div id="screen-game" class="screen screen-game">
+  <div class="game-columns">
+
+    <!-- IZQUIERDA: Granja -->
+    <div class="col col-farm">
+      <div class="col-header">
+        <h2 class="col-title">🌱 Tu Granja</h2>
+        <div class="season-badge" id="season-badge">☀️ Primavera</div>
+      </div>
+      <div class="plots-grid" id="plots-grid">
+        <!-- 6 parcelas generadas por JS -->
+      </div>
+      <div class="farm-tip" id="farm-tip">
+        💡 Haz clic en una parcela vacía para plantar
+      </div>
+    </div>
+
+    <!-- CENTRO: Compradores + Mercado -->
+    <div class="col col-market">
+      <div class="col-header">
+        <h2 class="col-title">🏪 Compradores</h2>
+        <div class="buyers-count"><span id="buyers-count">0</span> activos</div>
+      </div>
+
+      <div class="buyers-list" id="buyers-list">
+        <div class="no-buyers">
+          <div style="font-size:3rem;margin-bottom:10px;">🔍</div>
+          <p>Sin compradores aún.</p>
+          <p class="muted">¡Haz marketing para atraerlos!</p>
+        </div>
+      </div>
+
+      <div class="market-section">
+        <div class="market-section-header">
+          <h3>📦 Mercado Base</h3>
+          <span class="muted" style="font-size:.8rem">Precios garantizados (sin negociación)</span>
+        </div>
+        <div class="market-sell-grid" id="market-sell-grid">
+          <p class="muted" style="padding:12px;font-size:.9rem">Tu inventario está vacío</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DERECHA: Marketing + Chat -->
+    <div class="col col-social">
+      <div class="col-header">
+        <h2 class="col-title">📢 Marketing</h2>
+        <div class="rep-bar-wrap">
+          <div class="rep-bar"><div class="rep-fill" id="rep-fill" style="width:0%"></div></div>
+          <span id="rep-label" class="muted" style="font-size:.75rem">Reputación</span>
+        </div>
+      </div>
+
+      <div class="campaigns-grid" id="campaigns-grid">
+        <!-- Generado por JS -->
+      </div>
+
+      <div class="chat-wrap">
+        <div class="chat-header">
+          <span>💬 Comentarios del Pueblo</span>
+          <span class="chat-count" id="chat-count">0</span>
+        </div>
+        <div class="chat-feed" id="chat-feed">
+          <div class="chat-welcome">
+            <div class="chat-bubble system">
+              <b>🌾 HarvestBot:</b> ¡Bienvenido a Harvest Corp! Usa el marketing para hacer crecer tu negocio.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ PANTALLA FINAL ═══ -->
+<div id="screen-end" class="screen screen-end">
+  <div class="end-card">
+    <div class="end-icon" id="end-icon">🌾</div>
+    <h1 class="end-title" id="end-title"></h1>
+    <p class="end-sub" id="end-sub"></p>
+    <div class="end-stats" id="end-stats"></div>
+    <div class="end-rank" id="end-rank"></div>
+    <button class="btn-main" id="btn-restart">🔄 Nueva Empresa</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: PLANTAR ═══ -->
+<div id="modal-plant" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>🌱 Plantar en Parcela <span id="plant-plot-num"></span></h3>
+      <button class="close-btn" id="plant-close">✕</button>
+    </div>
+    <p class="modal-sub">Elige qué cultivar. El precio del mercado base puede variar según la época.</p>
+    <div class="crop-picker" id="crop-picker"><!-- JS --></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: SUBASTA ═══ -->
+<div id="modal-auction" class="modal-overlay hidden">
+  <div class="modal-card modal-auction-card">
+    <div class="modal-head auction-head">
+      <div class="auction-icon" id="auc-icon"></div>
+      <div>
+        <h3 id="auc-title">⚡ ¡SUBASTA EN CURSO!</h3>
+        <p id="auc-sub" class="modal-sub"></p>
+      </div>
+      <button class="close-btn" id="auction-close">✕</button>
+    </div>
+    <div class="auction-bids" id="auction-bids"><!-- JS --></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: VENDER AL MERCADO ═══ -->
+<div id="modal-mksell" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-good-icon" id="mksell-icon"></div>
+      <div>
+        <h3 id="mksell-title"></h3>
+        <p id="mksell-price" class="modal-sub"></p>
+      </div>
+      <button class="close-btn" id="mksell-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="qty-control">
+        <button class="qty-btn" id="mksell-minus">−</button>
+        <input class="qty-input" type="number" id="mksell-qty" value="1" min="1" />
+        <button class="qty-btn" id="mksell-plus">＋</button>
+      </div>
+      <div class="modal-total">Total: <strong id="mksell-total">0 💰</strong></div>
+      <button class="btn-main gold" id="mksell-confirm">💰 Vender</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="em.js"></script>
+</body>
+</html>

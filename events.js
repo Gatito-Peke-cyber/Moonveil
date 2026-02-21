@@ -71,6 +71,7 @@ const CATEGORIES = [
         daysTotal: 44,
         accent: "#f59e0b",   // ámbar para la ruleta
         startDate: "2026-02-26",
+        bg: "gif/5am.gif"
         // expiry: "2026-03-15"
       },
       { title:"Posts", desc:"Bueno, supongo que aqui postean los aldeanos...",   emoji:"💬", url:"ins.html" ,
@@ -82,7 +83,7 @@ const CATEGORIES = [
 
   // ── HERRAMIENTAS ──────────────────────────────────────
   {
-    id: "herramientas", icon: "🛠️", name: "Herramientas",
+    id: "herramientas", icon: "🛠️", name: "Herramientas & Minijuegos",
     color: "#06b6d4",
     items: [
       {
@@ -90,21 +91,49 @@ const CATEGORIES = [
         desc:  "Calendario de inicio de sesion. Se renueva cada mes.",
         emoji: "📅", url: "calendar.html",
         isCalendar: true,
-        accent: "#06b6d4"
+        accent: "#06b6d4",
+        bg: "gif/rain1.gif" 
       },
       { title:"Sand", desc:"...", emoji:"⚡", url:"SBM-G.html",
         accent: "#f59e0b",
         startDate: "2026-02-22",
-        expiry: "2026-04-15",
+        expiry: "2026-04-15",  daysTotal: 60,
       },
       {
         title: "Minepass",
-        desc:  "Lleguemos hasta las estrellas.¡Coleguita!A que si coleguita, exacto con tu amigo David Kal...",
+        desc:  "Lleguemos hasta las estrellas, tu sabes que no te abandonare, porque eres mi gran amigo. Nunca lo olvides y siempre estara tu amiguito David Kal...",
         emoji: "🎫", url: "pase.html",
         startDate: "2026-03-01",
-        expiry: "2026-04-01",
+        expiry: "2026-04-01",   daysTotal: 30,
         accent: "#06b6d4",
         bg: "img/universe1.gif"    // ← ej: "img/dragon-bg.jpg"
+      },
+      {
+        title: "Minigame",
+        desc:  "Un minijuego, asi que gestiona bien tu dinero y comercia bien... y ten cuidado con los ¡bandidos!... Asi que suerte",
+        emoji: "⭐⭐⭐", url: "min.html",
+        startDate: "2026-02-20",
+        expiry: "2026-04-01", daysTotal: 39,
+        accent: "#06b6d4",
+        bg: "gif/noche1.gif"    // ← ej: "img/dragon-bg.jpg"
+      },
+      {
+        title: "Harvest Corp",
+        desc:  "Maneja tu empresa de cultivos y haz que crezca con esfuerzo y sudor... Pues capaz no tanto pero haz que tu empresa este en lo alto y con marketing capaz llegue aun mas lejos...¡Yo confio en usted jefe!",
+        emoji: "🌟", url: "em.html",
+        startDate: "2026-02-20",
+        expiry: "2026-05-01", daysTotal: 69,
+        accent: "#f43f5e",
+        bg: "gif/2am.gif"    // ← ej: "img/dragon-bg.jpg"
+      },
+      {
+        title: "████ Master??",
+        desc:  "Supongo que el esta vez quizo o tratara de hacer una ¿broma?, bueno eso creemos, pero quien sabe...Que tramara esta vez...",
+        emoji: "🎭", url: "ddb.html",
+        startDate: "2026-03-30",
+        expiry: "2026-04-30", daysTotal: 30,
+        accent: "#f43f5e",
+        bg: "imagen/steve3.jpg"    // ← ej: "img/dragon-bg.jpg"
       },
     ]
   },
@@ -119,7 +148,7 @@ const CATEGORIES = [
         desc:  "Centro de todos los eventos activos del mundo.",
         emoji: "🎫", url: "eventos.html",
         //expiry: "2026-04-15", daysTotal: 44,
-        accent: "#f43f5e",
+        accent: "#f43f5e", 
         bg:"img-pass/animalsphoto.jpg"
       },
       {
@@ -161,7 +190,7 @@ const CATEGORIES = [
         desc:  "Un año mas en este mundo cubico Moonveil...",
         emoji: "🎂", url: "ann.html",
         startDate: "2026-04-10",
-        expiry: "2026-12-30",
+        expiry: "2026-12-30",  daysTotal: 120,
         accent: "#f59e0b",
         bg: "img-pass/partymine.jpg"    // ← ej: "img/lny-bg.jpg"
       },

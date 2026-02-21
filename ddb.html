@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>Moonveil — Troll Master</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Cinzel:wght@400;600;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23030508'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle'%3E💣%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="ddb.css" />
+</head>
+<body>
+
+<div class="bg">
+  <canvas id="bgParticles" aria-hidden="true"></canvas>
+  <div class="night-grid" aria-hidden="true"></div>
+  <div class="stars" aria-hidden="true" id="stars"></div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<header class="top-hud" role="banner">
+  <nav class="navbar" aria-label="Navegación principal">
+    <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+      <span class="cube" aria-hidden="true"></span>
+      <span class="brand__title">Moonveil <b>Portal</b></span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="ddb.html" class="active">Troll Master</a></li>
+      <li><a href="index.html">Salir</a></li>
+    </ul>
+  </nav>
+  <div class="hud-stats" id="game-hud" style="display:none" aria-label="Estado">
+    <div class="hud-chip em-chip"><span>💎</span><span id="h-em">300</span> esmeraldas</div>
+    <div class="hud-chip day-chip"><span>🎭</span>Día <span id="h-day">1</span>/15</div>
+    <div class="hud-chip rep-chip"><span>😈</span>Caos: <span id="h-rep">0</span>%</div>
+    <div class="hud-chip pranks-chip"><span>💣</span>Bromas: <span id="h-pranks">0</span></div>
+    <button class="btn-nextday" id="btn-nextday">Noche Siguiente 🌙</button>
+  </div>
+</header>
+
+<!-- ═══ PANTALLA TÍTULO ═══ -->
+<div id="screen-title" class="screen screen-title active">
+  <div class="title-wrap">
+    <div class="title-badge">🎭 DÍA DE LOS INOCENTES · MINECRAFT EDITION</div>
+    <h1 class="game-title">
+      <span class="troll-line">TROLL</span>
+      <span class="master-line">MASTER</span>
+    </h1>
+    <p class="game-tagline">La única agencia de bromas certificada de Minecraft ™</p>
+
+    <div class="title-lore">
+      <p>Es el 28 de diciembre en el servidor. El Creeper de al lado ha contratado tus servicios.<br>
+      Los villagers <em>nunca</em> lo verán venir. <b>tú sí.</b></p>
+    </div>
+
+    <div class="title-features">
+      <div class="feat"><span>📋</span><div><b>Encargos de bromas</b><small>Clientes pagan en esmeraldas</small></div></div>
+      <div class="feat"><span>🛒</span><div><b>Compra materiales</b><small>TNT, slimeballs, dispensers…</small></div></div>
+      <div class="feat"><span>⚗️</span><div><b>Craftea la broma</b><small>Recetas secretas de troll</small></div></div>
+      <div class="feat"><span>💬</span><div><b>Chat en vivo</b><small>Las víctimas reaccionan</small></div></div>
+    </div>
+
+    <div class="title-mobs" aria-hidden="true">
+      <span class="mob" style="--d:0s">🧟</span>
+      <span class="mob" style="--d:.1s">💣</span>
+      <span class="mob" style="--d:.2s">🧱</span>
+      <span class="mob" style="--d:.3s">⚗️</span>
+      <span class="mob" style="--d:.4s">🏹</span>
+      <span class="mob" style="--d:.5s">🕷️</span>
+      <span class="mob" style="--d:.6s">🌋</span>
+      <span class="mob" style="--d:.7s">💀</span>
+    </div>
+
+    <button class="btn-main" id="btn-start">🎭 Abrir la Agencia</button>
+  </div>
+</div>
+
+<!-- ═══ PANTALLA PRINCIPAL ═══ -->
+<div id="screen-game" class="screen screen-game">
+  <div class="game-grid">
+
+    <!-- IZQUIERDA: Encargos -->
+    <div class="panel panel-orders">
+      <div class="panel-head">
+        <h2 class="panel-title">📋 Encargos Activos</h2>
+        <div class="order-badge" id="orders-badge">0 pendientes</div>
+      </div>
+      <div class="orders-list" id="orders-list">
+        <div class="empty-state">
+          <div>😴</div>
+          <p>Sin encargos por ahora.</p>
+          <p class="muted-sm">Espera al siguiente día o activa el Modo Caos.</p>
+        </div>
+      </div>
+      <div class="chaos-btn-wrap">
+        <button class="btn-chaos" id="btn-chaos">
+          <span>🌋</span> MODO CAOS
+          <span class="chaos-cost">−50 💎</span>
+        </button>
+        <p class="chaos-tip">Genera 3 encargos épicos instantáneos</p>
+      </div>
+    </div>
+
+    <!-- CENTRO: Taller -->
+    <div class="panel panel-workshop">
+      <div class="panel-head">
+        <h2 class="panel-title">⚗️ Taller de Bromas</h2>
+        <div class="craft-status" id="craft-status">Selecciona un encargo para craftear</div>
+      </div>
+
+      <!-- Materiales activos para craftear -->
+      <div class="active-recipe" id="active-recipe">
+        <div class="no-recipe">
+          <span style="font-size:3rem">🔨</span>
+          <p>Selecciona un encargo<br>del panel izquierdo</p>
+        </div>
+      </div>
+
+      <!-- Inventario de materiales -->
+      <div class="materials-section">
+        <div class="materials-head">
+          <h3>🎒 Materiales en Stock</h3>
+          <button class="btn-shop-toggle" id="btn-shop-toggle">🛒 Tienda</button>
+        </div>
+        <div class="materials-grid" id="materials-grid">
+          <p class="muted-sm" style="padding:10px">Sin materiales. Ve a la tienda.</p>
+        </div>
+      </div>
+
+      <!-- Botón ejecutar broma -->
+      <div class="execute-wrap">
+        <button class="btn-execute hidden" id="btn-execute">
+          💣 ¡EJECUTAR BROMA!
+        </button>
+      </div>
+    </div>
+
+    <!-- DERECHA: Chat + Tienda -->
+    <div class="panel panel-right">
+
+      <!-- TIENDA (oculta por defecto) -->
+      <div class="shop-panel hidden" id="shop-panel">
+        <div class="panel-head">
+          <h2 class="panel-title">🛒 Tienda de Materiales</h2>
+          <button class="btn-shop-close" id="btn-shop-close">✕ Cerrar</button>
+        </div>
+        <div class="shop-grid" id="shop-grid"><!-- JS --></div>
+      </div>
+
+      <!-- CHAT (visible por defecto) -->
+      <div class="chat-panel" id="chat-panel">
+        <div class="panel-head">
+          <h2 class="panel-title">💬 Chat del Servidor</h2>
+          <div class="online-badge"><span class="pulse-dot"></span><span id="online-count">12</span> online</div>
+        </div>
+        <div class="chat-feed" id="chat-feed">
+          <!-- JS -->
+        </div>
+        <div class="chat-input-wrap">
+          <div class="chat-server-tag">[TrollMaster] ▶</div>
+          <div class="chat-type-area">Esperando víctimas...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ PANTALLA FINAL ═══ -->
+<div id="screen-end" class="screen screen-end">
+  <div class="end-card">
+    <div class="confetti-burst" id="confetti-burst" aria-hidden="true"></div>
+    <div class="end-icon" id="end-icon">💀</div>
+    <h1 class="end-title" id="end-title"></h1>
+    <p class="end-sub" id="end-sub"></p>
+    <div class="end-stats" id="end-stats"></div>
+    <div class="end-rank" id="end-rank"></div>
+    <div class="best-prank" id="best-prank"></div>
+    <button class="btn-main" id="btn-restart">🔄 Nueva Temporada de Bromas</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: CONFIRMAR COMPRA ═══ -->
+<div id="modal-buy" class="modal-overlay hidden">
+  <div class="modal-card pixel-card">
+    <div class="modal-head">
+      <div class="modal-item-icon" id="buy-icon"></div>
+      <div>
+        <h3 id="buy-name"></h3>
+        <p id="buy-price-info" class="modal-sub"></p>
+      </div>
+      <button class="close-btn" id="buy-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="qty-control">
+        <button class="qty-btn" id="buy-minus">−</button>
+        <input class="qty-input" type="number" id="buy-qty" value="1" min="1" max="20" />
+        <button class="qty-btn" id="buy-plus">＋</button>
+      </div>
+      <div class="modal-total">Total: <strong id="buy-total">0 💎</strong></div>
+      <button class="btn-main" id="buy-confirm">💎 Comprar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: RESULTADO BROMA ═══ -->
+<div id="modal-result" class="modal-overlay hidden">
+  <div class="modal-card result-card" id="result-card">
+    <div class="result-anim" id="result-anim"></div>
+    <h2 class="result-title" id="result-title"></h2>
+    <p class="result-desc" id="result-desc"></p>
+    <div class="result-reward" id="result-reward"></div>
+    <div class="result-reactions" id="result-reactions"></div>
+    <button class="btn-main" id="result-close">Continuar →</button>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="ddb.js"></script>
+</body>
+</html>
