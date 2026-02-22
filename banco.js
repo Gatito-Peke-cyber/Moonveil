@@ -11,7 +11,32 @@
 'use strict';
 
 /* ─────────────────────────────────────
+   ╔══════════════════════════════════════╗
+   ║  MANTENIMIENTO — CONFIGURACIÓN FÁCIL ║
+   ╠══════════════════════════════════════╣
+   ║  Para poner un chanchito en mant.:   ║
+   ║  1. Cambia status: 'maintenance'     ║
+   ║  2. Pon la fecha en returnDate:      ║
+   ║     daysFromNow(30) → vuelve en 30d  ║
+   ║     new Date('2026-05-01') → fecha   ║
+   ║  Para reactivarlo:                   ║
+   ║  1. Cambia status: 'active'          ║
+   ║  2. Borra la línea returnDate        ║
+   ╚══════════════════════════════════════╝
+───────────────────────────────────── */
+
+/* Utilidad: fecha relativa (días desde hoy) */
+function daysFromNow(d) {
+  return new Date(Date.now() + d * 24 * 60 * 60 * 1000);
+}
+
+/* ─────────────────────────────────────
    Config de monedas
+   ─────────────────────────────────────
+   status puede ser:
+     'active'       → funciona normal
+     'maintenance'  → bloqueado, muestra overlay
+     'event'        → solo disponible en fechas
 ───────────────────────────────────── */
 const CURRENCIES = {
   esmeralda:  { name:'Esmeraldas',             icon:'💎', rate:7200,  max:50,  status:'active',  colorVar:'--c-emerald', iconClass:'ci-emerald',  btnC1:'#059669', btnC2:'#047857', badgeClass:'',            accent:'#10b981', sparkles:['✦','✧'] },
@@ -25,15 +50,25 @@ const CURRENCIES = {
     name:'Diamantes Especiales', icon:'💠', rate:18000, max:50, status:'event',
     colorVar:'--c-diamond', iconClass:'ci-diamond', btnC1:'#38bdf8', btnC2:'#0284c7',
     badgeClass:'badge-diamond', accent:'#38bdf8', sparkles:['💠','✦','⬦'], btnText:'color:#000',
-    eventStart: new Date('2026-02-10T00:00:00'),
-    eventEnd:   new Date('2026-02-20T23:59:59'),
+    eventStart: new Date('2026-02-20T00:00:00'),
+    eventEnd:   new Date('2026-02-24T23:59:59'),
   },
   netherita:  {
     name:'Netherita', icon:'🌑', rate:21600, max:50, status:'maintenance',
     colorVar:'--c-netherita', iconClass:'ci-netherita', btnC1:'#374151', btnC2:'#1f2937',
     badgeClass:'badge-disabled', accent:'#4b5563', sparkles:[],
-    returnDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000),
+    returnDate: daysFromNow(2),   // ← cambiá el número de días
   },
+  /* ══════════════════════════════════════
+     EJEMPLO: poner "inframundo" en mant.:
+     inframundo: {
+       ...mismas propiedades...,
+       status: 'maintenance',
+       returnDate: daysFromNow(7),
+     },
+     o con fecha exacta:
+       returnDate: new Date('2026-04-01'),
+     ══════════════════════════════════════ */
 };
 
 const SAVE_KEY = 'moonveilBank_v4';
@@ -54,7 +89,7 @@ let bankState = {
 ───────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   initState();
-  loadData();
+  loadData();                   // ← carga ANTES de construir
   buildGrid();
   calcOfflineGains();
   startLoop();
@@ -65,6 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
   setupReveal();
   setupMusic();
   updateYear();
+  updateGlobalStats();          // ← muestra stats guardados al arrancar
+  updateCollectAllBtn();
+  // Guardar al cerrar/recargar para no perder el último segundo
+  window.addEventListener('beforeunload', saveData);
   log('Sistema bancario inicializado correctamente', 'system');
   toast('🏦 Banco del Reino listo');
 });
@@ -75,11 +114,16 @@ function updateYear() {
 }
 
 /* ─────────────────────────────────────
-   Estado inicial
+   Estado inicial (solo si no hay datos)
 ───────────────────────────────────── */
 function initState() {
   Object.keys(CURRENCIES).forEach(k => {
-    bankState.currencies[k] = { total: 0, vault: 0, lastUpdate: Date.now(), nextUpdate: Date.now() + CURRENCIES[k].rate * 1000 };
+    bankState.currencies[k] = {
+      total: 0,
+      vault: 0,
+      lastUpdate: Date.now(),
+      nextUpdate: Date.now() + CURRENCIES[k].rate * 1000,
+    };
   });
 }
 
@@ -100,13 +144,14 @@ function loadData() {
     if (saved.lastVisit)  bankState.lastVisit  = saved.lastVisit;
     if (saved.totalEver)  bankState.totalEver  = saved.totalEver;
     if (saved.log)        bankState.log        = saved.log.slice(0, 120);
-  } catch(e) { console.warn('loadData error:', e) }
+  } catch(e) { console.warn('loadData error:', e); }
 }
 
 function saveData() {
   try {
+    bankState.lastVisit = Date.now();
     localStorage.setItem(SAVE_KEY, JSON.stringify({ ...bankState, lastSave: Date.now() }));
-  } catch(e) { console.warn('saveData error:', e) }
+  } catch(e) { console.warn('saveData error:', e); }
 }
 
 /* ─────────────────────────────────────
@@ -126,10 +171,17 @@ function calcOfflineGains() {
     if (n > 0) {
       const space = cfg.max - st.vault;
       const add = Math.min(n, space);
-      if (add > 0) { st.vault += add; gained += add; st.nextUpdate = Date.now() + (diff % rateMs === 0 ? rateMs : rateMs - (diff % rateMs)); }
+      if (add > 0) {
+        st.vault += add;
+        gained += add;
+        st.nextUpdate = Date.now() + (diff % rateMs === 0 ? rateMs : rateMs - (diff % rateMs));
+      }
     }
   });
-  if (gained > 0) { toast(`⏰ Mientras estabas fuera: +${gained} monedas`); log(`Ganancias offline: +${gained} monedas`, 'auto'); }
+  if (gained > 0) {
+    toast(`⏰ Mientras estabas fuera: +${gained} monedas`);
+    log(`Ganancias offline: +${gained} monedas`, 'auto');
+  }
   bankState.lastVisit = Date.now();
 }
 
@@ -152,8 +204,6 @@ function isRunning(k) {
 
 /* ─────────────────────────────────────
    ★ GENERADOR DE CHANCHITO SVG ★
-   Chanchito con cuerpo redondeado, cara,
-   orejas, rabo y llenado animado
 ───────────────────────────────────── */
 function buildPiggyHTML(k, cfg) {
   const colors = {
@@ -168,9 +218,7 @@ function buildPiggyHTML(k, cfg) {
     netherita: { body:'#4b5563', shade:'#111827', fill:'#374151', nose:'#9ca3af', eye:'#111827' },
   };
   const c = colors[k] || colors['esmeralda'];
-  const pct = cfg.max > 999 ? 0 : 0; // starts 0, updated by JS
 
-  /* SVG del chanchito */
   const svg = `
   <svg class="piggy-svg" id="svg-${k}" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -178,63 +226,37 @@ function buildPiggyHTML(k, cfg) {
         <ellipse cx="80" cy="90" rx="60" ry="55"/>
       </clipPath>
     </defs>
-
-    <!-- Rabo -->
     <path d="M136,72 Q148,64 144,80 Q140,96 148,88" stroke="${c.shade}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-
-    <!-- Patas traseras -->
     <ellipse cx="52" cy="147" rx="17" ry="10" fill="${c.shade}" opacity=".7"/>
     <ellipse cx="108" cy="147" rx="17" ry="10" fill="${c.shade}" opacity=".7"/>
-    <!-- Dedos -->
     <circle cx="42" cy="151" r="4" fill="${c.shade}" opacity=".7"/>
     <circle cx="52" cy="153" r="4" fill="${c.shade}" opacity=".7"/>
     <circle cx="62" cy="151" r="4" fill="${c.shade}" opacity=".7"/>
     <circle cx="98" cy="151" r="4" fill="${c.shade}" opacity=".7"/>
     <circle cx="108" cy="153" r="4" fill="${c.shade}" opacity=".7"/>
     <circle cx="118" cy="151" r="4" fill="${c.shade}" opacity=".7"/>
-
-    <!-- Cuerpo principal -->
     <ellipse cx="80" cy="90" rx="60" ry="55" fill="${c.shade}" />
     <ellipse cx="80" cy="88" rx="58" ry="53" fill="${c.body}" />
-
-    <!-- Llenado animado (fill) -->
-    <rect id="fill-${k}" x="22" y="${160}" width="116" height="0" fill="${c.fill}" opacity=".45" clip-path="url(#cp-${k})"/>
-
-    <!-- Brillo -->
+    <rect id="fill-${k}" x="22" y="160" width="116" height="0" fill="${c.fill}" opacity=".45" clip-path="url(#cp-${k})"/>
     <ellipse cx="65" cy="58" rx="22" ry="14" fill="rgba(255,255,255,.18)" transform="rotate(-20,65,58)"/>
-
-    <!-- Orejas -->
     <ellipse cx="36" cy="55" rx="14" ry="18" fill="${c.body}" transform="rotate(-25,36,55)"/>
     <ellipse cx="36" cy="55" rx="8"  ry="12" fill="${c.shade}" opacity=".3" transform="rotate(-25,36,55)"/>
     <ellipse cx="124" cy="55" rx="14" ry="18" fill="${c.body}" transform="rotate(25,124,55)"/>
     <ellipse cx="124" cy="55" rx="8"  ry="12" fill="${c.shade}" opacity=".3" transform="rotate(25,124,55)"/>
-
-    <!-- Ojos -->
     <ellipse cx="63" cy="78" rx="9" ry="9" fill="${c.eye}"/>
     <ellipse cx="97" cy="78" rx="9" ry="9" fill="${c.eye}"/>
-    <!-- Reflejos ojos -->
     <circle cx="60" cy="74" r="3" fill="rgba(255,255,255,.8)"/>
     <circle cx="94" cy="74" r="3" fill="rgba(255,255,255,.8)"/>
-    <!-- Pupilas -->
     <circle cx="63" cy="78" r="5" fill="rgba(0,0,0,.75)"/>
     <circle cx="97" cy="78" r="5" fill="rgba(0,0,0,.75)"/>
-
-    <!-- Hocico -->
     <ellipse cx="80" cy="98" rx="20" ry="13" fill="${c.nose}"/>
     <circle cx="73" cy="98" r="5" fill="${c.shade}" opacity=".35"/>
     <circle cx="87" cy="98" r="5" fill="${c.shade}" opacity=".35"/>
-
-    <!-- Ranura de monedas (top) -->
     <rect x="63" y="38" width="34" height="6" rx="3" fill="rgba(0,0,0,.35)"/>
-
-    <!-- Mejillas -->
     <ellipse cx="50" cy="92" rx="11" ry="7" fill="rgba(255,150,150,.22)"/>
     <ellipse cx="110" cy="92" rx="11" ry="7" fill="rgba(255,150,150,.22)"/>
-
-    <!-- Patas delanteras -->
     <ellipse cx="46" cy="132" rx="14" ry="10" fill="${c.body}"/>
     <ellipse cx="114" cy="132" rx="14" ry="10" fill="${c.body}"/>
-    <!-- Dedos delanteros -->
     <circle cx="37" cy="135" r="4" fill="${c.shade}" opacity=".6"/>
     <circle cx="46" cy="138" r="4" fill="${c.shade}" opacity=".6"/>
     <circle cx="55" cy="135" r="4" fill="${c.shade}" opacity=".6"/>
@@ -243,7 +265,6 @@ function buildPiggyHTML(k, cfg) {
     <circle cx="123" cy="135" r="4" fill="${c.shade}" opacity=".6"/>
   </svg>`;
 
-  /* Extras */
   const extras = cfg.sparkles && cfg.sparkles.length
     ? cfg.sparkles.slice(0,3).map(s => `<span class="piggy-sparkle">${s}</span>`).join('')
     : '';
@@ -272,10 +293,11 @@ function buildGrid() {
     btn.addEventListener('click', () => collectCurrency(btn.dataset.currency));
   });
 
-  // Init fills & badges
+  // Restaurar estado visual de cada tarjeta con datos guardados
   Object.keys(CURRENCIES).forEach(k => {
     updateFill(k);
     updateBadge(k);
+    updateCardStats(k);   // ← FIX: muestra los totales guardados al cargar
   });
 
   // Start overlays
@@ -309,8 +331,8 @@ function buildCard(k, idx) {
        </div>`
     : '';
 
-  const tag = cfg.status === 'event'   ? `<div class="card-tag tag-event">🎉 EVENTO</div>` :
-              cfg.status === 'maintenance' ? `<div class="card-tag tag-maint">⚠️ MANT.</div>` : '';
+  const tag = cfg.status === 'event'       ? `<div class="card-tag tag-event">🎉 EVENTO</div>` :
+              cfg.status === 'maintenance'  ? `<div class="card-tag tag-maint">⚠️ MANT.</div>` : '';
 
   const btnStyle = `--btn-c1:${cfg.btnC1};--btn-c2:${cfg.btnC2}`;
   const btnTextStyle = cfg.btnText || '';
@@ -413,16 +435,14 @@ function updateFill(k) {
   const st  = bankState.currencies[k];
   const pct = cfg.max > 10000 ? 0 : Math.min(100, (st.vault / cfg.max) * 100);
 
-  // SVG fill rect animado
   const fillEl = document.getElementById(`fill-${k}`);
   if (fillEl) {
-    const bodyH = 110; // altura del cuerpo SVG
+    const bodyH = 110;
     const fillH = (pct / 100) * bodyH;
     fillEl.setAttribute('y', String(145 - fillH));
     fillEl.setAttribute('height', String(fillH));
   }
 
-  // Barra de progreso
   const bar = document.getElementById(`vaultbar-${k}`);
   if (bar) bar.style.width = pct + '%';
 }
