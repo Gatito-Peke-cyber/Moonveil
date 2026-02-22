@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>Moonveil — Eden Tycoon</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23020c08'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle'%3E🌿%3C/text%3E%3C/svg%3E"/>
+  <link rel="stylesheet" href="cul.css"/>
+</head>
+<body>
+
+<div class="bg-scene">
+  <canvas id="bgCanvas" aria-hidden="true"></canvas>
+  <div class="bio-mesh" aria-hidden="true"></div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<header class="top-hud" role="banner">
+  <nav class="navbar" aria-label="Navegación principal">
+    <a class="brand" href="inicio.html" aria-label="Inicio">
+      <span class="cube" aria-hidden="true"></span>
+      <span class="brand__title">Moonveil <b>Portal</b></span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menú"><span></span></button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="cul.html" class="active">Eden Tycoon</a></li>
+      <li><a href="index.html">Salir</a></li>
+    </ul>
+  </nav>
+  <div class="hud-bar" id="game-hud" style="display:none">
+    <div class="hud-chip gold-chip">💰 <span id="h-gold">500</span></div>
+    <div class="hud-chip day-chip">🌿 Día <span id="h-day">1</span>/<span id="h-maxday">20</span></div>
+    <div class="hud-chip xp-chip">⭐ Nv.<span id="h-lvl">1</span></div>
+    <div class="hud-chip plot-chip">🌱 <span id="h-plots">0</span>/<span id="h-maxplots">6</span></div>
+    <div class="hud-chip season-chip" id="h-season">☀️ Primavera</div>
+    <button class="btn-advance" id="btn-advance">Siguiente Día →</button>
+  </div>
+</header>
+
+<!-- ══ TÍTULO ══ -->
+<div id="screen-title" class="screen screen-title">
+  <div class="title-wrap">
+    <div class="pretitle">🌿 SIMULADOR BOTÁNICO · MOONVEIL</div>
+    <h1 class="gtitle">
+      <span class="gt-eden">Eden</span>
+      <span class="gt-tycoon">Tycoon</span>
+    </h1>
+    <p class="gsubtitle">Cultiva el jardín más extraordinario del mundo</p>
+    <div class="intro-cards">
+      <div class="ic"><span>🌻</span><div><b>12 plantas únicas</b><small>De helecho a pitahaya legendaria</small></div></div>
+      <div class="ic"><span>✨</span><div><b>Mutaciones doradas</b><small>Plantas raras valen 3× precio</small></div></div>
+      <div class="ic"><span>🏗️</span><div><b>8 mejoras del jardín</b><small>Invernadero, laboratorio, botánico…</small></div></div>
+      <div class="ic"><span>🌦️</span><div><b>Eventos climáticos</b><small>Lluvia, sequía, booms de mercado</small></div></div>
+      <div class="ic"><span>📈</span><div><b>Mercado dinámico</b><small>Precios fluctúan cada día</small></div></div>
+      <div class="ic"><span>🏆</span><div><b>Sistema de niveles</b><small>Sube de rango y desbloquea plantas</small></div></div>
+    </div>
+    <div class="plant-parade" aria-hidden="true">
+      <span style="--i:0">🌿</span><span style="--i:1">🌻</span><span style="--i:2">🌵</span>
+      <span style="--i:3">🌸</span><span style="--i:4">🎋</span><span style="--i:5">🪷</span>
+      <span style="--i:6">🍄</span><span style="--i:7">🌳</span><span style="--i:8">🌹</span>
+      <span style="--i:9">🐉</span>
+    </div>
+    <button class="btn-main" id="btn-start">🌱 Fundar mi Jardín</button>
+  </div>
+</div>
+
+<!-- ══ JUEGO ══ -->
+<div id="screen-game" class="screen screen-game">
+  <div class="game-layout">
+
+    <!-- IZQUIERDA: Jardín + Misiones -->
+    <aside class="col col-garden">
+      <div class="col-head">
+        <h2 class="col-title">🌿 Mi Jardín</h2>
+        <div class="weather-badge" id="weather-badge">☀️ Soleado</div>
+      </div>
+      <div class="garden-grid" id="garden-grid"></div>
+      <div class="garden-info-bar">
+        <div class="gi-item" id="gi-growing">🌱 0 creciendo</div>
+        <div class="gi-item ready" id="gi-ready">✅ 0 listas</div>
+        <div class="gi-item gold" id="gi-golden">✨ 0 doradas</div>
+      </div>
+      <div class="missions-box">
+        <div class="ms-head">📋 Misiones del Día</div>
+        <div id="missions-list"></div>
+      </div>
+    </aside>
+
+    <!-- CENTRO: Tabs (Mercado / Mejoras / Inventario) -->
+    <main class="col col-center">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="market">📈 Mercado</button>
+        <button class="tab-btn" data-tab="upgrades">🔬 Mejoras</button>
+        <button class="tab-btn" data-tab="inventory">🎒 Inventario</button>
+      </div>
+
+      <div class="tab-content active" id="tab-market">
+        <div class="market-header">
+          <div>
+            <h3 class="mh-title">Precios de hoy</h3>
+            <div class="price-trend" id="price-trend">—</div>
+          </div>
+          <button class="btn-sell-all" id="btn-sell-all">💰 Vender Todo</button>
+        </div>
+        <div class="market-table" id="market-table"></div>
+        <div class="market-note" id="market-note">💡 Los precios cambian cada día. ¡Vende en el momento correcto!</div>
+      </div>
+
+      <div class="tab-content" id="tab-upgrades">
+        <p class="up-intro">Invierte en mejoras para multiplicar tus ganancias</p>
+        <div class="upgrades-grid" id="upgrades-grid"></div>
+      </div>
+
+      <div class="tab-content" id="tab-inventory">
+        <div class="inv-header">
+          <h3>🎒 Cosechado sin vender</h3>
+          <div class="inv-value" id="inv-value">Valor: 0 💰</div>
+        </div>
+        <div class="inv-grid" id="inv-grid">
+          <div class="inv-empty">Vacío — cosecha plantas para llenar tu almacén</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- DERECHA: Stats + Nivel + Eventos -->
+    <aside class="col col-right">
+      <div class="col-head">
+        <h2 class="col-title">📊 Panel</h2>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="sb-val" id="st-earned">0</div><div class="sb-lbl">💰 Ganado</div></div>
+        <div class="stat-box"><div class="sb-val" id="st-harvested">0</div><div class="sb-lbl">🌿 Cosechado</div></div>
+        <div class="stat-box"><div class="sb-val" id="st-golden">0</div><div class="sb-lbl">✨ Mutaciones</div></div>
+        <div class="stat-box"><div class="sb-val" id="st-bestsale">0</div><div class="sb-lbl">🏆 Mejor venta</div></div>
+      </div>
+
+      <div class="lvl-panel">
+        <div class="lvl-row">
+          <span class="lvl-badge">Nv.<span id="lvl-num">1</span></span>
+          <span class="lvl-name" id="lvl-name">Jardinero Novato</span>
+        </div>
+        <div class="lvl-bar"><div class="lvl-fill" id="lvl-fill" style="width:0%"></div></div>
+        <div class="lvl-xp" id="lvl-xp">0 / 100 XP</div>
+        <div class="lvl-unlock" id="lvl-unlock"></div>
+      </div>
+
+      <div class="events-panel">
+        <div class="ev-head">🌦️ Registro de Eventos</div>
+        <div class="events-log" id="events-log">
+          <div class="ev-line system">El jardín te espera con paciencia...</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ══ PANTALLA FINAL ══ -->
+<div id="screen-end" class="screen screen-end">
+  <div class="end-wrap">
+    <div class="end-card">
+      <div class="end-blooms" id="end-blooms" aria-hidden="true"></div>
+      <div class="end-icon" id="end-icon">🌿</div>
+      <h1 class="end-title" id="end-title"></h1>
+      <p class="end-sub" id="end-sub"></p>
+      <div class="end-stats" id="end-stats"></div>
+      <div class="end-rank" id="end-rank"></div>
+      <div class="end-collection" id="end-collection"></div>
+      <button class="btn-main" id="btn-restart">🌱 Nuevo Jardín</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL PLANTAR ══ -->
+<div id="modal-plant" class="modal-ov hidden">
+  <div class="modal-box plant-modal">
+    <div class="modal-hd">
+      <div>
+        <h3>🌱 Plantar — Parcela <span id="pm-num"></span></h3>
+        <p class="modal-sub">Elige qué cultivar hoy</p>
+      </div>
+      <button class="x-btn" id="pm-close">✕</button>
+    </div>
+    <div class="pm-grid" id="pm-grid"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL VENDER ══ -->
+<div id="modal-sell" class="modal-ov hidden">
+  <div class="modal-box sell-modal">
+    <div class="modal-hd">
+      <div class="sell-icon-wrap" id="sell-icon-wrap"></div>
+      <div>
+        <h3 id="sell-name"></h3>
+        <p id="sell-price-info" class="modal-sub"></p>
+      </div>
+      <button class="x-btn" id="sell-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="qty-row">
+        <button class="q-btn" id="sell-minus">−</button>
+        <input class="q-inp" type="number" id="sell-qty" value="1" min="1"/>
+        <button class="q-btn" id="sell-plus">＋</button>
+      </div>
+      <div class="modal-ttl">Total: <strong id="sell-total">0 💰</strong></div>
+      <button class="btn-main" id="sell-confirm">💰 Vender Ahora</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL EVENTO ══ -->
+<div id="modal-event" class="modal-ov hidden">
+  <div class="modal-box event-modal">
+    <div class="ev-icon-big" id="ev-icon-big"></div>
+    <h2 class="ev-title" id="ev-title"></h2>
+    <p class="ev-desc" id="ev-desc"></p>
+    <div class="ev-effect-tag" id="ev-effect-tag"></div>
+    <button class="btn-main" id="ev-close">Continuar →</button>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="cul.js"></script>
+</body>
+</html>

@@ -1,265 +1,312 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moonveil | Biblioteca de Historias</title>
-    
-    <!-- Fuentes -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-    
-    <!-- Estilos -->
-    <link rel="stylesheet" href="historia.css">
-    
-    <meta name="description" content="Dashboard profesional de historias interactivas de Moonveil. Explora, desbloquea y lee historias únicas.">
+  <!-- =========================================================
+       Moonveil Portal — Biblioteca de Historias
+       Tema: Editorial oscuro de lujo · Tinta & Pergamino
+       ========================================================= -->
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>Moonveil · Biblioteca de Historias</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@600;900&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230a0806'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23c9a227'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%239a7b1e'/%3E%3C/svg%3E">
+
+  <link rel="stylesheet" href="historia.css"/>
+  <meta name="description" content="Moonveil Biblioteca — Colección de historias interactivas del reino."/>
 </head>
 <body>
-    <!-- Header completo con HUD -->
-    <header class="top-hud" role="banner">
-        <nav class="navbar" aria-label="Navegación principal">
-            <a class="brand" href="inicio.html" aria-label="Ir a inicio">
-                <span class="cube" aria-hidden="true"></span>
-                <span class="brand__title">Moonveil <b>Stories</b></span>
-            </a>
-            <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
-            <ul class="nav-links" id="navLinks">
-                <li><a href="inicio.html">Inicio</a></li>
-                <li><a href="perfiles.html">Perfiles</a></li>
-                <li><a href="juego.html">Juego</a></li>
-                <li><a href="historia.html" class="active">Historias</a></li>
-                <li><a href="contactos.html">Contacto</a></li>
-            </ul>
-        </nav>
 
-        <!-- HUD Stats -->
-        <div class="hud-stats" aria-label="Indicadores del jugador">
-            <div class="hud__bars">
-                <div class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
-                <div class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
-            </div>
-            <div class="hud__inv" aria-label="Inventario rápido">
-                <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
-                <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
-                <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
-            </div>
+  <!-- Fondo de pergamino/tinta -->
+  <div class="bg-world" aria-hidden="true">
+    <canvas id="bgCanvas"></canvas>
+    <div class="bg-vignette"></div>
+    <div class="bg-grain"></div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       HEADER / HUD (idéntico estructura)
+       ══════════════════════════════════ -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Stories</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="historia.html" class="active">Historias</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+    <div class="hud-stats" aria-label="Indicadores">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
+        <div class="hud-bar xp" data-val="63" aria-label="XP 63%"></div>
+      </div>
+      <div class="hud__inv" aria-label="Inventario rápido">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
+        <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
+        <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════
+       MAIN CONTENT
+       ══════════════════════ -->
+  <main class="lib-main">
+
+    <!-- HERO de la biblioteca -->
+    <section class="lib-hero">
+      <div class="hero-ornament left" aria-hidden="true">
+        <span class="orn-line"></span><span class="orn-diamond">◆</span><span class="orn-line"></span>
+      </div>
+      <div class="hero-center">
+        <div class="hero-eyebrow reveal">
+          <span class="quill">✦</span>
+          Biblioteca Digital del Reino
+          <span class="quill">✦</span>
         </div>
-    </header>
+        <h1 class="hero-title reveal">
+          <span class="ht-deco">Biblioteca</span>
+          <span class="ht-main">Moonveil</span>
+        </h1>
+        <p class="hero-sub reveal">Descubre un universo de historias donde cada página es una nueva aventura esperando ser desbloqueada. Crónicas, leyendas y misterios del reino.</p>
 
-    <!-- Dashboard Principal -->
-    <div class="dashboard-layout">
-        <!-- Sidebar -->
-        <aside class="dashboard-sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">M</div>
-                <div class="sidebar-title">
-                    <span>Biblioteca</span><br>
-                    <small class="muted">Dashboard</small>
-                </div>
-            </div>
+        <!-- Stats del hero -->
+        <div class="hero-stats reveal">
+          <div class="hstat-item">
+            <span class="hstat-num" id="st-total">0</span>
+            <span class="hstat-lbl">Historias</span>
+          </div>
+          <div class="hstat-sep">◆</div>
+          <div class="hstat-item">
+            <span class="hstat-num" id="st-unlocked">0</span>
+            <span class="hstat-lbl">Desbloqueadas</span>
+          </div>
+          <div class="hstat-sep">◆</div>
+          <div class="hstat-item">
+            <span class="hstat-num" id="st-locked">0</span>
+            <span class="hstat-lbl">Bloqueadas</span>
+          </div>
+          <div class="hstat-sep">◆</div>
+          <div class="hstat-item">
+            <span class="hstat-num" id="st-pages">0</span>
+            <span class="hstat-lbl">Páginas totales</span>
+          </div>
+        </div>
 
-            <!-- Búsqueda -->
-            <div class="search-box">
-                <input 
-                    type="search" 
-                    id="searchInput" 
-                    placeholder="Buscar historias..."
-                    aria-label="Buscar historias"
-                >
-            </div>
+        <!-- Barra progreso -->
+        <div class="progress-shelf reveal">
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-glow"></div>
+          </div>
+          <span class="progress-label" id="progressLabel">0% completado</span>
+        </div>
 
-            <!-- Filtro de Categorías -->
-            <div class="filter-section">
-                <h4>Categorías</h4>
-                <div class="filter-chips" id="categoryChips">
-                    <!-- Se genera dinámicamente -->
-                </div>
-            </div>
+        <!-- Controles de audio -->
+        <div class="audio-dock reveal" id="audioDock">
+          <button class="audio-btn" id="playBtn" title="Play/Pause">▶</button>
+          <div class="audio-waveform" id="audioWave">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+          </div>
+          <button class="audio-btn" id="muteBtn" title="Silenciar">🔊</button>
+          <span class="audio-title" id="audioTitle">Sin música</span>
+        </div>
+      </div>
+      <div class="hero-ornament right" aria-hidden="true">
+        <span class="orn-line"></span><span class="orn-diamond">◆</span><span class="orn-line"></span>
+      </div>
+    </section>
 
-            <!-- Filtro de Rarezas -->
-            <div class="filter-section">
-                <h4>Rarezas</h4>
-                <div class="filter-chips" id="rarityChips">
-                    <button class="chip active" data-rarity="all">Todas</button>
-                    <button class="chip" data-rarity="common">Común</button>
-                    <button class="chip" data-rarity="rare">Rara</button>
-                    <button class="chip" data-rarity="special">Especial</button>
-                    <button class="chip" data-rarity="epic">Épica</button>
-                    <button class="chip" data-rarity="mythic">Mítica</button>
-                    <button class="chip" data-rarity="legend">Legendaria</button>
-                    <button class="chip" data-rarity="dex">DEX</button>
-                </div>
-            </div>
+    <!-- BARRA DE FILTROS -->
+    <section class="lib-filters reveal">
+      <div class="filters-inner">
 
-            <!-- Estadísticas -->
-            <div class="stats-section">
-                <h4 class="muted mb-3">Estadísticas</h4>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number" id="unlockedCount">0/0</div>
-                        <div class="stat-label">Desbloqueadas</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number" id="totalCount">0</div>
-                        <div class="stat-label">Total</div>
-                    </div>
-                </div>
-            </div>
+        <!-- Búsqueda -->
+        <div class="search-wrap">
+          <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input id="searchInput" type="search" placeholder="Buscar en la biblioteca…" autocomplete="off"/>
+        </div>
 
-            <!-- Controles de Audio -->
-            <div class="filter-section">
-                <h4>Audio</h4>
-                <div class="card-actions">
-                    <button id="toggleAudio" class="btn btn-ghost btn-sm">
-                        🎵 Play/Pause
-                    </button>
-                    <button id="muteBtn" class="btn btn-ghost btn-sm">
-                        🔇 Silenciar
-                    </button>
-                </div>
-            </div>
+        <!-- Chips categoría -->
+        <div class="filter-block">
+          <span class="filter-label">📂 Categoría</span>
+          <div class="chip-row" id="catChips"></div>
+        </div>
 
-            <!-- Gestión de Progreso -->
-            <div class="filter-section">
-                <h4>Progreso</h4>
-                <div class="card-actions">
-                    <button id="exportBtn" class="btn btn-ghost btn-sm">
-                        💾 Exportar
-                    </button>
-                    <button id="importBtn" class="btn btn-ghost btn-sm">
-                        📂 Importar
-                    </button>
-                    <input type="file" id="importFile" accept=".json" class="hidden">
-                </div>
-            </div>
-        </aside>
+        <!-- Chips rareza -->
+        <div class="filter-block">
+          <span class="filter-label">✨ Rareza</span>
+          <div class="chip-row" id="rarChips">
+            <button class="fchip fchip-all active" data-rar="all">Todas</button>
+            <button class="fchip fchip-common"  data-rar="common">Común</button>
+            <button class="fchip fchip-rare"    data-rar="rare">Rara</button>
+            <button class="fchip fchip-special" data-rar="special">Especial</button>
+            <button class="fchip fchip-epic"    data-rar="epic">Épica</button>
+            <button class="fchip fchip-mythic"  data-rar="mythic">Mítica</button>
+            <button class="fchip fchip-legend"  data-rar="legend">Legendaria</button>
+            <button class="fchip fchip-dex"     data-rar="dex">DEX</button>
+          </div>
+        </div>
 
-        <!-- Contenido Principal CENTRADO -->
-        <main class="dashboard-main">
-            <!-- Hero -->
-            <section class="hero-section reveal">
-                <h1 class="hero-title">Biblioteca Moonveil</h1>
-                <p class="hero-subtitle">
-                    Explora una colección única de historias interactivas. 
-                    Cada relato es una aventura única con rarezas especiales y contenido exclusivo.
-                </p>
-            </section>
+        <!-- Ordenar -->
+        <div class="filter-block filter-block-right">
+          <span class="filter-label">⚙️ Orden</span>
+          <select id="sortSelect" class="sort-select">
+            <option value="default">Por defecto</option>
+            <option value="title-az">Título A–Z</option>
+            <option value="title-za">Título Z–A</option>
+            <option value="pages-desc">Más páginas</option>
+            <option value="rarity">Por rareza</option>
+            <option value="unlocked">Desbloqueadas primero</option>
+          </select>
+        </div>
 
-            <!-- Grid de Historias -->
-            <section class="stories-section">
-                <div class="section-header">
-                    <h2>Colección de Historias</h2>
-                    <p class="muted">Haz clic en cualquier historia para comenzar la lectura</p>
-                </div>
+      </div>
+    </section>
 
-                <div id="storiesGrid" class="stories-grid">
-                    <!-- Las historias se cargan aquí dinámicamente -->
-                </div>
-            </section>
-        </main>
+    <!-- CONTADOR DE RESULTADOS -->
+    <div class="results-bar" id="resultsBar">
+      <span id="resultsCount">0 historias</span>
+      <div class="results-line"></div>
     </div>
 
-    <!-- Modal de Historia (Lector) -->
-    <div id="storyModal" class="modal story-modal" aria-hidden="true">
-        <div class="modal-content">
-            <!-- Header -->
-            <div class="modal-header">
-                <div>
-                    <h3 id="storyTitle" class="story-title">Título de la Historia</h3>
-                    <p id="storyMeta" class="story-meta">Rareza • Categoría</p>
-                </div>
-                <button id="closeStory" class="btn btn-ghost" aria-label="Cerrar">✕</button>
-            </div>
+    <!-- GRID DE HISTORIAS -->
+    <section class="lib-grid-wrap">
+      <div id="storiesGrid" class="lib-grid"></div>
+    </section>
 
-            <!-- Cuerpo del libro -->
-            <div class="story-body">
-                <!-- Página izquierda -->
-                <div class="story-page" id="leftPage">
-                    <div class="page-text">
-                        <!-- Contenido dinámico -->
-                    </div>
-                </div>
+    <!-- PAGINACIÓN -->
+    <div id="pagination" class="lib-pagination"></div>
 
-                <!-- Lomo del libro -->
-                <div class="page-spine"></div>
+  </main>
 
-                <!-- Página derecha -->
-                <div class="story-page" id="rightPage">
-                    <div class="page-text">
-                        <!-- Contenido dinámico -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Controles -->
-            <div class="story-controls">
-                <button id="prevPage" class="btn btn-ghost">
-                    ← Anterior
-                </button>
-                
-                <div class="page-indicator">
-                    Página <span id="currentPage">1</span> de <span id="totalPages">1</span>
-                </div>
-                
-                <button id="nextPage" class="btn btn-primary">
-                    Siguiente →
-                </button>
-            </div>
-        </div>
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-inner container">
+      <div class="foot-brand">
+        <span class="cube"></span>
+        <strong>Moonveil</strong> Portal — Biblioteca
+      </div>
+      <nav class="foot-links">
+        <a href="inicio.html">Inicio</a>
+        <a href="#">Soporte</a>
+        <a href="#">Términos</a>
+        <a href="#">Privacidad</a>
+      </nav>
+      <p class="foot-copy">© <span id="y"></span> Moonveil. Hecho con tinta y bloques.</p>
     </div>
+  </footer>
 
-    <!-- Modal de Desbloqueo -->
-    <div id="unlockModal" class="modal unlock-modal" aria-hidden="true">
-        <div class="modal-content">
-            <div class="unlock-header">
-                <h4 class="unlock-title">Historia Bloqueada</h4>
-                <p class="unlock-hint"></p>
-            </div>
-            
-            <div class="unlock-body">
-                <input 
-                    type="password" 
-                    id="unlockPassword" 
-                    placeholder="Introduce la contraseña"
-                    aria-label="Contraseña de desbloqueo"
-                >
-                
-                <div class="unlock-actions">
-                    <button id="unlockSubmit" class="btn btn-primary">
-                        🔓 Desbloquear
-                    </button>
-                    <button id="unlockCancel" class="btn btn-ghost">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
+  <!-- ══════════════════════
+       MODAL LECTOR DE LIBRO
+       ══════════════════════ -->
+  <div id="storyModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-overlay" id="storyOverlay"></div>
+    <div class="modal-dialog modal-book">
+      <header class="modal-head">
+        <div class="modal-title-wrap">
+          <span class="modal-rarity-tag" id="modalRarityTag">—</span>
+          <h2 class="modal-ttl" id="modalTitle">—</h2>
+          <p  class="modal-meta" id="modalMeta">—</p>
         </div>
+        <button class="modal-close-x" id="closeStory" aria-label="Cerrar">✕</button>
+      </header>
+      <div class="book-stage">
+        <!-- Libro físico -->
+        <div class="book-wrap" id="bookWrap">
+          <div class="book-left  page" id="leftPage"></div>
+          <div class="book-spine"></div>
+          <div class="book-right page" id="rightPage"></div>
+        </div>
+      </div>
+      <footer class="modal-foot">
+        <button class="page-nav-btn" id="prevBtn">← Anterior</button>
+        <div class="page-indicator">
+          <span id="curPage">1</span>
+          <span class="sep">/</span>
+          <span id="totPage">1</span>
+        </div>
+        <button class="page-nav-btn page-nav-primary" id="nextBtn">Siguiente →</button>
+      </footer>
     </div>
+  </div>
 
-    <!-- Elemento de Audio (oculto) -->
-    <audio id="storyAudio" preload="metadata"></audio>
-
-    <!-- Footer -->
-    <footer class="footer" role="contentinfo">
-        <div class="container footer__inner">
-            <div class="foot__brand">
-                <span class="cube"></span>
-                <strong>Moon</strong>
-            </div>
-            <nav class="foot__links" aria-label="Enlaces del sitio">
-                <a href="#" aria-disabled="true" tabindex="-1">Soporte</a>
-                <a href="#" aria-disabled="true" tabindex="-1">Términos</a>
-                <a href="#" aria-disabled="true" tabindex="-1">Privacidad</a>
-            </nav>
-            <p class="foot__copy">
-                © <span id="y">2024</span> Moonveil. Hecho con bloques.
-            </p>
+  <!-- MODAL DESBLOQUEO -->
+  <div id="unlockModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-overlay" id="unlockOverlay"></div>
+    <div class="modal-dialog modal-unlock">
+      <div class="unlock-seal">
+        <div class="seal-rings">
+          <span class="seal-ring r1"></span>
+          <span class="seal-ring r2"></span>
+          <span class="seal-ring r3"></span>
         </div>
-    </footer>
+        <span class="seal-ico">🔐</span>
+      </div>
+      <h3 class="unlock-ttl">Historia Sellada</h3>
+      <p class="unlock-story-name" id="unlockName"></p>
+      <p class="unlock-hint">Introduce la contraseña para romper el sello</p>
+      <div class="pass-wrap">
+        <input type="password" id="passwordInput" placeholder="Contraseña…" autocomplete="off"/>
+        <button class="pass-eye" id="eyeToggle" type="button">👁️</button>
+      </div>
+      <div class="unlock-actions">
+        <button class="btn-unseal" id="unlockBtn">🔓 Romper el Sello</button>
+        <button class="btn-cancel-unlock" id="cancelUnlock">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
-    <!-- Toast Container -->
-    <div id="toastContainer" class="toast-container"></div>
+  <!-- MODAL INFO -->
+  <div id="infoModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-overlay" id="infoOverlay"></div>
+    <div class="modal-dialog modal-info">
+      <button class="modal-close-x modal-close-abs" id="closeInfo" aria-label="Cerrar">✕</button>
+      <div class="info-cover" id="infoCoverImg">
+        <div class="info-cover-overlay">
+          <h3 id="infoTitle"></h3>
+          <div class="info-cover-tags">
+            <span id="infoRarityTag" class="itag">—</span>
+            <span id="infoCategoryTag" class="itag">—</span>
+          </div>
+        </div>
+      </div>
+      <div class="info-body">
+        <div class="info-stats-row">
+          <div class="info-stat">
+            <span class="ist-ico">📖</span>
+            <div><div class="ist-lbl">Páginas</div><div class="ist-val" id="iPages">0</div></div>
+          </div>
+          <div class="info-stat">
+            <span class="ist-ico">🎵</span>
+            <div><div class="ist-lbl">Audio</div><div class="ist-val" id="iAudio">No</div></div>
+          </div>
+          <div class="info-stat">
+            <span class="ist-ico" id="iLockIco">🔒</span>
+            <div><div class="ist-lbl">Estado</div><div class="ist-val" id="iStatus">Bloqueada</div></div>
+          </div>
+        </div>
+        <div class="info-desc-block">
+          <h4>Sinopsis</h4>
+          <p id="iDesc"></p>
+        </div>
+        <button class="btn-read-info" id="readInfoBtn">📖 Leer Historia</button>
+      </div>
+    </div>
+  </div>
 
-    <!-- Script principal -->
-    <script src="historia.js"></script>
+  <audio id="audioPlayer" loop></audio>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="historia.js"></script>
 </body>
 </html>

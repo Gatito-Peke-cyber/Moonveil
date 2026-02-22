@@ -1,1513 +1,885 @@
-/**
- * Moonveil - Biblioteca de Historias
- * Dashboard profesional de historias interactivas
- */
+/* ============================================================
+   Moonveil Portal — Biblioteca de Historias (JS)
+   Tema: Editorial oscuro de lujo · Tinta & Pergamino dorado
+   ============================================================ */
 
-// =================== CONFIGURACIÓN ===================
+'use strict';
+
+/* ─────────────────────────────────────
+   Configuración
+───────────────────────────────────── */
 const CONFIG = {
-    STORAGE_KEY: 'moonveil_historia_v2',
-    DEFAULT_IMAGE: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=250&fit=crop'
+  STORAGE:  'moonveil_stories_v5',
+  PER_PAGE: 9,
+  IMG_DEFAULT: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=600&h=380&fit=crop',
 };
 
-// =================== ESTADO ===================
-const STATE = {
-    unlocked: new Set(),
-    currentStory: null,
-    currentPage: 0,
-    isMusicPlaying: false,
-    isMuted: false,
-    filters: {
-        category: 'all',
-        rarity: 'all',
-        search: ''
-    }
+/* ─────────────────────────────────────
+   Estado global
+───────────────────────────────────── */
+const state = {
+  unlocked:       new Set(),
+  story:          null,
+  page:           0,
+  pagination:     1,
+  currentStoryId: null,
+  audioPlaying:   false,
+  filters: { category: 'all', rarity: 'all', search: '' },
+  sort: 'default',
 };
 
-// =================== DATOS ===================
+/* ─────────────────────────────────────
+   Datos de historias (completo del original + extendido)
+───────────────────────────────────── */
 const STORIES = [
-    {
-        id: 'leyenda-1',
-        title: 'Crónicas del Bosque Esmeralda',
-        category: 'Leyendas',
-        rarity: 'common',
-        //locked: false,
-        locked: true,
-        password: 'leyendas2025',
-        music: '',
-        pages: [
-            { 
-                type: 'text', 
-                content: `<div class="page-header">
-                    <h3>Capítulo I: El Bosque Despierta</h3>
-                    <p class="subtitle">"Donde los árboles guardan secretos milenarios"</p>
-                </div>
-                <div class="page-content">
-                    <p>Bajo la luz pálida del amanecer, el Bosque Esmeralda comenzaba a despertar. Los primeros rayos de sol filtraban a través del denso follaje, creando patrones de luz y sombra que parecían danzar sobre el musgo milenario.</p>
-                    <p>Los habitantes más antiguos del lugar, los árboles centenarios, guardaban en sus anillos historias olvidadas por el tiempo. Cada grieta en su corteza era una línea más en el relato del mundo.</p>
-                    <div class="quote">
-                        "Cuando el viento sopla desde el norte, los árboles susurran nombres olvidados"
-                    </div>
-                </div>`
-            },
-            { 
-                type: 'image', 
-                content: {
-                    img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&h=500&fit=crop',
-                    caption: 'Sendero del Bosque Esmeralda al amanecer'
-                }
-            },
-            {
-                type: 'text',
-                content: `<div class="page-header">
-                    <h3>Los Guardianes Silenciosos</h3>
-                </div>
-                <div class="page-content">
-                    <p>Según las leyendas, los primeros habitantes del bosque no fueron humanos, sino espíritus de la naturaleza que tomaron forma de árbol para proteger la tierra.</p>
-                    <p>Los aldeanos cuentan que en las noches de luna llena, estos guardianes caminan entre sus copas, vigilando que ningún mal profane su santuario.</p>
-                    <ul class="story-list">
-                        <li><strong>El Roble Anciano:</strong> Guardián de la sabiduría</li>
-                        <li><strong>El Sauce Llorón:</strong> Custodio de los secretos</li>
-                        <li><strong>El Abeto Gigante:</strong> Vigía de las fronteras</li>
-                    </ul>
-                </div>`
-            }
-        ]
-    },
-
-    {
-        id: 'leyenda-2',
-        title: 'Sand Brill: El Juramento Verde',
-        category: 'Crónicas',
-        rarity: 'legend',
-        locked: true,
-        password: 'esmeraldas',
-        music: 'ald/music1.mp3',
-        pages: [
-            {
-                type: 'text',
-                content: `<div class="page-header">
-                    <h3>Prólogo: El Brillo que Llama</h3>
-                    <p class="subtitle">"No toda riqueza pesa en los bolsillos; algunas pesan en el alma"</p>
-                </div>
-                <div class="page-content">
-                    <p>Mucho antes de que su nombre fuera susurrado con respeto —o con temor—, Sand Brill ya caminaba con los ojos fijos en un solo color: el verde profundo de las esmeraldas.</p>
-                    <p>No era simple avaricia. Para él, cada esmeralda era una promesa, un fragmento del mundo que podía ser poseído, contado y protegido… siempre que estuviera en sus manos.</p>
-                    <div class="quote">
-                        "El oro se gasta, el hierro se oxida, pero la esmeralda recuerda a quién pertenece."
-                    </div>
-                </div>`
-            },
-            {
-                type: 'text',
-                content: `<div class="page-header">
-                    <h3>Capítulo I: El Comerciante que Nunca Perdía</h3>
-                    <p class="subtitle">"Donde otros negocian, Sand Brill calcula"</p>
-                </div>
-                <div class="page-content">
-                    <p>En los caminos polvorientos entre aldeas, Sand Brill se hizo conocido como un comerciante impecable. Nunca levantaba la voz, nunca sonreía de más, y jamás aceptaba un trato que no lo beneficiara.</p>
-                    <p>Los aldeanos decían que podía oler una esmeralda incluso antes de que apareciera en la mesa de intercambio. Sus ojos brillaban con una intensidad inquietante cuando el trato incluía gemas.</p>
-                    <ul class="story-list">
-                        <li><strong>Regla uno:</strong> Nunca cambiar una esmeralda por promesas.</li>
-                        <li><strong>Regla dos:</strong> Contar las esmeraldas dos veces.</li>
-                        <li><strong>Regla tres:</strong> No confiar en quien regala lo verde.</li>
-                    </ul>
-                </div>`
-            },
-            {
-                type: 'text',
-                content: `<div class="page-header">
-                    <h3>Capítulo II: La Cámara Bajo la Arena</h3>
-                    <p class="subtitle">"Donde la codicia se convierte en arquitectura"</p>
-                </div>
-                <div class="page-content">
-                    <p>Bajo una extensión de arena que nadie sospechaba, Sand Brill construyó su mayor secreto: una cámara subterránea iluminada únicamente por el reflejo de cientos de esmeraldas.</p>
-                    <p>No era un tesoro para presumir, sino para contemplar en silencio. Allí bajaba solo, contando una por una, asegurándose de que ninguna lo hubiera abandonado.</p>
-                    <div class="quote">
-                        "Mientras estén aquí, el mundo sigue en orden."
-                    </div>
-                </div>`
-            },
-            {
-                type: 'text',
-                content: `<div class="page-header">
-                    <h3>Capítulo III: El Precio de Perder una</h3>
-                    <p class="subtitle">"Una ausencia más ruidosa que un cofre lleno"</p>
-                </div>
-                <div class="page-content">
-                    <p>La noche en que faltó una esmeralda, Sand Brill no durmió. Revisó cofres, contó sombras, midió distancias. Nada faltaba… excepto ella.</p>
-                    <p>Desde ese día, su carácter se volvió más frío, más exacto. Los tratos se endurecieron y su mirada dejó de tolerar errores.</p>
-                    <p>No buscaba al ladrón. Buscaba restaurar el equilibrio.</p>
-                </div>`
-            },
-            {
-                type: 'text',
-                content: `<div class="page-header">
-                    <h3>Capítulo IV: El Nombre que se Convirtió en Leyenda</h3>
-                    <p class="subtitle">"Entre comerciantes y viajeros"</p>
-                </div>
-                <div class="page-content">
-                    <p>Con el tiempo, su nombre dejó de ser solo el de un comerciante. Sand Brill se convirtió en advertencia.</p>
-                    <p>Los viajeros decían: <em>“Si negocias con Sand Brill, saldrás con menos palabras y más cuidado.”</em></p>
-                    <p>Pero también sabían algo más: ninguna esmeralda confiada a él se perdía jamás.</p>
-                </div>`
-            },
-            {
-                type: 'text',
-                content: `<div class="page-header">
-                    <h3>Epílogo: El Juramento Verde</h3>
-                    <p class="subtitle">"La codicia, cuando se ordena, se convierte en legado"</p>
-                </div>
-                <div class="page-content">
-                    <p>Sand Brill no se consideraba avaro. Se veía a sí mismo como un guardián. Un contador del equilibrio del mundo, medido en esmeraldas.</p>
-                    <p>Y mientras el verde siga brillando bajo la arena, su juramento permanece intacto.</p>
-                    <div class="quote">
-                        "No poseo las esmeraldas. Ellas me permiten vigilarlas."
-                    </div>
-                </div>`
-            },
-            { 
-                type: 'image', 
-                content: {
-                    img: 'vill/vill1.jpg',
-                    caption: 'Sendero del Bosque Esmeralda al amanecer'
-                }
-            },
-            
-        ]
-    },
-
-
-
-    {
-    id: 'leyenda-3',
+  {
+    id: '1',
+    title: 'Crónicas del Bosque Esmeralda',
+    category: 'Leyendas',
+    rarity: 'common',
+    locked: true,
+    password: 'leyendas2025',
+    music: '',
+    desc: 'Donde los árboles guardan secretos milenarios y la luz del alba revela caminos olvidados por el tiempo.',
+    pages: [
+      {
+        type: 'text',
+        content: `<h3>Capítulo I: El Bosque Despierta</h3>
+          <p class="subtitle">"Donde los árboles guardan secretos milenarios"</p>
+          <p>Bajo la luz pálida del amanecer, el Bosque Esmeralda comenzaba a despertar. Los primeros rayos de sol filtraban a través del denso follaje, creando patrones de luz y sombra que parecían danzar sobre el musgo milenario.</p>
+          <p>Los habitantes más antiguos del lugar, los árboles centenarios, guardaban en sus anillos historias olvidadas por el tiempo. Cada grieta en su corteza era una línea más en el relato del mundo.</p>
+          <p>Ari, una joven exploradora de dieciséis años, pisaba por primera vez este territorio prohibido. Sus botas aplastaban suavemente las hojas caídas, produciendo un crujido que parecía despertar ecos dormidos entre las raíces.</p>`
+      },
+      {
+        type: 'image',
+        content: {
+          img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&h=500&fit=crop',
+          caption: 'Sendero del Bosque Esmeralda al amanecer'
+        }
+      },
+      {
+        type: 'text',
+        content: `<h3>Capítulo II: La Voz de las Raíces</h3>
+          <p class="subtitle">"Algunos mensajes no requieren palabras"</p>
+          <p>El camino se volvió más estrecho a medida que avanzaba. Las ramas se entrelazaban sobre su cabeza formando una catedral natural de madera y hoja. Un murmullo constante, casi imperceptible, llenaba el aire.</p>
+          <p>No eran pájaros. No era el viento. Era algo más antiguo, más profundo. Las raíces que afloraban a la superficie parecían vibrar con una frecuencia que resonaba en sus huesos.</p>`
+      }
+    ]
+  },
+  {
+    id: '2',
+    title: 'Sand Brill: El Juramento Verde',
+    category: 'Crónicas',
+    rarity: 'legend',
+    locked: true,
+    password: 'esmeraldas',
+    music: 'ald/music1.mp3',
+    desc: 'No toda riqueza pesa en los bolsillos; algunas pesan en el alma. La historia del hombre que hizo un pacto con las piedras.',
+    pages: [
+      {
+        type: 'text',
+        content: `<h3>Prólogo: El Brillo que Llama</h3>
+          <p class="subtitle">"No toda riqueza pesa en los bolsillos; algunas pesan en el alma"</p>
+          <p>Mucho antes de que su nombre fuera susurrado con respeto —o con temor—, Sand Brill ya caminaba con los ojos fijos en un solo color: el verde profundo de las esmeraldas.</p>
+          <p>No era simple avaricia. Para él, cada esmeralda era una promesa, un fragmento del mundo que podía ser poseído, contado y protegido… siempre que estuviera en sus manos.</p>
+          <p>El día que encontró la primera piedra en el lecho del río Thornwood, su vida se dividió en dos épocas: antes y después de ese momento.</p>`
+      },
+      {
+        type: 'image',
+        content: {
+          img: 'vill/vill1.jpg',
+          caption: 'El mercado donde Sand Brill comerciaba sus hallazgos'
+        }
+      },
+      {
+        type: 'text',
+        content: `<h3>Capítulo I: El Primer Trato</h3>
+          <p class="subtitle">"Todo contrato tiene un precio escondido en la letra pequeña"</p>
+          <p>La feria de Kelvmoor era el mejor lugar para vender piedras preciosas sin hacer preguntas. Sand Brill llegó al alba, antes de que el sol calentara los adoquines, con tres esmeraldas envueltas en cuero bajo su capa.</p>
+          <p>El comerciante que le ofreció el precio más alto tenía ojos del mismo color que las piedras. Sand Brill lo notó, pero prefirió ignorarlo. Un error que le costaría tres años de su vida.</p>`
+      }
+    ]
+  },
+  {
+    id: '3',
     title: 'Evil Never Dies',
     category: 'Historia',
     rarity: 'dex',
     locked: true,
     password: 'Sue Tingey',
     music: 'ald/music2.mp3',
+    desc: 'Algunas sombras nunca desaparecen, solo esperan pacientemente en los rincones donde la luz no llega.',
     pages: [
-        { 
-            type: 'text', 
-            content: `<div class="page-header">
-                <h3>Prólogo: El Eco del Mal</h3>
-                <p class="subtitle">"Algunas sombras nunca desaparecen, solo esperan"</p>
-            </div>
-            <div class="page-content">
-                <p>La lluvia golpeaba los cristales de la antigua mansión Blackwood como dedos esqueléticos buscando entrada. En la biblioteca, las llamas de la chimenea proyectaban sombras danzantes sobre retratos cuyos ojos parecían seguir cada movimiento.</p>
-                <p>Lucius Blackwood sabía que la noche del equinoccio había llegado. Setenta años exactos desde el último ritual, desde el último sacrificio que mantuvo a raya a la entidad.</p>
-                <div class="quote">
-                    "El mal no muere, solo se transforma, se esconde, y espera su momento"
-                </div>
-            </div>`
-        },
-        { 
-            type: 'image', 
-            content: {
-                img: 'https://images.unsplash.com/photo-1705247492538-bcef75c74f68?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                caption: 'Mansión Blackwood durante la tormenta del equinoccio'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo I: La Herencia Maldita</h3>
-            </div>
-            <div class="page-content">
-                <p>Cassandra Blackwood no quería regresar. Diez años habían pasado desde la muerte de su abuelo, pero la herencia obligaba a todos los descendientes a presentarse cada década.</p>
-                <p>El testamento era claro: ausentarse significaba renunciar a la fortuna familiar. Pero Cassandra sospechaba que había algo más, algo que su abuelo siempre llamaba "el deber familiar".</p>
-                <ul class="story-list">
-                    <li><strong>Lucius Blackwood:</strong> Patriarca, guardián del secreto</li>
-                    <li><strong>Cassandra:</strong> La nieta escéptica</li>
-                    <li><strong>Marcus:</strong> Primo ambicioso</li>
-                    <li><strong>Eleanor:</strong> Tía espiritualista</li>
-                </ul>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1657266111971-8f479e69c00f?q=80&w=688&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                caption: 'El salón principal de Blackwood con los retratos familiares'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo II: El Sótano Prohibido</h3>
-            </div>
-            <div class="page-content">
-                <p>La llave de hierro pesaba más de lo normal en la mano de Lucius. Tres cerraduras protegían la puerta del sótano, cada una correspondiente a un siglo de secretos.</p>
-                <p>"Lo que hay abajo nos mantiene a salvo", había dicho su padre. "Pero también nos mantiene prisioneros".</p>
-                <p>Cuando la tercera cerradura cedió, un aire helado escapó, llevando consigo el olor a tierra húmeda y algo más antiguo, algo innombrable.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo III: Los Símbolos Olvidados</h3>
-            </div>
-            <div class="page-content">
-                <p>Cassandra encontró el diario de su bisabuela escondido detrás de un ladrillo suelto en la biblioteca. Las páginas amarillentas mostraban diagramas complejos y símbolos que hacían arder sus ojos.</p>
-                <div class="quote">
-                    "No son decoraciones, son cadenas. Cada símbolo en esta casa es un eslabón que mantiene atrapada a la bestia"
-                </div>
-                <p>Los dibujos mostraban patrones geométricos repetidos en cada habitación, formando una red de contención alrededor de algo en el centro de la casa.</p>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=800&h=500&fit=crop',
-                caption: 'Páginas del diario con símbolos de contención'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo IV: La Primera Desaparición</h3>
-            </div>
-            <div class="page-content">
-                <p>Marcus fue el primero. Argumentó que necesitaba aire fresco después de la tensa cena familiar. Nunca regresó.</p>
-                <p>La búsqueda reveló solo sus huellas que terminaban abruptamente en el borde del jardín, como si se hubiera evaporado. Pero en el aire quedaba su aroma a terror, tangible como la niebla.</p>
-                <p>Lucius no pareció sorprendido. "Comienza", susurró, observando cómo los símbolos en las paredes comenzaban a brillar débilmente.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo V: Los Susurros en las Paredes</h3>
-            </div>
-            <div class="page-content">
-                <p>La primera noche después de la desaparición, los susurros comenzaron. No venían de un lugar específico, sino de todas partes a la vez.</p>
-                <p>Cassandra los oyó en su habitación: promesas de poder, ofertas de conocimiento prohibido, voces que conocían sus secretos más profundos.</p>
-                <div class="quote">
-                    "Nos conoce, Cassie. Sabe lo que temes, lo que deseas. No puedes esconderte de lo que ya vive dentro de ti"
-                </div>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1599281874238-0c30e1034fb2?q=80&w=740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                caption: 'El pasillo principal donde comenzaron los susurros'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo VI: El Verdadero Contrato</h3>
-            </div>
-            <div class="page-content">
-                <p>En el archivo familiar, Cassandra encontró el pergamino. No era un testamento, sino un contrato firmado en 1723 por Alistair Blackwood.</p>
-                <p>El texto, escrito en una mezcla de latín y algo más antiguo, establecía que cada generación debía ofrecer un miembro de la familia a cambio de prosperidad eterna.</p>
-                <p>La firma no estaba hecha con tinta, sino con algo oscuro y seco que Cassandra reconoció con horror: sangre.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo VII: El Espejo que Recuerda</h3>
-            </div>
-            <div class="page-content">
-                <p>El espejo del vestíbulo principal no mostraba reflejos normales. En su superficie aparecían momentos del pasado: los anteriores rituales, los sacrificios, las caras de terror de sus ancestros.</p>
-                <p>Eleanor, la tía espiritualista, se quedó horas observando. "No son fantasmas", explicó. "Es la casa recordando. El dolor queda impregnado en las paredes, en los muebles, en el aire mismo".</p>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1677052523944-b0fac5730646?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                caption: 'El espejo del vestíbulo mostrando escenas del pasado'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo VIII: El Diario de Alistair</h3>
-            </div>
-            <div class="page-content">
-                <p>El diario del fundador contaba la verdadera historia. Alistair Blackwood no había construido la mansión, la había descubierto.</p>
-                <p>"Este lugar ya era antiguo cuando llegué", escribió. "Las piedras susurraban en una lengua muerta. La entidad que habita aquí me ofreció riqueza a cambio de... mantenimiento periódico".</p>
-                <p>Las últimas páginas mostraban su arrepentimiento demasiado tarde, cuando ya había comprometido a su descendencia por siglos.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo IX: El Ritual de Contención</h3>
-            </div>
-            <div class="page-content">
-                <p>Lucius preparó los elementos: velas negras, sal de minas olvidadas, hierbas cosechadas en luna menguante.</p>
-                <p>"No podemos destruirlo", explicó a Cassandra. "Nuestros ancestros intentaron y solo lo hicieron más fuerte. Solo podemos contenerlo, alimentarlo con lo mínimo para que permanezca dormido".</p>
-                <p>Pero Cassandra notó que faltaba un ingrediente en la lista, uno que Lucius evitaba mencionar.</p>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1513366208864-87536b8bd7b4?w=800&h=500&fit=crop',
-                caption: 'Elementos del ritual de contención preparados en la biblioteca'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo X: El Ingrediente Final</h3>
-            </div>
-            <div class="page-content">
-                <p>Cassandra confrontó a Lucius en la biblioteca. "¿Qué falta en la lista, abuelo?"</p>
-                <p>El anciano evitó su mirada. "Sangre. Sangre familiar. Es lo que mantiene el contrato activo, lo que renueva las cadenas".</p>
-                <p>"¿Cuánta sangre?"</p>
-                <p>El silencio fue respuesta suficiente. No era una gota, ni un vial. Era una vida entera cada generación.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XI: Eleanor Confiesa</h3>
-            </div>
-            <div class="page-content">
-                <p>La tía Eleanor reunió a los pocos que quedaban en la sala de música. "He estado investigando alternativas por años", dijo, extendiendo manuscritos robados de bibliotecas prohibidas.</p>
-                <p>"Hay una manera de revertir el contrato, pero requiere que la entidad nombre su verdadero nombre. Y para eso, debe manifestarse completamente".</p>
-                <div class="quote">
-                    "Es jugar con fuego, pero el fuego puede purificar tanto como destruir"
-                </div>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1605815665303-5e20b63ed0ef?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                caption: 'Manuscritos con rituales de reversión encontrados por Eleanor'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XII: El Verdadero Propósito de Marcus</h3>
-            </div>
-            <div class="page-content">
-                <p>En la habitación de Marcus, Cassandra encontró notas que revelaban su verdadero plan. No había venido por la herencia, sino para liberar a la entidad.</p>
-                <p>"Con su poder, seré inmortal", escribió. "Los Blackwood han sido carceleros por siglos. Yo seré su amo".</p>
-                <p>Pero las últimas notas mostraban pánico. Había subestimado lo que pretendía controlar.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XIII: La Manifestación</h3>
-            </div>
-            <div class="page-content">
-                <p>Los símbolos en las paredes comenzaron a sangrar. Primero gotas, luego chorros que escribían mensajes en lenguas olvidadas.</p>
-                <p>La temperatura descendió bruscamente. El aliento se condensaba en el aire, formando patrones que repetían una palabra: "Libertad".</p>
-                <p>En el centro del salón, las sombras se espesaron, tomando una forma que la mente humana apenas podía procesar.</p>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=500&fit=crop',
-                caption: 'Los símbolos sangrantes en las paredes del salón'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XIV: El Nombre Prohibido</h3>
-            </div>
-            <div class="page-content">
-                <p>Eleanor comenzó el canto de invocación, su voz temblorosa pero firme. Las palabras hacían vibrar los cristales y retorcer los muebles.</p>
-                <p>La entidad respondió con un sonido que no era sonido, una presión en la mente que amenazaba con reventar cráneos.</p>
-                <p>Y entonces, por primera vez en siglos, pronunció su nombre. No con sonidos, sino con imágenes, con memorias robadas, con los sueños más oscuros de cada Blackwood vivo.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XV: La Trampa de Lucius</h3>
-            </div>
-            <div class="page-content">
-                <p>Lucius reveló su verdadero plan. "Eleanor tenía razón sobre el nombre, pero se equivocaba en el método", dijo mientras dibujaba rápidamente símbolos con su propia sangre.</p>
-                <p>"No vamos a destruirlo. Vamos a transferir el contrato. De nuestra familia... a otra".</p>
-                <p>Cassandra miró los símbolos y comprendió con horror. No eran de transferencia, sino de copia. El mal no se iba, se duplicaba.</p>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1531315630201-bb15abeb1653?w=800&h=500&fit=crop',
-                caption: 'Lucius completando los símbolos de transferencia'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XVI: Cassandra Toma una Decisión</h3>
-            </div>
-            <div class="page-content">
-                <p>Observando a su abuelo traicionar siglos de deber familiar, Cassandra comprendió la verdadera naturaleza del mal.</p>
-                <p>No era la entidad en el sótano. Era la cobardía, la ambición, la disposición a sacrificar a otros por seguridad propia.</p>
-                <p>Tomó el diario de Alistair y encontró la página que Lucius había arrancado: el ritual de auto-sacrificio que terminaba el contrato para siempre... matando a todos los Blackwood vivos.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XVII: El Ritual de Fin</h3>
-            </div>
-            <div class="page-content">
-                <p>Mientras Lucius y la entidad forcejeaban en una danza de poder, Cassandra comenzó su propio ritual.</p>
-                <p>No usó hierbas ni velas. Usó la verdad. Leyó en voz alta cada traición, cada sacrificio, cada acto de cobardía cometido por sus ancestros.</p>
-                <p>Con cada confesión, los símbolos en las paredes se debilitaban. La entidad gritaba, no de ira, sino de miedo. Por primera vez, algo la estaba lastimando realmente.</p>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1667303280424-db2f6c99a591?q=80&w=1178&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                caption: 'Cassandra realizando el ritual de verdad'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XVIII: La Debilidad del Mal</h3>
-            </div>
-            <div class="page-content">
-                <p>Eleanor comprendió primero. "¡El mal se alimenta de secretos! De mentiras aceptadas, de verdades ocultas!".</p>
-                <p>Corrió hacia Cassandra y se unió a la confesión. Contó sus propias traiciones, sus envidias, los pequeños males cotidianos que todos cometemos.</p>
-                <p>La entidad retrocedió, encogiéndose. La luz que emitía Cassandra no era mágica, era simplemente honestidad, y eso era lo único que no podía tolerar.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XIX: Lucius se Enfrenta a su Legado</h3>
-            </div>
-            <div class="page-content">
-                <p>El patriarca cayó de rodillas, no por la entidad, sino por el peso de sus decisiones. "Creí que estaba protegiéndonos", sollozó.</p>
-                <p>"Protegías tu miedo", respondió Cassandra sin juzgar. "Y el miedo siempre elige mal".</p>
-                <p>Lucius miró a la entidad, ahora reducida a un susurro, y comprendió que él había sido su mejor aliado durante décadas.</p>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1513366208864-87536b8bd7b4?w=800&h=500&fit=crop',
-                caption: 'Lucius confrontando sus decisiones pasadas'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XX: El Verdadero Sacrificio</h3>
-            </div>
-            <div class="page-content">
-                <p>Cassandra tomó la decisión final. No sacrificaría a su familia, ni siquiera a Lucius. En cambio, ofreció lo único que tenía que la entidad realmente quería.</p>
-                <p>"Toma mi capacidad de olvidar", dijo. "Toma mi habilidad para ignorar el dolor ajeno. Toma mi indiferencia".</p>
-                <p>No era sangre lo que ofrecía, sino su humanidad. Y la entidad, que se alimentaba de la inhumanidad, no pudo aceptar sin negar su propia naturaleza.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XXI: La Paradoja Final</h3>
-            </div>
-            <div class="page-content">
-                <p>Atrapada en la paradoja, la entidad comenzó a desvanecerse. No podía tomar lo ofrecido sin dejar de ser lo que era.</p>
-                <p>Pero en su lugar, dejó una advertencia: "Soy solo una forma. El verdadero mal son las decisiones que justificáis. Mientras exista el miedo, existiré".</p>
-                <div class="quote">
-                    "El mal nunca muere porque nunca vivió. Solo somos nosotros, eligiendo ver monstruos en lugar de espejos"
-                </div>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1491319669671-30014eb16b8d?q=80&w=1059&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                caption: 'La disolución de la entidad en el salón principal'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XXII: El Amanecer Después</h3>
-            </div>
-            <div class="page-content">
-                <p>El sol amaneció sobre Blackwood por primera vez sin la niebla perpetua. Los símbolos en las paredes se habían convertido en simples patrones decorativos.</p>
-                <p>Marcus apareció en el jardín, desorientado pero vivo. La entidad lo había mantenido en un estado de suspensión, alimentándose de su ambición.</p>
-                <p>La familia se reunió en el salón, no por obligación, sino por elección. Tenían décadas de conversaciones pendientes.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XXIII: La Nueva Misión</h3>
-            </div>
-            <div class="page-content">
-                <p>Cassandra no destruyó los diarios ni los manuscritos. Los organizó en la biblioteca, creando el "Archivo Blackwood de Decisiones Éticas".</p>
-                <p>"Nuestra familia fue prisionera del miedo durante siglos", anunció. "Ahora seremos estudiantes de la valentía. No perfectos, pero conscientes".</p>
-                <p>La mansión se convirtió en un centro de estudio, abierto a quienes buscaban entender cómo el mío corrompe las mejores intenciones.</p>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1641565187914-363ce21932a3?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                caption: 'La biblioteca reorganizada como Archivo de Decisiones Éticas'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XXIV: Lucius Encuentra Redención</h3>
-            </div>
-            <div class="page-content">
-                <p>El antiguo patriarca dedicó sus años restantes a documentar cada error, cada justificación, cada momento en que eligió el miedo sobre la compasión.</p>
-                <p>"Mi legado no será de protección", escribió en su nuevo diario. "Será de advertencia. El mal no comienza con rituales o sacrificios. Comienza con 'es por su bien'. Comienza con 'no hay otra opción'".</p>
-                <p>Murió en paz, no porque hubiera sido perdonado, sino porque había aprendido a perdonarse lo suficiente para cambiar.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XXV: Eleanor Descubre su Poder</h3>
-            </div>
-            <div class="page-content">
-                <p>La tía espiritualista descubrió que su verdadero don no era contactar espíritus, sino reconocer el dolor humano.</p>
-                <p>Comenzó a trabajar con familias disfuncionales, usando las lecciones de Blackwood para ayudarles a romper ciclos de abuso mucho más comunes pero igualmente dañinos.</p>
-                <div class="quote">
-                    "Los fantasmas en las paredes dan miedo, pero los fantasmas en nuestras costumbres son los que realmente nos poseen"
-                </div>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1531315630201-bb15abeb1653?w=800&h=500&fit=crop',
-                caption: 'Eleanor trabajando con familias en el salón renovado'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XXVI: Marcus Reconstruye</h3>
-            </div>
-            <div class="page-content">
-                <p>El primo ambicioso pasó meses recuperándose. La entidad había mostrado su futuro si obtenía el poder: solo, paranoico, destruyendo todo lo que amaba por miedo a perderlo.</p>
-                <p>Usó sus habilidades empresariales no para acumular riqueza, sino para crear fundaciones que ayudaran a otros a reconocer cuándo la ambición se convertía en avaricia.</p>
-                <p>"Casi me convierto en lo que temía", admitió en sus charlas. "Y eso es lo más aterrador: que el remedio se convierta en la enfermedad".</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XXVII: La Biblioteca Viviente</h3>
-            </div>
-            <div class="page-content">
-                <p>Cassandra transformó la mansión en una institución única. Cada habitación contaba una parte de la historia familiar, no para horrorizar, sino para educar.</p>
-                <p>Visitantes venían de todo el mundo, no por morbo, sino para estudiar cómo familias normales pueden caer en dinámicas destructivas.</p>
-                <ul class="story-list">
-                    <li><strong>Sala de las Justificaciones:</strong> Donde cada excusa estaba documentada</li>
-                    <li><strong>Galería de las Consecuencias:</strong> Efectos de decisiones egoístas</li>
-                    <li><strong>Ala de la Recuperación:</strong> Historias de cambio y redención</li>
-                </ul>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=800&h=500&fit=crop',
-                caption: 'La Sala de las Justificaciones en la biblioteca viviente'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XXVIII: Los Nuevos Símbolos</h3>
-            </div>
-            <div class="page-content">
-                <p>En lugar de borrar los símbolos de contención, Cassandra los modificó. Con ayuda de artistas y terapeutas, los transformó en representaciones de conceptos positivos.</p>
-                <p>Donde antes había runas de miedo, ahora había patrones que representaban empatía. Donde había círculos de contención, ahora había espirales de crecimiento.</p>
-                <p>La casa misma se curó, no exorcizando fantasmas, sino transformando su energía.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XXIX: La Noche del Equinoccio, Diez Años Después</h3>
-            </div>
-            <div class="page-content">
-                <p>La familia se reunió nuevamente, pero esta vez no por obligación. Vinieron con sus propias familias, con amigos, con personas cuyas vidas habían tocado positivamente.</p>
-                <p>En el jardín, donde Marcus desapareció, ahora crecía un árbol plantado el día de su retorno. Sus raíces eran profundas, sus ramas fuertes.</p>
-                <p>Cassandra miró alrededor y sintió algo nuevo: no seguridad, sino aceptación. El mal nunca moriría completamente, pero el bien tampoco.</p>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1559464002-71620a2fd907?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                caption: 'La reunión familiar en el equinoccio diez años después'
-            }
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Capítulo XXX: El Último Diario</h3>
-            </div>
-            <div class="page-content">
-                <p>Cassandra escribió la última entrada en lo que sería el diario final de los Blackwood.</p>
-                <p>"Hoy comprendí la verdadera profecía. 'Evil Never Dies' no era una amenaza, era una advertencia. Y también una esperanza".</p>
-                <div class="quote">
-                    "Si el mal nunca muere, significa que siempre tenemos oportunidades de enfrentarlo. Si nunca desaparece, nunca podemos decir 'es demasiado tarde'. Cada momento es una elección, y en cada elección hay una posibilidad de luz"
-                </div>
-                <p>Cerrando el diario, supo que la historia continuaría, pero ya no como una maldición, sino como una lección, una herramienta, un faro.</p>
-            </div>`
-        },
-        {
-            type: 'text',
-            content: `<div class="page-header">
-                <h3>Epílogo: Las Sombras que Quedan</h3>
-                <p class="subtitle">"La luz no elimina las sombras, solo nos permite verlas claramente"</p>
-            </div>
-            <div class="page-content">
-                <p>A veces, en los rincones más oscuros de Blackwood, aún se siente un frío inexplicable. A veces, los susurros regresan, pero ahora dicen cosas diferentes.</p>
-                <p>Dicen: "Recuerda". Dicen: "Elige". Dicen: "Ama a pesar del miedo".</p>
-                <p>Cassandra ya vieja, camina por los pasillos sintiendo no terror, sino gratitud. Las sombras siguen allí, pero ahora son maestras, no amas.</p>
-                <p>El mal nunca muere. Pero tampoco muere la capacidad de elegir diferente. Y en ese equilibrio, en esa batalla eterna, reside todo lo que significa ser humano.</p>
-                <div class="quote-final">
-                </div>
-            </div>`
-        },
-        {
-            type: 'image',
-            content: {
-                img: 'https://images.unsplash.com/photo-1546616781-c198c4859ee7?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                caption: 'Mansión Blackwood bajo la luz del atardecer, transformada pero aún misteriosa'
-            }
+      {
+        type: 'text',
+        content: `<h3>Prólogo: El Eco del Mal</h3>
+          <p class="subtitle">"Algunas sombras nunca desaparecen, solo esperan"</p>
+          <p>La lluvia golpeaba los cristales de la antigua mansión Blackwood como dedos esqueléticos buscando entrada. En la biblioteca, las llamas de la chimenea proyectaban sombras danzantes sobre retratos cuyos ojos parecían seguir cada movimiento.</p>
+          <p>El detective Marcus Vane llevaba tres semanas investigando los sucesos inexplicables que habían vaciado de habitantes el pueblo de Ashford. Tres semanas sin dormir más de dos horas seguidas. Tres semanas mirando por encima del hombro.</p>`
+      },
+      {
+        type: 'image',
+        content: {
+          img: 'https://images.unsplash.com/photo-1705247492538-bcef75c74f68?q=80&w=1172',
+          caption: 'Mansión Blackwood durante la tormenta del equinoccio'
         }
+      },
+      {
+        type: 'text',
+        content: `<h3>Capítulo I: El Pueblo Vacío</h3>
+          <p class="subtitle">"El silencio más aterrador no es el de la noche, sino el del mediodía"</p>
+          <p>Ashford había sido un pueblo próspero. Lo decían las casas bien construidas, los comercios con letreros pintados con cuidado, la iglesia cuya torre se veía desde tres colinas de distancia.</p>
+          <p>Ahora todo eso seguía en pie, perfectamente conservado, como un museo abandonado a toda prisa. Las tazas de café a medio beber. La ropa tendida en los alambres. Un juego de cartas a medio terminar sobre una mesa.</p>
+          <p>Pero no había nadie. Ni un alma.</p>`
+      }
     ]
-},
-
-    {
-        id: 'historia-1',
-        title: 'El Herrero Olvidado',
-        category: 'Historias',
-        rarity: 'rare',
-        //locked: false,
-        locked: true,
-        password: 'herrero2020',
-        music: '',
-        pages: [
-            {
-                type: 'text',
-                content: `<div class="page-header">
-                    <h3>El Yunque del Destino</h3>
-                    <p class="subtitle">"Donde el metal canta bajo el martillo"</p>
-                </div>
-                <div class="page-content">
-                    <p>En lo más profundo de las Montañas Humeantes, donde el eco del martillo nunca cesa, trabajaba Ragnar el Herrero. Sus manos, curtidas por el fuego y el metal, habían forjado más que armas: habían dado forma a destinos.</p>
-                    <p>La forja de Ragnar era única. No utilizaba carbón común, sino brasas de corazón de dragón, lo que otorgaba a sus creaciones propiedades extraordinarias.</p>
-                </div>`
-            },
-            {
-                type: 'image',
-                content: {
-                    img: 'img/villagerstar.jpg',
-                    caption: 'Forja ancestral en las Montañas Humeantes'
-                }
-            }
-        ]
-    },
-    {
-        id: 'codex-1',
-        title: 'Codex de la Luna Plateada',
-        category: 'Codex',
-        rarity: 'legend',
-        locked: true,
-        password: 'luna2025',
-        music: '',
-        pages: [
-            {
-                type: 'text',
-                content: `<div class="page-header">
-                    <h3>Prólogo: Las Runas Lunares</h3>
-                    <p class="subtitle">"Manuscrito sellado por la Orden de los Vigilantes Nocturnos"</p>
-                </div>
-                <div class="page-content">
-                    <p>Este códice contiene conocimientos prohibidos sobre la influencia lunar en la magia arcana. Escrito en plata líquida sobre pergamino de piel de fénix, cada página emite un tenue brillo azulado durante las noches de luna llena.</p>
-                    <div class="warning">
-                        ⚠️ <strong>ADVERTENCIA:</strong> Este conocimiento está reservado para iniciados. Su mal uso puede tener consecuencias catastróficas.
-                    </div>
-                </div>`
-            },
-            {
-                type: 'image',
-                content: {
-                    img: 'https://images.unsplash.com/photo-1531315630201-bb15abeb1653?w=800&h=500&fit=crop',
-                    caption: 'Página iluminada del Codex Lunar'
-                }
-            }
-        ]
-    },
-    {
-        id: 'dex-1',
-        title: 'Manual DEX: Teoría Cromática',
-        category: 'Dex',
-        rarity: 'dex',
-        //locked: false,
-        locked: true,
-        password: 'Dex2025',
-        music: '',
-        pages: [
-            {
-                type: 'text',
-                content: `<div class="page-header">
-                    <h3>Introducción a la Magia Cromática</h3>
-                    <p class="subtitle">"Cuando los colores dejan de ser luz y se convierten en poder"</p>
-                </div>
-                <div class="page-content">
-                    <p>La magia cromática opera bajo el principio de que cada color del espectro contiene una energía única que puede ser manipulada por aquellos con la sensibilidad adecuada.</p>
-                    <div class="color-grid">
-                        <div class="color-item" style="background: #ef4444;">
-                            <span>Rojo - Fuerza</span>
-                        </div>
-                        <div class="color-item" style="background: #3b82f6;">
-                            <span>Azul - Sabiduría</span>
-                        </div>
-                        <div class="color-item" style="background: #10b981;">
-                            <span>Verde - Naturaleza</span>
-                        </div>
-                        <div class="color-item" style="background: #f59e0b;">
-                            <span>Ámbar - Creatividad</span>
-                        </div>
-                    </div>
-                </div>`
-            }
-        ]
-    }
+  },
+  {
+    id: '4',
+    title: 'El Herrero Olvidado',
+    category: 'Historias',
+    rarity: 'rare',
+    locked: true,
+    password: 'herrero2020',
+    desc: 'En las Montañas Humeantes, donde el eco del martillo nunca cesa, un herrero forja destinos con sus manos curtidas por el fuego.',
+    pages: [
+      {
+        type: 'text',
+        content: `<h3>El Yunque del Destino</h3>
+          <p class="subtitle">"Donde el metal canta bajo el martillo"</p>
+          <p>En lo más profundo de las Montañas Humeantes, donde el eco del martillo nunca cesa, trabajaba Ragnar el Herrero. Sus manos, curtidas por el fuego y el metal, habían forjado más que armas: habían dado forma a destinos.</p>
+          <p>Cada espada que salía de su fragua llevaba en el acero una historia. No era magia en el sentido que los magos de la corte entendían: era algo más sutil, más honesto. Era la suma de sudor, concentración y respeto por el material.</p>`
+      },
+      {
+        type: 'image',
+        content: {
+          img: 'https://images.unsplash.com/photo-1565689157206-0fddef7589a2?w=800&h=500&fit=crop',
+          caption: 'La fragua de las Montañas Humeantes al crepúsculo'
+        }
+      }
+    ]
+  },
+  {
+    id: '5',
+    title: 'Codex de la Luna Plateada',
+    category: 'Codex',
+    rarity: 'legend',
+    locked: true,
+    password: 'luna2025',
+    desc: 'Manuscrito sellado por la Orden de los Vigilantes Nocturnos. Contiene conocimientos prohibidos sobre la influencia lunar en la magia arcana.',
+    pages: [
+      {
+        type: 'text',
+        content: `<h3>Prólogo: Las Runas Lunares</h3>
+          <p class="subtitle">"Manuscrito sellado por la Orden de los Vigilantes Nocturnos"</p>
+          <p>Este códice contiene conocimientos prohibidos sobre la influencia lunar en la magia arcana. Escrito en plata líquida sobre pergamino de piel de fénix, cada página emite un tenue brillo azulado.</p>
+          <p>Solo aquellos que han superado el Tercer Velo de Comprensión pueden leer estas páginas sin consecuencias. Para los demás, las palabras aparecen como garabatos sin sentido, como si el propio manuscrito eligiera a sus lectores.</p>
+          <p>Si puedes leer esto, has sido elegido. Que la luna guíe tu comprensión.</p>`
+      }
+    ]
+  },
+  {
+    id: '6',
+    title: 'Manual DEX: Teoría Cromática',
+    category: 'Dex',
+    rarity: 'dex',
+    locked: true,
+    password: 'Dex2025',
+    desc: 'Cuando los colores dejan de ser luz y se convierten en poder. Guía completa del sistema de magia cromática de Moonveil.',
+    pages: [
+      {
+        type: 'text',
+        content: `<h3>Introducción a la Magia Cromática</h3>
+          <p class="subtitle">"Cuando los colores dejan de ser luz y se convierten en poder"</p>
+          <p>La magia cromática opera bajo el principio de que cada color del espectro contiene una energía única que puede ser manipulada por aquellos con la sensibilidad adecuada.</p>
+          <p>El rojo evoca pasión y destrucción controlada. El azul, calma y precognición. El verde, vida y sanación. Pero el espectro completo, combinado en proporciones exactas, produce el fenómeno conocido como DEX: la vibración de todos los colores simultáneos.</p>
+          <p>Dominar el DEX requiere años de práctica y, según los textos más antiguos, una predisposición innata que no puede enseñarse, solo despertarse.</p>`
+      }
+    ]
+  },
+  {
+    id: '7',
+    title: 'La Torre de los Vientos',
+    category: 'Leyendas',
+    rarity: 'epic',
+    locked: true,
+    password: 'vientos2025',
+    desc: 'En la cima de la montaña más alta del reino, una torre de piedra negra guarda el secreto de cómo el mundo dejó de cantar.',
+    pages: [
+      {
+        type: 'text',
+        content: `<h3>La Torre que Escucha</h3>
+          <p class="subtitle">"El viento recuerda todo lo que el tiempo olvida"</p>
+          <p>Nadie sabía con certeza cuándo había sido construida la Torre de los Vientos. Los registros más antiguos del reino ya la mencionaban como una estructura anterior, heredada de civilizaciones cuyo nombre se perdió antes de ser escrito.</p>
+          <p>Lo que todos sabían —o creían saber— era que la torre escuchaba. No metafóricamente. Literalmente. Si te acercabas a cualquiera de sus cuatro ventanas orientadas hacia los puntos cardinales y susurrabas un secreto, el viento lo llevaba… a algún lugar.</p>`
+      },
+      {
+        type: 'image',
+        content: {
+          img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=500&fit=crop',
+          caption: 'Vista de la cima donde se alza la Torre de los Vientos'
+        }
+      }
+    ]
+  },
 ];
 
-// =================== UTILIDADES ===================
-const DOM = {
-    get: (selector) => document.querySelector(selector),
-    getAll: (selector) => document.querySelectorAll(selector),
-    create: (tag, classes = '', content = '') => {
-        const el = document.createElement(tag);
-        if (classes) el.className = classes;
-        if (content) el.innerHTML = content;
-        return el;
-    }
+/* ─────────────────────────────────────
+   Rareza: utilidades
+───────────────────────────────────── */
+const RARITY_ORDER = { common:1, rare:2, special:3, epic:4, mythic:5, legend:6, dex:7 };
+const RARITY_NAMES = { common:'Común', rare:'Rara', special:'Especial', epic:'Épica', mythic:'Mítica', legend:'Legendaria', dex:'DEX' };
+const RARITY_COLORS = {
+  common:  '#9ca3af', rare:  '#60a5fa', special: '#a78bfa',
+  epic:    '#c084fc', mythic:'#fbbf24', legend:  '#f87171', dex: '#fff'
 };
+const rarityName  = r => RARITY_NAMES[r] || r;
+const rarityColor = r => RARITY_COLORS[r] || '#fff';
 
-// =================== GESTIÓN DE ESTADO ===================
-function loadState() {
-    try {
-        const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
-        if (saved) {
-            const data = JSON.parse(saved);
-            STATE.unlocked = new Set(data.unlocked || []);
-            STATE.isMuted = data.isMuted || false;
-        }
-    } catch (error) {
-        console.warn('Error cargando estado:', error);
-    }
+/* ─────────────────────────────────────
+   DOM helpers
+───────────────────────────────────── */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+/* ─────────────────────────────────────
+   Persistencia
+───────────────────────────────────── */
+function save() {
+  try { localStorage.setItem(CONFIG.STORAGE, JSON.stringify({ unlocked: [...state.unlocked] })) } catch(e) {}
+}
+function loadStorage() {
+  try {
+    const d = JSON.parse(localStorage.getItem(CONFIG.STORAGE) || '{}');
+    if (d.unlocked) state.unlocked = new Set(d.unlocked);
+  } catch(e) {}
 }
 
-function saveState() {
-    const data = {
-        unlocked: Array.from(STATE.unlocked),
-        isMuted: STATE.isMuted,
-        lastUpdated: new Date().toISOString()
-    };
-    localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(data));
+/* ─────────────────────────────────────
+   RENDER principal
+───────────────────────────────────── */
+function render() {
+  renderStats();
+  renderCategoryChips();
+  renderGrid();
 }
 
-// =================== INTERFAZ - DASHBOARD ===================
-function renderDashboard() {
-    renderFilters();
-    renderStats();
-    renderStoriesGrid();
-    setupEventListeners();
-}
-
-function renderFilters() {
-    const container = DOM.get('#categoryChips');
-    if (!container) return;
-
-    // Categorías
-    const categories = ['Todas', ...new Set(STORIES.map(s => s.category))];
-    container.innerHTML = '';
-    
-    categories.forEach(category => {
-        const button = DOM.create('button', 'chip', category);
-        button.dataset.category = category === 'Todas' ? 'all' : category;
-        
-        if ((category === 'Todas' && STATE.filters.category === 'all') || 
-            category === STATE.filters.category) {
-            button.classList.add('active');
-        }
-        
-        container.appendChild(button);
-    });
-}
-
+/* ─────────────────────────────────────
+   Stats del hero
+───────────────────────────────────── */
 function renderStats() {
-    const unlockedCount = STORIES.filter(s => STATE.unlocked.has(s.id) || !s.locked).length;
-    const totalCount = STORIES.length;
-    
-    const stats = DOM.get('#unlockedCount');
-    if (stats) {
-        stats.textContent = `${unlockedCount}/${totalCount}`;
-    }
-    
-    const year = DOM.get('#y');
-    if (year) {
-        year.textContent = new Date().getFullYear();
-    }
+  const total    = STORIES.length;
+  const unlocked = STORIES.filter(s => !s.locked || state.unlocked.has(s.id)).length;
+  const locked   = total - unlocked;
+  const pages    = STORIES.reduce((sum, s) => sum + s.pages.length, 0);
+  const pct      = total ? (unlocked / total * 100) : 0;
+
+  animCount('st-total',    total);
+  animCount('st-unlocked', unlocked);
+  animCount('st-locked',   locked);
+  animCount('st-pages',    pages);
+
+  const fill = $('#progressFill');
+  if (fill) fill.style.width = pct + '%';
+
+  const lbl = $('#progressLabel');
+  if (lbl) lbl.textContent = `${Math.round(pct)}% completado`;
+
+  const yearEl = $('#y');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
 }
 
-function renderStoriesGrid() {
-    const grid = DOM.get('#storiesGrid');
-    if (!grid) return;
-    
-    grid.innerHTML = '';
-    
-    const filteredStories = filterStories();
-    
-    if (filteredStories.length === 0) {
-        grid.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📚</div>
-                <h3>No se encontraron historias</h3>
-                <p class="muted">Intenta cambiar los filtros o la búsqueda</p>
-            </div>
-        `;
-        return;
+let _animTimers = {};
+function animCount(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  clearInterval(_animTimers[id]);
+  let cur = 0;
+  const step = Math.max(1, Math.ceil(target / 40));
+  _animTimers[id] = setInterval(() => {
+    cur = Math.min(cur + step, target);
+    el.textContent = cur;
+    if (cur >= target) clearInterval(_animTimers[id]);
+  }, 20);
+}
+
+/* ─────────────────────────────────────
+   Chips de categoría
+───────────────────────────────────── */
+function renderCategoryChips() {
+  const cats = ['all', ...new Set(STORIES.map(s => s.category))];
+  const container = $('#catChips');
+  if (!container) return;
+  container.innerHTML = cats.map(c => {
+    const label  = c === 'all' ? 'Todas' : c;
+    const active = state.filters.category === c ? ' active' : '';
+    return `<button class="fchip fchip-all${active}" data-cat="${c}">${label}</button>`;
+  }).join('');
+  container.addEventListener('click', e => {
+    const btn = e.target.closest('[data-cat]');
+    if (!btn) return;
+    state.filters.category = btn.dataset.cat;
+    state.pagination = 1;
+    $$('#catChips .fchip').forEach(b => b.classList.toggle('active', b === btn));
+    renderGrid();
+  });
+}
+
+/* ─────────────────────────────────────
+   Grid de historias
+───────────────────────────────────── */
+function getFiltered() {
+  let list = STORIES.filter(s => {
+    if (state.filters.category !== 'all' && s.category !== state.filters.category) return false;
+    if (state.filters.rarity   !== 'all' && s.rarity   !== state.filters.rarity)   return false;
+    if (state.filters.search) {
+      const q = state.filters.search.toLowerCase();
+      if (!s.title.toLowerCase().includes(q) &&
+          !s.category.toLowerCase().includes(q) &&
+          !(s.desc || '').toLowerCase().includes(q)) return false;
     }
-    
-    filteredStories.forEach(story => {
-        const storyCard = createStoryCard(story);
-        grid.appendChild(storyCard);
+    return true;
+  });
+
+  switch (state.sort) {
+    case 'title-az':     list = list.slice().sort((a,b) => a.title.localeCompare(b.title)); break;
+    case 'title-za':     list = list.slice().sort((a,b) => b.title.localeCompare(a.title)); break;
+    case 'pages-desc':   list = list.slice().sort((a,b) => b.pages.length - a.pages.length); break;
+    case 'rarity':       list = list.slice().sort((a,b) => (RARITY_ORDER[b.rarity]||0) - (RARITY_ORDER[a.rarity]||0)); break;
+    case 'unlocked':     list = list.slice().sort((a,b) => {
+      const ua = !a.locked || state.unlocked.has(a.id);
+      const ub = !b.locked || state.unlocked.has(b.id);
+      return ub - ua;
+    }); break;
+  }
+  return list;
+}
+
+function renderGrid() {
+  const grid = $('#storiesGrid');
+  if (!grid) return;
+
+  const filtered = getFiltered();
+  const total    = Math.ceil(filtered.length / CONFIG.PER_PAGE);
+  if (state.pagination > total) state.pagination = Math.max(1, total);
+  const start  = (state.pagination - 1) * CONFIG.PER_PAGE;
+  const slice  = filtered.slice(start, start + CONFIG.PER_PAGE);
+
+  const countEl = $('#resultsCount');
+  if (countEl) countEl.textContent = `${filtered.length} historia${filtered.length !== 1 ? 's' : ''}`;
+
+  if (!slice.length) {
+    grid.innerHTML = `<div class="lib-empty">
+      <div class="lib-empty-ico">📚</div>
+      <h3>Sin resultados</h3>
+      <p>Prueba con otros filtros o busca otro término</p>
+    </div>`;
+    renderPagination(0);
+    return;
+  }
+
+  grid.innerHTML = slice.map((s, i) => buildCard(s, i)).join('');
+  renderPagination(total);
+  setupCardEvents();
+}
+
+/* ─────────────────────────────────────
+   Construcción de tarjeta
+───────────────────────────────────── */
+function buildCard(s, idx) {
+  const unlocked = !s.locked || state.unlocked.has(s.id);
+  const img   = s.pages.find(p => p.type === 'image')?.content?.img || CONFIG.IMG_DEFAULT;
+  const desc  = (s.desc || stripTags(s.pages.find(p => p.type === 'text')?.content || '').slice(0, 110) + '…');
+  const color = rarityColor(s.rarity);
+  const delay = `${idx * 0.07}s`;
+
+  return `
+  <div class="story-card ${!unlocked ? 'locked' : ''}" data-id="${s.id}"
+       style="--rarity-color:${color}; animation-delay:${delay}">
+    <div class="card-cover">
+      <img src="${img}" alt="${s.title}" loading="lazy"
+           onerror="this.src='${CONFIG.IMG_DEFAULT}'"/>
+      <div class="card-cover-overlay"></div>
+      <div class="card-top-row">
+        <span class="rarity-badge rb-${s.rarity}">${rarityName(s.rarity)}</span>
+        ${!unlocked ? '<span class="lock-badge">🔒</span>' : '<span class="lock-badge">🔓</span>'}
+      </div>
+      <div class="card-cat-row">
+        <span class="cat-tag">${s.category}</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3 class="card-title">${s.title}</h3>
+      <p class="card-desc">${desc}</p>
+      <div class="card-divider"><span class="div-diamond">◆</span></div>
+      <div class="card-meta">
+        <span>📖 ${s.pages.length} pág.</span>
+        ${s.music ? '<span>🎵 Audio</span>' : ''}
+        <span style="color:${color};font-weight:600">${rarityName(s.rarity)}</span>
+      </div>
+    </div>
+    <div class="card-foot">
+      <button class="btn-read" data-action="read" data-id="${s.id}">
+        ${!unlocked ? '🔓 Desbloquear' : '📖 Leer'}
+      </button>
+      <button class="btn-info-card" data-action="info" data-id="${s.id}" title="Info">ℹ️</button>
+    </div>
+  </div>`;
+}
+
+function setupCardEvents() {
+  $$('[data-action]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      if (btn.dataset.action === 'read') readStory(id);
+      if (btn.dataset.action === 'info') showInfo(id);
     });
+  });
 }
 
-function filterStories() {
-    return STORIES.filter(story => {
-        // Filtrar por categoría
-        if (STATE.filters.category !== 'all' && story.category !== STATE.filters.category) {
-            return false;
-        }
-        
-        // Filtrar por rareza
-        if (STATE.filters.rarity !== 'all' && story.rarity !== STATE.filters.rarity) {
-            return false;
-        }
-        
-        // Filtrar por búsqueda
-        if (STATE.filters.search) {
-            const searchTerm = STATE.filters.search.toLowerCase();
-            const inTitle = story.title.toLowerCase().includes(searchTerm);
-            const inCategory = story.category.toLowerCase().includes(searchTerm);
-            const inContent = story.pages.some(page => 
-                page.type === 'text' && 
-                page.content.toLowerCase().includes(searchTerm)
-            );
-            
-            if (!inTitle && !inCategory && !inContent) {
-                return false;
-            }
-        }
-        
-        return true;
-    });
-}
+/* ─────────────────────────────────────
+   Paginación
+───────────────────────────────────── */
+function renderPagination(total) {
+  const pg = $('#pagination');
+  if (!pg) return;
+  if (total <= 1) { pg.innerHTML = ''; return; }
 
-function createStoryCard(story) {
-    const isUnlocked = STATE.unlocked.has(story.id) || !story.locked;
-    const isLocked = story.locked && !isUnlocked;
-    
-    const card = DOM.create('article', 'story-card');
-    if (isLocked) card.classList.add('locked');
-    
-    const previewImg = story.pages.find(p => p.type === 'image')?.content?.img || CONFIG.DEFAULT_IMAGE;
-    
-    card.innerHTML = `
-        <div class="card-header">
-            <div class="rarity-badge ${story.rarity}">
-                ${getRarityLabel(story.rarity)}
-            </div>
-            ${isLocked ? '<div class="lock-badge">🔒</div>' : ''}
-        </div>
-        <div class="card-image">
-            <img src="${previewImg}" alt="${story.title}" loading="lazy">
-            <div class="card-overlay">
-                <span class="category-tag">${story.category}</span>
-            </div>
-        </div>
-        <div class="card-content">
-            <h3 class="card-title">${story.title}</h3>
-            <p class="card-description">${getStoryPreview(story)}</p>
-            <div class="card-stats">
-                <span class="stat"><i>📖</i> ${story.pages.length} páginas</span>
-                ${story.music ? '<span class="stat"><i>🎵</i> Audio</span>' : ''}
-            </div>
-        </div>
-        <div class="card-actions">
-            <button class="btn btn-primary" data-action="read" data-id="${story.id}">
-                ${isLocked ? '🔓 Desbloquear' : '📖 Leer'}
-            </button>
-            <button class="btn btn-ghost" data-action="info" data-id="${story.id}">
-                ℹ️ Info
-            </button>
-        </div>
-    `;
-    
-    return card;
-}
-
-function getStoryPreview(story) {
-    const textContent = story.pages.find(p => p.type === 'text')?.content || '';
-    const plainText = textContent.replace(/<[^>]+>/g, '');
-    return plainText.substring(0, 120) + '...';
-}
-
-function getRarityLabel(rarity) {
-    const labels = {
-        common: 'Común',
-        rare: 'Rara',
-        special: 'Especial',
-        epic: 'Épica',
-        mythic: 'Mítica',
-        legend: 'Legendaria',
-        dex: 'DEX'
-    };
-    return labels[rarity] || rarity;
-}
-
-// =================== LECTOR DE HISTORIAS ===================
-function openStory(storyId) {
-    const story = STORIES.find(s => s.id === storyId);
-    if (!story) {
-        showToast('Historia no encontrada', 'error');
-        return;
+  const p = state.pagination;
+  let html = `<button class="pgbtn" onclick="goPage(${p-1})" ${p===1?'disabled':''}>←</button>`;
+  for (let i = 1; i <= total; i++) {
+    if (i === 1 || i === total || Math.abs(i - p) <= 1) {
+      html += `<button class="pgbtn ${i===p?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    } else if (i === p-2 || i === p+2) {
+      html += '<span style="color:var(--dim);padding:0 4px">…</span>';
     }
-    
-    // Verificar si está bloqueada
-    if (story.locked && !STATE.unlocked.has(storyId)) {
-        showUnlockModal(story);
-        return;
-    }
-    
-    STATE.currentStory = story;
-    STATE.currentPage = 0;
-    
-    showStoryModal();
-    renderStoryPages();
-    playStoryAudio(story);
+  }
+  html += `<button class="pgbtn" onclick="goPage(${p+1})" ${p===total?'disabled':''}>→</button>`;
+  pg.innerHTML = html;
 }
 
-function showStoryModal() {
-    const modal = DOM.get('#storyModal');
-    if (!modal) return;
-    
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    
-    // Configurar teclado
-    document.addEventListener('keydown', handleStoryKeyboard);
+function goPage(p) {
+  const total = Math.ceil(getFiltered().length / CONFIG.PER_PAGE);
+  if (p < 1 || p > total) return;
+  state.pagination = p;
+  renderGrid();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function hideStoryModal() {
-    const modal = DOM.get('#storyModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    
-    document.body.style.overflow = '';
-    stopStoryAudio();
-    document.removeEventListener('keydown', handleStoryKeyboard);
-    
-    STATE.currentStory = null;
-    STATE.currentPage = 0;
+/* ─────────────────────────────────────
+   LEER historia
+───────────────────────────────────── */
+function readStory(id) {
+  const s = STORIES.find(x => x.id === id);
+  if (!s) return;
+
+  if (s.locked && !state.unlocked.has(id)) {
+    openUnlock(id);
+    return;
+  }
+
+  state.story = s;
+  state.page  = 0;
+  state.currentStoryId = id;
+
+  const ttlEl  = $('#modalTitle');
+  const metaEl = $('#modalMeta');
+  const rarEl  = $('#modalRarityTag');
+
+  if (ttlEl)  ttlEl.textContent  = s.title;
+  if (metaEl) metaEl.textContent = `${rarityName(s.rarity)} · ${s.category} · ${s.pages.length} páginas`;
+  if (rarEl) {
+    rarEl.textContent  = rarityName(s.rarity);
+    rarEl.className    = `modal-rarity-tag rb-${s.rarity}`;
+    rarEl.style.color  = rarityColor(s.rarity);
+    rarEl.style.background = rarityColor(s.rarity) + '22';
+    rarEl.style.borderColor= rarityColor(s.rarity) + '55';
+  }
+
+  updateBookPages();
+  openModal('storyModal');
+
+  if (s.music) {
+    const audio = $('#audioPlayer');
+    audio.src  = s.music;
+    audio.loop = true;
+    audio.play().catch(() => {});
+    syncAudioDock(s.music, true);
+  }
 }
 
-function renderStoryPages() {
-    if (!STATE.currentStory) return;
-    
-    const story = STATE.currentStory;
-    const title = DOM.get('#storyTitle');
-    const meta = DOM.get('#storyMeta');
-    const pageIndex = DOM.get('#currentPage');
-    const totalPages = DOM.get('#totalPages');
-    const leftPage = DOM.get('#leftPage');
-    const rightPage = DOM.get('#rightPage');
-    
-    if (title) title.textContent = story.title;
-    if (meta) meta.textContent = `${getRarityLabel(story.rarity)} • ${story.category}`;
-    if (pageIndex) pageIndex.textContent = STATE.currentPage + 1;
-    if (totalPages) totalPages.textContent = story.pages.length;
-    
-    // Renderizar páginas
-    const leftContent = story.pages[STATE.currentPage];
-    const rightContent = story.pages[STATE.currentPage + 1];
-    
-    if (leftPage) leftPage.innerHTML = renderPageContent(leftContent);
-    if (rightPage) rightPage.innerHTML = renderPageContent(rightContent);
+function updateBookPages() {
+  const s   = state.story;
+  const lEl = $('#leftPage');
+  const rEl = $('#rightPage');
+  const curEl = $('#curPage');
+  const totEl = $('#totPage');
+  const prev  = $('#prevBtn');
+  const next  = $('#nextBtn');
+
+  if (lEl) lEl.innerHTML = renderPageContent(s.pages[state.page]);
+  if (rEl) rEl.innerHTML = renderPageContent(s.pages[state.page + 1]);
+
+  const displayPage = Math.floor(state.page / 2) + 1;
+  const totalPages  = Math.ceil(s.pages.length / 2);
+
+  if (curEl) curEl.textContent = displayPage;
+  if (totEl) totEl.textContent = totalPages;
+  if (prev)  prev.disabled = state.page === 0;
+  if (next)  next.disabled = state.page + 2 >= s.pages.length;
 }
 
-function renderPageContent(page) {
-    if (!page) {
-        return '<div class="page-empty"><p>Fin del capítulo</p></div>';
-    }
-    
-    switch (page.type) {
-        case 'text':
-            return `<div class="page-text">${page.content}</div>`;
-        
-        case 'image':
-            return `
-                <div class="page-image">
-                    <img src="${page.content.img}" alt="${page.content.caption || ''}">
-                    ${page.content.caption ? `<p class="image-caption">${page.content.caption}</p>` : ''}
-                </div>
-            `;
-            
-        default:
-            return `<div class="page-text">${page.content || ''}</div>`;
-    }
+function renderPageContent(p) {
+  if (!p) return `<div style="display:grid;place-items:center;height:100%;color:#9a8f7e;font-style:italic;font-family:'Cormorant Garamond',serif">— Fin —</div>`;
+  if (p.type === 'text') return p.content;
+  return `
+    <img src="${p.content.img}" alt="${p.content.caption || ''}"
+         onerror="this.src='${CONFIG.IMG_DEFAULT}'"
+         style="width:100%;border-radius:8px;margin-bottom:12px"/>
+    ${p.content.caption ? `<p class="img-caption">${p.content.caption}</p>` : ''}`;
 }
 
 function nextPage() {
-    if (!STATE.currentStory || STATE.currentPage + 2 >= STATE.currentStory.pages.length) {
-        showToast('Fin de la historia', 'info');
-        return;
-    }
-    
-    STATE.currentPage += 2;
-    renderStoryPages();
+  if (!state.story) return;
+  if (state.page + 2 < state.story.pages.length) {
+    state.page += 2;
+    animPageTurn();
+    updateBookPages();
+  }
 }
 
 function prevPage() {
-    if (STATE.currentPage <= 0) {
-        showToast('Inicio de la historia', 'info');
-        return;
-    }
-    
-    STATE.currentPage = Math.max(0, STATE.currentPage - 2);
-    renderStoryPages();
+  if (!state.story) return;
+  if (state.page > 0) {
+    state.page -= 2;
+    animPageTurn();
+    updateBookPages();
+  }
 }
 
-function handleStoryKeyboard(event) {
-    switch (event.key) {
-        case 'ArrowRight':
-            nextPage();
-            break;
-        case 'ArrowLeft':
-            prevPage();
-            break;
-        case 'Escape':
-            hideStoryModal();
-            break;
-    }
+function animPageTurn() {
+  const wrap = $('#bookWrap');
+  if (!wrap) return;
+  wrap.style.transition = 'transform .18s ease';
+  wrap.style.transform  = 'scaleX(.97)';
+  setTimeout(() => { wrap.style.transform = 'scaleX(1)'; }, 180);
 }
 
-// =================== SISTEMA DE DESBLOQUEO ===================
-let pendingUnlockStory = null;
+/* ─────────────────────────────────────
+   DESBLOQUEO
+───────────────────────────────────── */
+function openUnlock(id) {
+  const s = STORIES.find(x => x.id === id);
+  if (!s) return;
+  state.currentStoryId = id;
 
-function showUnlockModal(story) {
-    pendingUnlockStory = story;
-    
-    const modal = DOM.get('#unlockModal');
-    if (!modal) return;
-    
-    const title = modal.querySelector('.unlock-title');
-    const hint = modal.querySelector('.unlock-hint');
-    const input = modal.querySelector('#unlockPassword');
-    
-    if (title) title.textContent = story.title;
-    if (hint) hint.textContent = story.password ? 'Requiere contraseña' : '¿Desbloquear esta historia?';
-    if (input) {
-        input.value = '';
-        input.focus();
-    }
-    
-    modal.style.display = 'block';
+  const nameEl = $('#unlockName');
+  if (nameEl) nameEl.textContent = `"${s.title}"`;
+
+  const inp = $('#passwordInput');
+  if (inp) { inp.value = ''; inp.type = 'password'; }
+
+  openModal('unlockModal');
+  setTimeout(() => inp?.focus(), 180);
 }
 
-function hideUnlockModal() {
-    const modal = DOM.get('#unlockModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    pendingUnlockStory = null;
+function attemptUnlock() {
+  const s = STORIES.find(x => x.id === state.currentStoryId);
+  if (!s) return;
+  const inp  = $('#passwordInput');
+  const pass = inp?.value.trim() ?? '';
+
+  if (s.password && pass !== s.password) {
+    showToast('Contraseña incorrecta', 'error');
+    inp?.animate([
+      { transform:'translateX(0)' }, { transform:'translateX(-8px)' },
+      { transform:'translateX(8px)'}, { transform:'translateX(0)' }
+    ], { duration:400, iterations:2 });
+    return;
+  }
+
+  state.unlocked.add(s.id);
+  save();
+  closeModal('unlockModal');
+  showToast(`¡"${s.title}" desbloqueada!`, 'success');
+  render();
+  setTimeout(() => readStory(s.id), 500);
 }
 
-function attemptUnlock(password) {
-    if (!pendingUnlockStory) return;
-    
-    const story = pendingUnlockStory;
-    
-    // Verificar contraseña (si existe)
-    if (story.password && password !== story.password) {
-        showToast('Contraseña incorrecta', 'error');
-        return;
-    }
-    
-    // Desbloquear
-    STATE.unlocked.add(story.id);
-    saveState();
-    
-    hideUnlockModal();
-    showToast('¡Historia desbloqueada!', 'success');
-    
-    // Actualizar interfaz
-    renderStats();
-    renderStoriesGrid();
-    
-    // Abrir la historia
-    setTimeout(() => openStory(story.id), 500);
+/* ─────────────────────────────────────
+   INFO modal
+───────────────────────────────────── */
+function showInfo(id) {
+  const s = STORIES.find(x => x.id === id);
+  if (!s) return;
+  state.currentStoryId = id;
+
+  const unlocked = !s.locked || state.unlocked.has(id);
+  const img = s.pages.find(p => p.type === 'image')?.content?.img || CONFIG.IMG_DEFAULT;
+
+  const cover = $('#infoCoverImg');
+  if (cover) {
+    cover.style.background = `linear-gradient(to bottom, rgba(6,6,10,.05), rgba(6,6,10,.5)), url('${img}') center/cover no-repeat`;
+  }
+
+  setText('infoTitle',  s.title);
+  const rarEl  = $('#infoRarityTag');
+  const catEl  = $('#infoCategoryTag');
+  if (rarEl) { rarEl.textContent = rarityName(s.rarity); rarEl.style.color = rarityColor(s.rarity) }
+  if (catEl) { catEl.textContent = s.category }
+
+  setText('iPages',  s.pages.length);
+  setText('iAudio',  s.music ? 'Sí 🎵' : 'No');
+  setText('iStatus', unlocked ? 'Desbloqueada 🔓' : 'Bloqueada 🔒');
+  const lockIco = $('#iLockIco');
+  if (lockIco) lockIco.textContent = unlocked ? '🔓' : '🔒';
+
+  const descText = s.desc || stripTags(s.pages.find(p => p.type === 'text')?.content || '').slice(0, 200) + '…';
+  setText('iDesc', descText);
+
+  openModal('infoModal');
 }
 
-// =================== AUDIO ===================
-function playStoryAudio(story) {
-    if (!story.music) return;
-    
-    const audio = DOM.get('#storyAudio');
-    if (!audio) return;
-    
-    audio.src = story.music;
-    audio.volume = STATE.isMuted ? 0 : 0.6;
-    audio.loop = true;
-    
-    audio.play().catch(error => {
-        console.log('Audio requiere interacción del usuario');
+/* ─────────────────────────────────────
+   Audio Dock
+───────────────────────────────────── */
+function syncAudioDock(title = '', playing = false) {
+  const dock = $('#audioDock');
+  const titleEl = $('#audioTitle');
+  const playBtn = $('#playBtn');
+  if (dock)    dock.classList.toggle('playing', playing);
+  if (titleEl) titleEl.textContent = title ? title.split('/').pop().replace('.mp3','') : 'Sin música';
+  if (playBtn) playBtn.textContent = playing ? '⏸' : '▶';
+}
+
+/* ─────────────────────────────────────
+   Modales
+───────────────────────────────────── */
+function openModal(id) {
+  const el = $(`#${id}`);
+  if (!el) return;
+  el.classList.add('open');
+  el.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  const el = $(`#${id}`);
+  if (!el) return;
+  el.classList.remove('open');
+  el.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  if (id === 'storyModal') {
+    const a = $('#audioPlayer');
+    if (a) { a.pause(); a.currentTime = 0; }
+    syncAudioDock('', false);
+  }
+}
+
+/* ─────────────────────────────────────
+   Toast
+───────────────────────────────────── */
+let _toastTimer;
+function showToast(msg, type = 'success') {
+  const el = $('#toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className   = `toast ${type} show`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+/* ─────────────────────────────────────
+   Canvas de partículas (tinta flotante)
+───────────────────────────────────── */
+function setupCanvas() {
+  const canvas = $('#bgCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.max(1, devicePixelRatio || 1);
+  let w, h, pts;
+
+  const init = () => {
+    w = canvas.width  = innerWidth  * dpr;
+    h = canvas.height = innerHeight * dpr;
+    pts = Array.from({ length: 55 }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: (.4 + Math.random() * 1.4) * dpr,
+      s: .12 + Math.random() * .42,
+      a: .03 + Math.random() * .11,
+      /* mezcla de tonos dorados/sepia/amber */
+      hue: 30 + Math.random() * 25,
+      sat: 55 + Math.random() * 35,
+    }));
+  };
+
+  const draw = () => {
+    ctx.clearRect(0, 0, w, h);
+    pts.forEach(p => {
+      p.y -= p.s;
+      p.x += Math.sin(p.y * .0015 + p.hue) * .35;
+      if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${p.hue},${p.sat}%,60%,${p.a})`;
+      ctx.fill();
     });
+    requestAnimationFrame(draw);
+  };
+  init(); draw();
+  addEventListener('resize', init);
 }
 
-function stopStoryAudio() {
-    const audio = DOM.get('#storyAudio');
-    if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-    }
+/* ─────────────────────────────────────
+   Parallax del fondo
+───────────────────────────────────── */
+function setupParallax() {
+  const layers = $$('.layer');
+  const k = [0, .015, .04, .075];
+  const fn = () => layers.forEach((l, i) => l.style.transform = `translateY(${scrollY * k[i]}px)`);
+  fn(); addEventListener('scroll', fn, { passive: true });
 }
 
-function toggleAudio() {
-    const audio = DOM.get('#storyAudio');
-    if (!audio) return;
-    
-    if (audio.paused) {
-        audio.play();
-        showToast('Música activada', 'info');
-    } else {
-        audio.pause();
-        showToast('Música pausada', 'info');
-    }
+/* ─────────────────────────────────────
+   Reveal on scroll
+───────────────────────────────────── */
+function setupReveal() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('is-in'); obs.unobserve(e.target); }
+    });
+  }, { threshold: .08 });
+  $$('.reveal').forEach(el => obs.observe(el));
 }
 
-function toggleMute() {
-    STATE.isMuted = !STATE.isMuted;
-    
-    const audio = DOM.get('#storyAudio');
-    if (audio) {
-        audio.muted = STATE.isMuted;
-        audio.volume = STATE.isMuted ? 0 : 0.6;
-    }
-    
-    const muteBtn = DOM.get('#muteBtn');
-    if (muteBtn) {
-        muteBtn.textContent = STATE.isMuted ? '🔊 Activar sonido' : '🔇 Silenciar';
-    }
-    
-    showToast(STATE.isMuted ? 'Sonido silenciado' : 'Sonido activado', 'info');
-    saveState();
+/* ─────────────────────────────────────
+   Navbar
+───────────────────────────────────── */
+function setupNavbar() {
+  const toggle = $('#navToggle');
+  const links  = $('#navLinks');
+  toggle?.addEventListener('click', e => { e.stopPropagation(); links?.classList.toggle('open'); });
+  document.addEventListener('click', e => {
+    if (!toggle?.contains(e.target) && !links?.contains(e.target)) links?.classList.remove('open');
+  });
+  $$('.hud-bar').forEach(b => b.style.setProperty('--v', b.dataset.val || 50));
 }
 
-// =================== NOTIFICACIONES ===================
-function showToast(message, type = 'info') {
-    // Crear toast si no existe
-    let toastContainer = DOM.get('#toastContainer');
-    if (!toastContainer) {
-        toastContainer = DOM.create('div', 'toast-container');
-        document.body.appendChild(toastContainer);
+/* ─────────────────────────────────────
+   Bindings de eventos
+───────────────────────────────────── */
+function setupEvents() {
+  /* Búsqueda */
+  let searchTimer;
+  $('#searchInput')?.addEventListener('input', e => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      state.filters.search = e.target.value.trim();
+      state.pagination = 1;
+      renderGrid();
+    }, 280);
+  });
+
+  /* Chips de rareza */
+  $('#rarChips')?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-rar]');
+    if (!btn) return;
+    state.filters.rarity = btn.dataset.rar;
+    state.pagination = 1;
+    $$('#rarChips .fchip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderGrid();
+  });
+
+  /* Sort */
+  $('#sortSelect')?.addEventListener('change', e => {
+    state.sort = e.target.value;
+    state.pagination = 1;
+    renderGrid();
+  });
+
+  /* Botones del modal libro */
+  $('#nextBtn')?.addEventListener('click', nextPage);
+  $('#prevBtn')?.addEventListener('click', prevPage);
+
+  /* Cerrar modales (overlay y X) */
+  $('#storyOverlay')?.addEventListener('click', () => closeModal('storyModal'));
+  $('#closeStory')?.addEventListener('click',   () => closeModal('storyModal'));
+  $('#unlockOverlay')?.addEventListener('click', () => closeModal('unlockModal'));
+  $('#cancelUnlock')?.addEventListener('click',  () => closeModal('unlockModal'));
+  $('#infoOverlay')?.addEventListener('click',   () => closeModal('infoModal'));
+  $('#closeInfo')?.addEventListener('click',     () => closeModal('infoModal'));
+
+  /* Botones del modal desbloqueo */
+  $('#unlockBtn')?.addEventListener('click', attemptUnlock);
+  $('#eyeToggle')?.addEventListener('click', () => {
+    const inp = $('#passwordInput');
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
+
+  /* Botón leer desde modal info */
+  $('#readInfoBtn')?.addEventListener('click', () => {
+    closeModal('infoModal');
+    readStory(state.currentStoryId);
+  });
+
+  /* Audio dock */
+  $('#playBtn')?.addEventListener('click', () => {
+    const a = $('#audioPlayer');
+    if (!a) return;
+    a.paused ? a.play().catch(() => {}) : a.pause();
+    syncAudioDock(a.src, !a.paused);
+  });
+  $('#muteBtn')?.addEventListener('click', () => {
+    const a = $('#audioPlayer');
+    if (!a) return;
+    a.muted = !a.muted;
+    const btn = $('#muteBtn');
+    if (btn) btn.textContent = a.muted ? '🔇' : '🔊';
+  });
+  $('#audioPlayer')?.addEventListener('play',  () => syncAudioDock($('#audioPlayer').src, true));
+  $('#audioPlayer')?.addEventListener('pause', () => syncAudioDock($('#audioPlayer').src, false));
+
+  /* Vault / bóveda decorativa — hero clic */
+  /* Teclado */
+  document.addEventListener('keydown', e => {
+    if ($('#storyModal')?.classList.contains('open')) {
+      if (e.key === 'ArrowRight') nextPage();
+      if (e.key === 'ArrowLeft')  prevPage();
+      if (e.key === 'Escape')     closeModal('storyModal');
     }
-    
-    const toast = DOM.create('div', `toast toast-${type}`);
-    toast.innerHTML = `
-        <span class="toast-icon">${getToastIcon(type)}</span>
-        <span class="toast-message">${message}</span>
-    `;
-    
-    toastContainer.appendChild(toast);
-    
-    // Mostrar
-    setTimeout(() => toast.classList.add('show'), 10);
-    
-    // Ocultar después de 3 segundos
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    if ($('#unlockModal')?.classList.contains('open')) {
+      if (e.key === 'Enter')  attemptUnlock();
+      if (e.key === 'Escape') closeModal('unlockModal');
+    }
+    if ($('#infoModal')?.classList.contains('open')) {
+      if (e.key === 'Escape') closeModal('infoModal');
+    }
+  });
 }
 
-function getToastIcon(type) {
-    const icons = {
-        success: '✅',
-        error: '❌',
-        warning: '⚠️',
-        info: 'ℹ️'
-    };
-    return icons[type] || 'ℹ️';
-}
+/* ─────────────────────────────────────
+   Helpers
+───────────────────────────────────── */
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function stripTags(html)  { return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
 
-// =================== EVENT LISTENERS ===================
-function setupEventListeners() {
-    // Delegación de eventos para las cards
-    document.addEventListener('click', handleCardClick);
-    
-    // Filtros
-    setupFilterListeners();
-    
-    // Controles del modal de historia
-    setupStoryControls();
-    
-    // Sistema de desbloqueo
-    setupUnlockListeners();
-    
-    // Controles de audio
-    setupAudioControls();
-    
-    // Exportar/Importar
-    setupExportImport();
-}
-
-function handleCardClick(event) {
-    const button = event.target.closest('button[data-action]');
-    if (!button) return;
-    
-    const action = button.dataset.action;
-    const storyId = button.dataset.id;
-    
-    switch (action) {
-        case 'read':
-            openStory(storyId);
-            break;
-        case 'info':
-            showStoryInfo(storyId);
-            break;
-    }
-}
-
-function setupFilterListeners() {
-    // Categorías
-    const categoryChips = DOM.get('#categoryChips');
-    if (categoryChips) {
-        categoryChips.addEventListener('click', (event) => {
-            const chip = event.target.closest('.chip');
-            if (!chip || !chip.dataset.category) return;
-            
-            // Actualizar filtro
-            STATE.filters.category = chip.dataset.category;
-            
-            // Actualizar chips activos
-            DOM.getAll('#categoryChips .chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            
-            // Renderizar
-            renderStoriesGrid();
-        });
-    }
-    
-    // Rarezas
-    const rarityChips = DOM.get('#rarityChips');
-    if (rarityChips) {
-        rarityChips.addEventListener('click', (event) => {
-            const chip = event.target.closest('.chip');
-            if (!chip || !chip.dataset.rarity) return;
-            
-            STATE.filters.rarity = chip.dataset.rarity;
-            
-            DOM.getAll('#rarityChips .chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            
-            renderStoriesGrid();
-        });
-    }
-    
-    // Búsqueda
-    const searchInput = DOM.get('#searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', (event) => {
-            STATE.filters.search = event.target.value;
-            renderStoriesGrid();
-        });
-    }
-}
-
-function setupStoryControls() {
-    // Cerrar modal
-    const closeBtn = DOM.get('#closeStory');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', hideStoryModal);
-    }
-    
-    // Navegación
-    const nextBtn = DOM.get('#nextPage');
-    if (nextBtn) {
-        nextBtn.addEventListener('click', nextPage);
-    }
-    
-    const prevBtn = DOM.get('#prevPage');
-    if (prevBtn) {
-        prevBtn.addEventListener('click', prevPage);
-    }
-}
-
-function setupUnlockListeners() {
-    // Botón de desbloquear
-    const unlockBtn = DOM.get('#unlockSubmit');
-    if (unlockBtn) {
-        unlockBtn.addEventListener('click', () => {
-            const input = DOM.get('#unlockPassword');
-            attemptUnlock(input ? input.value : '');
-        });
-    }
-    
-    // Cancelar
-    const cancelBtn = DOM.get('#unlockCancel');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', hideUnlockModal);
-    }
-    
-    // Enter para enviar
-    const passwordInput = DOM.get('#unlockPassword');
-    if (passwordInput) {
-        passwordInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                attemptUnlock(passwordInput.value);
-            }
-        });
-    }
-}
-
-function setupAudioControls() {
-    const toggleBtn = DOM.get('#toggleAudio');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', toggleAudio);
-    }
-    
-    const muteBtn = DOM.get('#muteBtn');
-    if (muteBtn) {
-        muteBtn.addEventListener('click', toggleMute);
-        // Actualizar texto inicial
-        muteBtn.textContent = STATE.isMuted ? '🔊 Activar sonido' : '🔇 Silenciar';
-    }
-}
-
-function setupExportImport() {
-    const exportBtn = DOM.get('#exportBtn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', exportProgress);
-    }
-    
-    const importBtn = DOM.get('#importBtn');
-    if (importBtn) {
-        importBtn.addEventListener('click', () => {
-            const fileInput = DOM.get('#importFile');
-            if (fileInput) fileInput.click();
-        });
-    }
-    
-    const fileInput = DOM.get('#importFile');
-    if (fileInput) {
-        fileInput.addEventListener('change', importProgress);
-    }
-}
-
-function exportProgress() {
-    const data = {
-        unlocked: Array.from(STATE.unlocked),
-        exportedAt: new Date().toISOString(),
-        totalStories: STORIES.length
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `moonveil-progress-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showToast('Progreso exportado', 'success');
-}
-
-function importProgress(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const data = JSON.parse(e.target.result);
-            if (data.unlocked && Array.isArray(data.unlocked)) {
-                STATE.unlocked = new Set(data.unlocked);
-                saveState();
-                renderStats();
-                renderStoriesGrid();
-                showToast('Progreso importado', 'success');
-            } else {
-                showToast('Archivo inválido', 'error');
-            }
-        } catch (error) {
-            showToast('Error al importar', 'error');
-        }
-    };
-    reader.readAsText(file);
-}
-
-function showStoryInfo(storyId) {
-    const story = STORIES.find(s => s.id === storyId);
-    if (!story) return;
-    
-    const isUnlocked = STATE.unlocked.has(storyId) || !story.locked;
-    
-    showToast(`
-        <strong>${story.title}</strong><br>
-        <small>Categoría: ${story.category} | Rareza: ${getRarityLabel(story.rarity)}</small><br>
-        <small>Estado: ${isUnlocked ? '🔓 Desbloqueada' : '🔒 Bloqueada'}</small>
-    `, 'info');
-}
-
-// =================== INICIALIZACIÓN ===================
-function initialize() {
-    console.log('🔄 Inicializando Moonveil Stories...');
-    
-    // Cargar estado
-    loadState();
-    
-    // Renderizar dashboard
-    renderDashboard();
-    
-    console.log('✅ Moonveil Stories listo');
-}
-
-// Iniciar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
-} else {
-    initialize();
-}
-
-// Manejo de errores
-window.addEventListener('error', (event) => {
-    console.error('Error:', event.error);
+/* ─────────────────────────────────────
+   INIT
+───────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadStorage();
+  setupCanvas();
+  setupParallax();
+  setupReveal();
+  setupNavbar();
+  setupEvents();
+  render();
+  console.log('📚 Moonveil Biblioteca — Cargada');
 });
 
-window.addEventListener('unhandledrejection', (event) => {
-    console.error('Promesa rechazada:', event.reason);
-});
+/* Exponer goPage globalmente para los botones de paginación */
+window.goPage = goPage;

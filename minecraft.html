@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark"/>
+  <!-- Favicon pixel -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <title>Moonveil — Farm & Craft</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="minecraft.css"/>
+</head>
+<body>
+
+<canvas id="bgCanvas" aria-hidden="true"></canvas>
+<div class="dirt-overlay" aria-hidden="true"></div>
+
+<!-- ══ HEADER ══ -->
+<header class="top-hud">
+  <nav class="navbar">
+    <a class="brand" href="inicio.html">
+      <span class="cube"></span>
+      <span class="brand__title">Moonveil <b>Portal</b></span>
+    </a>
+    <button class="nav-toggle" id="navToggle"><span></span></button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="minecraft.html" class="active">Farm & Craft</a></li>
+      <li><a href="index.html">Salir</a></li>
+    </ul>
+  </nav>
+  <div class="hud-bar" id="game-hud" style="display:none">
+    <div class="hud-chip gold-chip">💰 <span id="h-gold">200</span></div>
+    <div class="hud-chip day-chip">📅 Día <span id="h-day">1</span>/30</div>
+    <div class="hud-chip inv-chip">🎒 <span id="h-invcount">0</span> items</div>
+    <div class="event-badge" id="h-event-badge">☀️ Día Normal</div>
+    <button class="btn-save" id="btn-save" title="Guardar">💾 Guardar</button>
+    <button class="btn-nextday" id="btn-nextday">Día Siguiente →</button>
+  </div>
+</header>
+
+<!-- ══ TÍTULO ══ -->
+<div id="screen-title" class="screen screen-title active">
+  <div class="title-wrap">
+    <div class="pixel-badge">⛏️ MOONVEIL GAMES</div>
+    <h1 class="game-logo">
+      <span class="logo-farm">FARM</span>
+      <span class="logo-amp">&amp;</span>
+      <span class="logo-craft">CRAFT</span>
+    </h1>
+    <p class="logo-sub">Granja · Corrales · Crafteo · Comercio</p>
+    <div class="title-features">
+      <div class="tf"><span>🐄</span>Corrales de animales</div>
+      <div class="tf"><span>🌾</span>Huerto cultivable</div>
+      <div class="tf"><span>⚗️</span>Sistema de crafteo</div>
+      <div class="tf"><span>📦</span>Pedidos de clientes</div>
+      <div class="tf"><span>🎲</span>Eventos diarios</div>
+      <div class="tf"><span>💾</span>Guardado automático</div>
+    </div>
+    <div class="mob-row" aria-hidden="true">
+      <span>🐄</span><span>🐔</span><span>🐑</span><span>🐷</span><span>🦙</span><span>🐎</span>
+    </div>
+    <div class="title-btns" id="title-btns">
+      <!-- JS renders buttons based on save -->
+    </div>
+    <div class="save-preview" id="save-preview" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ══ JUEGO ══ -->
+<div id="screen-game" class="screen screen-game">
+  <div class="game-body">
+
+    <!-- MAIN LEFT (tabs) -->
+    <div class="main-panel">
+      <div class="tab-bar">
+        <button class="tab active" data-tab="corrales">🐾 Corrales</button>
+        <button class="tab" data-tab="huerto">🌱 Huerto</button>
+        <button class="tab" data-tab="crafteo">⚗️ Crafteo</button>
+        <button class="tab" data-tab="tienda">🛒 Tienda</button>
+        <button class="tab" data-tab="pedidos">📦 Pedidos <span class="pending-badge" id="pedidos-badge" style="display:none">0</span></button>
+      </div>
+
+      <!-- CORRALES -->
+      <div class="tab-content active" id="tab-corrales">
+        <div class="corrales-grid" id="corrales-grid"></div>
+      </div>
+
+      <!-- HUERTO -->
+      <div class="tab-content" id="tab-huerto">
+        <div class="huerto-header">
+          <h3>🌱 Tu Huerto — 8 Parcelas</h3>
+          <p class="muted-txt">Las semillas se compran en la Tienda. El trigo también da semillas al cosechar.</p>
+        </div>
+        <div class="huerto-grid" id="huerto-grid"></div>
+        <div class="crop-info-bar">
+          <div id="crop-tip">💡 Toca una parcela vacía para plantar</div>
+        </div>
+      </div>
+
+      <!-- CRAFTEO -->
+      <div class="tab-content" id="tab-crafteo">
+        <div class="crafteo-header">
+          <h3>⚗️ Mesa de Crafteo</h3>
+          <p class="muted-txt">Fabrica objetos especiales para vender en pedidos premium</p>
+        </div>
+        <div class="recipes-grid" id="recipes-grid"></div>
+      </div>
+
+      <!-- TIENDA -->
+      <div class="tab-content" id="tab-tienda">
+        <div class="shop-cats">
+          <button class="shop-cat active" data-cat="animales">🐾 Animales</button>
+          <button class="shop-cat" data-cat="semillas">🌱 Semillas</button>
+          <button class="shop-cat" data-cat="materiales">🧱 Materiales</button>
+        </div>
+        <div class="shop-grid" id="shop-grid"></div>
+      </div>
+
+      <!-- PEDIDOS -->
+      <div class="tab-content" id="tab-pedidos">
+        <div class="pedidos-header">
+          <h3>📦 Pedidos Activos</h3>
+          <p class="muted-txt">Completa pedidos antes de que expiren para ganar oro</p>
+        </div>
+        <div class="pedidos-list" id="pedidos-list">
+          <div class="empty-orders">No hay pedidos activos.<br>¡Avanza el día para que lleguen clientes!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR RIGHT -->
+    <aside class="sidebar">
+      <!-- Daily Event -->
+      <div class="event-card" id="event-card">
+        <div class="ec-icon" id="ec-icon">🌞</div>
+        <div class="ec-body">
+          <div class="ec-title" id="ec-title">Día Normal</div>
+          <div class="ec-desc"  id="ec-desc">Sin eventos hoy</div>
+        </div>
+      </div>
+
+      <!-- Inventario -->
+      <div class="sidebar-box">
+        <div class="sb-head">🎒 Inventario</div>
+        <div class="inv-compact" id="inv-compact">
+          <div class="inv-empty-msg">Sin items aún</div>
+        </div>
+      </div>
+
+      <!-- Log -->
+      <div class="sidebar-box log-box">
+        <div class="sb-head">📋 Actividad</div>
+        <div class="activity-log" id="activity-log"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ══ FINAL ══ -->
+<div id="screen-end" class="screen screen-end">
+  <div class="end-card">
+    <div class="end-icon" id="end-icon">🏆</div>
+    <h1 class="end-title" id="end-title"></h1>
+    <p class="end-sub" id="end-sub"></p>
+    <div class="end-stats" id="end-stats"></div>
+    <div class="end-rank" id="end-rank"></div>
+    <button class="btn-main" id="btn-restart">🔄 Nueva Partida</button>
+  </div>
+</div>
+
+<!-- ══ MODAL PLANTAR ══ -->
+<div id="modal-plant" class="modal-ov hidden">
+  <div class="modal-box">
+    <div class="modal-hd"><h3>🌱 Plantar — Parcela <span id="plnt-num"></span></h3><button class="x-btn" id="plnt-close">✕</button></div>
+    <div class="plant-options" id="plant-options"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL REPRODUCIR ══ -->
+<div id="modal-breed" class="modal-ov hidden">
+  <div class="modal-box">
+    <div class="modal-hd"><h3 id="breed-title">🐣 Reproducir</h3><button class="x-btn" id="breed-close">✕</button></div>
+    <div class="breed-body" id="breed-body"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL SACRIFICAR ══ -->
+<div id="modal-slaughter" class="modal-ov hidden">
+  <div class="modal-box">
+    <div class="modal-hd"><h3 id="sl-title">⚔️ Sacrificar</h3><button class="x-btn" id="sl-close">✕</button></div>
+    <div class="sl-body" id="sl-body"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL CRAFTEAR ══ -->
+<div id="modal-craft" class="modal-ov hidden">
+  <div class="modal-box craft-modal">
+    <div class="modal-hd"><div class="mc-icon" id="mc-icon"></div><div><h3 id="mc-name"></h3><p class="modal-sub" id="mc-desc"></p></div><button class="x-btn" id="mc-close">✕</button></div>
+    <div class="mc-body" id="mc-body"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL VENDER CABALLO ══ -->
+<div id="modal-horse" class="modal-ov hidden">
+  <div class="modal-box">
+    <div class="modal-hd"><h3>🐎 Vender Caballos</h3><button class="x-btn" id="horse-close">✕</button></div>
+    <div class="modal-body" id="horse-body"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL EVENTO DIA ══ -->
+<div id="modal-dayevent" class="modal-ov hidden">
+  <div class="modal-box event-modal-box">
+    <div class="dme-icon" id="dme-icon"></div>
+    <h2 class="dme-title" id="dme-title"></h2>
+    <p class="dme-desc" id="dme-desc"></p>
+    <div class="dme-tag" id="dme-tag"></div>
+    <button class="btn-main" id="dme-close">¡Entendido!</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="minecraft.js"></script>
+</body>
+</html>

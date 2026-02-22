@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>Moonveil — Investigaciones</title>
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23d946ef'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%239333ea'/%3E%3C/svg%3E">
+
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="invs.css"/>
+</head>
+<body>
+  <div class="bg-world" aria-hidden="true">
+    <canvas id="bgCanvas"></canvas>
+    <div class="bg-scanlines"></div>
+    <div class="bg-vignette"></div>
+  </div>
+
+  <header class="top-hud">
+    <nav class="navbar">
+      <a class="brand" href="inicio.html"><span class="cube"></span><span class="brand__title">Moonveil <b>Portal</b></span></a>
+      <button class="nav-toggle" id="navToggle"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="invs.html" class="active">Investigaciones</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+    <div class="hud-stats">
+      <div class="hud__bars">
+        <div class="hud-bar hp" data-val="92"></div>
+        <div class="hud-bar xp" data-val="74"></div>
+      </div>
+      <div class="hud__inv">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald"></span></button>
+        <button class="slot" title="Mapa"><span class="i i-map"></span></button>
+        <button class="slot" title="Pluma"><span class="i i-feather"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="inv-hero">
+    <div class="inv-hero-inner">
+      <div class="inv-eyebrow reveal">[CLASIFICADO] Sala de Investigaciones · Moonveil</div>
+      <h1 class="inv-title reveal"><span class="it1">SALA DE</span><span class="it2">INVESTIGACIONES</span></h1>
+      <p class="inv-sub reveal">Analiza casos activos, vota si la información es verdadera o falsa y ayuda al reino a descubrir la verdad. Algunos casos tienen fecha límite — cuando expire el tiempo, el expediente se cierra para siempre.</p>
+      <div class="inv-hero-stats reveal">
+        <div class="ihst"><span class="ihst-n" id="isTotal">0</span><span class="ihst-l">Totales</span></div>
+        <span class="ihst-sep">◆</span>
+        <div class="ihst"><span class="ihst-n" id="isOpen">0</span><span class="ihst-l">Abiertos</span></div>
+        <span class="ihst-sep">◆</span>
+        <div class="ihst"><span class="ihst-n" id="isExpiring">0</span><span class="ihst-l">Por Expirar</span></div>
+        <span class="ihst-sep">◆</span>
+        <div class="ihst"><span class="ihst-n" id="isExpired">0</span><span class="ihst-l">Expirados</span></div>
+        <span class="ihst-sep">◆</span>
+        <div class="ihst"><span class="ihst-n" id="isVoted">0</span><span class="ihst-l">Mis Votos</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FILTROS -->
+  <section class="inv-controls reveal">
+    <div class="ictl-inner">
+      <div class="chip-row" id="invChips">
+        <button class="nchip active" data-f="all">Todos</button>
+        <button class="nchip" data-f="open">⚡ Activos</button>
+        <button class="nchip" data-f="expiring">⏰ Por Expirar</button>
+        <button class="nchip" data-f="expired">🔒 Expirados</button>
+        <button class="nchip" data-f="voted">✅ Ya Voté</button>
+        <button class="nchip" data-f="unvoted">⬜ Sin Votar</button>
+      </div>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input id="invSearch" type="search" placeholder="Buscar expedientes…" autocomplete="off"/>
+      </div>
+    </div>
+  </section>
+
+  <!-- CASO DESDE URL -->
+  <section id="featSec" class="inv-feat-sec" style="display:none">
+    <div class="ictl-inner">
+      <div class="feat-label">🔍 EXPEDIENTE ABIERTO DESDE NOTICIAS</div>
+      <div id="featCase"></div>
+    </div>
+  </section>
+
+  <!-- GRID CASOS -->
+  <section class="inv-grid-sec">
+    <div class="ictl-inner">
+      <div class="inv-sec-head reveal">
+        <h2 class="inv-sec-title">Expedientes del Reino</h2>
+        <span class="inv-res-count" id="invCount">0 casos</span>
+      </div>
+      <div id="caseGrid" class="case-grid reveal"></div>
+    </div>
+  </section>
+
+  <!-- HISTORIAL -->
+  <section class="inv-log-sec">
+    <div class="ictl-inner">
+      <div class="inv-sec-head reveal">
+        <h2 class="inv-sec-title">Mi Historial de Investigación</h2>
+        <button class="nchip" id="clearVotesBtn">Borrar historial</button>
+      </div>
+      <div id="voteLog" class="vote-log reveal"></div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="foot-inner">
+      <div class="foot-brand"><span class="cube"></span><strong>Moonveil</strong> Portal</div>
+      <nav class="foot-links"><a href="noticias.html">← Noticias</a><a href="#">Soporte</a></nav>
+      <p class="foot-copy">© <span id="yr"></span> Moonveil. Expedientes clasificados.</p>
+    </div>
+  </footer>
+
+  <!-- MODAL DETALLE -->
+  <div id="caseModal" class="modal" aria-hidden="true">
+    <div class="modal-overlay" id="cmOverlay"></div>
+    <div class="modal-panel">
+      <button class="modal-close" id="cmClose">✕</button>
+      <div id="cmContent"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="invs.js"></script>
+</body>
+</html>

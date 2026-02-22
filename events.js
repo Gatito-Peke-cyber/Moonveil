@@ -44,7 +44,7 @@ const CATEGORIES = [
     items: [
       { title:"Inicio",   desc:"Página de bienvenida del portal.",              emoji:"🌙", url:"inicio.html"   },
       { title:"Perfiles", desc:"Explora y gestiona los perfiles de los aldeanos.", emoji:"👤", url:"perfiles.html", bg:"vill/teacher.jpg" },
-      { title:"Noticias", desc:"Noticias del mundo.",       emoji:"📰", url:"noticias.html" ,startDate: "2026-04-01",bg:"imagen/pegatina1.jpg"},
+      { title:"Noticias", desc:"Noticias del mundo.",       emoji:"📰", url:"noticias.html" ,startDate: "2026-02-23",bg: "gif/villager-news.gif"},
       { title:"Foro",     desc:"Algunas novedades de los aldeanos. Y quien sabe un chisme...", emoji:"💬", url:"foro.html", bg:"vill/booktea.gif"     },
       { title:"Contacto", desc:"Pues aqui se habla con los aldeanos del mundo. No todos pero si algunos...", emoji:"📩", url:"contactos.html", bg:"imagen/golem1.jpg",},
       { title:"Updates",  desc:"Registro de todas las actualizaciones.",        emoji:"🔄", url:"updates.html" , startDate: "2026-03-01", },
@@ -134,6 +134,33 @@ const CATEGORIES = [
         expiry: "2026-04-30", daysTotal: 30,
         accent: "#f43f5e",
         bg: "imagen/steve3.jpg"    // ← ej: "img/dragon-bg.jpg"
+      },
+      {
+        title: "Cultivos Eden",
+        desc:  "Hola amigos, aqui les habla Eden y pues quiero que me ayudes a generar mucho dinerito, pues ya que tu eres un estratega en los negocios pues se que tu podras.¿Verdad?",
+        emoji: "🌻", url: "cul.html",
+        startDate: "2026-02-20",
+        expiry: "2026-04-30", daysTotal: 30,
+        accent: "#f43f5e",
+        bg: "gif/4am.gif"    // ← ej: "img/dragon-bg.jpg"
+      },
+      {
+        title: "Investigaciones",
+        desc:  "¡Hola Agente ████! Tenemos que resolver estos casos, por eso necesitamos su ayuda, contamos contigo Agente...",
+        emoji: "🔎", url: "invs.html",
+        startDate: "2026-02-23",
+        expiry: "2026-04-30", daysTotal: 50,
+        accent: "#f43f5e",
+        bg: "gif/creaking-minecraft.gif"    // ← ej: "img/dragon-bg.jpg"
+      },
+      {
+        title: "Minelife",
+        desc:  "¡Hola ████! Bueno,¡eh!... No tengo palabras...",
+        emoji: "🌳", url: "minecraft.html",
+        startDate: "2026-02-20",
+        expiry: "2026-04-30", daysTotal: 50,
+        accent: "#f43f5e",
+        bg: "img-pass/fox-xy.jpg"    // ← ej: "img/dragon-bg.jpg"
       },
     ]
   },

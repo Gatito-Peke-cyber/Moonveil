@@ -3,34 +3,31 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark light" />
+  <meta name="color-scheme" content="dark" />
   <title>Moonveil — Social</title>
 
-  <!-- Fuentes -->
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  
-  <!-- Favicon -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Cinzel:wght@600;900&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
   <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230a1215'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2306b6d4'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%230891b2'/%3E%3C/svg%3E">
 
-  <!-- CSS -->
   <link rel="stylesheet" href="ins.css" />
-
-  <meta name="description" content="Red social de aldeanos de Minecraft - Moonveil Social" />
+  <meta name="description" content="Red Social de Moonveil — Conecta con la aldea" />
 </head>
-<body class="theme-auto">
-  <!-- Fondo -->
-  <div class="bg">
-    <canvas id="bgParticles" aria-hidden="true"></canvas>
+<body>
+
+  <!-- Fondo global -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="bgParticles"></canvas>
     <div class="bg-parallax">
-      <div class="layer sky" aria-hidden="true"></div>
-      <div class="layer far" aria-hidden="true"></div>
-      <div class="layer mid" aria-hidden="true"></div>
-      <div class="layer near" aria-hidden="true"></div>
+      <div class="layer sky"></div>
+      <div class="layer far"></div>
+      <div class="layer mid"></div>
+      <div class="layer near"></div>
     </div>
   </div>
 
-  <!-- HUD / Navbar -->
+  <!-- ===== HEADER — estructura idéntica a tienda.html, tema cian ===== -->
   <header class="top-hud" role="banner">
     <nav class="navbar" aria-label="Navegación principal">
       <a class="brand" href="inicio.html" aria-label="Ir a inicio">
@@ -40,7 +37,6 @@
       <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
       <ul class="nav-links" id="navLinks">
         <li><a href="inicio.html">Inicio</a></li>
-        <li><a href="contactos.html">Contactos</a></li>
         <li><a href="ins.html" class="active">Social</a></li>
         <li><a href="index.html">Salir</a></li>
       </ul>
@@ -49,7 +45,7 @@
     <div class="hud-stats" aria-label="Indicadores">
       <div class="hud__bars">
         <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
-        <div class="hud-bar xp" data-val="62" aria-label="Experiencia 62%"></div>
+        <div class="hud-bar xp" data-val="62" aria-label="Social XP 62%"></div>
       </div>
       <div class="hud__inv" aria-label="Inventario rápido">
         <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
@@ -59,193 +55,299 @@
     </div>
   </header>
 
-  <!-- Contenedor principal -->
-  <main class="social-container">
-    <!-- Sidebar izquierdo -->
-    <aside class="sidebar left-sidebar">
-      <div class="profile-card">
-        <div class="profile-avatar">
-          <img src="img/imper.jpg" alt="Tu perfil" />
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner reveal">
+        <div class="hero-eyebrow"><span class="cyan-dot"></span>Red Social del Reino</div>
+        <h1 class="hero-title">
+          <span class="ht-sm">BIENVENIDO A</span>
+          <span class="ht-big">MOONVEIL SOCIAL</span>
+        </h1>
+        <p class="hero-lead">Conecta con aldeanos, comparte momentos y descubre las historias de la aldea. <strong>¡La comunidad más activa!</strong></p>
+        <div class="hero-pills reveal">
+          <div class="pill">👥 <strong id="heroFollowers">247</strong> <span>Seguidores</span></div>
+          <div class="pill">📸 <strong id="heroPosts">10</strong> <span>Posts</span></div>
+          <div class="pill">❤️ <strong id="heroLikes">0</strong> <span>Me gusta</span></div>
+          <div class="pill">💬 <strong id="heroComments">0</strong> <span>Comentarios</span></div>
         </div>
-        <div class="profile-info">
-          <h3>Jugador</h3>
-          <p class="username">@player_001</p>
-          <div class="profile-stats">
-            <div class="stat">
-              <strong id="userFollowers">247</strong>
-              <span>Seguidores</span>
-            </div>
-            <div class="stat">
-              <strong>189</strong>
-              <span>Siguiendo</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LAYOUT ===== -->
+  <div class="container">
+    <div class="social-layout">
+
+      <!-- ── SIDEBAR IZQUIERDO ── -->
+      <aside class="sidebar left-sidebar">
+
+        <!-- Perfil -->
+        <div class="card profile-card reveal">
+          <div class="profile-avatar-ring">
+            <img src="img/imper.jpg" alt="Mi perfil" id="myAvatar" />
+            <div class="avatar-online"></div>
+          </div>
+          <div class="profile-meta">
+            <h3 id="myName">Jugador</h3>
+            <div class="profile-handle">@player_001</div>
+            <div class="profile-bio"
+                 id="profileBio"
+                 contenteditable="true"
+                 spellcheck="false"
+                 title="Haz clic para editar tu bio">Aldeano aventurero ⚔️</div>
+            <div class="profile-nums">
+              <div class="pnum"><strong id="userFollowers">247</strong><span>seguidores</span></div>
+              <div class="pnum-sep"></div>
+              <div class="pnum"><strong>189</strong><span>siguiendo</span></div>
+              <div class="pnum-sep"></div>
+              <div class="pnum"><strong id="myPostsCount">10</strong><span>posts</span></div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="suggestions-card">
-        <h4>Sugerencias para ti</h4>
-        <div id="suggestions"></div>
-      </div>
-
-      <div class="trending-card">
-        <h4>🔥 Tendencias</h4>
-        <div id="trending"></div>
-      </div>
-    </aside>
-
-    <!-- Feed principal -->
-    <section class="main-feed">
-      <!-- Stories -->
-      <div class="stories-section">
-        <h3>Historias</h3>
-        <div class="stories-scroll" id="storiesScroll">
-          <!-- Stories generadas por JS -->
+        <!-- Crear post -->
+        <div class="card create-card reveal">
+          <div class="create-header">✍️ Nueva publicación</div>
+          <div class="create-row">
+            <img src="img/imper.jpg" alt="Tú" class="create-avatar" />
+            <textarea id="newPostInput" class="create-textarea" placeholder="¿Qué está pasando en la aldea?" maxlength="280" rows="3"></textarea>
+          </div>
+          <!-- Selector mood -->
+          <div class="mood-grid hidden" id="moodGrid">
+            <span data-mood="😊">😊</span><span data-mood="🎉">🎉</span><span data-mood="🎮">🎮</span>
+            <span data-mood="⚔️">⚔️</span><span data-mood="💎">💎</span><span data-mood="🌟">🌟</span>
+            <span data-mood="😴">😴</span><span data-mood="🏆">🏆</span><span data-mood="🐺">🐺</span>
+            <span data-mood="🌿">🌿</span><span data-mood="📚">📚</span><span data-mood="🎨">🎨</span>
+          </div>
+          <div class="create-footer">
+            <div class="create-tools">
+              <button class="tool-btn" id="toolMood" title="Estado de ánimo">😊</button>
+              <button class="tool-btn" id="toolTag" title="Etiquetar">🏷️</button>
+              <button class="tool-btn" id="toolLocation" title="Ubicación">📍</button>
+            </div>
+            <div class="create-right">
+              <span class="char-counter" id="charCounter">280</span>
+              <button class="btn-publish" id="btnPublish">Publicar</button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- Posts -->
-      <div class="posts-container" id="postsContainer">
-        <!-- Posts generados por JS -->
-      </div>
+        <!-- Sugerencias -->
+        <div class="card reveal">
+          <div class="card-section-title"><span>✨</span> Sugerencias</div>
+          <div id="suggestions"></div>
+        </div>
 
-      <!-- Paginación -->
-      <div class="pagination" id="pagination">
-        <button id="prevPage" class="btn btn--secondary" disabled>← Anterior</button>
-        <span id="pageInfo" class="page-info">Página 1 de 1</span>
-        <button id="nextPage" class="btn btn--primary">Siguiente →</button>
-      </div>
-    </section>
+        <!-- Tendencias -->
+        <div class="card reveal">
+          <div class="card-section-title"><span>🔥</span> Tendencias</div>
+          <div id="trending"></div>
+        </div>
 
-    <!-- Sidebar derecho (Mensajes directos) -->
-    <aside class="sidebar right-sidebar">
-      <div class="dm-header">
-        <h3>💬 Mensajes</h3>
-        <button class="icon-btn" id="newDM" title="Nuevo mensaje">
-          <span class="icon">✉️</span>
-        </button>
-      </div>
-      <div class="dm-list" id="dmList">
-        <!-- Lista de chats -->
-      </div>
-    </aside>
-  </main>
+        <!-- Música -->
+        <div class="card music-card reveal">
+          <div class="card-section-title"><span>🎵</span> Ahora suena</div>
+          <div class="music-player">
+            <div class="disc-container">
+              <div class="disc" id="disc">🎵</div>
+            </div>
+            <div class="music-meta">
+              <div class="music-track" id="musicTrack">november.mp3</div>
+              <div class="music-artist">Moonveil OST</div>
+            </div>
+            <button class="btn-play" id="btnPlay" onclick="toggleMusic()">▶</button>
+          </div>
+        </div>
 
-  <!-- Modal de comentarios -->
+      </aside>
+
+      <!-- ── FEED CENTRAL ── -->
+      <section class="main-feed">
+
+        <!-- Stories -->
+        <div class="card stories-card reveal">
+          <div class="stories-top">
+            <span class="card-section-title" style="border:none;padding:0"><span>📖</span> Historias</span>
+            <button class="btn-ghost-xs" id="btnAddStory">+ Añadir</button>
+          </div>
+          <div class="stories-scroll" id="storiesScroll"></div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filter-bar reveal">
+          <button class="filter-btn active" data-filter="all">Todo</button>
+          <button class="filter-btn" data-filter="recent">Recientes</button>
+          <button class="filter-btn" data-filter="popular">Popular</button>
+          <button class="filter-btn" data-filter="following">Siguiendo</button>
+        </div>
+
+        <!-- Posts -->
+        <div id="postsContainer"></div>
+
+        <!-- Paginación -->
+        <div class="pagination reveal" id="pagination">
+          <button id="prevPage" class="btn-page" disabled>← Anterior</button>
+          <span class="page-info" id="pageInfo">Página 1</span>
+          <button id="nextPage" class="btn-page">Siguiente →</button>
+        </div>
+
+      </section>
+
+      <!-- ── SIDEBAR DERECHO — MENSAJES ── -->
+      <aside class="sidebar right-sidebar">
+
+        <div class="card reveal">
+          <div class="dm-top-row">
+            <h3 class="dm-title">💬 Mensajes</h3>
+            <button class="slot-sm" id="newDM" title="Nuevo mensaje">✉️</button>
+          </div>
+          <input type="text" id="dmSearch" class="dm-search" placeholder="Buscar conversación…" />
+        </div>
+
+        <div class="card dm-list-card reveal" id="dmList"></div>
+
+        <div class="card reveal">
+          <div class="card-section-title"><span>🟢</span> En línea ahora</div>
+          <div class="online-row" id="onlineAvatars"></div>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- ══ MODAL COMENTARIOS ══ -->
   <div class="modal" id="commentsModal" aria-hidden="true">
-    <div class="modal__overlay" id="commentsOverlay"></div>
-    <div class="modal__dialog comments-dialog">
+    <div class="modal-backdrop" id="commentsBackdrop"></div>
+    <div class="modal-dialog comments-dialog">
       <div class="comments-split">
-        <!-- Imagen del post -->
-        <div class="comments-image-side">
-          <img id="commentsPostImage" alt="Post" />
+        <div class="cmt-img-col">
+          <img id="cmtPostImg" alt="Post" />
         </div>
-        
-        <!-- Comentarios -->
-        <div class="comments-content-side">
-          <header class="modal__head">
-            <div class="comments-post-user">
-              <img id="commentsUserAvatar" class="comments-user-avatar" alt="" />
-              <strong id="commentsUserName">Usuario</strong>
+        <div class="cmt-content-col">
+          <div class="cmt-header">
+            <div class="cmt-user-row">
+              <img id="cmtUserAvatar" class="cmt-avatar" alt="" />
+              <div>
+                <strong id="cmtUserName"></strong>
+                <div class="cmt-post-text" id="cmtPostText"></div>
+              </div>
             </div>
-            <button class="icon-btn" id="closeComments" aria-label="Cerrar">
-              <span class="icon">✕</span>
-            </button>
-          </header>
-          
-          <div class="modal__body comments-body" id="commentsBody">
-            <!-- Comentarios generados por JS -->
+            <button class="modal-x" id="closeComments">✕</button>
           </div>
-          
-          <div class="comments-actions">
-            <div class="comments-action-buttons">
-              <button class="action-icon-btn" id="commentsLikeBtn">
-                <span class="heart-icon">🤍</span>
-              </button>
-              <button class="action-icon-btn">
-                <span>💬</span>
-              </button>
-              <button class="action-icon-btn">
-                <span>📤</span>
-              </button>
+          <div class="cmt-body scrollbar" id="cmtBody"></div>
+          <div class="cmt-footer">
+            <div class="cmt-acts">
+              <button class="cmt-act" id="cmtLikeBtn">🤍</button>
+              <button class="cmt-act">💬</button>
+              <button class="cmt-act">📤</button>
+              <button class="cmt-act cmt-save" id="cmtSaveBtn">🔖</button>
             </div>
-            <div class="comments-likes" id="commentsLikesCount">0 Me gusta</div>
-            <div class="comments-time" id="commentsTime">Hace 2 horas</div>
-          </div>
-          
-          <div class="comments-info">
-            Los comentarios son de solo lectura
+            <div class="cmt-likes-txt" id="cmtLikesTxt">0 Me gusta</div>
+            <div class="cmt-time-txt" id="cmtTimeTxt"></div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal de chat privado -->
+  <!-- ══ MODAL CHAT ══ -->
   <div class="modal" id="chatModal" aria-hidden="true">
-    <div class="modal__overlay" id="chatOverlay"></div>
-    <div class="modal__dialog chat-dialog">
-      <header class="modal__head chat-head">
-        <div class="chat-user-info">
-          <img id="chatUserAvatar" class="chat-avatar" alt="" />
+    <div class="modal-backdrop" id="chatBackdrop"></div>
+    <div class="modal-dialog chat-dialog">
+
+      <div class="chat-hdr">
+        <div class="chat-user-row">
+          <div class="chat-avatar-wrap">
+            <img id="chatAvatar" class="chat-avi" alt="" />
+            <span class="chat-status-dot" id="chatDot"></span>
+          </div>
           <div>
-            <h3 id="chatUserName">Usuario</h3>
-            <small id="chatUserStatus" class="muted">
-              <span class="status-dot"></span>
-              <span id="chatStatusText">En línea</span>
-            </small>
+            <strong id="chatName">Usuario</strong>
+            <small id="chatStatus" class="muted">En línea</small>
           </div>
         </div>
-        <div class="chat-header-actions">
-          <button class="icon-btn" id="chatVideoCall" title="Video llamada">
-            <span class="icon">📹</span>
-          </button>
-          <button class="icon-btn" id="chatCall" title="Llamada">
-            <span class="icon">📞</span>
-          </button>
-          <button class="icon-btn" id="closeChat" aria-label="Cerrar">
-            <span class="icon">✕</span>
-          </button>
+        <div class="chat-hdr-btns">
+          <button class="slot-sm" id="chatVideoBtn" title="Videollamada">📹</button>
+          <button class="slot-sm" id="chatCallBtn" title="Llamada">📞</button>
+          <button class="slot-sm" id="chatInfoBtn" title="Info">ℹ️</button>
+          <button class="modal-x" id="closeChat">✕</button>
         </div>
-      </header>
-      <div class="modal__body chat-body" id="chatBody">
-        <!-- Mensajes generados por JS -->
       </div>
-      <div class="chat-quick-replies" id="chatQuickReplies">
-        <!-- Respuestas rápidas -->
+
+      <!-- Panel info -->
+      <div class="chat-info-panel hidden" id="chatInfoPanel">
+        <img id="chatInfoAvi" src="" alt="" class="cip-avi" />
+        <div id="chatInfoName" class="cip-name"></div>
+        <div id="chatInfoSub" class="cip-sub"></div>
       </div>
+
+      <div class="chat-body scrollbar" id="chatBody"></div>
+
+      <!-- Emoji strip -->
+      <div class="emoji-strip hidden" id="emojiStrip">
+        <span data-e="😊">😊</span><span data-e="❤️">❤️</span><span data-e="😂">😂</span>
+        <span data-e="👍">👍</span><span data-e="🎉">🎉</span><span data-e="🔥">🔥</span>
+        <span data-e="💎">💎</span><span data-e="⚔️">⚔️</span><span data-e="🐺">🐺</span>
+        <span data-e="🌟">🌟</span><span data-e="🍀">🍀</span><span data-e="👀">👀</span>
+      </div>
+
+      <!-- Respuestas rápidas -->
+      <div class="quick-bar" id="quickBar"></div>
+
       <form class="chat-composer" id="chatComposer">
-        <button type="button" class="icon-btn-small" id="chatEmoji" title="Emojis">😊</button>
-        <button type="button" class="icon-btn-small" id="chatGif" title="GIF">GIF</button>
-        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." autocomplete="off" />
-        <button type="submit" class="btn btn--primary btn--small">
-          <span>Enviar</span>
-        </button>
+        <button type="button" class="slot-sm" id="emojiToggle">😊</button>
+        <button type="button" class="slot-sm gif-btn" id="gifBtn">GIF</button>
+        <input type="text" id="chatInput" placeholder="Escribe un mensaje…" autocomplete="off" maxlength="500" />
+        <button type="submit" class="btn-send">Enviar ↑</button>
       </form>
+
     </div>
   </div>
 
-  <!-- Modal de imagen -->
+  <!-- ══ MODAL IMAGEN ══ -->
   <div class="modal" id="imageModal" aria-hidden="true">
-    <div class="modal__overlay" id="imageOverlay"></div>
-    <div class="modal__dialog image-dialog">
-      <button class="icon-btn close-image" id="closeImage">✕</button>
-      <img id="modalImage" alt="Imagen ampliada" />
+    <div class="modal-backdrop" id="imageBackdrop"></div>
+    <div class="modal-dialog image-dialog">
+      <button class="img-close" id="closeImage">✕</button>
+      <button class="img-nav img-prev" id="imgPrev">‹</button>
+      <img id="bigImage" alt="Imagen ampliada" />
+      <button class="img-nav img-next" id="imgNext">›</button>
+      <div class="img-caption" id="imgCaption"></div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL STORY ══ -->
+  <div class="modal" id="storyModal" aria-hidden="true">
+    <div class="modal-backdrop" id="storyBackdrop"></div>
+    <div class="modal-dialog story-dialog">
+      <div class="story-progress"><div class="story-fill" id="storyFill"></div></div>
+      <div class="story-top">
+        <img id="storyAvi" src="" alt="" class="story-top-avi" />
+        <strong id="storyName"></strong>
+        <span id="storyTimeStr" class="muted"></span>
+        <button class="modal-x" id="closeStory">✕</button>
+      </div>
+      <div class="story-body" id="storyBody"></div>
+      <div class="story-navs">
+        <button class="story-nav" id="storyPrev">‹</button>
+        <button class="story-nav" id="storyNext">›</button>
+      </div>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- Botón flotante de música -->
-  <button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
+  <!-- Botón música flotante -->
+  <button class="floating-music" id="floatingMusic" onclick="toggleMusic()" title="Música">🎵</button>
 
-  <!-- Música de fondo -->
+  <!-- Audio -->
   <audio id="bg-music" loop>
     <source src="music/november.mp3" type="audio/mpeg" />
   </audio>
 
-  <!-- JS -->
   <script src="ins.js"></script>
 </body>
 </html>
