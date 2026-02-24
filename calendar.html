@@ -1,253 +1,228 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Moonveil — Daily Login (Calendario de Recompensas)</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>Moonveil — Calendario de Recompensas</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23050710'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%233b82f6'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%231d4ed8'/%3E%3C/svg%3E">
 
-  <!-- Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Header y Footer -->
-  <link rel="stylesheet" href="inicio.css" />
-
-  <!-- Login CSS -->
-  <link rel="stylesheet" href="calendar.css" />
-  <meta name="description" content="Moonveil Daily Login — Calendario interactivo mensual para reclamar recompensas diarias." />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Cinzel:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="calendar.css"/>
 </head>
-<body class="theme-auto">
+<body>
 
-  <!-- Background coherence with portal -->
-  <div class="bg" aria-hidden="true">
-    <canvas id="bgParticles" aria-hidden="true"></canvas>
-    <div class="bg-parallax" aria-hidden="true">
-      <div class="layer sky" aria-hidden="true"></div>
-      <div class="layer far" aria-hidden="true"></div>
-      <div class="layer mid" aria-hidden="true"></div>
-      <div class="layer near" aria-hidden="true"></div>
-    </div>
+  <!-- FONDO -->
+  <div class="bg-world" aria-hidden="true">
+    <canvas id="bgCanvas"></canvas>
+    <div class="bg-grain"></div>
+    <div class="bg-vignette"></div>
   </div>
 
-  <!-- HUD / Navbar (re-usable from portal) -->
-  <header class="top-hud" role="banner">
-    <nav class="navbar" aria-label="Navegación principal">
-      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
-        <span class="cube" aria-hidden="true"></span>
+  <!-- ══ HEADER ══ -->
+  <header class="top-hud">
+    <nav class="navbar">
+      <a class="brand" href="inicio.html">
+        <span class="cube"></span>
         <span class="brand__title">Moonveil <b>Portal</b></span>
       </a>
-
+      <button class="nav-toggle" id="navToggle"><span></span></button>
       <ul class="nav-links" id="navLinks">
         <li><a href="inicio.html">Inicio</a></li>
-        <li><a class="active" aria-current="page">Daily Login</a></li>
+        <li><a href="calendar.html" class="active">Calendario</a></li>
         <li><a href="index.html">Salir</a></li>
       </ul>
     </nav>
-
-    <div class="hud-stats" aria-label="Indicadores del jugador">
+    <div class="hud-stats">
       <div class="hud__bars">
-        <div id="hpBar" class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
-        <div id="xpBar" class="hud-bar xp" data-val="63" aria-label="Experiencia 63%"></div>
+        <div class="hud-bar hp" data-val="88"></div>
+        <div class="hud-bar xp" data-val="67"></div>
+      </div>
+      <div class="hud__inv">
+        <button class="slot" title="Esmeraldas"><span class="i i-emerald"></span></button>
+        <button class="slot" title="Pergamino"><span class="i i-scroll"></span></button>
+        <button class="slot" id="keyInventoryBtn" title="Inventario de Llaves">
+          <span class="i i-key"></span>
+          <span class="key-notif" id="keyNotif" style="display:none">!</span>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- Main -->
-  <main class="login-root container" role="main" aria-labelledby="loginTitle">
+  <!-- ══ HERO ══ -->
+  <section class="cal-hero">
+    <div class="hero-inner">
+      <div class="hero-eyebrow reveal">⟡ TEMPLO DEL TIEMPO ⟡</div>
+      <h1 class="hero-title reveal">
+        <span class="ht-small">CALENDARIO DE</span>
+        <span class="ht-large">RECOMPENSAS</span>
+      </h1>
+      <p class="hero-sub reveal" id="todayLabel">Cargando…</p>
 
-    <header class="login-header">
-      <div class="login-header__title">
-        <h1 id="loginTitle">
-          <span class="title-icon">📅</span>
-          Calendario de Recompensas
-        </h1>
-        <p class="lead u-muted" id="todayLabel">—</p>
-      </div>
-
-      <div class="login-meta">
-        <div class="streak-card">
-          <div class="streak-card__icon">🔥</div>
-          <div class="streak-card__content">
-            <div class="streak-card__label">Racha Actual</div>
-            <div id="streakCount" class="streak-card__value">0</div>
-          </div>
+      <div class="hero-stats reveal">
+        <div class="hstat">
+          <span class="hstat-ico">🔥</span>
+          <span class="hstat-n" id="stStreak">0</span>
+          <span class="hstat-l">Racha</span>
         </div>
-
-        <div class="month-switch">
-          <button id="prevMonth" class="btn btn--icon" aria-label="Mes anterior">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M15 18l-6-6 6-6"/>
-            </svg>
-          </button>
-          <div id="monthTitle" class="month-title">
-            <span class="month-name">—</span>
-            <span class="month-theme-badge" id="monthThemeBadge"></span>
-          </div>
-          <button id="nextMonth" class="btn btn--icon" aria-label="Mes siguiente">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </button>
+        <div class="hstat-div">✦</div>
+        <div class="hstat">
+          <span class="hstat-ico">🎁</span>
+          <span class="hstat-n" id="stClaimed">0</span>
+          <span class="hstat-l">Reclamados</span>
         </div>
-
-        <div class="month-actions">
-          <button id="btnPreviewNext" class="btn btn--secondary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-            Preview Siguiente Mes
-          </button>
-          <button id="btnHistory" class="btn btn--secondary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
-            Historial
-          </button>
+        <div class="hstat-div">✦</div>
+        <div class="hstat">
+          <span class="hstat-ico">🗝️</span>
+          <span class="hstat-n" id="stTotalKeys">0</span>
+          <span class="hstat-l">Llaves</span>
         </div>
-      </div>
-    </header>
-
-    <!-- Month Stats Bar -->
-    <div class="month-stats-bar">
-      <div class="stat-item">
-        <div class="stat-icon">🎁</div>
-        <div class="stat-content">
-          <div class="stat-label">Reclamadas</div>
-          <div id="monthProgress" class="stat-value">0/0</div>
-        </div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-icon">✨</div>
-        <div class="stat-content">
-          <div class="stat-label">Estado</div>
-          <div id="claimStatus" class="stat-value">—</div>
-        </div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-icon">📊</div>
-        <div class="stat-content">
-          <div class="stat-label">Progreso</div>
-          <div id="progressPercent" class="stat-value">0%</div>
+        <div class="hstat-div">✦</div>
+        <div class="hstat">
+          <span class="hstat-ico">⭐</span>
+          <span class="hstat-n" id="stXP">0</span>
+          <span class="hstat-l">XP Total</span>
         </div>
       </div>
     </div>
+    <div class="hero-orn" aria-hidden="true">
+      <span class="orn-l"></span><span class="orn-g">◆</span><span class="orn-l"></span>
+    </div>
+  </section>
 
-    <!-- Calendar grid -->
-    <section class="calendar-shell" aria-label="Calendario de recompensas">
-      <div class="weeknames" aria-hidden="true">
-        <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
-      </div>
-
-      <div id="calendarGrid" class="calendar-grid" role="grid" aria-label="Dias del mes">
-        <!-- Cells injected by JS -->
-      </div>
-    </section>
-
-    <!-- Reward modal (mejorado) -->
-    <div id="rewardModal" class="modal reward-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Recompensa">
-      <div class="modal__backdrop"></div>
-      <div class="modal__panel">
-        <button id="rewardClose" class="modal__close" aria-label="Cerrar">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-
-        <div class="reward-body">
-          <!-- Magical reward orb animation -->
-          <div class="reward-orb-container" id="rewardOrbContainer">
-            <div class="reward-orb">
-              <div class="orb-core"></div>
-              <div class="orb-ring"></div>
-              <div class="orb-particles"></div>
-            </div>
+  <!-- ══ BARRA XP ══ -->
+  <section class="xp-section reveal">
+    <div class="cal-inner">
+      <div class="xp-panel">
+        <div class="xp-header">
+          <div class="xp-left">
+            <span class="xp-label">✨ Barra de Experiencia Global</span>
+            <span class="xp-sub" id="xpSubLabel">XP directo + por reclamar días · Al llenar la barra ganas una llave · La Llave Futuro ⏩ solo se consigue en cofres o recompensas de día</span>
           </div>
-
-          <div id="rewardContent" class="reward-content">
-            <!-- dynamically filled -->
-          </div>
-
-          <div class="reward-actions">
-            <button id="btnClaim" class="btn btn--claim">
-              <span class="btn-shimmer"></span>
-              Reclamar Recompensa
-            </button>
-            <button id="btnCloseReward" class="btn btn--ghost">Cerrar</button>
+          <div class="xp-right">
+            <span class="xp-count" id="xpCount">0 / 500 XP</span>
+            <span class="xp-key-hint">→ Próxima llave: <b id="nextKeyLabel">Normal 🔵</b></span>
           </div>
         </div>
+        <div class="xp-track">
+          <div class="xp-fill" id="xpFill" style="width:0%"></div>
+          <div class="xp-glow"></div>
+          <div class="xp-milestones" id="xpMilestones"></div>
+        </div>
+        <div class="xp-keys-earned" id="xpKeysEarned"></div>
       </div>
     </div>
+  </section>
 
-    <!-- Preview Next Month Modal (NUEVO - mejorado) -->
-    <div id="previewModal" class="modal preview-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Preview del siguiente mes">
-      <div class="modal__backdrop"></div>
-      <div class="modal__panel modal__panel--wide">
-        <button id="previewClose" class="modal__close" aria-label="Cerrar">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-
-        <div class="preview-header">
-          <h2 id="previewTitle">Preview — Siguiente Mes</h2>
-          <p class="preview-subtitle">Descubre las recompensas que te esperan</p>
-        </div>
-
-        <div id="previewContent" class="preview-content">
-          <!-- dynamically filled with mini calendar -->
-        </div>
-
-        <div class="preview-highlights" id="previewHighlights">
-          <!-- Special rewards highlighted -->
-        </div>
+  <!-- ══ LEYENDA ══ -->
+  <section class="xp-section" style="padding-bottom:8px">
+    <div class="cal-inner">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;padding:10px 14px;background:rgba(8,10,24,.7);border:1px solid rgba(59,130,246,.1);border-radius:12px;font-size:.72rem;color:var(--muted)">
+        <span>📅 Día normal</span>
+        <span style="color:var(--cyn)">⏩ Reclamable con Llave Futuro (hasta 6 días)</span>
+        <span style="color:var(--sap3)">🗝️ Recompensa incluye llave directa</span>
+        <span style="color:var(--amb)">🔐 Cofre bloqueado — abre con llave específica</span>
+        <span style="color:var(--grn)">✓ Reclamado</span>
+        <span style="color:#f87171">✕ Día perdido — recuperable con llave</span>
       </div>
     </div>
+  </section>
 
-    <!-- History modal (mejorado) -->
-    <div id="historyModal" class="modal history-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Historial de recompensas">
-      <div class="modal__backdrop"></div>
-      <div class="modal__panel modal__panel--wide">
-        <button id="historyClose" class="modal__close" aria-label="Cerrar">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-        
-        <div class="history-header">
-          <h2>📜 Historial de Recompensas</h2>
-          <p class="history-subtitle" id="historySubtitle">Mes actual</p>
+  <!-- ══ CONTROLES ══ -->
+  <section class="ctrl-section reveal">
+    <div class="cal-inner ctrl-inner">
+      <div class="month-nav">
+        <button class="mnbtn" id="prevMonth">‹</button>
+        <div class="month-display">
+          <span class="month-name" id="monthName">—</span>
+          <span class="month-badge" id="monthBadge"></span>
         </div>
-
-        <div class="history-stats" id="historyStats">
-          <!-- Month statistics -->
-        </div>
-
-        <div id="historyContent" class="history-content">
-          <!-- Reward history list -->
-        </div>
+        <button class="mnbtn" id="nextMonth">›</button>
+      </div>
+      <div class="ctrl-actions">
+        <button class="calbtn calbtn-sec" id="btnPreview">👁 Preview siguiente</button>
+        <button class="calbtn calbtn-sec" id="btnHistory">📜 Historial</button>
+        <button class="calbtn calbtn-key" id="btnInventory">🗝️ Inventario <span class="key-badge" id="totalKeyBadge">0</span></button>
       </div>
     </div>
+  </section>
 
-    <!-- Toast (mejorado) -->
-    <div id="loginToast" class="toast" role="status" aria-live="polite">
-      <div class="toast-icon" id="toastIcon">✨</div>
-      <div class="toast-message" id="toastMessage"></div>
+  <!-- ══ CALENDARIO ══ -->
+  <main class="cal-main">
+    <div class="cal-inner">
+      <div class="month-prog-bar reveal">
+        <div class="mpb-info">
+          <span id="mpbText">0 / 0 días</span>
+          <span id="mpbPct">0%</span>
+        </div>
+        <div class="mpb-track"><div class="mpb-fill" id="mpbFill" style="width:0%"></div></div>
+      </div>
+
+      <div class="weekdays" aria-hidden="true">
+        <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+      </div>
+
+      <div id="calGrid" class="cal-grid reveal" role="grid"></div>
     </div>
   </main>
 
-  <footer class="footer" role="contentinfo">
-    <div class="container footer__inner">
-      <div class="foot__brand"><span class="cube"></span><strong>Moonveil</strong> Portal</div>
-      <p class="foot__copy">© <span id="y-year"></span> Moonveil.</p>
+  <!-- ══ FOOTER ══ -->
+  <footer class="site-footer">
+    <div class="cal-inner foot-inner">
+      <div class="foot-brand"><span class="cube"></span><strong>Moonveil</strong> Portal</div>
+      <p class="foot-copy">© <span id="yr"></span> Moonveil. Templo del Tiempo.</p>
     </div>
   </footer>
 
-  <!-- JS -->
-  <script type="module" src="calendar.js"></script>
-  <script>document.getElementById('y-year').textContent = new Date().getFullYear();</script>
+  <!-- ══ MODAL: RECOMPENSA ══ -->
+  <div id="rewardModal" class="modal" aria-hidden="true">
+    <div class="m-backdrop" id="mBd"></div>
+    <div class="m-panel" id="mPanel">
+      <button class="m-close" id="mClose">✕</button>
+      <div id="mContent"></div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: USAR LLAVE / LLAVE FUTURO ══ -->
+  <div id="keyModal" class="modal" aria-hidden="true">
+    <div class="m-backdrop" id="kmBd"></div>
+    <div class="m-panel m-panel-sm" id="kmPanel">
+      <button class="m-close" id="kmClose">✕</button>
+      <div id="kmContent"></div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: INVENTARIO ══ -->
+  <div id="inventoryModal" class="modal" aria-hidden="true">
+    <div class="m-backdrop" id="invBd"></div>
+    <div class="m-panel" id="invPanel">
+      <button class="m-close" id="invClose">✕</button>
+      <div id="invContent"></div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: PREVIEW ══ -->
+  <div id="previewModal" class="modal" aria-hidden="true">
+    <div class="m-backdrop" id="pvBd"></div>
+    <div class="m-panel m-panel-wide" id="pvPanel">
+      <button class="m-close" id="pvClose">✕</button>
+      <div id="pvContent"></div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: HISTORIAL ══ -->
+  <div id="historyModal" class="modal" aria-hidden="true">
+    <div class="m-backdrop" id="hmBd"></div>
+    <div class="m-panel" id="hmPanel">
+      <button class="m-close" id="hmClose">✕</button>
+      <div id="hmContent"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="calendar.js"></script>
 </body>
 </html>
