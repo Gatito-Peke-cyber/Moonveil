@@ -64,6 +64,10 @@ const KEY_TYPES = {
    }
 */
 const MONTH_REWARDS = {
+  '2025-06': buildRewards([
+    {d:5,  icon:'🔑', label:'Llave Dorada',      xp:10000000000000, special:true,
+      keyReward:{ type:'cat', amount:10000000000000 }},
+  ]),
   '2026-02': buildRewards([
     {d:1,  icon:'💚', label:'Esmeraldas x5',    xp:80},
     {d:2,  icon:'⭐', label:'XP +150',           xp:150},  // XP directo
@@ -91,7 +95,7 @@ const MONTH_REWARDS = {
     {d:21, icon:'📜', label:'Pergamino',         xp:80,
       keyReward:{ type:'normal', amount:1 }},
     {d:22, icon:'💚', label:'Esmeraldas x6',     xp:90},
-    {d:23, icon:'⭐', label:'XP +220',           xp:220},
+    {d:23, icon:'⭐', label:'XP +220',           xp:600},
     {d:24, icon:'🪙', label:'Monedas x80',       xp:85},
     {d:25, icon:'🧪', label:'Poción Mágica',     xp:160, special:true,
       lockedChest:{ requiredKey:'special', xpBonus:500, emeralds:40, coins:250, keys:{ type:'normal', amount:3 } }},
