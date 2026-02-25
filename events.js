@@ -162,6 +162,15 @@ const CATEGORIES = [
         accent: "#f43f5e",
         bg: "img-pass/fox-xy.jpg"    // ← ej: "img/dragon-bg.jpg"
       },
+      {
+        title: "Minestone",
+        desc:  "¡Hola ████! Puedes sobrevivir, con 10 corazones,¿seguro? Pues si creo...!¡",
+        emoji: "🌳", url: "aventure.html",
+        startDate: "2026-02-20",
+        expiry: "2026-04-20", daysTotal: 50,
+        accent: "#f59e0b",
+        bg: "img-pass/pokki.jpg"    // ← ej: "img/dragon-bg.jpg"
+      },
     ]
   },
 
@@ -208,7 +217,7 @@ const CATEGORIES = [
         desc:  "La lluvia de Esmeraldas.",
         emoji: "🟢", url: "emerald.html",
         startDate: "2026-02-22",
-        expiry: "2026-02-28", daysTotal: 18,
+        expiry: "2026-02-28", daysTotal: 6,
         accent: "#f59e0b",
         bg: "ach/5y.png"    // ← ej: "img/lny-bg.jpg"
       },
