@@ -8,10 +8,25 @@
      - "24h"  → medianoche del día siguiente (00:00:00 de mañana)
      - "7d"   → medianoche de dentro de 7 días
      - "30d"  → medianoche de dentro de 30 días
-   Así, si compras a las 14:00 con restock "24h", el stock
-   se restablece a las 00:00:00 del día siguiente, no 24h después.
 
-   CÓMO AGREGAR UN PRODUCTO:
+   ═══════════════════════════════════════════════════════════
+   ★ LLAVES DEL CALENDARIO — CÓMO AGREGAR PACKS:
+   ═══════════════════════════════════════════════════════════
+   Las llaves se añaden al array products con section:'calkeys'
+   y el campo calKey con una de estas dos formas:
+
+   // Llave individual:
+   calKey: { type: 'normal', amount: 1 }
+
+   // Pack de varias llaves:
+   calKey: { pack: true, keys: { normal:1, pink:2, future:1 } }
+
+   Tipos válidos: normal · pink · green · orange · cat · special · future
+   Al comprar se suman automáticamente a mv_cal_keys (localStorage
+   compartido con calendar.html).
+   ═══════════════════════════════════════════════════════════
+
+   CÓMO AGREGAR UN PRODUCTO NORMAL:
    Añade un objeto al array `products`:
    {
      id, name, img, emoji, quality, price, stock,
@@ -38,20 +53,16 @@ const fmt  = { format: n => `⟡${n}` };
 
 /* ─────────────────────────────────────
    Medianoche local
-   Devuelve el timestamp de las 00:00:00 del día
-   que resulta de sumar `days` días enteros al día actual.
-   Ej: nextMidnightLocal(1) → medianoche de mañana
-       nextMidnightLocal(7) → medianoche de dentro de 7 días
 ───────────────────────────────────── */
 function nextMidnightLocal(days) {
   const d = new Date();
-  d.setHours(0, 0, 0, 0);          // ir a medianoche de HOY (hora local)
-  d.setDate(d.getDate() + days);    // sumar los días enteros
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + days);
   return d.getTime();
 }
 
 /* ─────────────────────────────────────
-   Countdown: años / días / horas / min / seg
+   Countdown
 ───────────────────────────────────── */
 function calcCountdown(targetMs) {
   const diff = Math.max(0, targetMs - now());
@@ -106,6 +117,106 @@ function parseDate(str) {
   if (!str) return null;
   const d = new Date(str.includes('T') ? str : str + 'T23:59:59');
   return isNaN(d) ? null : d.getTime();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ★ LLAVES DEL CALENDARIO — SISTEMA COMPLETO
+   ═══════════════════════════════════════════════════════════ */
+
+/** Clave de localStorage compartida con calendar.js */
+const CAL_KEYS_LS = 'mv_cal_keys';
+
+/** Valores por defecto si el calendario nunca se usó */
+const CAL_DEFAULT_KEYS = {
+  normal: 0, pink: 0, green: 0,
+  orange: 0, cat: 0, special: 0, future: 0
+};
+
+/** Emojis y nombres para mostrar en toasts y modal */
+const CAL_KEY_INFO = {
+  normal:  { emoji: '🔵', name: 'Llave Normal'  },
+  pink:    { emoji: '💗', name: 'Llave Rosa'     },
+  green:   { emoji: '🟢', name: 'Llave Verde'    },
+  orange:  { emoji: '🎃', name: 'Llave Naranja'  },
+  cat:     { emoji: '😺', name: 'Llave Gato'     },
+  special: { emoji: '💜', name: 'Llave Especial' },
+  future:  { emoji: '⏩', name: 'Llave Futuro'   },
+};
+
+/**
+ * Suma llaves al inventario del Calendario.
+ * calKey puede ser:
+ *   { type:'normal', amount:1 }          ← llave individual
+ *   { pack:true, keys:{ normal:1, ... }} ← pack variado
+ */
+function awardCalendarKeys(calKey) {
+  try {
+    const raw = localStorage.getItem(CAL_KEYS_LS);
+    let keys = raw ? JSON.parse(raw) : { ...CAL_DEFAULT_KEYS };
+    // Asegurar que tenga todas las propiedades
+    Object.keys(CAL_DEFAULT_KEYS).forEach(k => { if (keys[k] == null) keys[k] = 0; });
+
+    if (calKey.pack && calKey.keys) {
+      Object.entries(calKey.keys).forEach(([type, amount]) => {
+        if (keys[type] != null) keys[type] += amount;
+      });
+    } else if (calKey.type) {
+      keys[calKey.type] = (keys[calKey.type] || 0) + calKey.amount;
+    }
+
+    localStorage.setItem(CAL_KEYS_LS, JSON.stringify(keys));
+    return true;
+  } catch (e) {
+    console.warn('awardCalendarKeys error:', e);
+    return false;
+  }
+}
+
+/**
+ * Lee el inventario actual de llaves del calendario.
+ * Útil para mostrar cuántas tiene el usuario en el modal.
+ */
+function getCalendarKeys() {
+  try {
+    const raw = localStorage.getItem(CAL_KEYS_LS);
+    const keys = raw ? JSON.parse(raw) : { ...CAL_DEFAULT_KEYS };
+    Object.keys(CAL_DEFAULT_KEYS).forEach(k => { if (keys[k] == null) keys[k] = 0; });
+    return keys;
+  } catch { return { ...CAL_DEFAULT_KEYS }; }
+}
+
+/** Genera texto descriptivo del calKey para toasts y modal */
+function describeCalKey(calKey) {
+  if (calKey.pack && calKey.keys) {
+    return Object.entries(calKey.keys)
+      .map(([t, a]) => `${CAL_KEY_INFO[t]?.emoji || '🗝️'} ×${a}`)
+      .join('  ');
+  }
+  const info = CAL_KEY_INFO[calKey.type] || { emoji: '🗝️', name: calKey.type };
+  return `${info.emoji} ${info.name} ×${calKey.amount}`;
+}
+
+/** Genera HTML compacto (solo iconos + cantidad) para la tarjeta */
+function calKeyIconsHTML(calKey) {
+  const entries = calKey.pack && calKey.keys
+    ? Object.entries(calKey.keys)
+    : [[calKey.type, calKey.amount]];
+  return entries.map(([t, a]) => {
+    const info = CAL_KEY_INFO[t] || { emoji: '🗝️', name: t };
+    return `<span class="ck-icon ck-icon-${t}" title="${esc(info.name)} ×${a}">${info.emoji}<sub>×${a}</sub></span>`;
+  }).join('');
+}
+
+/** Genera HTML de chips completos (nombre + cantidad) para el modal */
+function calKeyChipsHTML(calKey) {
+  const entries = calKey.pack && calKey.keys
+    ? Object.entries(calKey.keys)
+    : [[calKey.type, calKey.amount]];
+
+  return entries.map(([t, a]) => {
+    const info = CAL_KEY_INFO[t] || { emoji: '🗝️', name: t };
+    return `<span class="calkey-chip ck-${t}">${info.emoji} ${info.name} <strong>×${a}</strong></span>`;
+  }).join('');
 }
 
 /* ─────────────────────────────────────
@@ -173,18 +284,109 @@ const products = [
   { id:'t_classic_4',   emoji:'🎰', name:'Tiros Gratis!!',              img:'imagen/ticket5.jpg', quality:'epic', price:0,  stock:1,  restock:'30d', expiresAt:null, amount:10, section:'tickets', gold:true,  desc:'Ticket para la ruleta clásica x10.', tags:['ticket','clasico'] },
   { id:'t_elemental_3', emoji:'🎫', name:'Ticket 1 de Cobre x5',        img:'imagen/ticket5.jpg', quality:'epic', price:10, stock:1,  restock:null,  expiresAt:null, amount:5,  section:'tickets', gold:false, desc:'Ticket para la ruleta elemental x5.', tags:['ticket','elemental'] },
   { id:'t_elemental_4', emoji:'🎫', name:'Ticket 1 de Cobre x1',        img:'imagen/ticket5.jpg', quality:'epic', price:1,  stock:1,  restock:null,  expiresAt:null, amount:1,  section:'tickets', gold:false, desc:'Ticket para la ruleta elemental x1.', tags:['ticket','elemental'] },
+
+  /* ═══════════════════════════════════════════════════════════
+     ★ LLAVES DEL CALENDARIO
+     Para agregar más packs: copia cualquiera de estos objetos,
+     cambia id (único), name, price, stock, restock y el campo calKey.
+     ═══════════════════════════════════════════════════════════ */
+
+  /* — LLAVES INDIVIDUALES — */
+  {
+    id:'ck_normal', emoji:'🔵', name:'Llave Normal',
+    img:'img/keys1.jpg', quality:'rare', price:30, stock:10,
+    restock:'7d', expiresAt:null, section:'calkeys', gold:false,
+    desc:'Recupera un día perdido en el Calendario de Recompensas. No caduca.',
+    tags:['llave','calendario','recuperar'],
+    calKey: { type:'normal', amount:1 }
+  },
+  {
+    id:'ck_pink', emoji:'💗', name:'Llave Rosa',
+    img:'img/keys1.jpg', quality:'epic', price:50, stock:5,
+    restock:'30d', expiresAt:null, section:'calkeys', gold:false,
+    desc:'Llave especial de San Valentín, Día de la Madre y Día del Padre. Da ×2 en la barra de XP.',
+    tags:['llave','festival','amor'],
+    calKey: { type:'pink', amount:1 }
+  },
+  {
+    id:'ck_green', emoji:'🟢', name:'Llave Verde',
+    img:'img/keys1.jpg', quality:'epic', price:50, stock:5,
+    restock:'30d', expiresAt:null, section:'calkeys', gold:false,
+    desc:'Llave de Navidad y Año Nuevo. Da ×2 en la barra de XP durante esas festividades.',
+    tags:['llave','navidad','año nuevo'],
+    calKey: { type:'green', amount:1 }
+  },
+  {
+    id:'ck_orange', emoji:'🎃', name:'Llave Naranja',
+    img:'img/keys1.jpg', quality:'epic', price:50, stock:5,
+    restock:'30d', expiresAt:null, section:'calkeys', gold:false,
+    desc:'Llave de Halloween y Black Friday. Da ×2 durante esas temporadas.',
+    tags:['llave','halloween','black friday'],
+    calKey: { type:'orange', amount:1 }
+  },
+  {
+    id:'ck_cat', emoji:'😺', name:'Llave Gato',
+    img:'img/keys1.jpg', quality:'epic', price:60, stock:3,
+    restock:'30d', expiresAt:null, section:'calkeys', gold:false,
+    desc:'Llave exclusiva del Día del Gato y Día del Perro. Da ×3 en la barra. ¡Meow!',
+    tags:['llave','gato','especial'],
+    calKey: { type:'cat', amount:1 }
+  },
+  {
+    id:'ck_special', emoji:'💜', name:'Llave Especial',
+    img:'img/keys1.jpg', quality:'epic', price:60, stock:3,
+    restock:'30d', expiresAt:null, section:'calkeys', gold:false,
+    desc:'Para días únicos: Día de la Tierra, del Agua, del Niño. Da ×2 en la barra.',
+    tags:['llave','especial','días especiales'],
+    calKey: { type:'special', amount:1 }
+  },
+  {
+    id:'ck_future', emoji:'⏩', name:'Llave Futuro',
+    img:'img/keys1.jpg', quality:'legendary', price:100, stock:2,
+    restock:'30d', expiresAt:null, section:'calkeys', gold:true,
+    desc:'¡Rarísima! Permite reclamar días que aún no llegaron (hasta 2 días en el futuro). Úsala con sabiduría.',
+    tags:['llave','futuro','rara','especial'],
+    calKey: { type:'future', amount:1 }
+  },
+
+  /* — PACKS DE LLAVES — */
+  /* ★ Para agregar un pack nuevo, copia este bloque y ajusta los valores ★ */
+  {
+    id:'ck_pack_all', emoji:'🎁', name:'Pack Definitivo — 1 de Cada Llave',
+    img:'img/keys1.jpg', quality:'legendary', price:280, stock:1,
+    restock:'30d', expiresAt:null, section:'calkeys', gold:true,
+    desc:'¡El pack supremo! Incluye 1 llave de cada tipo: Normal, Rosa, Verde, Naranja, Gato, Especial y Futuro.',
+    tags:['llave','pack','todas','definitivo'],
+    calKey: { pack:true, keys:{ normal:1, pink:1, green:1, orange:1, cat:1, special:1, future:1 } }
+  },
+  {
+    id:'ck_pack_3normal', emoji:'🔵', name:'Pack: 3 Llaves Normales',
+    img:'img/keys1.jpg', quality:'rare', price:75, stock:5,
+    restock:'7d', expiresAt:null, section:'calkeys', gold:false,
+    desc:'3 Llaves Normales de una vez. Para recuperar varios días perdidos sin buscar una a una.',
+    tags:['llave','pack','normal'],
+    calKey: { pack:true, keys:{ normal:3 } }
+  },
+  {
+    id:'ck_pack_festival', emoji:'🌟', name:'Pack Festival — Rosa + Verde + Naranja',
+    img:'img/keys1.jpg', quality:'epic', price:120, stock:3,
+    restock:'30d', expiresAt:null, section:'calkeys', gold:false,
+    desc:'Pack de festividades: 1 Llave Rosa, 1 Verde y 1 Naranja. Perfectas para las épocas de celebración.',
+    tags:['llave','pack','festival'],
+    calKey: { pack:true, keys:{ pink:1, green:1, orange:1 } }
+  },
+  {
+    id:'ck_pack_starter', emoji:'🌀', name:'Pack Inicio — Normal x2 + Futuro x1',
+    img:'img/keys1.jpg', quality:'epic', price:180, stock:3,
+    restock:'30d', expiresAt:null, section:'calkeys', gold:true,
+    desc:'Pack para empezar fuerte: 2 Llaves Normales para recuperar días perdidos y 1 Llave Futuro para adelantarte.',
+    tags:['llave','pack','inicio','futuro'],
+    calKey: { pack:true, keys:{ normal:2, future:1 } }
+  },
 ];
 
 /* ─────────────────────────────────────
    Persistencia en localStorage
-   ─────────────────────────────────────
-   CAMBIO CLAVE: calcNext ahora calcula la medianoche local
-   en vez de now() + intervalo.
-
-   Tabla de conversión restock → días:
-     '24h'  → 1 día  (medianoche de mañana)
-     '7d'   → 7 días (medianoche en 7 días)
-     '30d'  → 30 días (medianoche en 30 días)
 ───────────────────────────────────── */
 const RESTOCK_DAYS = { '24h': 1, '7d': 7, '30d': 30 };
 
@@ -206,8 +408,6 @@ const LS = {
   setNext(p, ts) {
     localStorage.setItem(this.restock(p.id), ts == null ? 'null' : String(ts));
   },
-
-  /* ── NUEVA LÓGICA: medianoche local ── */
   calcNext(p) {
     if (!p.restock) return null;
     const days = RESTOCK_DAYS[p.restock];
@@ -218,19 +418,14 @@ const LS = {
 
 function syncStocks() {
   products.forEach(p => {
-    // Primera vez: inicializar stock
     if (localStorage.getItem(LS.stock(p.id)) == null) {
       LS.setStock(p, p.stock);
     }
-    // Primera vez: inicializar timestamp de restock
     if (localStorage.getItem(LS.restock(p.id)) == null) {
-      // No programamos restock al inicio, solo cuando se agote
       LS.setNext(p, null);
     } else {
-      // Ya existe: comprobar si ya llegó el momento de restock
       const ts = LS.getNext(p);
       if (ts && ts <= now()) {
-        // Restablecer stock y calcular SIGUIENTE medianoche
         LS.setStock(p, p.stock);
         LS.setNext(p, LS.calcNext(p));
       }
@@ -282,12 +477,18 @@ function renderAll() {
     eventos:   'gridEvents',
     monedas:   'gridCoins',
     tickets:   'gridTickets',
+    calkeys:   'gridCalKeys',   // ★ NUEVO
   };
   const secNames = {
-    pases:'No hay pases disponibles.',llaves:'No hay cofres por ahora.',
-    cosas:'Sin materiales disponibles.',historia:'No hay historia disponible.',
-    materiales:'Sin monedas disponibles.',eventos:'No hay eventos activos.',
-    monedas:'No hay packs de monedas.',tickets:'No hay tickets en este momento.',
+    pases:     'No hay pases disponibles.',
+    llaves:    'No hay cofres por ahora.',
+    cosas:     'Sin materiales disponibles.',
+    historia:  'No hay historia disponible.',
+    materiales:'Sin monedas disponibles.',
+    eventos:   'No hay eventos activos.',
+    monedas:   'No hay packs de monedas.',
+    tickets:   'No hay tickets en este momento.',
+    calkeys:   'Sin llaves disponibles por ahora.',  // ★ NUEVO
   };
 
   const pendingCDs = [];
@@ -360,6 +561,11 @@ function cardHTML(p, idx) {
     ? `<span class="p-tag" style="background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.3);color:#93c5fd">🎫 x${p.amount}</span>`
     : '';
 
+  // ★ Mini iconos compactos para tarjetas calkeys (solo emojis + cantidad)
+  const calKeyIcons = p.calKey
+    ? `<div class="calkey-mini-icons">${calKeyIconsHTML(p.calKey)}</div>`
+    : '';
+
   return {
     html: `
     <article class="p-card ${qCl} ${goldCl} ${isOut ? 'is-out' : ''}" style="animation-delay:${idx * .05}s">
@@ -373,6 +579,7 @@ function cardHTML(p, idx) {
       </div>
       <div class="p-card-body">
         <h3 class="p-card-name">${p.emoji ? p.emoji+' ' : ''}${esc(p.name)}</h3>
+        ${calKeyIcons}
         <p class="p-card-desc">${esc(p.desc)}</p>
         <div class="p-divider"></div>
         <div class="p-price-row">${renderPrice(p)}</div>
@@ -384,7 +591,7 @@ function cardHTML(p, idx) {
         <span class="p-stock">📦 Stock: ${st}</span>
         <div class="p-actions">
           <button class="btn-detail" data-open="${p.id}">Detalles</button>
-          <button class="btn-buy" data-buy="${p.id}" ${isOut ? 'disabled' : ''}>Comprar</button>
+          <button class="btn-buy" data-buy="${p.id}" ${isOut ? 'disabled' : ''}>${p.calKey ? 'Obtener' : 'Comprar'}</button>
         </div>
       </div>
     </article>`,
@@ -396,7 +603,12 @@ function qualityLabel(q) {
   return { legendary:'Legendario', epic:'Épico', rare:'Raro', common:'Común' }[q] || q;
 }
 function sectionLabel(s) {
-  return { pases:'Pases de temporada', llaves:'Cofres', cosas:'Materiales', historia:'Historia', materiales:'Lote de Monedas', eventos:'Pases de Evento', monedas:'Pack de Monedas', tickets:'Tickets' }[s] || s;
+  return {
+    pases:'Pases de temporada', llaves:'Cofres', cosas:'Materiales',
+    historia:'Historia', materiales:'Lote de Monedas', eventos:'Pases de Evento',
+    monedas:'Pack de Monedas', tickets:'Tickets',
+    calkeys:'Llaves del Calendario'   // ★ NUEVO
+  }[s] || s;
 }
 
 /* ─────────────────────────────────────
@@ -445,15 +657,45 @@ function openModal(id) {
       </div>`;
   }
 
+  // ★ Sección especial para llaves del calendario
+  let calKeySection = '';
+  if (p.calKey) {
+    const currentKeys = getCalendarKeys();
+    const entries = p.calKey.pack && p.calKey.keys
+      ? Object.entries(p.calKey.keys)
+      : [[p.calKey.type, p.calKey.amount]];
+
+    const keyRows = entries.map(([t, a]) => {
+      const info = CAL_KEY_INFO[t] || { emoji:'🗝️', name:t };
+      const owned = currentKeys[t] || 0;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.1);border-radius:8px;margin-bottom:6px">
+        <span style="font-size:1rem">${info.emoji} <strong style="color:var(--text)">${info.name}</strong></span>
+        <span style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'Space Mono',monospace;color:#fde68a;font-size:.95rem">+${a}</span>
+          <span style="font-size:.72rem;color:var(--muted)">Tienes: ${owned}</span>
+        </span>
+      </div>`;
+    }).join('');
+
+    calKeySection = `
+      <div class="m-section">
+        <div class="m-sec-title">🔑 Llaves que recibirás</div>
+        <div style="background:rgba(245,166,35,.04);border:1px solid rgba(245,166,35,.12);border-radius:12px;padding:12px">
+          ${keyRows}
+          <p style="font-size:.75rem;color:var(--muted);margin-top:8px;text-align:center">
+            Las llaves se suman automáticamente al <strong style="color:#fcd472">Calendario de Recompensas</strong> al comprar.
+          </p>
+        </div>
+      </div>`;
+  }
+
   const tags = (p.tags||[]).map(t=>`<span class="p-tag">#${esc(t)}</span>`).join('');
   const qColor = {legendary:'rgba(245,158,11,.2)',epic:'rgba(168,85,247,.18)',rare:'rgba(56,189,248,.18)',common:'rgba(156,163,175,.12)'}[p.quality]||'rgba(255,255,255,.08)';
   const qBorder = {legendary:'rgba(245,158,11,.45)',epic:'rgba(168,85,247,.38)',rare:'rgba(56,189,248,.3)',common:'rgba(156,163,175,.2)'}[p.quality]||'rgba(255,255,255,.1)';
   const qText = {legendary:'#fde68a',epic:'#d8b4fe',rare:'#7dd3fc',common:'#d1d5db'}[p.quality]||'#e5e7eb';
 
-  // Descripción del restock usando medianoche local
   let restockDesc = 'Este artículo no se reabastece automáticamente.';
   if (p.restock) {
-    const days = RESTOCK_DAYS[p.restock] || 0;
     const labels = { '24h': 'cada día a medianoche', '7d': 'cada 7 días a medianoche', '30d': 'cada 30 días a medianoche' };
     restockDesc = `Se reabastece <strong style="color:var(--text)">${labels[p.restock] || p.restock}</strong> (hora local).${next ? ` Próximo en <strong style="color:var(--a)">${timeLeft(next)}</strong>.` : ''}`;
   }
@@ -475,6 +717,7 @@ function openModal(id) {
         <div class="p-tags">${tags}</div>
       </div>
     </div>
+    ${calKeySection}
     ${cdSection}
     <div class="m-section">
       <div class="m-sec-title">📋 Notas</div>
@@ -482,6 +725,7 @@ function openModal(id) {
         ${restockDesc}
         La compra descuenta directamente el stock disponible.
         ${p.amount ? `<br>Otorga <strong style="color:var(--a)">${p.amount} ticket${p.amount>1?'s':''}</strong> al completar la compra.` : ''}
+        ${p.calKey ? `<br>Las llaves se entregan automáticamente al <strong style="color:#fcd472">Calendario de Recompensas</strong>.` : ''}
       </p>
     </div>
   `;
@@ -501,6 +745,7 @@ function openModal(id) {
   }
 
   $('#modalBuy').disabled = st <= 0;
+  $('#modalBuy').textContent = p.calKey ? '🗝️ Obtener Llave(s)' : '🛒 Comprar';
   const modal = $('#productModal');
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
@@ -527,7 +772,6 @@ $('#modalBuy')?.addEventListener('click', () => { if (currentProduct) buyItem(cu
 ───────────────────────────────────── */
 function detectTicketInfo(product) {
   const info = { isTicket: false, wheelId: null, count: 0 };
-
   if (typeof product.id === 'string' && product.id.startsWith('t_')) {
     const parts = product.id.split('_');
     if (parts.length >= 2 && parts[1]) {
@@ -539,7 +783,6 @@ function detectTicketInfo(product) {
       return info;
     }
   }
-
   if (Array.isArray(product.tags) && product.tags.includes('ticket')) {
     const name = (product.name || '').toLowerCase();
     if (name.includes('clásic') || name.includes('classic')) {
@@ -557,7 +800,6 @@ function detectTicketInfo(product) {
     info.isTicket = true; info.wheelId = null; info.count = product.amount ?? 1;
     return info;
   }
-
   return info;
 }
 
@@ -585,9 +827,6 @@ function awardTicketsToWheel(wheelId, count) {
 
 /* ─────────────────────────────────────
    COMPRA DE ITEMS
-   ─────────────────────────────────────
-   CAMBIO: Al agotar el stock, se programa el restock
-   para la próxima medianoche local según el intervalo.
 ───────────────────────────────────── */
 function buyItem(id, opts = {}) {
   const p = products.find(x => x.id === id);
@@ -599,23 +838,34 @@ function buyItem(id, opts = {}) {
   st -= 1;
   LS.setStock(p, st);
 
-  // Cuando se agota: programar restock en medianoche local
   if (st <= 0 && p.restock) {
     LS.setNext(p, LS.calcNext(p));
   }
 
-  // Detectar si es ticket y aplicarlo a la ruleta
-  const ticketInfo = detectTicketInfo(p);
-  if (ticketInfo.isTicket) {
-    const gave = ticketInfo.wheelId ? awardTicketsToWheel(ticketInfo.wheelId, ticketInfo.count) : false;
-    if (gave) {
-      const displayWheel = ticketInfo.wheelId ? ticketInfo.wheelId : 'ruleta';
-      if (opts.toastMsg !== false) toast(`Comprado: ${p.name} — +${ticketInfo.count} ticket(s) para ${displayWheel}`);
-    } else {
-      if (opts.toastMsg !== false) toast(`Comprado: ${p.name} — Ticket guardado localmente`);
+  // ★ LLAVES DEL CALENDARIO
+  if (p.calKey) {
+    const gave = awardCalendarKeys(p.calKey);
+    if (gave && opts.toastMsg !== false) {
+      const desc = describeCalKey(p.calKey);
+      toast(`🗝️ ¡Llave(s) añadidas al Calendario! ${desc}`);
+    } else if (!gave) {
+      toast(`Comprado: ${p.name} — revisa el Calendario`);
     }
-  } else {
-    if (opts.toastMsg !== false) toast(`Comprado: ${p.name}`);
+  }
+  // Tickets a la ruleta
+  else {
+    const ticketInfo = detectTicketInfo(p);
+    if (ticketInfo.isTicket) {
+      const gave = ticketInfo.wheelId ? awardTicketsToWheel(ticketInfo.wheelId, ticketInfo.count) : false;
+      if (gave) {
+        const displayWheel = ticketInfo.wheelId ? ticketInfo.wheelId : 'ruleta';
+        if (opts.toastMsg !== false) toast(`Comprado: ${p.name} — +${ticketInfo.count} ticket(s) para ${displayWheel}`);
+      } else {
+        if (opts.toastMsg !== false) toast(`Comprado: ${p.name} — Ticket guardado localmente`);
+      }
+    } else {
+      if (opts.toastMsg !== false) toast(`Comprado: ${p.name}`);
+    }
   }
 
   // Cupón cooldown
@@ -659,7 +909,6 @@ function saveCouponState(s) { localStorage.setItem(COUPON_LS_KEY, JSON.stringify
 function getCouponCooldown(pct) { return Number(loadCouponState()[String(pct)] || 0) }
 function setCouponCooldown(pct, ts) { const s=loadCouponState(); s[String(pct)]=ts||0; saveCouponState(s) }
 
-/* Medianoche local para cupones (igual que el restock) */
 function nextCouponMidnight() { return nextMidnightLocal(1); }
 
 let currentCoupon = Number(localStorage.getItem(CURRENT_COUPON_KEY) || 0);
@@ -669,7 +918,6 @@ function renderCouponUI() {
   const box = $('#couponList');
   if (!box) return;
   const nowTs = now();
-
   const state = loadCouponState();
   let dirty = false;
   ALL_COUPONS.forEach(c => { const cd=Number(state[c]||0); if (cd>0&&cd<=nowTs){state[c]=0;dirty=true;} });
@@ -699,6 +947,7 @@ document.addEventListener('click', e => {
 
 function renderPrice(p) {
   const base = Number(p.price);
+  // Los productos de llaves no tienen descuento por cupón (opcional — quitar este if si quieres que sí aplique)
   if (!currentCoupon) return `<span class="p-price-main">${fmt.format(base)}</span>`;
   const final = Math.max(0, Math.round(base - base * currentCoupon / 100));
   return `<span class="p-price-old">${fmt.format(base)}</span><span class="p-price-new">${fmt.format(final)}</span>`;
