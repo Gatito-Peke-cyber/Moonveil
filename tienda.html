@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Cinzel:wght@600;900&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
   <link rel="icon" type="image/svg+xml"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230d0b08'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23f5a623'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%23c97d0f'/%3E%3C/svg%3E">
 
   <link rel="stylesheet" href="tienda.css" />
   <meta name="description" content="Tienda Moonveil: Pases, cofres, materiales, historia y más." />
@@ -120,8 +120,8 @@
             <button class="chip" data-section="eventos">🎪 Eventos</button>
             <button class="chip" data-section="monedas">💰 Pack coins</button>
             <button class="chip" data-section="tickets">🎫 Tickets</button>
-            <!-- ★ NUEVA SECCIÓN LLAVES CALENDARIO ★ -->
             <button class="chip" data-section="calkeys">🔑 Llaves Cal</button>
+            <button class="chip chip-star" data-section="superestrellas">⭐ Superestrellas</button>
           </div>
         </div>
 
@@ -135,15 +135,17 @@
         <!-- Leyenda -->
         <div class="legend-row reveal">
           <span><span class="ldot gold"></span> Destacado</span>
-          <span><span class="ldot red"></span> Agotado</span>
-          <span><span class="ldot blue"></span> Restock próximo</span>
+          <span><span class="ldot red"></span> Agotado / Caducado</span>
+          <span><span class="ldot blue"></span> Próximamente</span>
         </div>
 
       </div>
     </div>
   </section>
 
-  <!-- SECCIONES DE PRODUCTOS -->
+  <!-- ════════════════════════════════════════
+       SECCIONES DE PRODUCTOS
+       ════════════════════════════════════════ -->
 
   <!-- PASES DE TEMPORADA -->
   <section class="shop-sec" id="secPases" data-sec="pases"
@@ -267,9 +269,9 @@
     </div>
   </section>
 
-  <!-- ★ LLAVES DEL CALENDARIO ★ -->
+  <!-- LLAVES DEL CALENDARIO -->
   <section class="shop-sec calkeys-sec" id="secCalKeys" data-sec="calkeys"
-  style="--sec-bg: url('img-pass/chrismine.jpg')">
+           style="--sec-bg: url('img-pass/chrismine.jpg')">
     <div class="sec-bg-layer" aria-hidden="true"></div>
     <div class="container">
       <header class="sec-head reveal">
@@ -280,7 +282,7 @@
         </div>
       </header>
 
-      <!-- Leyenda de tipos de llave -- Naranja — Halloween &amp; Black Friday -->
+      <!-- Leyenda de tipos de llave -->
       <div class="calkey-legend reveal">
         <div class="ckl-item"><span class="ckl-ico">🔵</span><span>Normal — recupera días perdidos</span></div>
         <div class="ckl-item"><span class="ckl-ico">💗</span><span>Rosa</span></div>
@@ -292,6 +294,33 @@
       </div>
 
       <div class="products-grid" id="gridCalKeys"></div>
+    </div>
+  </section>
+
+  <!-- ★ LLAVES SUPERESTRELLA ★ -->
+  <section class="shop-sec superkeys-sec" id="secSuperKeys" data-sec="superestrellas"
+           style="--sec-bg: url('img-pass/chrismine.jpg')">
+    <div class="sec-bg-layer" aria-hidden="true"></div>
+    <div class="container">
+      <header class="sec-head reveal">
+        <span class="sec-icon">⭐</span>
+        <div>
+          <h2>Llaves Superestrella</h2>
+          <p class="sec-sub">Llaves para abrir los cofres del sistema de aventuras. Las llaves se suman directamente al inventario de cofres.</p>
+        </div>
+      </header>
+
+      <!-- Leyenda tipos de llave superestrella -->
+      <div class="superkey-legend reveal">
+        <div class="skl-item"><span class="skl-ico" style="color:#94A3B8">⭐</span><span>Común — Cofre Común</span></div>
+        <div class="skl-item"><span class="skl-ico" style="color:#38BDF8">💫</span><span>Brillante — Cofre Raro</span></div>
+        <div class="skl-item"><span class="skl-ico" style="color:#22C55E">✨</span><span>Especial — Cofre Especial</span></div>
+        <div class="skl-item"><span class="skl-ico" style="color:#A855F7">🔮</span><span>Épica — Cofre Épico</span></div>
+        <div class="skl-item skl-rare"><span class="skl-ico" style="color:#FBBF24">👑</span><span>Legendaria — Cofre Legendario ✦ Rara</span></div>
+        <div class="skl-item skl-event"><span class="skl-ico">🎆</span><span>Evento — Cofres exclusivos de temporada</span></div>
+      </div>
+
+      <div class="products-grid" id="gridSuperKeys"></div>
     </div>
   </section>
 
@@ -328,6 +357,7 @@
             <li><a href="#secHistoria">📚 Historia</a></li>
             <li><a href="#secTickets">🎫 Tickets</a></li>
             <li><a href="#secCalKeys">🔑 Llaves Cal</a></li>
+            <li><a href="#secSuperKeys">⭐ Superestrellas</a></li>
           </ul>
         </div>
         <div class="footer-col">

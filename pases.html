@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>Moonveil — Pases</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Cinzel:wght@600;900&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230d1117'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%236366f1'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%234f46e5'/%3E%3C/svg%3E">
+
+  <link rel="stylesheet" href="pases.css" />
+  <meta name="description" content="Pases de temporada Moonveil: desbloquea recompensas, sube de nivel y consigue llaves Superestrella." />
+</head>
+<body>
+
+  <!-- Fondo global -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="bgParticles"></canvas>
+    <div class="bg-aurora">
+      <div class="aurora a1"></div>
+      <div class="aurora a2"></div>
+      <div class="aurora a3"></div>
+    </div>
+  </div>
+
+  <!-- HEADER / HUD -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="tienda.html">Tienda</a></li>
+        <li><a href="pases.html" class="active">Pases</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+
+    <div class="hud-stats" aria-label="Indicadores de pase">
+      <div class="hud-pass-info" id="hudPassInfo">
+        <span class="hud-pass-tier" id="hudTier">⬜ Piedra</span>
+        <div class="hud-xp-wrap">
+          <div class="hud-xp-bar"><div class="hud-xp-fill" id="hudXPFill"></div></div>
+          <span class="hud-xp-txt" id="hudXPTxt">0 / 100 XP</span>
+        </div>
+        <span class="hud-level" id="hudLevel">Nivel 1</span>
+
+        <!-- BOOST INDICATOR — se muestra solo cuando hay un boost activo -->
+        <div class="hud-boost-wrap hidden" id="hudBoostWrap" title="Boost de XP activo">
+          <span class="hud-boost-icon">⚡</span>
+          <span class="hud-boost-mult" id="hudBoostMult">×1.5</span>
+          <span class="hud-boost-timer" id="hudBoostTimer">00:00:00</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO de pases -->
+  <section class="pass-hero">
+    <div class="container">
+      <div class="pass-hero-inner reveal">
+        <div class="pass-hero-eyebrow">
+          <span class="indigo-dot"></span>
+          Sistema de Temporadas
+        </div>
+        <h1 class="pass-hero-title">
+          <span class="pht-sm">PASES DE</span>
+          <span class="pht-big">TEMPORADA</span>
+        </h1>
+        <p class="pass-hero-lead">Completa misiones, sube de nivel y desbloquea Llaves Superestrella para los cofres.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SELECTOR DE PASES - SLIDER HORIZONTAL -->
+  <section class="pass-selector-sec">
+    <div class="container">
+      <div class="selector-header reveal">
+        <h2 class="selector-title">Elige tu Temporada</h2>
+        <p class="selector-sub">Desliza para explorar todas las temporadas disponibles.</p>
+      </div>
+      <div class="slider-wrapper reveal">
+        <button class="slider-arrow slider-arrow-left" id="sliderLeft" aria-label="Anterior">‹</button>
+        <div class="pass-slider-track" id="passSliderTrack">
+          <!-- Se rellena por JS -->
+        </div>
+        <button class="slider-arrow slider-arrow-right" id="sliderRight" aria-label="Siguiente">›</button>
+      </div>
+      <div class="slider-dots" id="sliderDots"></div>
+    </div>
+  </section>
+
+  <!-- PANEL PRINCIPAL DEL PASE ACTIVO -->
+  <section class="pass-main-sec" id="passMainSec" style="display:none">
+    <div class="container">
+
+      <!-- Cabecera del pase -->
+      <div class="pass-header-card reveal" id="passHeaderCard">
+        <!-- JS -->
+      </div>
+
+      <!-- Tabs — incluye Buzón -->
+      <div class="pass-tabs reveal" id="passTabs">
+        <button class="ptab is-on" data-tab="recompensas">🎁 Recompensas</button>
+        <button class="ptab" data-tab="misiones">📋 Misiones</button>
+        <button class="ptab" data-tab="inventario">🎒 Inventario</button>
+        <button class="ptab" data-tab="mejoras">⬆️ Mejoras</button>
+        <button class="ptab ptab-mailbox" data-tab="buzon">
+          📬 Buzón
+          <span class="mailbox-badge-pases hidden" id="mailboxBadgePases">0</span>
+        </button>
+      </div>
+
+      <!-- Tab: Recompensas (niveles) -->
+      <div class="pass-tab-content" id="tabRecompensas">
+        <div class="pass-track-tier-selector" id="passTrackTierSelector"></div>
+        <div class="pass-max-level-banner hidden" id="passMaxLevelBanner"></div>
+        <div class="pass-track-container reveal" id="passTrackContainer">
+          <!-- JS rellena el carril de 2 filas -->
+        </div>
+        <div class="pass-track-legend">
+          <span><span class="legend-dot free"></span> Gratis (Piedra)</span>
+          <span><span class="legend-dot paid"></span> <span id="legendPaidLabel">Pagado (Hierro+)</span></span>
+          <span><span class="legend-dot done"></span> Reclamado</span>
+          <span><span class="legend-dot milestone"></span> Hito épico</span>
+          <span style="font-size:.72rem;color:#60a5fa">🔑 Las llaves que consigas se van a la seccion de cofres</span>
+        </div>
+      </div>
+
+      <!-- Tab: Misiones -->
+      <div class="pass-tab-content hidden" id="tabMisiones">
+        <div class="missions-locked-banner hidden" id="missionsBanner"></div>
+        <div class="missions-container" id="missionsGrid"></div>
+      </div>
+
+      <!-- Tab: Inventario -->
+      <div class="pass-tab-content hidden" id="tabInventario">
+        <div class="inv-header reveal">
+          <h3>🎒 Inventario del Pase</h3>
+          <button class="btn-ghost-sm" id="btnGlobalInv">Ver Inventario Global</button>
+        </div>
+        <div class="inv-grid" id="invGrid"></div>
+        <div class="global-inv-panel hidden" id="globalInvPanel">
+          <h3 class="global-inv-title">🌐 Inventario Global</h3>
+          <div class="inv-grid" id="globalInvGrid"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Mejoras -->
+      <div class="pass-tab-content hidden" id="tabMejoras">
+        <!-- Cadena visual de tiers -->
+        <div class="tier-chain-info reveal">
+          <div class="tier-chain-title">🔗 Cadena de Mejoras</div>
+          <div class="tier-chain-row">
+            <span class="tier-chain-node stone">⬜ Piedra</span>
+            <span class="tier-chain-arrow">→</span>
+            <span class="tier-chain-node iron">⬛ Hierro</span>
+            <span class="tier-chain-arrow">→</span>
+            <span class="tier-chain-node gold">🟨 Oro</span>
+            <span class="tier-chain-arrow">→</span>
+            <span class="tier-chain-node emerald">🟩 Esmeralda</span>
+            <span class="tier-chain-arrow">→</span>
+            <span class="tier-chain-node diamond">🔷 Diamante</span>
+          </div>
+          <p class="tier-chain-sub">Cada tier requiere el anterior. Hierro se compra en la tienda; los demás se activan en cadena.</p>
+        </div>
+        <div class="mejoras-container" id="mejorasGrid"></div>
+      </div>
+
+      <!-- Tab: Buzón de Mensajes del Pase -->
+      <div class="pass-tab-content hidden" id="tabBuzon">
+        <div class="pmail-header reveal">
+          <div class="pmail-header-left">
+            <h3>📬 Buzón de Mensajes</h3>
+            <p class="pmail-header-sub">Reclama recompensas especiales, boosts de XP y Llaves Superestrella.</p>
+          </div>
+          <div class="pmail-header-right">
+            <div class="pmail-info-badge">
+              <span>⚡ Los boosts aumentan XP de misiones</span>
+            </div>
+            <div class="pmail-info-badge">
+              <span>🔑 Las llaves van a la página de Cofres</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boost activo (si hay) -->
+        <div class="pmail-boost-active hidden" id="pmailBoostActive">
+          <span class="pba-icon">⚡</span>
+          <div class="pba-info">
+            <div class="pba-title">¡Boost de XP Activo!</div>
+            <div class="pba-sub">Multiplicador: <strong id="pbaMultiplier">×1.5</strong> — Tiempo restante: <strong id="pbaTimer">--:--:--</strong></div>
+          </div>
+        </div>
+
+        <div class="pmail-list" id="passMailboxList">
+          <!-- JS rellena los mensajes -->
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Sin pase seleccionado -->
+  <section class="no-pass-sec" id="noPassSec" style="display:none">
+    <div class="container">
+      <div class="no-pass-msg reveal">
+        <span style="font-size:3rem">🗓️</span>
+        <h3>Selecciona un pase arriba para comenzar</h3>
+        <p>Elige el pase de la temporada que quieres explorar.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL de recompensa de nivel -->
+  <div class="modal" id="rewardModal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-overlay" id="rewardOverlay"></div>
+    <div class="modal-dialog">
+      <header class="modal-head">
+        <h2 class="modal-title" id="rewardTitle">Recompensa</h2>
+        <button class="modal-close-x" id="rewardClose">✕</button>
+      </header>
+      <div class="modal-body" id="rewardBody"></div>
+      <footer class="modal-foot">
+        <button class="modal-claim-btn" id="rewardClaim">✨ Reclamar</button>
+        <button class="modal-sec-btn" id="rewardCloseBtn">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- MODAL inventario global -->
+  <div class="modal" id="globalModal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-overlay" id="globalOverlay"></div>
+    <div class="modal-dialog modal-lg">
+      <header class="modal-head">
+        <h2 class="modal-title">🌐 Inventario Global</h2>
+        <button class="modal-close-x" id="globalClose">✕</button>
+      </header>
+      <div class="modal-body" id="globalModalBody"></div>
+      <footer class="modal-foot">
+        <button class="modal-sec-btn" id="globalCloseBtn">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Botón música -->
+  <button class="music-orb" id="musicOrb" onclick="togglePassMusic()" title="Música del pase">
+    <span class="music-orb-icon">♪</span>
+    <span class="music-orb-wave w1"></span>
+    <span class="music-orb-wave w2"></span>
+    <span class="music-orb-wave w3"></span>
+  </button>
+
+  <audio id="pass-music" loop>
+    <source src="music/pass_default.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script src="pases.js"></script>
+
+  <!-- Script inline para sincronizar boost con el panel del buzón -->
+  <script>
+    setInterval(() => {
+      const boostEl = document.getElementById('pmailBoostActive');
+      if (!boostEl) return;
+      const boosts = JSON.parse(localStorage.getItem('mv_active_boosts') || '[]').filter(b => b.expiry > Date.now());
+      if (boosts.length) {
+        boostEl.classList.remove('hidden');
+        const top = boosts.sort((a,b)=>b.multiplier-a.multiplier)[0];
+        const diff = Math.max(0, top.expiry - Date.now());
+        const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+        const pad = n=>String(n).padStart(2,'0');
+        const mult = document.getElementById('pbaMultiplier'), timer = document.getElementById('pbaTimer');
+        if (mult) mult.textContent = `×${top.multiplier}`;
+        if (timer) timer.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+      } else {
+        boostEl.classList.add('hidden');
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

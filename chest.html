@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>Moonveil — Cofres</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Cinzel:wght@600;900&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23020510'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%234da6ff'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%231a5acc'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="chest.css"/>
+</head>
+<body>
+<div class="bg" aria-hidden="true">
+  <canvas id="bgParticles"></canvas>
+  <div class="bg-parallax">
+    <div class="layer sky"></div>
+    <div class="layer far"></div>
+    <div class="layer mid"></div>
+    <div class="layer near"></div>
+  </div>
+</div>
+<header class="top-hud" role="banner">
+  <nav class="navbar" aria-label="Navegación principal">
+    <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+      <span class="cube" aria-hidden="true"></span>
+      <span class="brand__title">Moonveil <b>Portal</b></span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="tienda.html">Tienda</a></li>
+      <li><a href="chest.html" class="active">Cofres</a></li>
+      <li><a href="index.html">Salir</a></li>
+    </ul>
+  </nav>
+  <div class="hud-stats" aria-label="Indicadores">
+    <div class="hud__bars">
+      <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
+      <div class="hud-bar xp" data-val="54" aria-label="XP 54%"></div>
+    </div>
+    <div class="hud__inv" aria-label="Inventario rápido">
+      <button class="slot" title="Esmeraldas"><span class="i i-emerald"></span></button>
+      <button class="slot" title="Mapa"><span class="i i-map"></span></button>
+      <button class="slot" title="Llave"><span class="i i-key"></span></button>
+    </div>
+  </div>
+</header>
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner reveal">
+      <div class="hero-eyebrow"><span class="amber-dot"></span>Cofres y Llaves Superestrella del reino</div>
+      <h1 class="hero-title">
+        <span class="ht-sm">ABRE TU</span>
+        <span class="ht-big">COFRE MOONVEIL</span>
+      </h1>
+      <p class="hero-lead">Cada cofre guarda tesoros únicos. Consigue <strong>Llaves Superestrella</strong> para abrirlos. Los cofres de evento solo se abren en sus fechas especiales.</p>
+      <div class="key-inventory-panel reveal">
+        <div class="kip-header">
+          <span class="kip-title">🔑 Inventario de Llaves Superestrella</span>
+          <div class="mailbox-btn-wrap">
+            <button class="btn-mailbox" id="mailboxBtn">📬 Buzón</button>
+            <span class="mailbox-badge" id="mailboxBadge" style="display:none">0</span>
+          </div>
+        </div>
+        <div id="keyInventory"></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="shop-sec" id="secPermanent">
+  <div class="container">
+    <header class="sec-head reveal">
+      <span class="sec-icon">🏆</span>
+      <div><h2>Cofres Permanentes</h2><p class="sec-sub">Siempre disponibles. Desde el Común hasta el Legendario — ¿a qué nivel llegas?</p></div>
+    </header>
+    <div class="chests-grid" id="gridPermanent"></div>
+  </div>
+</section>
+<section class="shop-sec" id="secEventos">
+  <div class="container">
+    <header class="sec-head reveal">
+      <span class="sec-icon">🎪</span>
+      <div><h2>Cofres de Evento</h2><p class="sec-sub">Solo abribles en sus fechas especiales. ¡No te los pierdas! Algunos repiten varias veces al año.</p></div>
+    </header>
+    <div class="chests-grid" id="gridEvents"></div>
+  </div>
+</section>
+<section class="shop-sec mailbox-section" id="secMailbox">
+  <div class="container">
+    <header class="sec-head reveal">
+      <span class="sec-icon">📬</span>
+      <div><h2>Buzón de Llaves</h2><p class="sec-sub">Aquí llegan llaves gratis. Reclama tus sobres antes de que lleguen más.
+        <button class="btn-mailbox" id="mailboxToggleBtn" style="margin-left:12px;">📬 Abrir / Cerrar Buzón</button></p></div>
+    </header>
+    <div class="mailbox-wrap" id="mailboxWrap"><div class="mailbox-inner" id="mailboxList"></div></div>
+  </div>
+</section>
+<section class="shop-sec history-section" id="secHistory">
+  <div class="container">
+    <header class="sec-head reveal">
+      <span class="sec-icon">📜</span>
+      <div><h2>Historial de Cofres</h2><p class="sec-sub">Todo lo que has obtenido, clasificado por cofre. Los ítems del mismo cofre se suman.</p></div>
+    </header>
+    <div class="history-grid" id="historyWrap"></div>
+  </div>
+</section>
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo"><span class="cube"></span><span>Moonveil <b>Portal</b></span></div>
+        <p class="footer-tagline">El sistema de cofres oficial del reino. Llaves, tesoros y suerte en cada apertura.</p>
+        <div class="footer-live"><span class="amber-dot small" style="width:7px;height:7px;border-radius:50%;background:#4da6ff;box-shadow:0 0 8px #4da6ff;animation:pulse 1.4s ease-in-out infinite;display:inline-block"></span>Cofres activos · Llaves disponibles</div>
+      </div>
+      <div class="footer-col"><h4>Navegar</h4><ul>
+        <li><a href="inicio.html">🏠 Inicio</a></li><li><a href="tienda.html">🛒 Tienda</a></li>
+        <li><a href="banco.html">🏦 Banco</a></li><li><a href="premios.html">🎰 Ruleta</a></li>
+        <li><a href="tradeos.html">🔀 Tradeos</a></li>
+      </ul></div>
+      <div class="footer-col"><h4>Cofres</h4><ul>
+        <li><a href="#secPermanent">🏆 Permanentes</a></li><li><a href="#secEventos">🎪 Eventos</a></li>
+        <li><a href="#secMailbox">📬 Buzón</a></li><li><a href="#secHistory">📜 Historial</a></li>
+      </ul></div>
+      <div class="footer-col"><h4>Info</h4><ul>
+        <li><a href="#">📩 Soporte</a></li><li><a href="#">📜 Términos</a></li>
+        <li><a href="#">🔒 Privacidad</a></li><li><a href="index.html">🚪 Salir</a></li>
+      </ul></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="y"></span> Moonveil Portal — Hecho con ☕ + llaves estelares</span>
+      <span class="footer-live-txt">✨ Cofres activos</span>
+    </div>
+  </div>
+</footer>
+<div class="modal" id="openingModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalChestName">
+  <div class="modal-overlay" id="openModalOverlay"></div>
+  <div class="modal-dialog">
+    <div class="opening-chest-area"><div id="modalChestSvg"></div><div id="modalParticles"></div></div>
+    <h2 class="modal-chest-name" id="modalChestName">—</h2>
+    <div id="rewardReveal">
+      <div class="reward-card">
+        <span class="you-got-label">¡Has obtenido!</span>
+        <span class="reward-emoji-big" id="rewardEmoji">🎁</span>
+        <span class="reward-name-big" id="rewardName">—</span>
+        <span class="reward-amount-big" id="rewardAmount">×0</span>
+        <span class="reward-rarity-tag" id="rewardRarity">—</span>
+      </div>
+      <button class="modal-close-btn" id="openModalClose">✕ Cerrar</button>
+    </div>
+  </div>
+</div>
+<div class="modal" id="infoModal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal-overlay" id="infoModalOverlay"></div>
+  <div class="modal-dialog">
+    <div class="info-modal-head">
+      <div class="info-modal-title-wrap"><h2 id="infoChestName">—</h2><div class="info-key-sub" id="infoKeyName"></div></div>
+      <button class="modal-close-x" id="infoModalClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div id="infoDates"></div>
+    <div class="info-modal-body">
+      <div class="info-modal-sub">Posibles recompensas</div>
+      <table class="rewards-table"><tbody id="infoRewardsTable"></tbody></table>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
+<audio id="bg-music" loop><source src="music/8.mp3" type="audio/mpeg"/></audio>
+<script src="chest.js"></script>
+</body>
+</html>

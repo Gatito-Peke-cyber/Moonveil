@@ -110,7 +110,7 @@ const ROULETTES = [
   },
 
   /* ─── RULETA COBRE (temporada) ─── */
-  {
+  /*{
     id: 'elemental',
     title: 'Cobre',
     icon: '🪙',
@@ -133,10 +133,10 @@ const ROULETTES = [
       { id:'e43', label:'Vacío',     weight:1, rarity:'legend', img:'✨', desc:'Nada',        stock:null },
       { id:'e44', label:'Cobre x64',weight:1, rarity:'legend', img:'🪙', desc:'Gran bolsa', stock:null },
     ]
-  },
+  },*/
 
   /* ─── RULETA EVENTO (limitada) ─── */
-  {
+  /*{
     id: 'event',
     title: 'Evento',
     icon: '🎭',
@@ -155,7 +155,7 @@ const ROULETTES = [
         id:`ev${i+6}`, label:`Esmeraldas x${[0,5,5,10,10,10,10,15,15,5][i]}`, weight:30, rarity:'common', img:'💚', desc:'Común', stock:null
       }))
     ]
-  },
+  },*/
 
   /* ═══════════════════════════════════════════
      ▼▼▼ PLANTILLA PARA NUEVA RULETA ▼▼▼
@@ -225,10 +225,10 @@ const MISSIONS_BY_WHEEL = {
 ═══════════════════════════════════════════════════ */
 const FOX_MESSAGES = {
   classic:   ['¡La clásica nunca falla!', 'Esmeraldas y monedas 💚', 'Esta es permanente ♾️', '¡Buena suerte!', 'Los épicos cada 20 tiros 📊'],
-  elemental: ['¿Solo un cobre? 🪙', '¡Puede haber sorpresas!', 'Los episodios son raros ✨', 'Esta ruleta es especial 🎯', '¡Prueba tu suerte!'],
-  event:     ['¡Evento limitado! ⏰', 'Cupones exclusivos 🎭', '¡No te lo pierdas!', 'Premios únicos aquí', '¡Aprovecha ahora!'],
+  //elemental: ['¿Solo un cobre? 🪙', '¡Puede haber sorpresas!', 'Los episodios son raros ✨', 'Esta ruleta es especial 🎯', '¡Prueba tu suerte!'],
+  //event:     ['¡Evento limitado! ⏰', 'Cupones exclusivos 🎭', '¡No te lo pierdas!', 'Premios únicos aquí', '¡Aprovecha ahora!'],
   /* mystic: ['Sientes el poder místico… 🌙', '¡Los artefactos arcanos te esperan!'] */
-  default:   ['¡Gira y gana! 🎰', '¡Buena suerte!', 'Épico cada 20 💜', 'Legendario cada 60 ⭐', '¡Colecciona todo! 📦']
+  default:   ['¡Gira y gana!', '¡Buena suerte!', 'Épico cada 20 💜', 'Legendario cada 60 ⭐', '¡Colecciona todo! 📦']
 };
 
 /* ═══════════════════════════════════════════════════
