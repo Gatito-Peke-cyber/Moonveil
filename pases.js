@@ -98,7 +98,7 @@ const PASS_MAIL_ITEMS = [
       { type:'keys', keyId:'key_common', amount:3, emoji:'⭐', name:'Llave Superestrella' },
     ]
   },
-  {
+  /*{
     id:'pm_115', title:'Regalo VIP del Pase',
     sender:'Sand Brill Premium ✦', emoji:'👑',
     msg:'Incluso Sand Brill se puso generoso esta vez. Un boost de XP intenso y un extra de experiencia para que llegues al nivel máximo. ¡Suerte!',
@@ -106,8 +106,8 @@ const PASS_MAIL_ITEMS = [
       { type:'xp', amount:1000, emoji:'⭐', name:'XP Bonus' },
       { type:'boost', boostHours:4, boostMultiplier:2.0, emoji:'⚡', name:'Boost XP 4h ×2.0' },
     ]
-  },
-  /*{
+  },*/
+  {
     id:'pm_002', title:'Boost de XP de Bienvenida',
     sender:'Sistema Moonveil', emoji:'⚡',
     msg:'Un boost de XP para ayudarte a subir de nivel más rápido. ¡Actívalo en el momento que más te convenga y aprovecha cada misión!',
@@ -115,7 +115,7 @@ const PASS_MAIL_ITEMS = [
       { type:'boost', boostHours:2, boostMultiplier:1.5, emoji:'⚡', name:'Boost XP 2h ×1.5' },
     ]
   },
-  {
+  /*{
     id:'pm_003', title:'Pack de Llaves Especiales',
     sender:'Moonveil Events', emoji:'🔮',
     msg:'Por tu dedicación en los pases de temporada te enviamos un pack de llaves para los cofres. ¡Ábrelos en la página de Cofres!',

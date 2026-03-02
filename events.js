@@ -109,7 +109,7 @@ const CATEGORIES = [
       {
         title: "Minepass",
         desc:  "Lleguemos hasta las estrellas, tu sabes que no te abandonare, porque eres mi gran amigo. Nunca lo olvides y siempre estara tu amiguito David Kal...",
-        emoji: "🎫", url: "pase.html",
+        emoji: "🎫", url: "pases.html",
         startDate: "2026-02-28",
         expiry: "2026-04-01",   daysTotal: 30,
         accent: "#06b6d4",
