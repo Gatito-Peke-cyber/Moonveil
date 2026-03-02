@@ -51,7 +51,7 @@ const CATEGORIES = [
       { title:"History",  desc:"Algunas historias, sin concluir...",  emoji:"📜", url:"historia.html", startDate: "2026-05-01", bg:"imagen/diary.jpg"},
       { title:"Cofres, y mas Cofres...", desc:"Aqui hay algunos cofres... ¿Que Sand Brill patrocino?... Pero de igual manera hay cofres, eh!...",   emoji:"⭐", url:"chest.html" ,
         startDate: "2026-01-01",
-        bg:"img/universe1.gif",
+        bg:"img/picture4.jpg",
       },
     ]
   },
