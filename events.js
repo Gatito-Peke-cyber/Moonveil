@@ -42,13 +42,17 @@ const CATEGORIES = [
     id: "principal", icon: "🏠", name: "Principal",
     color: "#a855f7",          // ← púrpura por defecto
     items: [
-      { title:"Inicio",   desc:"Página de bienvenida del portal.",              emoji:"🌙", url:"inicio.html"   },
-      { title:"Perfiles", desc:"Explora y gestiona los perfiles de los aldeanos.", emoji:"👤", url:"perfiles.html", bg:"vill/teacher.jpg" },
-      { title:"Noticias", desc:"Noticias del mundo.",       emoji:"📰", url:"noticias.html" ,startDate: "2026-02-23",bg: "gif/villager-news.gif"},
-      { title:"Foro",     desc:"Algunas novedades de los aldeanos. Y quien sabe un chisme...", emoji:"💬", url:"foro.html", bg:"vill/booktea.gif"     },
-      { title:"Contacto", desc:"Pues aqui se habla con los aldeanos del mundo. No todos pero si algunos...", emoji:"📩", url:"contactos.html", bg:"imagen/golem1.jpg",},
-      { title:"Updates",  desc:"Registro de todas las actualizaciones.",        emoji:"🔄", url:"updates.html" , startDate: "2026-03-01", },
+      { title:"Inicio",   desc:"Página de bienvenida del portal.",              emoji:"🌙", url:"inicio.html", bg:"img/picture6.jpg"  },
+      { title:"Perfiles Aldeanil", desc:"Explora y gestiona los perfiles de los aldeanos.", emoji:"👤", url:"perfiles.html", bg:"vill/teacher.jpg" },
+      { title:"Noticias Aldeanil", desc:"Noticias del mundo.",       emoji:"📰", url:"noticias.html" ,startDate: "2026-02-23",bg: "gif/villager-news.gif"},
+      { title:"Foro Aldeanil",     desc:"Algunas novedades de los aldeanos. Y quien sabe un chisme...", emoji:"💬", url:"foro.html", bg:"vill/booktea.gif"     },
+      { title:"Contacto Aldeanil", desc:"Pues aqui se habla con los aldeanos del mundo. No todos pero si algunos...", emoji:"📩", url:"contactos.html", bg:"imagen/golem1.jpg",},
+      { title:"Updates",  desc:"Registro de todas las actualizaciones.",        emoji:"🔄", url:"updates.html" , startDate: "2026-03-01", bg:"img/picture1.jpg",},
       { title:"History",  desc:"Algunas historias, sin concluir...",  emoji:"📜", url:"historia.html", startDate: "2026-05-01", bg:"imagen/diary.jpg"},
+      { title:"Cofres, y mas Cofres...", desc:"Aqui hay algunos cofres... ¿Que Sand Brill patrocino?... Pero de igual manera hay cofres, eh!...",   emoji:"⭐", url:"chest.html" ,
+        startDate: "2026-01-01",
+        bg:"img/universe1.gif",
+      },
     ]
   },
 
@@ -58,12 +62,13 @@ const CATEGORIES = [
     color: "#06b6d4",          // ← cyan
     items: [
       { title:"Tradeos", desc:"Sistema de intercambios entre aldeanos, aunque ellos solo piden esmeraldas.¡Que se puede hacer si solo piden eso!",   emoji:"🔀", url:"tradeos.html" ,
-        startDate: "2026-03-10",
+        startDate: "2026-04-10",
         bg:"img-pass/trading.jpg",
       },
       { title:"Tienda",  desc:"Compra lo que mas te convenga.¡Y eso si hay cupones!Obvio si tienes...", emoji:"🛒", url:"tienda.html", bg:"img/mine.gif"  },
-      { title:"Bank",    desc:"Gestiona tus monedas y depósitos.¡Que no se te pase su tiempo!",           emoji:"🏦", url:"banco.html",
-        accent: "#10b981"  // verde especial para Bank
+      { title:"Bank",    desc:"Gestiona tus monedas y depósitos.¡Que no se te pase su tiempo!",           emoji:"🏦", url:"banco.html", 
+        accent: "#10b981",  // verde especial para Bank
+        bg: "img/picture3.jpg" 
       },
       {
         title:"Ruleta",  desc:"¡Prueba tu suerte y gana premios! Y si quieres mas tickets, compralos en la tienda...",
@@ -76,8 +81,9 @@ const CATEGORIES = [
       },
       { title:"Posts", desc:"Bueno, supongo que aqui postean los aldeanos...",   emoji:"💬", url:"ins.html" ,
         startDate: "2026-04-01",
-        bg:"",
+        bg:"img/picture2.jpg",
       },
+      
     ]
   },
 
@@ -98,12 +104,13 @@ const CATEGORIES = [
         accent: "#f59e0b",
         startDate: "2026-02-22",
         expiry: "2026-04-15",  daysTotal: 60,
+        bg:"img/picture4.jpg"
       },
       {
         title: "Minepass",
         desc:  "Lleguemos hasta las estrellas, tu sabes que no te abandonare, porque eres mi gran amigo. Nunca lo olvides y siempre estara tu amiguito David Kal...",
         emoji: "🎫", url: "pase.html",
-        startDate: "2026-03-01",
+        startDate: "2026-02-28",
         expiry: "2026-04-01",   daysTotal: 30,
         accent: "#06b6d4",
         bg: "img/universe1.gif"    // ← ej: "img/dragon-bg.jpg"
@@ -208,7 +215,7 @@ const CATEGORIES = [
         title: "Año Lunar",
         desc:  "Celebra el Año Nuevo Lunar con recompensas.",
         emoji: "🏮", url: "lny.html",
-        expiry: "2026-03-01", daysTotal: 18,
+        expiry: "2026-03-06", daysTotal: 18,
         accent: "#f59e0b",
         bg: "img-pass/añomine.jpg"    // ← ej: "img/lny-bg.jpg"
       },
@@ -217,7 +224,7 @@ const CATEGORIES = [
         desc:  "La lluvia de Esmeraldas.",
         emoji: "🟢", url: "emerald.html",
         startDate: "2026-02-22",
-        expiry: "2026-02-28", daysTotal: 6,
+        expiry: "2026-03-30", daysTotal: 6,
         accent: "#f59e0b",
         bg: "ach/5y.png"    // ← ej: "img/lny-bg.jpg"
       },
@@ -248,7 +255,7 @@ const CATEGORIES = [
   //     {
   //       title: "Mi Página", desc: "Descripción.", emoji: "🌟", url: "mi-pagina.html",
   //       bg: "img/mi-fondo.jpg",     ← imagen de fondo (opcional)
-  //       accent: "#f43f5e",          ← color de acento (opcional)
+  //       accent: "#f43f5e",        ← color de acento (opcional)
   //       expiry: "2026-12-31",       ← caducidad (opcional)
   //       startDate: "2026-06-01",    ← apertura futura (opcional)
   //       daysTotal: 30,              ← días del evento (opcional)
