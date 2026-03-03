@@ -390,7 +390,7 @@ const BLACK_FRIDAY_COUPON = {
   unlimited: true,
   periods: [
     // ← Añade o modifica los períodos aquí
-    { startDate: '2026-03-01', endDate: '2026-03-02' },
+    { startDate: '2026-03-02', endDate: '2026-03-03' },
     { startDate: '2026-04-01', endDate: '2026-04-02' },
     { startDate: '2026-11-27', endDate: '2026-11-30' },
   ],
