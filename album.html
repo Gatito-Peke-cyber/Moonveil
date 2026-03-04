@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>Álbum de Recuerdos ✦ Memorias</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Lora:ital,wght@0,400;0,500;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Space+Mono:wght@400;700&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="album.css" />
+
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230d1117'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%236366f1'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%234f46e5'/%3E%3C/svg%3E">
+</head>
+<body>
+
+  <canvas id="starCanvas" aria-hidden="true"></canvas>
+  <div class="stardust" id="stardust" aria-hidden="true"></div>
+
+  <!-- HEADER -->
+  <header class="top-hud" role="banner">
+    <nav class="navbar" aria-label="Navegación principal">
+      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
+        <span class="cube" aria-hidden="true"></span>
+        <span class="brand__title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="album.html" class="active">Álbum</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="album-main" role="main">
+
+    <!-- Hero -->
+    <section class="album-hero">
+      <div class="hero-ornament top-left"  aria-hidden="true">✦</div>
+      <div class="hero-ornament top-right" aria-hidden="true">✦</div>
+      <div class="hero-ornament bot-left"  aria-hidden="true">✦</div>
+      <div class="hero-ornament bot-right" aria-hidden="true">✦</div>
+      <div class="hero-inner">
+        <p class="hero-overline">✦ Colección de Memorias ✦</p>
+        <h1 class="hero-title">Álbum de<br /><em>Recuerdos</em></h1>
+        <p class="hero-subtitle">
+          Cada fotografía es un instante que el tiempo no pudo borrar —<br />
+          una constelación de momentos que siguen brillando.
+        </p>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-num" id="totalPhotos">0</span><span class="stat-lbl">Fotografías</span></div>
+          <div class="stat-divider">✦</div>
+          <div class="stat"><span class="stat-num" id="totalYears">0</span><span class="stat-lbl">Años de Memorias</span></div>
+          <div class="stat-divider">✦</div>
+          <div class="stat"><span class="stat-num" id="totalAuthors">0</span><span class="stat-lbl">Creadores</span></div>
+        </div>
+      </div>
+      <div class="hero-line" aria-hidden="true"><span></span><span class="line-star">✦</span><span></span></div>
+    </section>
+
+    <!-- Filtros -->
+    <section class="filter-bar" aria-label="Filtrar álbum">
+      <div class="filter-inner">
+        <button class="filter-btn active" data-filter="all">✦ Todas</button>
+        <button class="filter-btn" data-filter="naturaleza">Naturaleza</button>
+        <button class="filter-btn" data-filter="viaje">Viajes</button>
+        <button class="filter-btn" data-filter="personas">Personas</button>
+        <button class="filter-btn" data-filter="noche">Nocturnas</button>
+        <button class="filter-btn" data-filter="arte">Arte</button>
+      </div>
+    </section>
+
+    <!-- Reproductor flotante -->
+    <div class="music-player hidden" id="musicPlayer">
+      <div class="mp-vinyl" id="mpVinyl"><div class="mp-vinyl-center"></div></div>
+      <div class="mp-info">
+        <span class="mp-title" id="mpTitle">Sin música</span>
+        <span class="mp-sub"  id="mpSub">Haz clic en una foto 🎵</span>
+      </div>
+      <div class="mp-controls">
+        <button class="mp-btn" id="mpToggle" aria-label="Play/Pause">▶</button>
+        <button class="mp-btn mp-stop" id="mpStop" aria-label="Detener">■</button>
+      </div>
+      <div class="mp-progress-bar"><div class="mp-progress-fill" id="mpFill"></div></div>
+    </div>
+
+    <!-- GRID POLAROIDS -->
+    <section class="album-grid-section">
+      <div class="album-grid" id="albumGrid" role="list"></div>
+    </section>
+
+    <!-- Cita -->
+    <section class="quote-section">
+      <blockquote class="album-quote" id="rotatingQuote">
+        <p>"La fotografía es el arte de la observación."</p>
+        <cite>— Elliott Erwitt</cite>
+      </blockquote>
+    </section>
+
+  </main>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+    <div class="lb-overlay" id="lbOverlay"></div>
+    <div class="lb-container">
+      <button class="lb-close" id="lbClose" aria-label="Cerrar">✕</button>
+      <button class="lb-nav lb-prev" id="lbPrev" aria-label="Anterior">‹</button>
+      <button class="lb-nav lb-next" id="lbNext" aria-label="Siguiente">›</button>
+
+      <!-- Gran polaroid en el lightbox -->
+      <div class="lb-polaroid-wrap">
+        <div class="lb-polaroid" id="lbPolaroid">
+          <div class="lb-polaroid-tape lb-tape-top"></div>
+          <div class="lb-photo-area">
+            <img class="lb-photo-img" id="lbImg" src="" alt="" />
+            <div class="lb-photo-grain"></div>
+            <div class="lb-photo-vignette"></div>
+          </div>
+          <div class="lb-polaroid-footer">
+            <p class="lb-handwriting" id="lbCaption"></p>
+            <div class="lb-footer-row">
+              <span class="lb-footer-date" id="lbFooterDate"></span>
+              <span class="lb-footer-stars" id="lbFooterStars"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info lateral -->
+      <div class="lb-info">
+        <div class="lb-meta">
+          <span class="lb-tag" id="lbTag"></span>
+          <span class="lb-date" id="lbDate"></span>
+        </div>
+        <h2 class="lb-title" id="lbTitle"></h2>
+        <p class="lb-desc"  id="lbDesc"></p>
+        <div class="lb-author">
+          <span>📷</span><span id="lbAuthor"></span>
+        </div>
+        <div class="lb-stars" id="lbStars"></div>
+
+        <!-- Sección música -->
+        <div class="lb-music-box" id="lbMusicBox">
+          <div class="lb-music-label">🎵 Música de este recuerdo</div>
+          <div class="lb-music-name" id="lbMusicName"></div>
+          <button class="lb-music-btn" id="lbMusicPlay">▶ Escuchar</button>
+        </div>
+
+        <div class="lb-actions">
+          <button class="lb-action-btn" id="lbFav">♡ Favorita</button>
+          <button class="lb-action-btn" id="lbShare">✦ Compartir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="album-footer">
+    <div class="footer-content">
+      <p class="footer-text">✦ Moonveil Portal — Álbum de Recuerdos ✦</p>
+      <p class="footer-sub">Cada estrella en el cielo es un momento que no olvidamos</p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="album.js"></script>
+</body>
+</html>
