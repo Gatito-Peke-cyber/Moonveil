@@ -9,6 +9,9 @@
    - Buzón de mensajes en pases (XP, llaves, boosts)
    FIX: claimLevelReward ahora re-fetcha el estado después de
         processReward para no sobreescribir el XP añadido por addXP.
+   v5.1:
+   - Reset de misiones a medianoche (12am hora local)
+   - Botón "Reclamar Todo" para reclamar todas las recompensas pendientes
    ========================================================= */
 
 const $ = (q, ctx = document) => ctx.querySelector(q);
@@ -24,24 +27,20 @@ const OVERFLOW_XP_PER_REWARD = 300;
 /* ═══════════════════════════════════════════════════════════
    STORAGE KEYS
 ═══════════════════════════════════════════════════════════ */
-const CHEST_KEYS_LS  = 'mv_chest_keys_v1'; // Compatible con chest.js
-const PASS_BOOSTS_LS = 'mv_active_boosts'; // Boosts activos globales
+const CHEST_KEYS_LS  = 'mv_chest_keys_v1';
+const PASS_BOOSTS_LS = 'mv_active_boosts';
 const PASS_MAIL_LS   = 'mv_pass_mail_claimed';
 const GLOBAL_INV     = 'mv_global_inventory';
 const TICKETS_BASE   = 'mv_tickets_';
 
 /* ═══════════════════════════════════════════════════════════
-   ★ DESCUENTOS ACTIVOS — EDITA AQUÍ PARA ACTIVAR/DESACTIVAR ★
-
-   Para activar: descomenta la línea y cambia el porcentaje
-   Para desactivar: añade // al inicio de la línea
-   El precio final se calcula automáticamente y se muestra en la UI
+   ★ DESCUENTOS ACTIVOS
 ═══════════════════════════════════════════════════════════ */
 const PASS_DISCOUNTS = {
-  // iron:    30,   // 30% desc. → ⟡128 → ⟡89
-  // gold:    20,   // 20% desc. → ⟡256 → ⟡204
-  // emerald: 15,   // 15% desc. → ⟡384 → ⟡326
-  // diamond: 10,   // 10% desc. → ⟡512 → ⟡460
+  // iron:    30,
+  // gold:    20,
+  // emerald: 15,
+  // diamond: 10,
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -86,7 +85,7 @@ const TIERS = [
 ];
 
 /* ═══════════════════════════════════════════════════════════
-   BUZÓN DE PASES — mensajes que puede recibir el jugador
+   BUZÓN DE PASES
 ═══════════════════════════════════════════════════════════ */
 const PASS_MAIL_ITEMS = [
   {
@@ -98,15 +97,6 @@ const PASS_MAIL_ITEMS = [
       { type:'keys', keyId:'key_common', amount:3, emoji:'⭐', name:'Llave Superestrella' },
     ]
   },
-  /*{
-    id:'pm_115', title:'Regalo VIP del Pase',
-    sender:'Sand Brill Premium ✦', emoji:'👑',
-    msg:'Incluso Sand Brill se puso generoso esta vez. Un boost de XP intenso y un extra de experiencia para que llegues al nivel máximo. ¡Suerte!',
-    rewards:[
-      { type:'xp', amount:1000, emoji:'⭐', name:'XP Bonus' },
-      { type:'boost', boostHours:4, boostMultiplier:2.0, emoji:'⚡', name:'Boost XP 4h ×2.0' },
-    ]
-  },*/
   {
     id:'pm_002', title:'Boost de XP de Bienvenida',
     sender:'Sistema Moonveil', emoji:'⚡',
@@ -115,46 +105,10 @@ const PASS_MAIL_ITEMS = [
       { type:'boost', boostHours:2, boostMultiplier:1.5, emoji:'⚡', name:'Boost XP 2h ×1.5' },
     ]
   },
-  /*{
-    id:'pm_003', title:'Pack de Llaves Especiales',
-    sender:'Moonveil Events', emoji:'🔮',
-    msg:'Por tu dedicación en los pases de temporada te enviamos un pack de llaves para los cofres. ¡Ábrelos en la página de Cofres!',
-    rewards:[
-      { type:'keys', keyId:'key_rare',    amount:2, emoji:'💫', name:'Llave Superestrella Brillante' },
-      { type:'keys', keyId:'key_special', amount:1, emoji:'✨', name:'Llave Superestrella Especial' },
-    ]
-  },
-  {
-    id:'pm_004', title:'Compensación de Mantenimiento',
-    sender:'Soporte Moonveil', emoji:'💎',
-    msg:'Como compensación por las molestias del último mantenimiento del servidor, te enviamos estas gemas y monedas. ¡Gracias por tu paciencia!',
-    rewards:[
-      { type:'emeralds', amount:150, emoji:'💎', name:'Gemas' },
-      { type:'copper',   amount:500, emoji:'🪙', name:'Monedas' },
-    ]
-  },
-  {
-    id:'pm_005', title:'Regalo VIP del Pase',
-    sender:'Sand Brill Premium ✦', emoji:'👑',
-    msg:'Incluso Sand Brill se puso generoso esta vez. Un boost de XP intenso y un extra de experiencia para que llegues al nivel máximo. ¡Suerte!',
-    rewards:[
-      { type:'xp', amount:1000, emoji:'⭐', name:'XP Bonus' },
-      { type:'boost', boostHours:4, boostMultiplier:2.0, emoji:'⚡', name:'Boost XP 4h ×2.0' },
-    ]
-  },
-  {
-    id:'pm_006', title:'Pack de Llaves Legendarias',
-    sender:'Evento Especial Moonveil', emoji:'🌟',
-    msg:'Por completar eventos especiales, te mereces estas llaves legendarias. ¡Úsalas en los cofres más poderosos!',
-    rewards:[
-      { type:'keys', keyId:'key_epic',      amount:1, emoji:'🔮', name:'Llave Superestrella Épica' },
-      { type:'keys', keyId:'key_legendary', amount:1, emoji:'👑', name:'Llave Superestrella Legendaria' },
-    ]
-  },*/
 ];
 
 /* ═══════════════════════════════════════════════════════════
-   OVERFLOW REWARDS (nivel 60+) — ahora con llaves
+   OVERFLOW REWARDS (nivel 60+)
 ═══════════════════════════════════════════════════════════ */
 function getOverflowRewardsForPass(pass, tier) {
   const defaults = {
@@ -283,139 +237,134 @@ function getAllMissionsForPass(passId) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   RECOMPENSAS DE NIVEL — carril con Llaves Superestrella
+   RECOMPENSAS DE NIVEL
 ═══════════════════════════════════════════════════════════ */
 function makeDefaultLevels() {
   const levels = [];
-
-  /* ── FILA GRATIS: recursos + llaves en hitos ── */
   const freeRewards = [
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:150 }, // 1
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:5 }, // 2
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:150 }, // 3
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 4
-    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:5  }, // 5
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:200 }, // 6
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 7
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:200 }, // 8
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 9
-    { type:'keys',     emoji:'⭐', name:'Llave Superestrella',           amount:1, keyId:'key_common'  }, // 10 HITO
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:250 }, // 11
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 12
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:250 }, // 13
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 14
-    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:10  }, // 15
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:300 }, // 16
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:15 }, // 17
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:300 }, // 18
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:15 }, // 19
-    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x2',       amount:2, keyId:'key_common'  }, // 20 HITO
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:350 }, // 21
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:15 }, // 22
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:350 }, // 23
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 24
-    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:10  }, // 25
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:400 }, // 26
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 27
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:400 }, // 28
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:15 }, // 29
-    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante',amount:1, keyId:'key_rare'    }, // 30 HITO
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:450 }, // 31
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:15 }, // 32
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:450 }, // 33
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 34
-    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:10  }, // 35
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:500 }, // 36
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 37
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:500 }, // 38
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 39
-    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante',amount:2, keyId:'key_rare'    }, // 40 HITO
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:550 }, // 41
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 42
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:550 }, // 43
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 44
-    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:10 }, // 45
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:600 }, // 46
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 47
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:600 }, // 48
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 49
-    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial', amount:1, keyId:'key_special' }, // 50 HITO
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:700 }, // 51
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 52
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:700 }, // 53
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 }, // 54
-    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:10 }, // 55
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:800 }, // 56
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:20 }, // 57
-    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:800 }, // 58
-    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:20 }, // 59
-    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial x2',amount:2,keyId:'key_special'}, // 60 HITO FINAL
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:150 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:5 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:150 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:5  },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:200 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:200 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'keys',     emoji:'⭐', name:'Llave Superestrella',           amount:1, keyId:'key_common'  },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:250 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:250 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:10  },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:300 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:15 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:300 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:15 },
+    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x2',       amount:2, keyId:'key_common'  },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:350 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:15 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:350 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:10  },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:400 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:400 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:15 },
+    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante',amount:1, keyId:'key_rare'    },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:450 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:15 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:450 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:10  },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:500 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:500 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante',amount:2, keyId:'key_rare'    },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:550 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:550 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:10 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:600 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:600 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial', amount:1, keyId:'key_special' },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:700 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:700 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:10 },
+    { type:'emeralds', emoji:'💎', name:'Gemas',       amount:10 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:800 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:20 },
+    { type:'xp',       emoji:'⭐', name:'XP Bonus',   amount:800 },
+    { type:'copper',   emoji:'🪙', name:'Monedas',     amount:20 },
+    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial x2',amount:2,keyId:'key_special'},
   ];
-
-  /* ── FILA PAGADA: llaves Superestrella por nivel ── */
   const paidRewards = [
-    { type:'keys',     emoji:'⭐', name:'Llave Superestrella',           amount:3, keyId:'key_common'  }, // 1
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 2
-    { type:'keys',     emoji:'⭐', name:'Llave Superestrella',           amount:3, keyId:'key_common'  }, // 3
-    { type:'boost',    emoji:'⚡', name:'Boost XP 1h',                  amount:1, boostHours:1, boostMultiplier:1.5 }, // 4
-    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x2',        amount:2, keyId:'key_common'  }, // 5
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 6
-    { type:'keys',     emoji:'⭐', name:'Llave Superestrella',           amount:1, keyId:'key_common'  }, // 7
-    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:10 },                     // 8
-    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x2',        amount:2, keyId:'key_common'  }, // 9
-    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:1, keyId:'key_rare'    }, // 10 HITO
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 11
-    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x2',        amount:2, keyId:'key_common'  }, // 12
-    { type:'boost',    emoji:'⚡', name:'Boost XP 2h',                  amount:2, boostHours:2, boostMultiplier:1.5 }, // 13
-    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:3, keyId:'key_rare'    }, // 14
-    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x3',        amount:3, keyId:'key_common'  }, // 15
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 16
-    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:1, keyId:'key_rare'    }, // 17
-    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:10 },                     // 18
-    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x2',        amount:2, keyId:'key_common'  }, // 19
-    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:1, keyId:'key_special' }, // 20 HITO
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 21
-    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:4, keyId:'key_rare'    }, // 22
-    { type:'boost',    emoji:'⚡', name:'Boost XP 4h',                  amount:1, boostHours:4, boostMultiplier:1.75 }, // 23
-    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:1, keyId:'key_special' }, // 24
-    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:2, keyId:'key_rare'    }, // 25
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 26
-    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:1, keyId:'key_special' }, // 27
-    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:10 },                     // 28
-    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:2, keyId:'key_rare'    }, // 29
-    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:1, keyId:'key_epic'    }, // 30 HITO
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 31
-    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:2, keyId:'key_special' }, // 32
-    { type:'boost',    emoji:'⚡', name:'Boost XP 8h',                  amount:1, boostHours:8, boostMultiplier:1.75 }, // 33
-    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:1, keyId:'key_epic'    }, // 34
-    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:2, keyId:'key_special' }, // 35
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 36
-    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:1, keyId:'key_epic'    }, // 37
-    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:10 },                    // 38
-    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:2, keyId:'key_special' }, // 39
-    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:2, keyId:'key_epic'    }, // 40 HITO
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 41
-    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:1, keyId:'key_epic'    }, // 42
-    { type:'boost',    emoji:'⚡', name:'Boost XP 12h',                 amount:1, boostHours:12, boostMultiplier:2.0 }, // 43
-    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:2, keyId:'key_epic'    }, // 44
-    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:3, keyId:'key_special' }, // 45
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 46
-    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:2, keyId:'key_epic'    }, // 47
-    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:10 },                    // 48
-    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:2, keyId:'key_epic'    }, // 49
-    { type:'keys',     emoji:'👑', name:'Llave Superestrella Legendaria',amount:1, keyId:'key_legendary'}, // 50 HITO
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                    // 51
-    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:2, keyId:'key_epic'    }, // 52
-    { type:'boost',    emoji:'⚡', name:'Boost XP 24h',                 amount:1, boostHours:24, boostMultiplier:2.0 }, // 53
-    { type:'keys',     emoji:'👑', name:'Llave Superestrella Legendaria',amount:1, keyId:'key_legendary'}, // 54
-    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:3, keyId:'key_epic'    }, // 55
-    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },                   // 56
-    { type:'keys',     emoji:'👑', name:'Llave Superestrella Legendaria',amount:1, keyId:'key_legendary'}, // 57
-    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:20 },                    // 58
-    { type:'keys',     emoji:'👑', name:'Llave Superestrella Legendaria',amount:3, keyId:'key_legendary'}, // 59
-    { type:'keys',     emoji:'👑', name:'¡Llave Legendaria x3!',         amount:6, keyId:'key_legendary'}, // 60 HITO FINAL
+    { type:'keys',     emoji:'⭐', name:'Llave Superestrella',           amount:3, keyId:'key_common'  },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'⭐', name:'Llave Superestrella',           amount:3, keyId:'key_common'  },
+    { type:'boost',    emoji:'⚡', name:'Boost XP 1h',                  amount:1, boostHours:1, boostMultiplier:1.5 },
+    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x2',        amount:2, keyId:'key_common'  },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'⭐', name:'Llave Superestrella',           amount:1, keyId:'key_common'  },
+    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:10 },
+    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x2',        amount:2, keyId:'key_common'  },
+    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:1, keyId:'key_rare'    },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x2',        amount:2, keyId:'key_common'  },
+    { type:'boost',    emoji:'⚡', name:'Boost XP 2h',                  amount:2, boostHours:2, boostMultiplier:1.5 },
+    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:3, keyId:'key_rare'    },
+    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x3',        amount:3, keyId:'key_common'  },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:1, keyId:'key_rare'    },
+    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:10 },
+    { type:'keys',     emoji:'⭐', name:'Llave Superestrella x2',        amount:2, keyId:'key_common'  },
+    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:1, keyId:'key_special' },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:4, keyId:'key_rare'    },
+    { type:'boost',    emoji:'⚡', name:'Boost XP 4h',                  amount:1, boostHours:4, boostMultiplier:1.75 },
+    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:1, keyId:'key_special' },
+    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:2, keyId:'key_rare'    },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:1, keyId:'key_special' },
+    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:10 },
+    { type:'keys',     emoji:'💫', name:'Llave Superestrella Brillante', amount:2, keyId:'key_rare'    },
+    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:1, keyId:'key_epic'    },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:2, keyId:'key_special' },
+    { type:'boost',    emoji:'⚡', name:'Boost XP 8h',                  amount:1, boostHours:8, boostMultiplier:1.75 },
+    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:1, keyId:'key_epic'    },
+    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:2, keyId:'key_special' },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:1, keyId:'key_epic'    },
+    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:10 },
+    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:2, keyId:'key_special' },
+    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:2, keyId:'key_epic'    },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:1, keyId:'key_epic'    },
+    { type:'boost',    emoji:'⚡', name:'Boost XP 12h',                 amount:1, boostHours:12, boostMultiplier:2.0 },
+    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:2, keyId:'key_epic'    },
+    { type:'keys',     emoji:'✨', name:'Llave Superestrella Especial',  amount:3, keyId:'key_special' },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:2, keyId:'key_epic'    },
+    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:10 },
+    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:2, keyId:'key_epic'    },
+    { type:'keys',     emoji:'👑', name:'Llave Superestrella Legendaria',amount:1, keyId:'key_legendary'},
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:2, keyId:'key_epic'    },
+    { type:'boost',    emoji:'⚡', name:'Boost XP 24h',                 amount:1, boostHours:24, boostMultiplier:2.0 },
+    { type:'keys',     emoji:'👑', name:'Llave Superestrella Legendaria',amount:1, keyId:'key_legendary'},
+    { type:'keys',     emoji:'🔮', name:'Llave Superestrella Épica',     amount:3, keyId:'key_epic'    },
+    { type:'copper',   emoji:'🪙', name:'Monedas',                       amount:10 },
+    { type:'keys',     emoji:'👑', name:'Llave Superestrella Legendaria',amount:1, keyId:'key_legendary'},
+    { type:'emeralds', emoji:'💎', name:'Gemas',                         amount:20 },
+    { type:'keys',     emoji:'👑', name:'Llave Superestrella Legendaria',amount:3, keyId:'key_legendary'},
+    { type:'keys',     emoji:'👑', name:'¡Llave Legendaria x3!',         amount:6, keyId:'key_legendary'},
   ];
-
   for (let i = 0; i < MAX_LEVELS; i++) {
     levels.push({ free: freeRewards[i] || freeRewards[0], paid: paidRewards[i] || paidRewards[0] });
   }
@@ -462,10 +411,10 @@ const PASSES = [
   { id:'pass_s4',  name:'Cántico de la Lluvia Plateada', season:'Temporada IV', emoji:'🌧️', description:'La lluvia plateada trae secretos del mundo antiguo.', startDate:'2026-04-01', endDate:'2026-04-30', music:'music/8.mp3', bg:'img-pass/chrismine.jpg', shopItemId:'s4', levels:makeDefaultLevels() },
   { id:'pass_s5',  name:'Esencia de la Aurora', season:'Temporada V',          emoji:'🌅', description:'La aurora ilumina el camino hacia nuevas conquistas.', startDate:'2026-05-01', endDate:'2026-05-31', music:'music/8.mp3', bg:'img-pass/añomine.jpg', shopItemId:'s5', levels:makeDefaultLevels() },
   { id:'pass_s6',  name:'Imperio del Océano Profundo', season:'Temporada VI',  emoji:'🌊', description:'Las profundidades del océano guardan tesoros sin igual.', startDate:'2026-06-01', endDate:'2026-06-30', music:'music/8.mp3', bg:'img-pass/banair.jpg', shopItemId:'s6', levels:makeDefaultLevels() },
-  //{ id:'pass_s7',  name:'Reinos Dorados', season:'Temporada VII',              emoji:'👑', description:'El oro fluye por los reinos del verano ardiente.', startDate:'2026-07-01', endDate:'2026-07-31', music:'music/8.mp3', bg:'img-pass/dancingmine.jpg', shopItemId:'s7', levels:makeDefaultLevels() },
-  //{ id:'pass_s8',  name:'Sombras de la Noche', season:'Temporada VIII',        emoji:'🌙', description:'Las sombras nocturnas revelan poder oscuro y misterioso.', startDate:'2026-08-01', endDate:'2026-08-31', music:'music/8.mp3', bg:'img-pass/squemine.jpg', shopItemId:'s8', levels:makeDefaultLevels() },
-  //{ id:'pass_s9',  name:'Mundo Encantado', season:'Temporada IX',              emoji:'✨', description:'La magia recorre cada rincón de Moonveil.', startDate:'2026-09-01', endDate:'2026-09-30', music:'music/8.mp3', bg:'img-pass/squemine.jpg', shopItemId:'s9', levels:makeDefaultLevels() },
-  /*{
+  { id:'pass_s7',  name:'Reinos Dorados', season:'Temporada VII',              emoji:'👑', description:'El oro fluye por los reinos del verano ardiente.', startDate:'2026-07-01', endDate:'2026-07-31', music:'music/8.mp3', bg:'img-pass/dancingmine.jpg', shopItemId:'s7', levels:makeDefaultLevels() },
+  { id:'pass_s8',  name:'Sombras de la Noche', season:'Temporada VIII',        emoji:'🌙', description:'Las sombras nocturnas revelan poder oscuro y misterioso.', startDate:'2026-08-01', endDate:'2026-08-31', music:'music/8.mp3', bg:'img-pass/squemine.jpg', shopItemId:'s8', levels:makeDefaultLevels() },
+  { id:'pass_s9',  name:'Mundo Encantado', season:'Temporada IX',              emoji:'✨', description:'La magia recorre cada rincón de Moonveil.', startDate:'2026-09-01', endDate:'2026-09-30', music:'music/8.mp3', bg:'img-pass/squemine.jpg', shopItemId:'s9', levels:makeDefaultLevels() },
+  {
     id:'pass_s10', name:'Pesadilla del Nether', season:'Temporada X', emoji:'🔥',
     description:'El Nether se despierta y sus pesadillas cobran vida.', startDate:'2026-10-01', endDate:'2026-10-31', music:'music/8.mp3', bg:'img-pass/banhall.jpg', shopItemId:'s10',
     levels: (() => {
@@ -493,12 +442,11 @@ const PASSES = [
       ls[59].paid = { type:'keys', emoji:'👑', name:'¡Llave Legendaria x3!',amount:3,keyId:'key_legendary'};
       return ls;
     })(),
-  },*/
+  },
 ];
 
 /* ═══════════════════════════════════════════════════════════
    MEJORAS DE TIER
-   ★ CADENA: Stone → Iron → Gold → Emerald → Diamond
 ═══════════════════════════════════════════════════════════ */
 const TIER_UPGRADES = [
   {
@@ -568,7 +516,6 @@ function addToInventory(passId, passName, itemKey, emoji, name, amount) {
   saveGlobalInventory(glob);
 }
 
-/* ─── Llaves de cofres (compatible con chest.js) ─── */
 function awardChestKey(keyId, amount) {
   try {
     const raw = localStorage.getItem(CHEST_KEYS_LS);
@@ -586,7 +533,7 @@ function awardTicket(subtype, amount) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SISTEMA DE BOOSTS — funcional con temporizador
+   SISTEMA DE BOOSTS
 ═══════════════════════════════════════════════════════════ */
 function getActiveBoosts() {
   try { const raw = localStorage.getItem(PASS_BOOSTS_LS); return raw ? JSON.parse(raw) : []; }
@@ -721,7 +668,7 @@ function claimPassMail(mailId) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PROCESAR RECOMPENSA — ahora con llaves de cofres funcionales y boosts
+   PROCESAR RECOMPENSA
 ═══════════════════════════════════════════════════════════ */
 function processReward(passId, passName, reward, multiplier = 1) {
   const amt = Math.round((reward.amount || 1) * multiplier);
@@ -792,7 +739,7 @@ function processReward(passId, passName, reward, multiplier = 1) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   XP / NIVELES CON OVERFLOW — aplica boost multiplicador
+   XP / NIVELES CON OVERFLOW
 ═══════════════════════════════════════════════════════════ */
 function addXP(passId, baseAmount) {
   const boostMult = getBoostMultiplier();
@@ -844,6 +791,33 @@ function getPassStatus(pass) {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   ★ NUEVA FUNCIÓN: Calcular próxima medianoche (hora local)
+═══════════════════════════════════════════════════════════ */
+function getNextMidnight() {
+  const d = new Date();
+  d.setHours(24, 0, 0, 0); // siguiente medianoche hora local
+  return d.getTime();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ★ NUEVA FUNCIÓN: Calcular próximo reset según tipo
+   - 24h  → próxima medianoche hora local
+   - 7d   → próxima medianoche + 6 días más
+   - 12d  → próxima medianoche + 11 días más
+   - 24d  → próxima medianoche + 23 días más
+═══════════════════════════════════════════════════════════ */
+function getNextResetTime(resetType) {
+  const midnight = getNextMidnight();
+  switch (resetType) {
+    case '24h':  return midnight;
+    case '7d':   return midnight + 6 * H24;
+    case '12d':  return midnight + 11 * H24;
+    case '24d':  return midnight + 23 * H24;
+    default:     return midnight;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
    UI PRINCIPAL
 ═══════════════════════════════════════════════════════════ */
 let activePassId = null;
@@ -875,7 +849,8 @@ function initGameMissions(passId) {
     const needsReset = m.reset === '24h' && mst.resetAt && now() > mst.resetAt;
     const neverInit = !mst.resetAt;
     if (neverInit || needsReset) {
-      saveMissionState(passId, m.id, { progress: m.target, claimed: false, resetAt: now() + H24 });
+      // ★ Usar medianoche como próximo reset
+      saveMissionState(passId, m.id, { progress: m.target, claimed: false, resetAt: getNextMidnight() });
     } else if (mst.progress < m.target) {
       saveMissionState(passId, m.id, { ...mst, progress: m.target });
     }
@@ -1035,6 +1010,30 @@ function renderTrack(passId) {
   const container = $('#passTrackContainer');
   if (!container) return;
 
+  // ★ Contar recompensas pendientes del carril
+  let pendingTrackCount = 0;
+  for (let i = 0; i < MAX_LEVELS; i++) {
+    const levelNum = i + 1;
+    const isDone   = st.level > levelNum || st.level >= MAX_LEVELS;
+    if (!isDone) continue;
+    if (!(st.claimedLevels||[]).includes(`free_${i}`)) pendingTrackCount++;
+    if (hasPaid && !(st.claimedLevels||[]).includes(`paid_${i}`)) pendingTrackCount++;
+  }
+
+  // ★ Botón "Reclamar Todo" del carril
+  const claimAllWrap = $('#claimAllTrackWrap');
+  if (claimAllWrap) {
+    if (pendingTrackCount > 0) {
+      claimAllWrap.innerHTML = `<button class="claim-all-btn" onclick="claimAllLevelRewards('${passId}')">
+        ✨ Reclamar Todo <span class="claim-all-badge">${pendingTrackCount}</span>
+      </button>`;
+      claimAllWrap.style.display = '';
+    } else {
+      claimAllWrap.innerHTML = '';
+      claimAllWrap.style.display = 'none';
+    }
+  }
+
   let numCells='', freeRowCells='', paidRowCells='', xpCells='';
 
   for (let i = 0; i < MAX_LEVELS; i++) {
@@ -1134,6 +1133,61 @@ function renderTrack(passId) {
   }, 150);
 }
 
+/* ★ NUEVA FUNCIÓN: Reclamar todas las recompensas de nivel pendientes */
+function claimAllLevelRewards(passId) {
+  if (!passId) return;
+  const pass = PASSES.find(p => p.id === passId);
+  if (!pass) return;
+  const status = getPassStatus(pass);
+  if (status === 'upcoming') { toast('⏳ Este pase no ha comenzado'); return; }
+  if (status === 'ended')    { toast('🔒 Este pase ya finalizó'); return; }
+
+  const st = getPassState(passId);
+  const hasPaid = st.tier !== 'stone';
+  const mult = st.tier === 'gold' ? 1.5 : st.tier === 'diamond' ? 2 : 1;
+  let totalClaimed = 0;
+
+  for (let i = 0; i < MAX_LEVELS; i++) {
+    const levelNum = i + 1;
+    const isDone   = st.level > levelNum || st.level >= MAX_LEVELS;
+    if (!isDone) continue;
+
+    const levelData  = pass.levels[i] || makeDefaultLevels()[i];
+    const freshSt    = getPassState(passId); // re-fetch en cada iteración por si addXP modifica
+
+    // Fila gratis
+    if (!freshSt.claimedLevels.includes(`free_${i}`) && levelData.free) {
+      processReward(passId, pass.name, levelData.free, 1);
+      const st2 = getPassState(passId);
+      st2.claimedLevels = [...(st2.claimedLevels||[]), `free_${i}`];
+      savePassState(passId, st2);
+      totalClaimed++;
+    }
+    // Fila pagada
+    if (hasPaid) {
+      const st3 = getPassState(passId);
+      if (!st3.claimedLevels.includes(`paid_${i}`) && levelData.paid) {
+        processReward(passId, pass.name, levelData.paid, mult);
+        const st4 = getPassState(passId);
+        st4.claimedLevels = [...(st4.claimedLevels||[]), `paid_${i}`];
+        savePassState(passId, st4);
+        totalClaimed++;
+      }
+    }
+  }
+
+  if (totalClaimed > 0) {
+    toast(`✨ ¡${totalClaimed} recompensas reclamadas de una vez!`);
+  } else {
+    toast('📭 No hay recompensas pendientes por reclamar');
+  }
+
+  renderPassHeader(passId);
+  renderTrack(passId);
+  renderInventory(passId);
+  updateHUD(passId);
+}
+
 function syncTrackScrolls() {
   const ids = ['trackHeaderScroll','trackFreeScroll','trackPaidScroll'];
   let syncing = false;
@@ -1224,10 +1278,7 @@ function openLevelModal(levelIndex, row='free') {
   document.body.style.overflow = 'hidden';
 }
 
-/* ════════════════════════════════════════════════════════════
-   ★ FIX: claimLevelReward — re-fetch estado DESPUÉS de
-     processReward para no sobreescribir el XP añadido por addXP
-════════════════════════════════════════════════════════════ */
+/* ★ FIX: claimLevelReward — re-fetch estado DESPUÉS de processReward */
 function claimLevelReward(levelIndex, row='free') {
   if (!activePassId) return;
   const pass = PASSES.find(p => p.id === activePassId);
@@ -1244,11 +1295,8 @@ function claimLevelReward(levelIndex, row='free') {
   if (!reward) { toast('Sin recompensa disponible'); return; }
   const mult = st.tier === 'gold' ? 1.5 : st.tier === 'diamond' ? 2 : 1;
 
-  // Procesa la recompensa (addXP guarda el estado internamente)
   processReward(activePassId, pass.name, reward, mult);
 
-  // ★ FIX: re-fetch el estado DESPUÉS de processReward para no
-  //   sobreescribir el XP que addXP acaba de guardar en localStorage
   const freshSt = getPassState(activePassId);
   freshSt.claimedLevels = [...(freshSt.claimedLevels||[]), claimKey];
   savePassState(activePassId, freshSt);
@@ -1282,23 +1330,76 @@ function saveMissionState(passId, missionId, mst) {
 function getMsForReset(reset) {
   return { '24h':H24, '7d':7*H24, '12d':12*H24, '24d':24*H24 }[reset] || null;
 }
+
+/* ★ NUEVA LÓGICA: Reset a medianoche hora local */
 function checkMissionReset(passId, mission) {
   if (mission.reset === 'unique') return;
   const mst = getMissionState(passId, mission.id);
-  const resetMs = getMsForReset(mission.reset);
-  if (!resetMs) return;
-  if (!mst.resetAt) { saveMissionState(passId, mission.id, { ...mst, resetAt: now()+resetMs }); return; }
-  if (now() > mst.resetAt) {
-    const newState = { progress:0, claimed:false, resetAt:now()+resetMs };
-    if ((mission.isGame||mission.isPassMission) && mission.preCompleted) newState.progress = mission.target;
+  const nowMs = now();
+
+  if (!mst.resetAt) {
+    // Primera vez: programar al próximo reset desde medianoche
+    const newState = { progress: mst.progress || 0, claimed: mst.claimed || false, resetAt: getNextResetTime(mission.reset) };
+    if ((mission.isGame || mission.isPassMission) && mission.preCompleted) newState.progress = mission.target;
+    saveMissionState(passId, mission.id, newState);
+    return;
+  }
+
+  if (nowMs > mst.resetAt) {
+    // Pasó la medianoche → resetear y programar siguiente medianoche
+    const newState = { progress: 0, claimed: false, resetAt: getNextResetTime(mission.reset) };
+    if ((mission.isGame || mission.isPassMission) && mission.preCompleted) newState.progress = mission.target;
     saveMissionState(passId, mission.id, newState);
   }
 }
+
 function isMissionUnlocked(passId, mission) {
   if (!mission.exclusive) return true;
   const st = getPassState(passId);
   const order = ['stone','iron','gold','emerald','diamond'];
   return order.indexOf(st.tier) >= order.indexOf(mission.exclusive);
+}
+
+/* ★ NUEVA FUNCIÓN: Reclamar todas las misiones disponibles */
+function claimAllMissions(passId) {
+  if (!passId) return;
+  const pass = PASSES.find(p => p.id === passId);
+  const status = getPassStatus(pass);
+  if (status === 'upcoming') { toast('⏳ Este pase no ha comenzado'); return; }
+  if (status === 'ended')    { toast('🔒 Este pase ya finalizó'); return; }
+
+  const allMissions = getAllMissionsForPass(passId);
+  let totalClaimed = 0;
+
+  allMissions.forEach(m => {
+    if (!isMissionUnlocked(passId, m)) return;
+    const mst = getMissionState(passId, m.id);
+    if (mst.claimed) return;
+    if (mst.progress < m.target) return;
+
+    addXP(passId, m.xpReward);
+    processReward(passId, pass.name, m.reward);
+    mst.claimed = true;
+    saveMissionState(passId, m.id, mst);
+
+    const st = getPassState(passId);
+    if (!st.stats) st.stats = {};
+    if (m.reset === '7d') st.stats.weeklyMissionsDone = (st.stats.weeklyMissionsDone||0)+1;
+    savePassState(passId, st);
+    trackMissionProgress(passId,'weekly_missions',1);
+    totalClaimed++;
+  });
+
+  if (totalClaimed > 0) {
+    toast(`✅ ¡${totalClaimed} misiones reclamadas de una vez!`);
+  } else {
+    toast('📭 No hay misiones completadas por reclamar');
+  }
+
+  renderMissions(passId);
+  renderPassHeader(passId);
+  renderInventory(passId);
+  updateHUD(passId);
 }
 
 function renderMissions(passId) {
@@ -1334,6 +1435,27 @@ function renderMissions(passId) {
   const allMissions = getAllMissionsForPass(passId);
   allMissions.forEach(m => checkMissionReset(passId, m));
 
+  // ★ Calcular misiones reclamables para el botón "Reclamar Todo"
+  const claimableMissions = allMissions.filter(m => {
+    if (!isMissionUnlocked(passId, m)) return false;
+    const mst = getMissionState(passId, m.id);
+    return !mst.claimed && mst.progress >= m.target;
+  });
+
+  // ★ Botón "Reclamar Todo" de misiones
+  const claimAllMissionsWrap = $('#claimAllMissionsWrap');
+  if (claimAllMissionsWrap) {
+    if (claimableMissions.length > 0) {
+      claimAllMissionsWrap.innerHTML = `<button class="claim-all-btn" onclick="claimAllMissions('${passId}')">
+        😺 Reclamar Todo<span class="claim-all-badge">${claimableMissions.length}</span>
+      </button>`;
+      claimAllMissionsWrap.style.display = '';
+    } else {
+      claimAllMissionsWrap.innerHTML = '';
+      claimAllMissionsWrap.style.display = 'none';
+    }
+  }
+
   const groups = {};
   allMissions.forEach(m => {
     if (!groups[m.category]) groups[m.category] = { icon:m.categoryIcon, missions:[] };
@@ -1360,8 +1482,13 @@ function renderMissions(passId) {
       const pct = Math.round((progress/m.target)*100);
       const isGame = !!m.isGame, isPassM = !!m.isPassMission;
       const resetLabel = { 'unique':'🔂 Única','24h':'↻ Diaria','7d':'↻ Semanal','12d':'↻ 12 días','24d':'↻ Mensual' }[m.reset]||'↻';
+
+      // ★ Mostrar countdown hasta medianoche en lugar de tiempo relativo
       let cdLabel = '';
-      if (mst.resetAt && !isClaimed && m.reset !== 'unique' && now() < mst.resetAt) cdLabel = `<span class="mc-cooldown">↻ en ${timeLeft(mst.resetAt)}</span>`;
+      if (mst.resetAt && !isClaimed && m.reset !== 'unique' && now() < mst.resetAt) {
+        cdLabel = `<span class="mc-cooldown">↻ en ${timeLeft(mst.resetAt)}</span>`;
+      }
+
       const rewardEmoji = m.reward?.emoji || (REWARD_TYPES[m.reward?.type]||REWARD_TYPES.random).emoji;
       const tierBadge  = m.exclusive ? `<span class="mc-tier-badge">${m.exclusive.charAt(0).toUpperCase()+m.exclusive.slice(1)}</span>` : '';
       const gameBadge  = isGame  ? `<span class="mc-game-badge">🎮 Juego</span>` : '';
@@ -1539,7 +1666,7 @@ $('#globalClose')?.addEventListener('click',closeGlobalModal);
 $('#globalCloseBtn')?.addEventListener('click',closeGlobalModal);
 
 /* ═══════════════════════════════════════════════════════════
-   MEJORAS (TIERS) — con cadena Hierro→Oro→Esmeralda→Diamante y descuentos
+   MEJORAS (TIERS)
 ═══════════════════════════════════════════════════════════ */
 function isTierOwned(st, tierId) {
   const order = ['stone','iron','gold','emerald','diamond'];

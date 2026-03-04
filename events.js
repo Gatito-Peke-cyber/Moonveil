@@ -53,6 +53,7 @@ const CATEGORIES = [
         startDate: "2026-01-01",
         bg:"img/picture4.jpg",
       },
+            
     ]
   },
 
@@ -241,10 +242,61 @@ const CATEGORIES = [
         title: "Próximo Evento",
         desc:  "Un nuevo evento se aproxima. ¡Prepárate!",
         emoji: "🔮", url: "#",
-        startDate: "2026-04-01",
+        startDate: "2030-04-01",
         accent: "#818cf8"
-      }
+      },
+      {
+        title: "Minesafio",
+        desc:  "Seguro es muy facil, espero...",
+        emoji: "⚡", url: "batt.html",
+        startDate: "2026-03-04",
+        expiry: "2026-03-10", daysTotal: 6,
+        accent: "#f59e0b",
+        bg: "ach/2m.png"    // ← ej: "img/dragon-bg.jpg"
+      },
     ]
+  },
+  {
+     id: "celebrar", icon: "⭐", name: "Celebraciones",
+     color: "#6366f1",
+     items: [
+       /*{
+         title: "Mi Página", desc: "Descripción.", emoji: "🌟", url: "mi-pagina.html",
+         bg: "img/mi-fondo.jpg",    // ← imagen de fondo (opcional)
+         accent: "#f43f5e",       // ← color de acento (opcional)
+         expiry: "2026-04-21",      // ← caducidad (opcional)
+         startDate: "2026-04-20",   // ← apertura futura (opcional)
+         daysTotal: 2,             // ← días del evento (opcional)
+         isCalendar: false,         // ← contador de mes (opcional)
+       },*/
+       {
+        title: "¡Que recuerdos...!",
+        desc:  "Pero no dejemos de seguir creando recuerdos",
+        emoji: "🌳", url: "album.html",
+        startDate: "2026-02-20",
+        expiry: "2026-06-01", daysTotal: 50,
+        accent: "#f59e0b",
+        bg: "img/universe1.gif"    // ← ej: "img/dragon-bg.jpg"
+      },
+      {
+        title: "♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡",
+        desc:  "Si que es un gran dia...¡Asi que celebremos!",
+        emoji: "🌟", url: "tsm.html",
+        startDate: "2026-04-20",
+        expiry: "2026-04-21", daysTotal: 2,
+        accent: "#f59e0b",
+        bg: "dav/alex1.jpg"    // ← ej: "img/dragon-bg.jpg"
+      },
+      {
+        title: "♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡",
+        desc:  "Si que es un gran dia...¡Asi que celebremos!",
+        emoji: "🌟", url: "lns.html",
+        startDate: "2026-06-17",
+        expiry: "2026-06-18", daysTotal: 2,
+        accent: "#f59e0b",
+        bg: "dav/steve2.jpg"    // ← ej: "img/dragon-bg.jpg"
+      },
+     ]
   }
 
   // ── PLANTILLA NUEVA CATEGORÍA ─────────────────────────

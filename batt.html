@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>Moonveil — Arena de Batalla 🏛️</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;900&family=Outfit:wght@300;400;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230a0101'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle'%3E🏛%3C/text%3E%3C/svg%3E"/>
+  <link rel="stylesheet" href="batt.css"/>
+</head>
+<body>
+
+  <!-- Partículas de fondo -->
+  <div class="bg" aria-hidden="true">
+    <canvas id="bgParticles"></canvas>
+    <!-- Columnas greco-romanas decorativas -->
+    <div class="col-deco col-l1"></div>
+    <div class="col-deco col-l2"></div>
+    <div class="col-deco col-r1"></div>
+    <div class="col-deco col-r2"></div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="top-hud">
+    <nav class="navbar">
+      <a class="brand" href="inicio.html">
+        <span class="cube"></span>
+        <span class="brand-title">Moonveil <b>Portal</b></span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Menú"><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="inicio.html">Inicio</a></li>
+        <li><a href="lny.html">Año Lunar</a></li>
+        <li><a href="batt.html" class="active">Arena</a></li>
+        <li><a href="index.html">Salir</a></li>
+      </ul>
+    </nav>
+    <div class="hud-strip">
+      <span>⚜</span>
+      <span>ARENA · GLADIATORUM · COLISEUM · MMXXVI</span>
+      <span>⚜</span>
+    </div>
+  </header>
+
+  <main class="arena-main">
+
+    <!-- ══ HERO ══ -->
+    <section class="hero">
+      <div class="hero-deco-top"></div>
+      <p class="hero-eyebrow">TORNEUM · GLADIATORUM · MMXXVI</p>
+      <h1 class="hero-title">
+        <span class="ht-top">ARENA DE</span>
+        <span class="ht-main">BATALLA</span>
+      </h1>
+      <p class="hero-name cfg-nombre"></p>
+      <p class="hero-sub">Que los dioses decidan · Solo uno prevalecerá · (Nuestro Patrocinador Sand Brill)</p>
+      <div class="hero-deco-bot"></div>
+    </section>
+
+    <!-- ══ TIMER ══ -->
+    <section class="timer-section" id="timerWrap">
+      <div class="timer-card">
+        <div class="tc-side">
+          <span class="tc-lbl">INICIO DEL TORNEO</span>
+          <span class="tc-val" id="tcStart">—</span>
+        </div>
+        <div class="tc-center">
+          <div class="tc-sword">⚔</div>
+          <div class="tc-digits">
+            <div class="tc-unit"><span class="tc-num" id="tD">00</span><span class="tc-sep">días</span></div>
+            <div class="tc-unit"><span class="tc-num" id="tH">00</span><span class="tc-sep">hrs</span></div>
+            <div class="tc-unit"><span class="tc-num" id="tM">00</span><span class="tc-sep">min</span></div>
+            <div class="tc-unit"><span class="tc-num" id="tS">00</span><span class="tc-sep">seg</span></div>
+          </div>
+          <div class="tc-status" id="tcStatus">Cargando...</div>
+        </div>
+        <div class="tc-side tc-side-right">
+          <span class="tc-lbl">FIN DEL TORNEO</span>
+          <span class="tc-val" id="tcEnd">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ TABS ══ -->
+    <div class="tabs-bar">
+      <button class="tab-btn active" data-tab="bracket">🏛 Bracket</button>
+      <button class="tab-btn" data-tab="tabla">⚔ Clasificación</button>
+      <button class="tab-btn" data-tab="premios">🏆 Premios</button>
+    </div>
+
+    <!-- ══ PANEL: BRACKET ══ -->
+    <div class="tab-panel active" id="panel-bracket">
+
+      <!-- Bracket horizontal scroll -->
+      <div class="bracket-scroll-wrap">
+        <div class="bracket-container" id="bracketContainer">
+          <!-- generado por JS -->
+        </div>
+      </div>
+
+      <!-- Podio del campeón -->
+      <div class="champion-block hidden" id="championBlock">
+        <div class="champ-bg-glow" aria-hidden="true"></div>
+        <div class="champ-inner">
+          <div class="champ-crown-emoji">👑</div>
+          <div class="champ-ring">
+            <img id="champImg" class="champ-img" src="" alt="" style="display:none"/>
+            <div id="champPh" class="champ-ph">⚔</div>
+          </div>
+          <h2 class="champ-name" id="champName">—</h2>
+          <p class="champ-label">VICTOR · CAMPEÓN DEL TORNEO</p>
+          <p class="champ-laurel">🌿 ── Gloria Eterna ── 🌿</p>
+        </div>
+      </div>
+
+    </div><!-- /panel-bracket -->
+
+    <!-- ══ PANEL: CLASIFICACIÓN ══ -->
+    <div class="tab-panel" id="panel-tabla">
+      <div class="lb-wrap">
+        <div class="lb-header-block">
+          <h2 class="lb-title">⚔ Clasificación General</h2>
+          <p class="lb-subtitle">Ordenado por puntos acumulados en el servidor</p>
+        </div>
+        <div class="lb-table-wrap">
+          <table class="lb-table">
+            <thead>
+              <tr>
+                <th class="th-pos">Pos.</th>
+                <th class="th-player">Gladiador</th>
+                <th class="th-pts">Puntos</th>
+                <th class="th-bar">Progreso</th>
+              </tr>
+            </thead>
+            <tbody id="lbBody">
+              <!-- generado por JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /panel-tabla -->
+
+    <!-- ══ PANEL: PREMIOS ══ -->
+    <div class="tab-panel" id="panel-premios">
+      <div class="premios-wrap">
+        <h2 class="premios-title">🏆 Recompensas del Torneo</h2>
+        <p class="premios-sub">Premios para los mejores gladiadores de la arena</p>
+        <div class="premios-grid" id="premiosGrid">
+          <!-- generado por JS -->
+        </div>
+      </div>
+    </div><!-- /panel-premios -->
+
+  </main>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="arena-footer">
+    <div class="foot-orn">⚜ ⚔ ⚜</div>
+    <p class="foot-name cfg-nombre"></p>
+    <p class="foot-sub">Que los dioses guíen tu espada · Gloria al vencedor</p>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- ══ MODAL DE COMBATE ══ -->
+  <div class="battle-modal" id="battleModal" role="dialog" aria-modal="true" aria-label="Registrar resultado">
+    <div class="md-overlay" id="mdOverlay"></div>
+    <div class="md-box">
+      <button class="md-close" id="mdClose" aria-label="Cerrar">✕</button>
+
+      <div class="md-glow-bar"></div>
+      <div class="md-title">⚔ COMBATE ⚔</div>
+      <div class="md-subtitle" id="mdSubtitle">RONDA 1 · Combate 1</div>
+
+      <div class="md-arena">
+
+        <!-- Fighter A -->
+        <div class="md-fighter">
+          <div class="md-av-wrap">
+            <img  id="mdAImg" class="md-av-img" src="" alt="" style="display:none"/>
+            <div  id="mdAPh"  class="md-av-ph">⚔</div>
+          </div>
+          <div class="md-f-name" id="mdAName">—</div>
+          <div class="md-f-seed" id="mdASeed">#1</div>
+          <button class="md-win-btn" id="btnWinA">
+            <span>🏆</span> VICTORIA
+          </button>
+        </div>
+
+        <!-- VS -->
+        <div class="md-vs-col">
+          <div class="md-vs-ring">VS</div>
+          <div class="md-sparks">· · ·</div>
+        </div>
+
+        <!-- Fighter B -->
+        <div class="md-fighter">
+          <div class="md-av-wrap">
+            <img  id="mdBImg" class="md-av-img" src="" alt="" style="display:none"/>
+            <div  id="mdBPh"  class="md-av-ph">⚔</div>
+          </div>
+          <div class="md-f-name" id="mdBName">—</div>
+          <div class="md-f-seed" id="mdBSeed">#2</div>
+          <button class="md-win-btn" id="btnWinB">
+            <span>🏆</span> VICTORIA
+          </button>
+        </div>
+
+      </div><!-- /md-arena -->
+      <p class="md-hint">Selecciona al gladiador victorioso para avanzarlo</p>
+    </div>
+  </div>
+
+  <script src="batt.js"></script>
+</body>
+</html>

@@ -51,7 +51,7 @@
         </div>
         <span class="hud-level" id="hudLevel">Nivel 1</span>
 
-        <!-- BOOST INDICATOR — se muestra solo cuando hay un boost activo -->
+        <!-- BOOST INDICATOR -->
         <div class="hud-boost-wrap hidden" id="hudBoostWrap" title="Boost de XP activo">
           <span class="hud-boost-icon">⚡</span>
           <span class="hud-boost-mult" id="hudBoostMult">×1.5</span>
@@ -105,7 +105,7 @@
         <!-- JS -->
       </div>
 
-      <!-- Tabs — incluye Buzón -->
+      <!-- Tabs -->
       <div class="pass-tabs reveal" id="passTabs">
         <button class="ptab is-on" data-tab="recompensas">🎁 Recompensas</button>
         <button class="ptab" data-tab="misiones">📋 Misiones</button>
@@ -120,6 +120,10 @@
       <!-- Tab: Recompensas (niveles) -->
       <div class="pass-tab-content" id="tabRecompensas">
         <div class="pass-track-tier-selector" id="passTrackTierSelector"></div>
+
+        <!-- ★ BOTÓN RECLAMAR TODO — CARRIL DE NIVELES -->
+        <div class="claim-all-wrap" id="claimAllTrackWrap" style="display:none"></div>
+
         <div class="pass-max-level-banner hidden" id="passMaxLevelBanner"></div>
         <div class="pass-track-container reveal" id="passTrackContainer">
           <!-- JS rellena el carril de 2 filas -->
@@ -136,6 +140,10 @@
       <!-- Tab: Misiones -->
       <div class="pass-tab-content hidden" id="tabMisiones">
         <div class="missions-locked-banner hidden" id="missionsBanner"></div>
+
+        <!-- ★ BOTÓN RECLAMAR TODO — MISIONES -->
+        <div class="claim-all-wrap" id="claimAllMissionsWrap" style="display:none"></div>
+
         <div class="missions-container" id="missionsGrid"></div>
       </div>
 
@@ -154,7 +162,6 @@
 
       <!-- Tab: Mejoras -->
       <div class="pass-tab-content hidden" id="tabMejoras">
-        <!-- Cadena visual de tiers -->
         <div class="tier-chain-info reveal">
           <div class="tier-chain-title">🔗 Cadena de Mejoras</div>
           <div class="tier-chain-row">
