@@ -1,8 +1,7 @@
 /* =====================================================
-   Moonveil Portal — perfil.js  (módulo ES)
-   Firebase Auth + Firestore sincronizado
-   localStorage = caché rápido
-   Firestore    = persistencia real
+   Moonveil Portal — perfil.js  v2.1
+   Fix: invitado, horas float, + Inventario + Títulos
+   + Email/PlayerID en hero + sync cross-device
    ===================================================== */
 'use strict';
 
@@ -16,6 +15,12 @@ import {
   saveBadges,
   saveMissionResets,
   pushLocalToFirestore,
+  saveInventory,
+  saveTitlesData,
+  INVENTORY_KEY,
+  TITLES_KEY,
+  TITLE_ACTIVE_KEY,
+  PLAYER_ID_KEY,
 } from './database.js';
 
 /* ── KEYS localStorage ── */
@@ -29,10 +34,9 @@ const RESET_KEY     = 'mv_mission_resets';
 const BASELINE_KEY  = 'mv_baselines';
 const BADGE_SEEN_KEY= 'mv_badges_seen';
 
-/* ── UID del usuario activo (asignado tras auth) ── */
 let currentUID = null;
 
-/* ── LEVEL THRESHOLDS ── */
+/* ── LEVEL ── */
 const LEVEL_THR   = [0,100,250,450,700,1000,1400,1850,2400,3000,3700,4500,5500,6800,8400,10200];
 const LEVEL_NAMES = ['NOVATO','EXPLORADOR','COMBATIENTE','GUERRERO','ÉLITE','CAMPEÓN','MAESTRO','LEYENDA','SEMIDIÓS','INMORTAL','ARCANO','SUPREMO','MÍTICO','DIVINO','ETERNO','ABSOLUTO'];
 
@@ -62,6 +66,42 @@ const BADGES = [
   { id:'b_portal2',   icon:'🏰', name:'CIUDADANO',          desc:'30 días como miembro',         req:'dias>=30',    xp:200, cat:'portal'    },
   { id:'b_pvp1',      icon:'🥊', name:'PRIMER COMBATE',     desc:'Completa tu primera misión PvP',req:'pvp>=1',     xp:50,  cat:'pvp'       },
   { id:'b_pvp10',     icon:'🏆', name:'GLADIADOR',          desc:'10 misiones PvP completadas',  req:'pvp>=10',     xp:250, cat:'legendaria'},
+];
+
+/* ── TÍTULOS ── */
+const TITLES_DEF = [
+  /* Nivel */
+  { id:'tl_novato',      name:'NOVATO',                color:'#4a7060', req:'registro',       desc:'El inicio de toda aventura',      cat:'nivel'   },
+  { id:'tl_explorador',  name:'EXPLORADOR',             color:'#30d158', req:'nivel>=3',       desc:'Alcanza el nivel 3',              cat:'nivel'   },
+  { id:'tl_combatiente', name:'COMBATIENTE',            color:'#ff9500', req:'nivel>=5',       desc:'Alcanza el nivel 5',              cat:'nivel'   },
+  { id:'tl_guerrero',    name:'GUERRERO',               color:'#ff3b30', req:'nivel>=7',       desc:'Alcanza el nivel 7',              cat:'nivel'   },
+  { id:'tl_elite',       name:'ÉLITE',                  color:'#bf5af2', req:'nivel>=9',       desc:'Alcanza el nivel 9',              cat:'nivel'   },
+  { id:'tl_campeon',     name:'CAMPEÓN',                color:'#f5c518', req:'nivel>=11',      desc:'Alcanza el nivel 11',             cat:'nivel'   },
+  { id:'tl_maestro',     name:'MAESTRO',                color:'#00e5ff', req:'nivel>=13',      desc:'Alcanza el nivel 13',             cat:'nivel'   },
+  { id:'tl_leyenda',     name:'LEYENDA DEL PORTAL',     color:'#ff2d78', req:'nivel>=15',      desc:'Alcanza el nivel máximo (15)',    cat:'nivel'   },
+  /* Racha */
+  { id:'tl_constante',   name:'CONSTANTE',              color:'#30d158', req:'racha>=3',       desc:'Racha de 3 días activo',          cat:'racha'   },
+  { id:'tl_perseverante',name:'PERSEVERANTE',           color:'#ff9500', req:'racha>=7',       desc:'Racha de 7 días activo',          cat:'racha'   },
+  { id:'tl_incansable',  name:'INCANSABLE',             color:'#f5c518', req:'racha>=30',      desc:'Racha de 30 días activo',         cat:'racha'   },
+  /* Insignias */
+  { id:'tl_cazador',     name:'CAZADOR',                color:'#30d158', req:'badges>=5',      desc:'Obtén 5 insignias',               cat:'logro'   },
+  { id:'tl_coleccionista',name:'COLECCIONISTA',         color:'#bf5af2', req:'badges>=10',     desc:'Obtén 10 insignias',              cat:'logro'   },
+  { id:'tl_supremo_col', name:'SUPREMO COLECCIONISTA',  color:'#f5c518', req:'badges>=20',     desc:'Obtén las 20 insignias',          cat:'logro'   },
+  /* Misiones */
+  { id:'tl_aventurero',  name:'AVENTURERO',             color:'#30d158', req:'misiones>=5',    desc:'Completa 5 misiones',             cat:'pvp'     },
+  { id:'tl_veterano',    name:'VETERANO DE GUERRA',     color:'#ff9500', req:'misiones>=20',   desc:'Completa 20 misiones',            cat:'pvp'     },
+  { id:'tl_sdc',         name:'SEÑOR DE LA GUERRA',     color:'#ff3b30', req:'misiones>=50',   desc:'Completa 50 misiones',            cat:'pvp'     },
+  /* XP */
+  { id:'tl_rico',        name:'ADINERADO',              color:'#f5c518', req:'xp>=1000',       desc:'Acumula 1000 XP',                 cat:'xp'      },
+  { id:'tl_magnate',     name:'MAGNATE DEL XP',         color:'#ff9500', req:'xp>=5000',       desc:'Acumula 5000 XP',                 cat:'xp'      },
+  { id:'tl_dios',        name:'DIOS DEL PORTAL',        color:'#00e5ff', req:'xp>=10000',      desc:'Acumula 10000 XP',               cat:'xp'      },
+];
+
+/* ── INVENTARIO ── */
+const INVENTORY_ITEMS_DEF = [
+  { id:'tickets',       icon:'🎫', name:'TICKETS',               desc:'Moneda general de eventos y torneos',  color:'#30d158', rarity:'comun'      },
+  { id:'keys',          icon:'🗝️', name:'LLAVES',                desc:'Abre cofres y contenido bloqueado',    color:'#f5c518', rarity:'raro'       },
+  { id:'superstar_keys',icon:'⭐', name:'LLAVES SUPERESTRELLAS',  desc:'Acceso a contenido premium exclusivo', color:'#00e5ff', rarity:'legendario' },
 ];
 
 /* ── MISIONES ── */
@@ -105,13 +145,12 @@ const BUZON_MESSAGES = [
   { id:'bz10', cat:'evento',  icon:'🎯', title:'¡BANCO A LA VISTA ACTIVO!',        text:'El evento permanente Banco a la Vista sigue activo. Los cerditos esperan ser llenados. ¡Acumula XP y sube de rango sin límite!',                                         fecha: new Date(Date.now()-8*24*60*60*1000).toISOString(), expira: null },
 ];
 
-/* ── AVATARS ── */
 const AVATARS = ['🌙','🦊','🐱','🐸','🦄','🐧','🦁','🐼','🤖','👾','🧙','🌟','🐉','🦅','🐢','🎮','⚔️','💎','🔮','🎯','🌈','🏆','👑','🚀'];
 
 /* ── HELPERS ── */
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-function ls(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
+function ls(k)      { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
 function lsSet(k,v) { localStorage.setItem(k, JSON.stringify(v)); }
 
 function toast(msg, type = 'success') {
@@ -121,20 +160,27 @@ function toast(msg, type = 'success') {
   t._tid = setTimeout(() => { t.className = ''; }, 2800);
 }
 
-/* ── Sync helpers: llama a Firebase en background, sin bloquear UI ── */
-function fbSaveProfile(data)       { if (currentUID) updateUserProfile(currentUID, data).catch(console.warn); }
-function fbSaveMissions(state)     { if (currentUID) saveMisionesEstado(currentUID, state).catch(console.warn); }
-function fbSaveBuzon(state)        { if (currentUID) saveBuzonEstado(currentUID, state).catch(console.warn); }
-function fbSaveTimeline(event)     { if (currentUID) addTimelineEventDB(currentUID, event).catch(console.warn); }
-function fbSaveBadgesList(arr)     { if (currentUID) saveBadges(currentUID, arr).catch(console.warn); }
-function fbSaveResets(r,b)         { if (currentUID) saveMissionResets(currentUID, r, b).catch(console.warn); }
+/* ── Sync helpers (background, sin bloquear UI) ── */
+function fbSaveProfile(data)      { if (currentUID) updateUserProfile(currentUID, data).catch(console.warn); }
+function fbSaveMissions(state)    { if (currentUID) saveMisionesEstado(currentUID, state).catch(console.warn); }
+function fbSaveBuzon(state)       { if (currentUID) saveBuzonEstado(currentUID, state).catch(console.warn); }
+function fbSaveTimeline(event)    { if (currentUID) addTimelineEventDB(currentUID, event).catch(console.warn); }
+function fbSaveBadgesList(arr)    { if (currentUID) saveBadges(currentUID, arr).catch(console.warn); }
+function fbSaveResets(r,b)        { if (currentUID) saveMissionResets(currentUID, r, b).catch(console.warn); }
+function fbSaveInventory(inv)     { if (currentUID) saveInventory(currentUID, inv).catch(console.warn); }
+function fbSaveTitles(earned,act) { if (currentUID) saveTitlesData(currentUID, earned, act).catch(console.warn); }
 
-function getProfile()   { return ls(PERFIL_KEY)   || { nombre:'INVITADO', email:'', avatar:'🌙', xp:0, racha:0, nivel:1, horas:0, registrado: new Date().toISOString() }; }
-function getMissions()  { return ls(MISSION_KEY)  || {}; }
-function getTimeline()  { return ls(TIMELINE_KEY) || []; }
-function getBuzonState(){ return ls(BUZON_KEY)    || {}; }
-function getBadges()    { return ls(BADGES_KEY)   || []; }
-function getBaselines() { return ls(BASELINE_KEY) || {}; }
+/* ── Getters ── */
+function getProfile()    { return ls(PERFIL_KEY)    || { nombre:'Aventurero', email:'', avatar:'🌙', xp:0, racha:0, nivel:1, horas:0, registrado: new Date().toISOString() }; }
+function getMissions()   { return ls(MISSION_KEY)   || {}; }
+function getTimeline()   { return ls(TIMELINE_KEY)  || []; }
+function getBuzonState() { return ls(BUZON_KEY)      || {}; }
+function getBadges()     { return ls(BADGES_KEY)     || []; }
+function getBaselines()  { return ls(BASELINE_KEY)   || {}; }
+function getInventory()  { return ls(INVENTORY_KEY)  || { tickets:0, keys:0, superstar_keys:0 }; }
+function getTitlesEarned(){ return ls(TITLES_KEY)    || ['tl_novato']; }
+function getActiveTitle() { return localStorage.getItem(TITLE_ACTIVE_KEY) || 'tl_novato'; }
+function getPlayerID()    { return localStorage.getItem(PLAYER_ID_KEY) || ''; }
 
 /* ── LEVEL ── */
 function computeLevel(xp) {
@@ -166,6 +212,17 @@ function getTodayStr()  { const n=new Date(); return `${n.getFullYear()}-${Strin
 function getWeekStr()   { const d=new Date(); d.setHours(0,0,0,0); const day=d.getDay(), diff=day===0?-6:1-day; d.setDate(d.getDate()+diff); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function getMonthStr()  { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`; }
 
+/* ── Formato de horas limpio (sin floats feos) ── */
+function formatHoras(h) {
+  const total = Math.max(0, h || 0);
+  const hours = Math.floor(total);
+  const mins  = Math.floor((total - hours) * 60);
+  if (hours === 0 && mins === 0) return '0m';
+  if (hours === 0) return `${mins}m`;
+  if (mins === 0)  return `${hours}h`;
+  return `${hours}h ${mins}m`;
+}
+
 /* ── EARNED BADGES ── */
 function getEarnedBadgeIds(p) {
   const xp=p.xp||0, racha=p.racha||0, lv=computeLevel(xp);
@@ -183,13 +240,13 @@ function getEarnedBadgeIds(p) {
       if (m) {
         const [,key,val] = m, v = Number(val);
         switch(key) {
-          case 'racha':    pass = racha    >= v; break;
-          case 'xp':       pass = xp       >= v; break;
-          case 'nivel':    pass = lv       >= v; break;
-          case 'misiones': pass = mDone    >= v; break;
+          case 'racha':    pass = racha >= v; break;
+          case 'xp':       pass = xp >= v; break;
+          case 'nivel':    pass = lv >= v; break;
+          case 'misiones': pass = mDone >= v; break;
           case 'horas':    pass = (p.horas||0) >= v; break;
           case 'dias':     pass = memberDays >= v; break;
-          case 'pvp':      pass = mDone    >= v; break;
+          case 'pvp':      pass = mDone >= v; break;
           case 'badges':   pass = earned.size >= v; break;
         }
       }
@@ -205,15 +262,52 @@ function getEarnedBadgeIds(p) {
   return earned;
 }
 
+/* ── EARNED TITLES ── */
+function computeEarnedTitles(p) {
+  const xp=p.xp||0, racha=p.racha||0, lv=computeLevel(xp);
+  const mDone = Object.values(getMissions()).filter(m=>m?.done).length;
+  const badgeCount = getEarnedBadgeIds(p).size;
+  const earned = new Set(getTitlesEarned());
+
+  for (const t of TITLES_DEF) {
+    const r = t.req;
+    let pass = false;
+    if (r === 'registro') {
+      pass = true;
+    } else {
+      const m = r.match(/^(\w+)>=([\d.]+)$/);
+      if (m) {
+        const [,key,val] = m, v = Number(val);
+        switch(key) {
+          case 'nivel':    pass = lv     >= v; break;
+          case 'racha':    pass = racha  >= v; break;
+          case 'badges':   pass = badgeCount >= v; break;
+          case 'misiones': pass = mDone  >= v; break;
+          case 'xp':       pass = xp     >= v; break;
+        }
+      }
+    }
+    if (pass) earned.add(t.id);
+  }
+
+  const arr = [...earned];
+  lsSet(TITLES_KEY, arr);
+  fbSaveTitles(arr, getActiveTitle());
+  return earned;
+}
+
 /* ── RENDER HEADER ── */
 function renderHeader() {
   const p = getProfile(), lv = computeLevel(p.xp||0);
   const earned = getEarnedBadgeIds(p);
   const mDone  = Object.values(getMissions()).filter(m=>m?.done).length;
   const lvInfo = xpForNextLevel(lv, p.xp||0);
+  const activeTitleId = getActiveTitle();
+  const activeTitle = TITLES_DEF.find(t => t.id === activeTitleId);
+  const playerID = getPlayerID();
 
   const set = (id,v) => { const el=$(`#${id}`); if(el) el.textContent=v; };
-  set('profile-name',  (p.nombre||'INVITADO').toUpperCase());
+  set('profile-name',  (p.nombre||'Aventurero').toUpperCase());
   set('profile-email', p.email||'');
   set('profile-tag',   `▸ ${LEVEL_NAMES[lv-1]||'NOVATO'} · NIVEL ${lv}`);
   set('avatar-display', p.avatar||'🌙');
@@ -226,9 +320,24 @@ function renderHeader() {
   set('stat-misiones',  mDone);
   set('stat-xp',        p.xp||0);
   set('hero-rango',  LEVEL_NAMES[lv-1]||'NOVATO');
-  set('hero-horas',  `${Math.floor(p.horas||0)}h`);
+  set('hero-horas',  formatHoras(p.horas));  /* ← FIX: sin floats feos */
   set('hero-racha',  `🔥 ${p.racha||0} días`);
   set('hero-desde',  p.registrado ? formatDate(p.registrado) : '—');
+
+  /* Player ID */
+  const pidEl = $('#player-id');
+  if (pidEl) pidEl.textContent = playerID || '—';
+
+  /* Active title bajo el nombre */
+  const titleDisplay = $('#active-title-display');
+  const titleBadge   = $('#active-title-badge');
+  if (titleDisplay && titleBadge && activeTitle) {
+    titleBadge.textContent = `✦ ${activeTitle.name} ✦`;
+    titleBadge.style.color      = activeTitle.color;
+    titleBadge.style.borderColor= activeTitle.color;
+    titleBadge.style.background = activeTitle.color + '18';
+    titleDisplay.style.display  = '';
+  }
 
   const xpBar = $('#xp-bar-fill');
   if (xpBar) xpBar.style.width = lvInfo.pct+'%';
@@ -291,8 +400,7 @@ function checkMissionResets() {
   }
   if (changed) {
     lsSet(MISSION_KEY, mState); lsSet(RESET_KEY, resets); lsSet(BASELINE_KEY, bls);
-    fbSaveMissions(mState);
-    fbSaveResets(resets, bls);
+    fbSaveMissions(mState); fbSaveResets(resets, bls);
   }
 }
 
@@ -374,10 +482,10 @@ function renderResumen() {
   const set=(id,v)=>{const el=$(`#${id}`);if(el)el.textContent=v;};
   set('rc-xp',p.xp||0); set('rc-racha',p.racha||0);
   set('rc-insignias',earned.size); set('rc-misiones',mDone);
-  const bXp=$('#rc-bar-xp');    if(bXp)    bXp.style.width=safe(p.xp||0,10000);
-  const bRacha=$('#rc-bar-racha');if(bRacha)bRacha.style.width=safe(p.racha||0,30);
-  const bInsig=$('#rc-bar-insig');if(bInsig)bInsig.style.width=safe(earned.size,BADGES.length);
-  const bMis=$('#rc-bar-mis');  if(bMis)  bMis.style.width=safe(mDone,50);
+  const bXp=$('#rc-bar-xp');     if(bXp)     bXp.style.width=safe(p.xp||0,10000);
+  const bRacha=$('#rc-bar-racha');if(bRacha)  bRacha.style.width=safe(p.racha||0,30);
+  const bInsig=$('#rc-bar-insig');if(bInsig)  bInsig.style.width=safe(earned.size,BADGES.length);
+  const bMis=$('#rc-bar-mis');   if(bMis)    bMis.style.width=safe(mDone,50);
   const events=getTimeline().slice(0,5);
   const rTl=$('#resumen-timeline');
   if (rTl) {
@@ -437,14 +545,9 @@ function renderMissions() {
       case 'd01': prog=1; break;
       case 'd02': prog=Math.min(sections,m.max); break;
       case 'd03': prog=racha>=1?1:0; break;
-      case 'd04': prog=st?.prog||0; break;
-      case 'd05': prog=st?.prog||0; break;
-      case 'd06': prog=st?.prog||0; break;
       case 'w01': prog=Math.min(racha,m.max); break;
       case 'w02': prog=Math.min(Math.max(0,xp-(bWeek.xp||0)),m.max); break;
-      case 'w03': prog=st?.prog||0; break;
       case 'w04': prog=Math.min(mDone,m.max); break;
-      case 'w05': prog=st?.prog||0; break;
       case 'w06': prog=Math.min(tlToday,m.max); break;
       case 'm01': prog=Math.min(mDone,m.max); break;
       case 'm02': prog=Math.min(racha,m.max); break;
@@ -493,6 +596,79 @@ function renderTimeline() {
     <div class="tl-icon-wrap"><div class="tl-icon">${e.icon||'📌'}</div>${i<events.length-1?'<div class="tl-line"></div>':''}</div>
     <div class="tl-body"><div class="tl-title">${e.title}</div>${e.detail?`<div class="tl-detail">${e.detail}</div>`:''}<div class="tl-time">${timeAgo(e.fecha)}</div></div>
   </div>`).join('');
+}
+
+/* ── RENDER INVENTARIO ── */
+function renderInventory() {
+  const inv = getInventory();
+  const grid = $('#inventory-grid'); if (!grid) return;
+
+  const rarityLabels = { comun:'COMÚN', raro:'RARO', legendario:'LEGENDARIO' };
+  const rarityColors = { comun:'var(--primary)', raro:'var(--yellow)', legendario:'var(--cyan)' };
+
+  grid.innerHTML = INVENTORY_ITEMS_DEF.map(item => {
+    const count = inv[item.id] || 0;
+    const col   = rarityColors[item.rarity] || item.color;
+    const rLabel= rarityLabels[item.rarity] || item.rarity;
+    return `<div class="inv-card ${item.rarity}" style="--item-color:${col}">
+      <div class="inv-rarity-badge">${rLabel}</div>
+      <div class="inv-icon">${item.icon}</div>
+      <div class="inv-name">${item.name}</div>
+      <div class="inv-desc">${item.desc}</div>
+      <div class="inv-count-row">
+        <span class="inv-label">CANTIDAD</span>
+        <span class="inv-count" style="color:${col}">${count}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  /* Total de ítems */
+  const total = Object.values(inv).reduce((a,b)=>(a||0)+(b||0), 0);
+  const totalEl = $('#inv-total'); if(totalEl) totalEl.textContent = total;
+}
+
+/* ── RENDER TÍTULOS ── */
+let titleCatFilter = '';
+function renderTitles() {
+  const p = getProfile();
+  const earnedSet = computeEarnedTitles(p);
+  const activeId  = getActiveTitle();
+  const filtered  = titleCatFilter ? TITLES_DEF.filter(t=>t.cat===titleCatFilter) : TITLES_DEF;
+
+  const set=(id,v)=>{const el=$(`#${id}`);if(el)el.textContent=v;};
+  set('titles-earned', earnedSet.size);
+  set('titles-total',  TITLES_DEF.length);
+
+  const grid = $('#titles-grid'); if (!grid) return;
+  grid.innerHTML = filtered.map(t => {
+    const isEarned  = earnedSet.has(t.id);
+    const isActive  = t.id === activeId;
+    return `<div class="title-card ${isEarned?'earned':'locked'} ${isActive?'title-active':''} reveal" data-tid="${t.id}">
+      ${isActive ? '<div class="title-active-crown">✦ ACTIVO</div>' : ''}
+      ${!isEarned ? '<span class="title-locked-icon">🔒</span>' : ''}
+      <div class="title-preview" style="color:${isEarned?t.color:'var(--muted)'}; border-color:${isEarned?t.color+'40':'var(--border)'}; background:${isEarned?t.color+'12':'transparent'}">
+        ${isEarned ? `✦ ${t.name} ✦` : '??? ??? ???'}
+      </div>
+      <div class="title-req">${t.desc}</div>
+      ${isEarned && !isActive ? `<button class="btn-equip-title" data-tid="${t.id}">⚡ EQUIPAR</button>` : ''}
+    </div>`;
+  }).join('');
+
+  requestAnimationFrame(()=>{ $$('#titles-grid .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),i*30)); });
+
+  grid.querySelectorAll('.btn-equip-title').forEach(btn => {
+    btn.addEventListener('click', () => equipTitle(btn.dataset.tid));
+  });
+}
+
+function equipTitle(tid) {
+  const title = TITLES_DEF.find(t=>t.id===tid); if(!title) return;
+  localStorage.setItem(TITLE_ACTIVE_KEY, tid);
+  fbSaveTitles(getTitlesEarned(), tid);
+  addTimelineEvent({ icon:'👑', title:`Título equipado: ${title.name}`, detail:'¡Muéstraselo a todos!' });
+  renderTitles();
+  renderHeader();
+  toast(`👑 TÍTULO: ${title.name}`,'success');
 }
 
 /* ── BUZÓN ── */
@@ -558,11 +734,13 @@ function initTabs() {
       const panel=$(`#tab-${tab.dataset.tab}`); if(panel)panel.classList.add('active');
       recordSectionVisit(tab.dataset.tab);
       switch(tab.dataset.tab){
-        case 'insignias': renderBadges(); completeMissionSilent('d06'); break;
-        case 'misiones':  renderMissions(); break;
-        case 'actividad': renderTimeline(); break;
-        case 'buzon':     renderBuzon(); break;
-        case 'resumen':   renderResumen(); break;
+        case 'insignias':  renderBadges(); completeMissionSilent('d06'); break;
+        case 'misiones':   renderMissions(); break;
+        case 'actividad':  renderTimeline(); break;
+        case 'buzon':      renderBuzon(); break;
+        case 'resumen':    renderResumen(); break;
+        case 'inventario': renderInventory(); break;
+        case 'titulos':    renderTitles(); break;
       }
     });
   });
@@ -638,7 +816,6 @@ function initNav() {
 function initLogout() {
   $('#btn-logout')?.addEventListener('click', async () => {
     if (!confirm('¿Cerrar sesión?')) return;
-    /* Sincronizar último estado antes de salir */
     if (currentUID) {
       toast('⟳ Guardando progreso...','info');
       await pushLocalToFirestore(currentUID);
@@ -665,36 +842,26 @@ function recordVisit() {
   completeMissionSilent('d01');
   const p=getProfile(); if((p.racha||0)>=1) completeMissionSilent('d03');
   recordSectionVisit('resumen');
-  /* Misión de 5 minutos */
   setTimeout(()=>{ completeMissionSilent('d05'); renderMissions(); renderHeader(); }, 5*60*1000);
 }
 
-/* ── PLATFORM TIMER (Horas activo) ── */
+/* ── PLATFORM TIMER — FIX horas float ── */
 function startHoursTimer() {
-  /* Cada minuto suma 1/60 de hora y sincroniza con Firestore cada 5 min */
   let syncCounter = 0;
   setInterval(() => {
-    const p=getProfile(); p.horas=(p.horas||0)+(1/60); lsSet(PERFIL_KEY,p);
+    const p = getProfile();
+    /* Usar redondeo a 3 decimales para evitar acumulación de errores float */
+    p.horas = Math.round(((p.horas || 0) + (1 / 60)) * 1000) / 1000;
+    lsSet(PERFIL_KEY, p);
     syncCounter++;
     if (syncCounter >= 5) {
-      syncCounter=0;
+      syncCounter = 0;
       fbSaveProfile({ horas: p.horas });
     }
-  }, 60*1000);
+  }, 60 * 1000);
 }
 
-/* ── SYNC VISUAL INDICATOR ── */
-function showSyncIndicator(text='⟳ SINCRONIZANDO...') {
-  const xpBadge=$('#xp-display'); if(xpBadge)xpBadge.style.opacity='0.5';
-  toast(text,'info');
-}
-function hideSyncIndicator() {
-  const xpBadge=$('#xp-display'); if(xpBadge)xpBadge.style.opacity='1';
-}
-
-/* ──────────────────────────────────────────────────────
-   MAIN — Con Firebase Auth
-   ────────────────────────────────────────────────────── */
+/* ── MAIN ── */
 document.addEventListener('DOMContentLoaded', () => {
   hideLoader();
   initStars();
@@ -713,6 +880,13 @@ document.addEventListener('DOMContentLoaded', () => {
     renderBadges();
   }));
 
+  /* Filtros de títulos */
+  $$('.tf-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    $$('.tf-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); titleCatFilter=btn.dataset.cat||'';
+    renderTitles();
+  }));
+
   /* Buzón controles */
   $('#btn-mark-all')?.addEventListener('click',()=>{
     const state=getBuzonState();
@@ -723,7 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   $('#buzon-filter')?.addEventListener('change',e=>{buzonFilter=e.target.value;renderBuzon();});
 
-  /* Timeline: limpiar */
+  /* Timeline limpiar */
   $('#btn-clear-timeline')?.addEventListener('click',()=>{
     if(!confirm('¿Limpiar historial de actividad?')) return;
     lsSet(TIMELINE_KEY,[]);
@@ -731,10 +905,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTimeline(); toast('🗑 HISTORIAL BORRADO','error');
   });
 
-  /* ── Observador de Firebase Auth ── */
+  /* ── Firebase Auth Observer ── */
   let firstLoad = true;
   onAuthChange(async (user) => {
-    /* No autenticado → redirigir al login */
     if (!user) {
       window.location.href = 'index.html';
       return;
@@ -744,18 +917,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (firstLoad) {
       firstLoad = false;
-      showSyncIndicator('⟳ CARGANDO TU PROGRESO...');
+      toast('⟳ CARGANDO TU PROGRESO...','info');
+
       try {
-        await syncAllToLocalStorage(user.uid);
-        hideSyncIndicator();
+        /* Pasar el objeto user para que database.js pueda crear el doc si no existe */
+        await syncAllToLocalStorage(user.uid, user);
         toast('✓ PROGRESO SINCRONIZADO','success');
       } catch (err) {
-        hideSyncIndicator();
         console.warn('[Perfil] Error de sincronización:', err);
         toast('⚠ Usando datos locales','info');
       }
 
-      /* Después del sync, inicializar todo */
       checkMissionResets();
       startHoursTimer();
       renderHeader();
@@ -763,14 +935,15 @@ document.addEventListener('DOMContentLoaded', () => {
       renderBuzon();
       recordVisit();
 
-      /* Renderizar tab activo si no es el default */
       const activeTab = document.querySelector('.tab.active');
       if (activeTab && activeTab.dataset.tab !== 'resumen') {
         switch(activeTab.dataset.tab) {
-          case 'insignias': renderBadges(); break;
-          case 'misiones':  renderMissions(); break;
-          case 'actividad': renderTimeline(); break;
-          case 'buzon':     renderBuzon(); break;
+          case 'insignias':  renderBadges();    break;
+          case 'misiones':   renderMissions();  break;
+          case 'actividad':  renderTimeline();  break;
+          case 'buzon':      renderBuzon();     break;
+          case 'inventario': renderInventory(); break;
+          case 'titulos':    renderTitles();    break;
         }
       }
     }
