@@ -8,10 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap">
   <link rel="stylesheet" href="perfil.css"/>
-  <meta name="theme-color" content="#0a0e0d">
 </head>
 <body>
-
 <div class="scanlines" aria-hidden="true"></div>
 <canvas id="stars-canvas" class="stars-canvas" aria-hidden="true"></canvas>
 
@@ -40,9 +38,7 @@
       <span id="xp-display" class="xp-badge">⚡ 0 XP</span>
       <button class="btn btn-logout" id="btn-logout">✕ SALIR</button>
     </div>
-    <button class="hamburger" id="hamburger" aria-label="menú">
-      <span></span><span></span><span></span>
-    </button>
+    <button class="hamburger" id="hamburger" aria-label="menú"><span></span><span></span><span></span></button>
   </div>
 </header>
 
@@ -50,10 +46,9 @@
 <section class="profile-hero">
   <div class="container">
     <div class="profile-hero-inner">
-
-      <!-- Avatar block -->
+      <!-- Avatar -->
       <div class="avatar-block">
-        <div class="avatar-frame" id="avatar-frame">
+        <div class="avatar-frame">
           <div class="avatar-pixel" id="avatar-display">🌙</div>
           <div class="avatar-scan"></div>
           <div class="avatar-ring"></div>
@@ -61,79 +56,57 @@
         <button class="btn btn-change-avatar" id="btn-change-avatar">🎨 CAMBIAR</button>
       </div>
 
-      <!-- Info block -->
+      <!-- Info -->
       <div class="profile-info">
         <div class="profile-tag" id="profile-tag">▸ NOVATO · NIVEL 1</div>
-
         <div class="profile-name-row">
           <h1 class="profile-name" id="profile-name">CARGANDO...</h1>
           <button class="btn-edit-name" id="btn-edit-name" title="Editar nombre">✏️</button>
         </div>
 
-        <!-- Título activo bajo el nombre -->
+        <!-- Título activo -->
         <div class="profile-active-title" id="active-title-display" style="display:none">
           <span class="active-title-badge" id="active-title-badge">TÍTULO</span>
         </div>
 
-        <!-- Email + Player ID -->
-        <div class="profile-contact-row">
+        <!-- Email -->
+        <div class="profile-email-row">
           <span class="profile-email" id="profile-email">—</span>
-          <span class="player-id-badge" id="player-id" title="Tu ID único de jugador">—</span>
+        </div>
+
+        <!-- Player ID (propio bloque, prominente) -->
+        <div class="profile-id-row">
+          <span class="pid-label">🪪 ID</span>
+          <span class="pid-value" id="player-id" title="Clic para copiar tu ID">—</span>
+          <span class="pid-hint">clic para copiar</span>
         </div>
 
         <div class="level-row">
           <span class="level-chip">Nv. <span id="level-num">1</span></span>
           <div class="xp-bar-wrap">
-            <div class="xp-bar-track">
-              <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
-            </div>
+            <div class="xp-bar-track"><div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div></div>
             <div class="xp-label"><span id="xp-val">0</span> / <span id="xp-next">100</span> XP</div>
           </div>
         </div>
 
         <div class="quick-stats">
-          <div class="qs-item">
-            <span class="qs-val" id="stat-insignias">0</span>
-            <span class="qs-key">INSIGNIAS</span>
-          </div>
-          <div class="qs-item">
-            <span class="qs-val" id="stat-racha">0</span>
-            <span class="qs-key">RACHA</span>
-          </div>
-          <div class="qs-item">
-            <span class="qs-val" id="stat-misiones">0</span>
-            <span class="qs-key">MISIONES</span>
-          </div>
-          <div class="qs-item">
-            <span class="qs-val" id="stat-xp">0</span>
-            <span class="qs-key">XP TOTAL</span>
-          </div>
+          <div class="qs-item"><span class="qs-val" id="stat-insignias">0</span><span class="qs-key">INSIGNIAS</span></div>
+          <div class="qs-item"><span class="qs-val" id="stat-racha">0</span><span class="qs-key">RACHA</span></div>
+          <div class="qs-item"><span class="qs-val" id="stat-misiones">0</span><span class="qs-key">MISIONES</span></div>
+          <div class="qs-item"><span class="qs-val" id="stat-xp">0</span><span class="qs-key">XP TOTAL</span></div>
         </div>
       </div>
 
-      <!-- Right: Live Info -->
+      <!-- Live panel -->
       <div class="hero-side">
         <div class="live-panel">
           <div class="lp-title">⚡ ESTADO ACTUAL</div>
-          <div class="lp-row">
-            <span class="lp-key">Rango</span>
-            <span class="lp-val" id="hero-rango">NOVATO</span>
-          </div>
-          <div class="lp-row">
-            <span class="lp-key">Horas</span>
-            <span class="lp-val" id="hero-horas">0m</span>
-          </div>
-          <div class="lp-row">
-            <span class="lp-key">Racha</span>
-            <span class="lp-val" id="hero-racha">🔥 0 días</span>
-          </div>
-          <div class="lp-row">
-            <span class="lp-key">Miembro desde</span>
-            <span class="lp-val" id="hero-desde">—</span>
-          </div>
+          <div class="lp-row"><span class="lp-key">Rango</span><span class="lp-val" id="hero-rango">NOVATO</span></div>
+          <div class="lp-row"><span class="lp-key">Horas</span><span class="lp-val" id="hero-horas">0m</span></div>
+          <div class="lp-row"><span class="lp-key">Racha</span><span class="lp-val" id="hero-racha">🔥 0 días</span></div>
+          <div class="lp-row"><span class="lp-key">Miembro desde</span><span class="lp-val" id="hero-desde">—</span></div>
         </div>
       </div>
-
     </div>
   </div>
 </section>
@@ -142,13 +115,14 @@
 <div class="tabs-bar">
   <div class="container">
     <div class="tabs" id="tabs">
-      <button class="tab active"          data-tab="resumen">📊 RESUMEN</button>
-      <button class="tab"                 data-tab="insignias">🏆 INSIGNIAS</button>
-      <button class="tab"                 data-tab="misiones">⚔️ MISIONES</button>
-      <button class="tab"                 data-tab="actividad">📜 ACTIVIDAD</button>
-      <button class="tab tab-buzon"       data-tab="buzon">📬 BUZÓN</button>
-      <button class="tab tab-inventory"   data-tab="inventario">🎒 INVENTARIO</button>
-      <button class="tab tab-titles"      data-tab="titulos">👑 TÍTULOS</button>
+      <button class="tab active"        data-tab="resumen">📊 RESUMEN</button>
+      <button class="tab"               data-tab="insignias">🏆 INSIGNIAS</button>
+      <button class="tab"               data-tab="misiones">⚔️ MISIONES</button>
+      <button class="tab"               data-tab="actividad">📜 ACTIVIDAD</button>
+      <button class="tab tab-buzon"     data-tab="buzon">📬 BUZÓN</button>
+      <button class="tab tab-inventory" data-tab="inventario">🎒 INVENTARIO</button>
+      <button class="tab tab-titles"    data-tab="titulos">👑 TÍTULOS</button>
+      <button class="tab tab-social"    data-tab="social">👥 SOCIAL</button>
     </div>
   </div>
 </div>
@@ -157,85 +131,32 @@
 <main class="main-content">
   <div class="container">
 
-    <!-- ===== RESUMEN ===== -->
+    <!-- RESUMEN -->
     <section id="tab-resumen" class="tab-panel active">
       <div class="resumen-grid">
-        <div class="stat-card">
-          <div class="sc-icon">⚡</div>
-          <div class="sc-val" id="rc-xp">0</div>
-          <div class="sc-key">XP TOTAL</div>
-          <div class="sc-bar"><div class="sc-bar-fill" id="rc-bar-xp" style="width:0%"></div></div>
-        </div>
-        <div class="stat-card">
-          <div class="sc-icon">🔥</div>
-          <div class="sc-val" id="rc-racha">0</div>
-          <div class="sc-key">RACHA DÍAS</div>
-          <div class="sc-bar"><div class="sc-bar-fill orange" id="rc-bar-racha" style="width:0%"></div></div>
-        </div>
-        <div class="stat-card">
-          <div class="sc-icon">🏆</div>
-          <div class="sc-val" id="rc-insignias">0</div>
-          <div class="sc-key">INSIGNIAS</div>
-          <div class="sc-bar"><div class="sc-bar-fill yellow" id="rc-bar-insig" style="width:0%"></div></div>
-        </div>
-        <div class="stat-card">
-          <div class="sc-icon">⚔️</div>
-          <div class="sc-val" id="rc-misiones">0</div>
-          <div class="sc-key">MISIONES DONE</div>
-          <div class="sc-bar"><div class="sc-bar-fill cyan" id="rc-bar-mis" style="width:0%"></div></div>
-        </div>
-
+        <div class="stat-card"><div class="sc-icon">⚡</div><div class="sc-val" id="rc-xp">0</div><div class="sc-key">XP TOTAL</div><div class="sc-bar"><div class="sc-bar-fill" id="rc-bar-xp" style="width:0%"></div></div></div>
+        <div class="stat-card"><div class="sc-icon">🔥</div><div class="sc-val" id="rc-racha">0</div><div class="sc-key">RACHA DÍAS</div><div class="sc-bar"><div class="sc-bar-fill orange" id="rc-bar-racha" style="width:0%"></div></div></div>
+        <div class="stat-card"><div class="sc-icon">🏆</div><div class="sc-val" id="rc-insignias">0</div><div class="sc-key">INSIGNIAS</div><div class="sc-bar"><div class="sc-bar-fill yellow" id="rc-bar-insig" style="width:0%"></div></div></div>
+        <div class="stat-card"><div class="sc-icon">⚔️</div><div class="sc-val" id="rc-misiones">0</div><div class="sc-key">MISIONES DONE</div><div class="sc-bar"><div class="sc-bar-fill cyan" id="rc-bar-mis" style="width:0%"></div></div></div>
         <div class="resumen-events">
           <h3 class="section-title-sm">🎯 EVENTOS ACTIVOS</h3>
           <div id="resumen-events-list">
-            <div class="event-item">
-              <span class="ev-icon">🏦</span>
-              <div class="ev-body">
-                <div class="ev-name">Banco a la Vista</div>
-                <div class="ev-desc">Los cerditos esperan ser llenados</div>
-              </div>
-              <span class="ev-status">PERMANENTE</span>
-            </div>
-            <div class="event-item">
-              <span class="ev-icon">⚔️</span>
-              <div class="ev-body">
-                <div class="ev-name">Torneo PvP Semanal</div>
-                <div class="ev-desc">Compite contra los mejores del portal</div>
-              </div>
-              <span class="ev-status">EN CURSO</span>
-            </div>
-            <div class="event-item">
-              <span class="ev-icon">🌙</span>
-              <div class="ev-body">
-                <div class="ev-name">Raid Nocturno</div>
-                <div class="ev-desc">Empieza en 2 horas — ¡Prepárate!</div>
-              </div>
-              <span class="ev-status ev-pronto">PRONTO</span>
-            </div>
+            <div class="event-item"><span class="ev-icon">🏦</span><div class="ev-body"><div class="ev-name">Banco a la Vista</div><div class="ev-desc">Los cerditos esperan ser llenados</div></div><span class="ev-status">PERMANENTE</span></div>
+            <div class="event-item"><span class="ev-icon">⚔️</span><div class="ev-body"><div class="ev-name">Torneo PvP Semanal</div><div class="ev-desc">Compite contra los mejores del portal</div></div><span class="ev-status">EN CURSO</span></div>
+            <div class="event-item"><span class="ev-icon">🌙</span><div class="ev-body"><div class="ev-name">Raid Nocturno</div><div class="ev-desc">Empieza en 2 horas — ¡Prepárate!</div></div><span class="ev-status ev-pronto">PRONTO</span></div>
           </div>
         </div>
-
-        <div class="resumen-recientes">
-          <h3 class="section-title-sm">⏱ ACTIVIDAD RECIENTE</h3>
-          <div id="resumen-timeline"></div>
-        </div>
+        <div class="resumen-recientes"><h3 class="section-title-sm">⏱ ACTIVIDAD RECIENTE</h3><div id="resumen-timeline"></div></div>
       </div>
     </section>
 
-    <!-- ===== INSIGNIAS ===== -->
+    <!-- INSIGNIAS -->
     <section id="tab-insignias" class="tab-panel">
       <div class="badges-header">
-        <div class="badges-progress">
-          <span class="bp-count" id="badges-earned">0</span>
-          <span class="bp-sep">/</span>
-          <span class="bp-total" id="badges-total">24</span>
-          <span class="bp-label">INSIGNIAS DESBLOQUEADAS</span>
-        </div>
-        <div class="badges-bar-wrap">
-          <div class="badges-bar-track"><div class="badges-bar-fill" id="badges-bar-fill" style="width:0%"></div></div>
-        </div>
+        <div class="badges-progress"><span class="bp-count" id="badges-earned">0</span><span class="bp-sep">/</span><span class="bp-total" id="badges-total">24</span><span class="bp-label">INSIGNIAS DESBLOQUEADAS</span></div>
+        <div class="badges-bar-wrap"><div class="badges-bar-track"><div class="badges-bar-fill" id="badges-bar-fill" style="width:0%"></div></div></div>
       </div>
-      <div class="badges-filter" id="badges-filter">
+      <div class="badges-filter">
         <button class="bf-btn active" data-cat="">TODAS</button>
         <button class="bf-btn" data-cat="portal">🌙 PORTAL</button>
         <button class="bf-btn" data-cat="racha">🔥 RACHA</button>
@@ -247,100 +168,106 @@
       <div class="badges-grid" id="badges-grid"></div>
     </section>
 
-    <!-- ===== MISIONES ===== -->
+    <!-- MISIONES -->
     <section id="tab-misiones" class="tab-panel">
       <div class="missions-layout">
-        <div class="missions-col">
-          <h3 class="section-title-sm">⚡ DIARIAS</h3>
-          <div id="mission-daily"></div>
-        </div>
-        <div class="missions-col">
-          <h3 class="section-title-sm">📅 SEMANALES</h3>
-          <div id="mission-weekly"></div>
-        </div>
-        <div class="missions-col">
-          <h3 class="section-title-sm">🏆 MENSUALES</h3>
-          <div id="mission-monthly"></div>
-        </div>
+        <div class="missions-col"><h3 class="section-title-sm">⚡ DIARIAS</h3><div id="mission-daily"></div></div>
+        <div class="missions-col"><h3 class="section-title-sm">📅 SEMANALES</h3><div id="mission-weekly"></div></div>
+        <div class="missions-col"><h3 class="section-title-sm">🏆 MENSUALES</h3><div id="mission-monthly"></div></div>
       </div>
     </section>
 
-    <!-- ===== ACTIVIDAD ===== -->
+    <!-- ACTIVIDAD -->
     <section id="tab-actividad" class="tab-panel">
-      <div class="activity-header">
-        <button class="btn btn-sm" id="btn-clear-timeline">🗑 LIMPIAR</button>
-      </div>
+      <div class="activity-header"><button class="btn btn-sm" id="btn-clear-timeline">🗑 LIMPIAR</button></div>
       <div class="timeline" id="timeline"></div>
-      <div class="timeline-empty" id="timeline-empty" style="display:none">
-        <p>📭 Sin actividad registrada aún</p>
-      </div>
+      <div class="timeline-empty" id="timeline-empty" style="display:none"><p>📭 Sin actividad registrada aún</p></div>
     </section>
 
-    <!-- ===== BUZÓN ===== -->
+    <!-- BUZÓN -->
     <section id="tab-buzon" class="tab-panel">
       <div class="buzon-header">
-        <div class="buzon-title-row">
-          <span class="buzon-icon-blink">📬</span>
-          <h2 class="buzon-title">BUZÓN DE MOONVEIL</h2>
-          <span class="buzon-badge" id="buzon-unread-count">0</span>
-        </div>
+        <div class="buzon-title-row"><span class="buzon-icon-blink">📬</span><h2 class="buzon-title">BUZÓN DE MOONVEIL</h2><span class="buzon-badge" id="buzon-unread-count">0</span></div>
         <div class="buzon-actions">
           <button class="btn btn-sm btn-mark-all" id="btn-mark-all">✓ MARCAR TODO LEÍDO</button>
           <select id="buzon-filter" class="buzon-select">
-            <option value="">TODOS</option>
-            <option value="novedad">🆕 NOVEDADES</option>
-            <option value="evento">🎯 EVENTOS</option>
-            <option value="logro">🏆 LOGROS</option>
-            <option value="sistema">🔧 SISTEMA</option>
+            <option value="">TODOS</option><option value="novedad">🆕 NOVEDADES</option>
+            <option value="evento">🎯 EVENTOS</option><option value="logro">🏆 LOGROS</option><option value="sistema">🔧 SISTEMA</option>
           </select>
         </div>
       </div>
       <div class="buzon-list" id="buzon-list"></div>
-      <div class="buzon-empty" id="buzon-empty" style="display:none">
-        <div class="be-icon">📭</div>
-        <p>NO HAY MENSAJES EN ESTA CATEGORÍA</p>
-      </div>
+      <div class="buzon-empty" id="buzon-empty" style="display:none"><div class="be-icon">📭</div><p>NO HAY MENSAJES EN ESTA CATEGORÍA</p></div>
     </section>
 
-    <!-- ===== INVENTARIO ===== -->
+    <!-- INVENTARIO -->
     <section id="tab-inventario" class="tab-panel">
       <div class="inv-header">
-        <div class="inv-header-left">
-          <h2 class="inv-title">🎒 INVENTARIO</h2>
-          <p class="inv-subtitle">Ítems acumulados en Moonveil Portal</p>
-        </div>
-        <div class="inv-total-badge">
-          <span class="inv-total-num" id="inv-total">0</span>
-          <span class="inv-total-label">ÍTEMS TOTALES</span>
-        </div>
+        <div class="inv-header-left"><h2 class="inv-title">🎒 INVENTARIO</h2><p class="inv-subtitle">Ítems acumulados en Moonveil Portal</p></div>
+        <div class="inv-total-badge"><span class="inv-total-num" id="inv-total">0</span><span class="inv-total-label">ÍTEMS TOTALES</span></div>
       </div>
       <div class="inventory-grid" id="inventory-grid"></div>
-      <div class="inv-info-panel">
-        <div class="inv-info-icon">ℹ️</div>
-        <p class="inv-info-text">Los ítems se obtienen participando en eventos, completando misiones especiales y subiendo de nivel. ¡Más modos de obtenerlos pronto!</p>
-      </div>
+      <div class="inv-info-panel"><div class="inv-info-icon">ℹ️</div><p class="inv-info-text">Los ítems se obtienen participando en eventos, completando misiones especiales y subiendo de nivel. ¡Más modos de obtenerlos pronto!</p></div>
     </section>
 
-    <!-- ===== TÍTULOS ===== -->
+    <!-- TÍTULOS -->
     <section id="tab-titulos" class="tab-panel">
       <div class="titles-header">
-        <div class="titles-progress">
-          <span class="tp-count" id="titles-earned">0</span>
-          <span class="tp-sep">/</span>
-          <span class="tp-total" id="titles-total">20</span>
-          <span class="tp-label">TÍTULOS DESBLOQUEADOS</span>
-        </div>
+        <div class="titles-progress"><span class="tp-count" id="titles-earned">0</span><span class="tp-sep">/</span><span class="tp-total" id="titles-total">25</span><span class="tp-label">TÍTULOS DESBLOQUEADOS</span></div>
         <p class="titles-hint">Haz clic en <strong>⚡ EQUIPAR</strong> en cualquier título desbloqueado para mostrarlo en tu perfil.</p>
       </div>
-      <div class="titles-filter" id="titles-filter">
+      <div class="titles-filter">
         <button class="tf-btn active" data-cat="">TODOS</button>
         <button class="tf-btn" data-cat="nivel">⭐ NIVEL</button>
         <button class="tf-btn" data-cat="racha">🔥 RACHA</button>
         <button class="tf-btn" data-cat="logro">🏆 LOGRO</button>
         <button class="tf-btn" data-cat="pvp">⚔️ PvP</button>
         <button class="tf-btn" data-cat="xp">⚡ XP</button>
+        <button class="tf-btn" data-cat="legendario">✨ LEGENDARIO</button>
+        <button class="tf-btn" data-cat="especial">🌟 ESPECIAL</button>
       </div>
       <div class="titles-grid" id="titles-grid"></div>
+    </section>
+
+    <!-- SOCIAL -->
+    <section id="tab-social" class="tab-panel">
+
+      <!-- Mi ID -->
+      <div class="social-my-id-box">
+        <div class="smid-header">
+          <span class="smid-label">🪪 TU ID DE JUGADOR</span>
+          <button class="btn-copy-id" id="btn-copy-id">📋 COPIAR</button>
+        </div>
+        <div class="smid-value" id="my-player-id-display">—</div>
+        <div class="smid-hint">Comparte este ID para que tus amigos te encuentren y te añadan</div>
+      </div>
+
+      <!-- Buscar -->
+      <div class="social-search-box">
+        <div class="ssb-title">🔍 BUSCAR JUGADOR POR ID</div>
+        <div class="ssb-input-row">
+          <input type="text" id="friend-search-input" class="friend-search-input" placeholder="#XXXX-XXXX" maxlength="12" autocomplete="off" spellcheck="false"/>
+          <button class="btn-search-friend" id="btn-search-friend">BUSCAR</button>
+        </div>
+        <div id="friend-search-result"></div>
+      </div>
+
+      <!-- Lista de amigos -->
+      <div class="social-friends-box">
+        <div class="sfb-title">👥 MIS AMIGOS (<span id="friends-count">0</span>)</div>
+        <div class="sfb-legend">
+          <span class="legend-item"><span>🟢</span> En línea</span>
+          <span class="legend-item"><span>🟡</span> Ausente</span>
+          <span class="legend-item"><span>⚫</span> Desconectado</span>
+        </div>
+        <div class="friends-list" id="friends-list"></div>
+        <div class="friends-empty" id="friends-empty" style="display:none">
+          <div class="fe-icon">👥</div>
+          <p class="fe-title">SIN AMIGOS AÚN</p>
+          <p class="fe-hint">Busca a alguien por su ID y añádelo</p>
+        </div>
+      </div>
+
     </section>
 
   </div>
@@ -376,7 +303,7 @@
   </div>
 </div>
 
-<!-- MODAL: Badge celebrate -->
+<!-- MODAL: Badge -->
 <div class="modal" id="badge-modal">
   <div class="modal-dialog sm">
     <button class="modal-close" id="badge-modal-close">✕</button>
@@ -384,12 +311,8 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
-
-<!-- BACK TO TOP -->
 <button class="back-to-top" id="back-top">▲</button>
-
 <script type="module" src="perfil.js"></script>
 </body>
 </html>
