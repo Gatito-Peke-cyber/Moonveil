@@ -104,7 +104,7 @@ const TITLES_DEF = [
   /* ── LEGENDARIOS ── */
   { id:'tl_oscuro',         name:'SEÑOR OSCURO',          color:'#ff2d78', req:'xp>=7500',     desc:'Acumula 7500 XP',                  cat:'legendario', rarity:'legendario'},
   { id:'tl_eterno',         name:'GUERRERO ETERNO',       color:'#bf5af2', req:'racha>=14',    desc:'Racha de 14 días activo',          cat:'legendario', rarity:'legendario'},
-  { id:'tl_absoluto',       name:'EL ABSOLUTO',           color:'#00e5ff', req:'nivel>=15',    desc:'Llega al nivel 15',                cat:'legendario', rarity:'mitico'    },
+  { id:'tl_absoluto',       name:'EL ABSOLUTO',           color:'#00e5ff', req:'nivel>=2',    desc:'Llega al nivel 15',                cat:'legendario', rarity:'mitico'    },
   { id:'tl_nexo_caos',      name:'NEXO DEL CAOS',         color:'#bf5af2', req:'misiones>=30', desc:'Completa 30 misiones',             cat:'legendario', rarity:'mitico'    },
   /* ── ESPECIALES (tiempo limitado) ──
      Para añadir más: copia este bloque y cambia id, name, desc, timeLimit.
