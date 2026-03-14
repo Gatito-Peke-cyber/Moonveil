@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Crear Cuenta — Moonveil Portal</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0e0d'/><rect x='4' y='4' width='24' height='24' rx='4' fill='%2330d158'/><text x='16' y='22' text-anchor='middle' fill='%230a0e0d' font-size='14' font-weight='bold'>M</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap">
+  <link rel="stylesheet" href="login.css"/>
+  <link rel="stylesheet" href="cuenta.css"/>
+  <meta name="theme-color" content="#0a0e0d">
+</head>
+<body>
+
+<div class="scanlines" aria-hidden="true"></div>
+<canvas id="stars-canvas" class="stars-canvas" aria-hidden="true"></canvas>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-pixel">
+    <div class="ld-char">🌙</div>
+    <div class="ld-text">CREANDO AVENTURERO...</div>
+    <div class="ld-bar"><div class="ld-fill" id="ld-fill"></div></div>
+  </div>
+</div>
+
+<main class="shell">
+
+  <!-- LEFT PANEL -->
+  <section class="panel panel-art">
+    <div class="pixel-grid-bg" aria-hidden="true"></div>
+
+    <div class="brand">
+      <div class="brand-cube"></div>
+      <span class="brand-logo">Moon<span>veil</span></span>
+      <span class="brand-tag">PORTAL v2.6</span>
+    </div>
+
+    <div class="art-copy">
+      <div class="art-pre">🌟 ÚNETE A MOONVEIL 🌟</div>
+      <h1 class="art-title">CREA TU<br>CUENTA.<br>EMPIEZA<br>HOY.</h1>
+      <p class="art-desc">Tu identidad en el portal. Personaliza tu perfil, acumula XP y escala en el ranking.</p>
+    </div>
+
+    <!-- Perks -->
+    <div class="art-perks">
+      <div class="perk-item">
+        <span class="perk-icon">⚔️</span>
+        <span class="perk-text">Acceso a torneos PvP</span>
+        <span class="perk-xp">GRATIS</span>
+      </div>
+      <div class="perk-item">
+        <span class="perk-icon">⚡</span>
+        <span class="perk-text">Bono de bienvenida</span>
+        <span class="perk-xp">+200 XP</span>
+      </div>
+      <div class="perk-item">
+        <span class="perk-icon">🏆</span>
+        <span class="perk-text">Insignia "Recién Llegado"</span>
+        <span class="perk-xp">+50 XP</span>
+      </div>
+      <div class="perk-item">
+        <span class="perk-icon">🔥</span>
+        <span class="perk-text">Misiones y rachas diarias</span>
+        <span class="perk-xp">∞ XP</span>
+      </div>
+      <div class="perk-item">
+        <span class="perk-icon">📬</span>
+        <span class="perk-text">Buzón de eventos y logros</span>
+        <span class="perk-xp">ACTIVO</span>
+      </div>
+    </div>
+
+    <!-- Rank preview -->
+    <div class="rank-preview">
+      <div class="rp-title">▸ RANGOS DEL PORTAL</div>
+      <div class="rp-ranks">
+        <div class="rp-rank active">
+          <span class="rp-icon">🌱</span>
+          <span class="rp-name">NOVATO</span>
+          <span class="rp-lv">Nv.1</span>
+        </div>
+        <div class="rp-rank">
+          <span class="rp-icon">⚔️</span>
+          <span class="rp-name">COMBATIENTE</span>
+          <span class="rp-lv">Nv.5</span>
+        </div>
+        <div class="rp-rank">
+          <span class="rp-icon">💎</span>
+          <span class="rp-name">ÉLITE</span>
+          <span class="rp-lv">Nv.10</span>
+        </div>
+        <div class="rp-rank">
+          <span class="rp-icon">👑</span>
+          <span class="rp-name">LEYENDA</span>
+          <span class="rp-lv">Nv.15</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Art image -->
+    <div class="art-img-wrap" aria-hidden="true">
+      <div class="art-img-frame">
+        <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&q=70" alt="Gaming setup">
+        <div class="art-img-scanline"></div>
+        <div class="art-img-overlay"></div>
+      </div>
+      <div class="art-floating-badge ab1">🌙 NUEVO PORTAL</div>
+      <div class="art-floating-badge ab2">⚡ +200 XP BONO</div>
+      <div class="art-floating-badge ab3">🎮 NIVEL 1</div>
+    </div>
+
+    <div class="corner-deco corner-tl" aria-hidden="true"></div>
+    <div class="corner-deco corner-br" aria-hidden="true"></div>
+  </section>
+
+  <!-- RIGHT PANEL: Register Form -->
+  <section class="panel panel-form">
+    <div class="form-card">
+
+      <div class="fc-header">
+        <div class="fc-icon" id="avatar-preview">🌙</div>
+        <h2 class="fc-title">CREAR CUENTA</h2>
+        <p class="fc-sub">Completa los datos para unirte</p>
+      </div>
+
+      <!-- Steps -->
+      <div class="form-steps">
+        <div class="step active" id="step-1">
+          <div class="step-dot">1</div>
+          <div class="step-label">DATOS</div>
+        </div>
+        <div class="step" id="step-2">
+          <div class="step-dot">2</div>
+          <div class="step-label">AVATAR</div>
+        </div>
+        <div class="step" id="step-3">
+          <div class="step-dot">3</div>
+          <div class="step-label">LISTO</div>
+        </div>
+      </div>
+
+      <div class="fc-divider"><span>▸ REGISTRO DE AVENTURERO ◂</span></div>
+
+      <!-- STEP 1: Datos -->
+      <div id="panel-step-1">
+        <form id="registerForm" novalidate>
+
+          <div class="form-row-2">
+            <div class="field-group">
+              <label class="field-label" for="nombre">👤 NOMBRE</label>
+              <div class="field-wrap" id="nombre-wrap">
+                <span class="field-icon">N</span>
+                <input id="nombre" class="field-input" type="text" placeholder="Tu nombre" required autocomplete="given-name"/>
+                <span class="field-status" id="nombre-status"></span>
+              </div>
+              <small class="field-error" id="nombreErr"></small>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="apellido">👤 APELLIDO</label>
+              <div class="field-wrap" id="apellido-wrap">
+                <span class="field-icon">A</span>
+                <input id="apellido" class="field-input" type="text" placeholder="Tu apellido" required autocomplete="family-name"/>
+                <span class="field-status" id="apellido-status"></span>
+              </div>
+              <small class="field-error" id="apellidoErr"></small>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="email">📧 CORREO ELECTRÓNICO</label>
+            <div class="field-wrap" id="email-wrap">
+              <span class="field-icon">@</span>
+              <input id="email" class="field-input" type="email" placeholder="tu@correo.com" required autocomplete="email"/>
+              <span class="field-status" id="email-status"></span>
+            </div>
+            <small class="field-error" id="emailErr"></small>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="password">🔒 CONTRASEÑA</label>
+            <div class="field-wrap" id="pass-wrap">
+              <span class="field-icon">★</span>
+              <input id="password" class="field-input" type="password" placeholder="Mínimo 6 caracteres" minlength="6" required autocomplete="new-password"/>
+              <button type="button" class="field-toggle" id="togglePass1">👁</button>
+            </div>
+            <div class="strength-wrap" id="strength-wrap" style="display:none">
+              <div class="strength-bars">
+                <div class="strength-bar" id="sb1"></div>
+                <div class="strength-bar" id="sb2"></div>
+                <div class="strength-bar" id="sb3"></div>
+                <div class="strength-bar" id="sb4"></div>
+              </div>
+              <div class="strength-label" id="strength-label">—</div>
+            </div>
+            <small class="field-error" id="passErr"></small>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="confirm">🔒 CONFIRMAR CONTRASEÑA</label>
+            <div class="field-wrap" id="confirm-wrap">
+              <span class="field-icon">★</span>
+              <input id="confirm" class="field-input" type="password" placeholder="Repite tu contraseña" required autocomplete="new-password"/>
+              <button type="button" class="field-toggle" id="togglePass2">👁</button>
+            </div>
+            <small class="field-error" id="confirmErr"></small>
+          </div>
+
+          <div class="terms-row">
+            <label class="chk-label">
+              <input id="terms" type="checkbox" class="chk-input" required/>
+              <span class="chk-box"></span>
+              <span class="chk-text">ACEPTO LOS <a href="#" class="form-link">TÉRMINOS</a> Y <a href="#" class="form-link">POLÍTICA</a></span>
+            </label>
+          </div>
+          <small class="field-error" id="termsErr"></small>
+
+          <div class="xp-reward-preview">
+            <span class="xr-icon">🎁</span>
+            <span class="xr-text">¡+200 XP DE BIENVENIDA AL REGISTRARTE!</span>
+          </div>
+
+          <button class="btn-submit" type="submit" id="submitBtn">
+            <span id="submit-text">▶ SIGUIENTE PASO</span>
+            <span id="submit-loading" class="btn-loading" hidden>⟳ VERIFICANDO...</span>
+          </button>
+
+          <div class="social-row">
+            <div class="social-divider"><span>— O REGÍSTRATE CON —</span></div>
+            <div class="social-btns">
+              <button type="button" class="btn-social" id="btn-google">
+                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                GOOGLE
+              </button>
+              <button type="button" class="btn-social" id="btn-discord">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.08.115 18.1.136 18.116a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+                DISCORD
+              </button>
+            </div>
+          </div>
+
+          <p class="form-login">¿YA TIENES CUENTA? <a href="index.html" class="form-link">INGRESAR ▶</a></p>
+        </form>
+      </div>
+
+      <!-- STEP 2: Avatar -->
+      <div id="panel-step-2" style="display:none">
+        <p class="avatar-label">🎨 ELIGE TU AVATAR EN EL PORTAL</p>
+        <div class="avatar-row" id="avatar-picker"></div>
+
+        <div class="field-group" style="margin-top:10px">
+          <label class="field-label" for="nickname">🎮 APODO (OPCIONAL)</label>
+          <div class="field-wrap">
+            <span class="field-icon">►</span>
+            <input id="nickname" class="field-input" type="text" placeholder="Tu alias en Moonveil" maxlength="20" autocomplete="off"/>
+          </div>
+        </div>
+
+        <div class="xp-reward-preview" style="margin-top:14px">
+          <span class="xr-icon">🎭</span>
+          <span class="xr-text">¡TU AVATAR APARECERÁ EN RANKING Y EVENTOS!</span>
+        </div>
+
+        <button class="btn-submit" id="btn-confirm-avatar" style="margin-top:14px">▶ CREAR MI CUENTA</button>
+        <button class="btn-submit btn-back" id="btn-back">◀ VOLVER</button>
+      </div>
+
+      <!-- STEP 3: Éxito -->
+      <div id="panel-step-3" style="display:none;text-align:center;padding:14px 0">
+        <div style="font-size:3.5rem;margin-bottom:14px;animation:float 3s ease-in-out infinite">🎉</div>
+        <div style="font-family:var(--font-pixel);font-size:0.55rem;color:var(--primary);text-shadow:0 0 20px rgba(48,209,88,0.5);margin-bottom:10px;animation:greenCycle 2s linear infinite">¡CUENTA CREADA!</div>
+        <div style="font-family:var(--font-vt);font-size:1.1rem;color:var(--muted);margin-bottom:18px">Bienvenido/a a Moonveil Portal. Tu aventura comienza ahora.</div>
+        <div style="display:flex;gap:8px;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(48,209,88,0.05);border:2px solid rgba(48,209,88,0.2);padding:10px;box-shadow:2px 2px 0 #000">
+            <span style="font-size:1.2rem">⚡</span>
+            <span style="font-family:var(--font-pixel);font-size:0.28rem;color:var(--primary)">+200 XP DE BIENVENIDA AÑADIDOS</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(245,197,24,0.05);border:2px solid rgba(245,197,24,0.2);padding:10px;box-shadow:2px 2px 0 #000">
+            <span style="font-size:1.2rem">🏆</span>
+            <span style="font-family:var(--font-pixel);font-size:0.28rem;color:var(--yellow)">INSIGNIA "RECIÉN LLEGADO" DESBLOQUEADA</span>
+          </div>
+        </div>
+        <button class="btn-submit" id="btn-go-profile" style="margin-top:20px">▶ IR A MI PERFIL</button>
+        <p style="font-family:var(--font-pixel);font-size:0.26rem;color:var(--muted);margin-top:10px">Redirigiendo automáticamente...</p>
+      </div>
+
+    </div>
+    <p class="panel-foot">© 2026 MOONVEIL PORTAL · TODOS LOS DERECHOS RESERVADOS</p>
+  </section>
+
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="cuenta.js"></script>
+</body>
+</html>

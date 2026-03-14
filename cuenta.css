@@ -1,0 +1,39 @@
+/* =====================================================
+   Moonveil Portal — cuenta.css (extra para registro)
+   ===================================================== */
+
+/* Back button variant */
+.btn-back {
+  background: var(--surface) !important;
+  color: var(--muted) !important;
+  border: 2px solid var(--border) !important;
+  box-shadow: 2px 2px 0 #000 !important;
+  margin-top: 6px !important;
+}
+.btn-back:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+  transform: translate(-2px,-2px) !important;
+  box-shadow: 4px 4px 0 #000 !important;
+}
+
+/* Avatar row — larger grid for cuenta */
+#avatar-picker.avatar-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+/* Success panel icons */
+@keyframes greenCycle {
+  0%   { color: var(--primary);   text-shadow: 0 0 20px rgba(48,209,88,0.5); }
+  50%  { color: var(--primary-l); text-shadow: 0 0 30px rgba(64,255,110,0.7); }
+  100% { color: var(--primary);   text-shadow: 0 0 20px rgba(48,209,88,0.5); }
+}
+
+/* Larger art copy for cuenta */
+@media (min-width: 1101px) {
+  .panel-art .art-title {
+    font-size: 0.95rem;
+  }
+}
