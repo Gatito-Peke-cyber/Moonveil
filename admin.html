@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Panel Admin — Moonveil Portal</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0e0d'/><rect x='4' y='4' width='24' height='24' rx='4' fill='%23ff2d78'/><text x='16' y='22' text-anchor='middle' fill='%230a0e0d' font-size='12' font-weight='bold'>AD</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap">
+  <link rel="stylesheet" href="admin.css"/>
+</head>
+<body>
+<div class="scanlines" aria-hidden="true"></div>
+<canvas id="stars-canvas" class="stars-canvas" aria-hidden="true"></canvas>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-pixel">
+    <div class="ld-char">👑</div>
+    <div class="ld-text">ACCESO ADMIN...</div>
+    <div class="ld-bar"><div class="ld-fill" id="ld-fill"></div></div>
+  </div>
+</div>
+
+<!-- ACCESO DENEGADO -->
+<div id="access-denied">
+  <div class="ad-box">
+    <span class="ad-icon">🚫</span>
+    <h2 class="ad-title">ACCESO DENEGADO</h2>
+    <p class="ad-desc">
+      No tienes permiso para acceder al panel de administración.<br><br>
+      Solo los usuarios con rol <strong style="color:var(--admin)">ADMIN</strong> pueden ingresar aquí.
+    </p>
+    <button class="btn-ad-back" onclick="window.location.href='perfil.html'">
+      ← VOLVER AL PORTAL
+    </button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header" id="main-header" style="display:none">
+  <div class="container nav-wrap">
+    <div class="nav-brand">
+      <div class="brand-cube-admin"></div>
+      <span class="logo">Moon<span>veil</span></span>
+      <span class="admin-badge-header">👑 ADMIN</span>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user" id="nav-user-name">—</span>
+      <button class="btn-back-portal" onclick="window.location.href='perfil.html'">← PORTAL</button>
+      <button class="btn-logout" id="btn-logout">✕ SALIR</button>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main-content" id="main-content" style="display:none">
+  <div class="container">
+
+    <!-- Título del panel -->
+    <div class="panel-title-bar">
+      <div class="ptb-left">
+        <div class="ptb-icon">👑</div>
+        <div>
+          <div class="ptb-title">PANEL DE ADMINISTRACIÓN</div>
+          <div class="ptb-sub">Control total del portal — manejo de usuarios y roles</div>
+        </div>
+      </div>
+      <div class="ptb-right">
+        <span style="font-family:var(--font-pixel);font-size:0.26rem;color:var(--muted)" id="admin-uid-display">—</span>
+      </div>
+    </div>
+
+    <!-- Estadísticas del portal -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card accent-green reveal">
+        <div class="sc-icon">👥</div>
+        <div class="sc-val" id="stat-total">—</div>
+        <div class="sc-key">USUARIOS TOTAL</div>
+      </div>
+      <div class="stat-card accent-cyan reveal">
+        <div class="sc-icon">🟢</div>
+        <div class="sc-val" id="stat-online">—</div>
+        <div class="sc-key">EN LÍNEA</div>
+      </div>
+      <div class="stat-card accent-orange reveal">
+        <div class="sc-icon">🆕</div>
+        <div class="sc-val" id="stat-new-today">—</div>
+        <div class="sc-key">NUEVOS HOY</div>
+      </div>
+      <div class="stat-card accent-yellow reveal">
+        <div class="sc-icon">⚡</div>
+        <div class="sc-val" id="stat-avg-xp">—</div>
+        <div class="sc-key">XP PROMEDIO</div>
+      </div>
+      <div class="stat-card accent-cyan reveal">
+        <div class="sc-icon">✓</div>
+        <div class="sc-val" id="stat-verified">—</div>
+        <div class="sc-key">VERIFICADOS</div>
+      </div>
+      <div class="stat-card accent-purple reveal">
+        <div class="sc-icon">🛠️</div>
+        <div class="sc-val" id="stat-dev">—</div>
+        <div class="sc-key">DEVELOPERS</div>
+      </div>
+      <div class="stat-card accent-admin reveal">
+        <div class="sc-icon">👑</div>
+        <div class="sc-val" id="stat-admins">—</div>
+        <div class="sc-key">ADMINS</div>
+      </div>
+      <div class="stat-card accent-orange reveal">
+        <div class="sc-icon">🏅</div>
+        <div class="sc-val" id="stat-total-xp">—</div>
+        <div class="sc-key">XP TOTAL PORTAL</div>
+      </div>
+    </div>
+
+    <!-- Búsqueda y filtros -->
+    <div class="search-bar">
+      <input
+        type="text"
+        id="user-search-input"
+        class="search-input"
+        placeholder="Buscar por #ID de jugador o email exacto…"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="btn-search" id="btn-search">🔍 BUSCAR</button>
+      <button class="btn-refresh" id="btn-refresh" title="Recargar lista">⟳</button>
+      <div class="role-filter-btns">
+        <button class="rf-btn active" data-role="">TODOS</button>
+        <button class="rf-btn role-user" data-role="user">👤 USUARIOS</button>
+        <button class="rf-btn role-verified" data-role="verified">✓ VERIFICADOS</button>
+        <button class="rf-btn role-developer" data-role="developer">🛠️ DEVS</button>
+        <button class="rf-btn role-admin" data-role="admin">👑 ADMINS</button>
+      </div>
+    </div>
+
+    <!-- Tabla de usuarios -->
+    <div class="users-table-wrap">
+      <table class="users-table" id="users-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>NOMBRE</th>
+            <th>PLAYER ID</th>
+            <th>EMAIL</th>
+            <th>ROL</th>
+            <th class="sortable">XP ↕</th>
+            <th>NV.</th>
+            <th>RACHA</th>
+            <th>PRESENCIA</th>
+            <th>REGISTRO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody">
+          <tr>
+            <td colspan="11">
+              <div class="table-empty">
+                <div class="te-icon">⏳</div>
+                <div class="te-text">CARGANDO USUARIOS...</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span class="page-info" id="page-info">—</span>
+        <div class="page-btns">
+          <button class="btn-page" id="btn-prev" disabled>← ANTERIOR</button>
+          <button class="btn-page" id="btn-next" disabled>SIGUIENTE →</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- MODAL: Detalle de usuario -->
+<div class="modal" id="user-modal">
+  <div class="modal-dialog">
+    <button class="modal-close" id="modal-close">✕</button>
+
+    <!-- Header del usuario -->
+    <div class="modal-user-header">
+      <div class="muh-avatar" id="muh-avatar">🌙</div>
+      <div class="muh-info">
+        <div class="muh-name" id="muh-name">—</div>
+        <div class="muh-email" id="muh-email">—</div>
+        <div class="muh-pid" id="muh-pid">—</div>
+        <div class="muh-uid" id="muh-uid">UID: —</div>
+      </div>
+      <div id="muh-role-badge"></div>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Stats del usuario -->
+      <div class="modal-section">
+        <div class="ms-title">📊 ESTADÍSTICAS</div>
+        <div class="modal-stats-grid">
+          <div class="mstat"><div class="mstat-val" id="mu-xp">0</div><div class="mstat-key">XP TOTAL</div></div>
+          <div class="mstat yellow"><div class="mstat-val" id="mu-level">1</div><div class="mstat-key">NIVEL</div></div>
+          <div class="mstat orange"><div class="mstat-val" id="mu-racha">0</div><div class="mstat-key">RACHA</div></div>
+          <div class="mstat cyan"><div class="mstat-val" id="mu-horas">0h</div><div class="mstat-key">HORAS</div></div>
+          <div class="mstat purple"><div class="mstat-val" id="mu-badges">0</div><div class="mstat-key">INSIGNIAS</div></div>
+          <div class="mstat"><div class="mstat-val" id="mu-friends">0</div><div class="mstat-key">AMIGOS</div></div>
+        </div>
+      </div>
+
+      <!-- Información de contacto -->
+      <div class="modal-section">
+        <div class="ms-title">🪪 DATOS DE CONTACTO</div>
+        <div>
+          <div class="info-row">
+            <span class="ir-key">EMAIL</span>
+            <span class="ir-val" id="mu-info-email">—</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-key">PLAYER ID</span>
+            <span class="ir-val mono" id="mu-info-pid">—</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-key">UID (Firebase)</span>
+            <span class="ir-val mono" id="mu-info-uid" style="font-size:0.7rem">—</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-key">REGISTRADO</span>
+            <span class="ir-val" id="mu-info-reg">—</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-key">ÚLTIMA VEZ VISTO</span>
+            <span class="ir-val" id="mu-info-lastseen">—</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-key">TÍTULO ACTIVO</span>
+            <span class="ir-val" id="mu-info-title">—</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-key">SECCIÓN ACTUAL</span>
+            <span class="ir-val" id="mu-info-section">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insignias -->
+      <div class="modal-section">
+        <div class="ms-title">🏆 INSIGNIAS OBTENIDAS (<span id="mu-badges-count">0</span>)</div>
+        <div class="modal-badges" id="mu-badges-list"></div>
+      </div>
+
+      <!-- Inventario -->
+      <div class="modal-section">
+        <div class="ms-title">🎒 INVENTARIO</div>
+        <div class="modal-stats-grid">
+          <div class="mstat"><div class="mstat-val" id="mu-inv-tickets">0</div><div class="mstat-key">🎫 TICKETS</div></div>
+          <div class="mstat yellow"><div class="mstat-val" id="mu-inv-keys">0</div><div class="mstat-key">🗝️ LLAVES</div></div>
+          <div class="mstat cyan"><div class="mstat-val" id="mu-inv-superkeys">0</div><div class="mstat-key">⭐ SUPER LLAVES</div></div>
+        </div>
+      </div>
+
+      <!-- Actividad reciente -->
+      <div class="modal-section">
+        <div class="ms-title">📜 ACTIVIDAD RECIENTE</div>
+        <div class="modal-timeline" id="mu-timeline"></div>
+      </div>
+
+      <!-- Gestión de rol -->
+      <div class="modal-section">
+        <div class="role-management">
+          <div class="rm-title">👑 GESTIÓN DE ROL</div>
+          <div class="rm-current">
+            <span class="rm-current-label">ROL ACTUAL:</span>
+            <span id="rm-current-badge"></span>
+          </div>
+          <div class="rm-roles">
+            <button class="btn-role" data-role="user">👤 USUARIO</button>
+            <button class="btn-role" data-role="verified">✓ VERIFICADO</button>
+            <button class="btn-role" data-role="developer">🛠️ DEVELOPER</button>
+            <button class="btn-role" data-role="admin">👑 ADMIN</button>
+          </div>
+          <div class="rm-warning" id="rm-warning">
+            ⚠ Estás a punto de asignar el rol ADMIN. Este usuario tendrá acceso completo al panel de administración. ¿Estás seguro?
+          </div>
+          <button class="btn-save-role" id="btn-save-role" disabled>
+            💾 GUARDAR ROL
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>
