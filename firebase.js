@@ -1,11 +1,12 @@
 /* =====================================================
-   Moonveil Portal — firebase.js
-   Inicialización única de Firebase App, Auth y Firestore
+   Moonveil Portal — firebase.js  v2
+   Añadido: Firebase Storage
    ===================================================== */
 
 import { initializeApp }  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getAuth }        from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 import { getFirestore }   from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { getStorage }     from "https://www.gstatic.com/firebasejs/12.10.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyDfEd2hVLCuk03gufsPYTvEMyqESXMTdWw",
@@ -19,5 +20,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
-export const db   = getFirestore(app);
+export const auth    = getAuth(app);
+export const db      = getFirestore(app);
+export const storage = getStorage(app);
