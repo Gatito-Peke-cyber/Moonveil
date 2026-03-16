@@ -1,8 +1,8 @@
 /* =====================================================
-   Moonveil Portal — perfil.js  v2.2
-   + Social (amigos, presencia, búsqueda por ID)
-   + Títulos legendarios / míticos / especiales (tiempo limitado)
-   + Player ID mejorado
+   Moonveil Portal — perfil.js  v2.3
+   + Títulos rediseñados con rareza visual
+   + Social con rareza en tarjetas de amigos
+   + Sistema de amistad MUTUA
    ===================================================== */
 'use strict';
 
@@ -69,12 +69,7 @@ const BADGES = [
   { id:'b_pvp10',     icon:'🏆', name:'GLADIADOR',          desc:'10 misiones PvP completadas',   req:'pvp>=10',     xp:250, cat:'legendaria'},
 ];
 
-/* ── TÍTULOS
-   rarity: comun | raro | epico | legendario | mitico | especial
-   cat filter buttons en HTML deben coincidir
-   Para añadir un título nuevo en el futuro: añade un objeto a este array.
-   Para tiempo limitado añade: timeLimit: { from:'YYYY-MM-DD', to:'YYYY-MM-DD' }
-   ── */
+/* ── TÍTULOS ── */
 const TITLES_DEF = [
   /* ── NIVEL ── */
   { id:'tl_novato',         name:'NOVATO',               color:'#4a7060', req:'registro',     desc:'El inicio de toda aventura',       cat:'nivel',      rarity:'comun'     },
@@ -106,9 +101,7 @@ const TITLES_DEF = [
   { id:'tl_eterno',         name:'GUERRERO ETERNO',       color:'#bf5af2', req:'racha>=14',    desc:'Racha de 14 días activo',          cat:'legendario', rarity:'legendario'},
   { id:'tl_absoluto',       name:'EL ABSOLUTO',           color:'#00e5ff', req:'nivel>=15',    desc:'Llega al nivel 15',                cat:'legendario', rarity:'mitico'},
   { id:'tl_nexo_caos',      name:'NEXO DEL CAOS',         color:'#bf5af2', req:'misiones>=30', desc:'Completa 30 misiones',             cat:'legendario', rarity:'mitico'    },
-  /* ── ESPECIALES (tiempo limitado) ──
-     Para añadir más: copia este bloque y cambia id, name, desc, timeLimit.
-     La timeLimit restringe CUÁNDO se puede desbloquear, pero si ya se ganó, se conserva. */
+  /* ── ESPECIALES (tiempo limitado) ── */
   { id:'tl_pionero_mar2026',name:'PIONERO DE LUNA',       color:'#30d158', req:'registro',     desc:'Estuvo aquí el 14 de Marzo de 2026', cat:'especial', rarity:'especial', timeLimit:{ from:'2026-03-14', to:'2026-03-14' } },
 ];
 
@@ -269,7 +262,7 @@ function getEarnedBadgeIds(p) {
   return earned;
 }
 
-/* ── EARNED TITLES (con soporte timeLimit) ── */
+/* ── EARNED TITLES ── */
 function computeEarnedTitles(p) {
   const xp=p.xp||0, racha=p.racha||0, lv=computeLevel(xp);
   const mDone = Object.values(getMissions()).filter(m=>m?.done).length;
@@ -278,8 +271,7 @@ function computeEarnedTitles(p) {
   const earned = new Set(getTitlesEarned());
 
   for (const t of TITLES_DEF) {
-    if (earned.has(t.id)) continue; // ya ganado: conservar
-    // Verificar ventana de tiempo (si existe)
+    if (earned.has(t.id)) continue;
     if (t.timeLimit && (today < t.timeLimit.from || today > t.timeLimit.to)) continue;
     const r = t.req;
     let pass = false;
@@ -304,8 +296,21 @@ function computeEarnedTitles(p) {
   return earned;
 }
 
-/* ── RARITY LABEL ── */
+/* ── RARITY ── */
 const RARITY_LABELS = { comun:'COMÚN', raro:'RARO', epico:'ÉPICO', legendario:'LEGENDARIO', mitico:'MÍTICO', especial:'ESPECIAL' };
+const RARITY_STAR_COUNT = { comun:1, raro:2, epico:3, legendario:4, mitico:5, especial:4 };
+
+function rarityStarsHTML(r) {
+  const n = RARITY_STAR_COUNT[r] || 1;
+  return `<span class="rs-filled">${'★'.repeat(n)}</span><span class="rs-empty">${'☆'.repeat(5-n)}</span>`;
+}
+
+/* ── TÍTULO BADGE HTML para social ── */
+function socialTitleHTML(titleId, cssClass = 'fc-title') {
+  const t = TITLES_DEF.find(x => x.id === titleId);
+  if (!t) return '';
+  return `<div class="${cssClass}" data-rarity="${t.rarity||'comun'}">✦ ${t.name} ✦</div>`;
+}
 
 /* ── RENDER HEADER ── */
 function renderHeader() {
@@ -333,7 +338,6 @@ function renderHeader() {
   set('hero-racha',  `🔥 ${p.racha||0} días`);
   set('hero-desde',  p.registrado ? formatDate(p.registrado) : '—');
 
-  // Player ID en hero
   const pidEl = $('#player-id');
   if (pidEl) pidEl.textContent = playerID || '—';
 
@@ -535,7 +539,9 @@ function renderInventory(){
   const t=$('#inv-total');if(t)t.textContent=total;
 }
 
-/* ── RENDER TÍTULOS ── */
+/* ══════════════════════════════════════════
+   ── RENDER TÍTULOS (REDISEÑADO v2.3) ──
+══════════════════════════════════════════ */
 let titleCatFilter='';
 function renderTitles(){
   const p=getProfile(), earnedSet=computeEarnedTitles(p), activeId=getActiveTitle();
@@ -543,28 +549,83 @@ function renderTitles(){
   const set=(id,v)=>{const el=$(`#${id}`);if(el)el.textContent=v;};
   set('titles-earned',earnedSet.size); set('titles-total',TITLES_DEF.length);
   const grid=$('#titles-grid');if(!grid)return;
+
   grid.innerHTML=filtered.map(t=>{
-    const isEarned=earnedSet.has(t.id), isActive=t.id===activeId;
-    const rLabel=RARITY_LABELS[t.rarity]||'COMÚN';
-    const sparkle=(['mitico'].includes(t.rarity)&&isEarned)?'<div class="title-sparkle">✦ ✧ ✦</div>':'';
-    return `<div class="title-card ${isEarned?'earned':'locked'} ${isActive?'title-active':''} reveal" data-rarity="${t.rarity||'comun'}" data-tid="${t.id}">
-      <div class="title-rarity-badge ${t.rarity||'comun'}">${rLabel}</div>
-      ${isActive?'<div class="title-active-crown">✦ ACTIVO</div>':''}
-      ${sparkle}
-      ${!isEarned?'<span class="title-locked-icon">🔒</span>':''}
-      <div class="title-preview" style="
-        color:${isEarned&&!['legendario','mitico'].includes(t.rarity)?t.color:'inherit'};
-        border-color:${isEarned?t.color+'40':'var(--border)'};
-        background:${isEarned&&!['legendario','mitico'].includes(t.rarity)?t.color+'12':'transparent'}
-      ">${isEarned?`✦ ${t.name} ✦`:'??? ??? ???'}</div>
+    const isEarned  = earnedSet.has(t.id);
+    const isActive  = t.id === activeId;
+    const rarity    = t.rarity || 'comun';
+    const rLabel    = RARITY_LABELS[rarity] || 'COMÚN';
+    const isMythic  = rarity === 'mitico';
+    const isLegend  = rarity === 'legendario';
+    const isSpecial = rarity === 'especial';
+    const starsHTML = rarityStarsHTML(rarity);
+
+    /* Partículas extra para míticos/legendarios desbloqueados */
+    const particlesHTML = (isMythic || isLegend) && isEarned
+      ? `<div class="title-particles" aria-hidden="true">
+           <span class="tp-1">✦</span><span class="tp-2">✧</span>
+           <span class="tp-3">✦</span><span class="tp-4">✧</span>
+           <span class="tp-5">✦</span>
+         </div>`
+      : '';
+
+    /* Nombre del título: texto simple o gradient según rareza */
+    const previewContent = isEarned
+      ? `<span class="title-name-text tp-${rarity}">✦ ${t.name} ✦</span>`
+      : `<span class="title-locked-placeholder">??? ??? ???</span>`;
+
+    /* Badge de tiempo limitado */
+    const timeBadge = t.timeLimit
+      ? `<div class="title-time-badge">⏳ ${t.timeLimit.from} → ${t.timeLimit.to}</div>`
+      : '';
+
+    return `<div class="title-card ${isEarned?'earned':'locked'} ${isActive?'title-active':''} reveal"
+              data-rarity="${rarity}" data-tid="${t.id}">
+
+      <!-- Banda superior de rareza -->
+      <div class="tc-top-band"></div>
+
+      <!-- Cabecera: rareza + corona activo -->
+      <div class="tc-header">
+        <span class="title-rarity-badge ${rarity}">${rLabel}</span>
+        ${isActive ? '<span class="title-active-chip">✦ ACTIVO</span>' : ''}
+        ${isSpecial ? '<span class="title-special-chip">⏳ LTD</span>' : ''}
+      </div>
+
+      <!-- Partículas decorativas (mítico/legendario) -->
+      ${particlesHTML}
+
+      <!-- Estrellas de rareza -->
+      <div class="title-stars" data-rarity="${rarity}">${starsHTML}</div>
+
+      <!-- Preview del título -->
+      <div class="title-preview-wrap ${isEarned?'earned':'locked'}">
+        ${!isEarned ? '<div class="title-lock-overlay"><span class="tc-lock-icon">🔒</span><span class="tc-lock-label">BLOQUEADO</span></div>' : ''}
+        <div class="title-preview tp-${rarity}">
+          ${previewContent}
+        </div>
+      </div>
+
+      <!-- Descripción del requisito -->
       <div class="title-req">${t.desc}</div>
-      ${t.timeLimit?`<div class="title-time-badge">⏳ ${t.timeLimit.from} → ${t.timeLimit.to}</div>`:''}
-      ${isEarned&&!isActive?`<button class="btn-equip-title" data-tid="${t.id}">⚡ EQUIPAR</button>`:''}
+
+      ${timeBadge}
+
+      <!-- Botón equipar -->
+      ${isEarned && !isActive
+        ? `<button class="btn-equip-title" data-tid="${t.id}">⚡ EQUIPAR</button>`
+        : isActive
+          ? `<div class="title-equipped-label">✓ EQUIPADO</div>`
+          : ''}
     </div>`;
   }).join('');
-  requestAnimationFrame(()=>{$$('#titles-grid .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),i*30));});
+
+  requestAnimationFrame(()=>{
+    $$('#titles-grid .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),i*30));
+  });
   grid.querySelectorAll('.btn-equip-title').forEach(btn=>btn.addEventListener('click',()=>equipTitle(btn.dataset.tid)));
 }
+
 function equipTitle(tid){
   const title=TITLES_DEF.find(t=>t.id===tid);if(!title)return;
   localStorage.setItem(TITLE_ACTIVE_KEY,tid);
@@ -612,7 +673,9 @@ function markBuzonRead(id){
   toast('📬 MENSAJE LEÍDO','success');
 }
 
-/* ── SOCIAL: PRESENCIA ── */
+/* ══════════════════════════════════════════
+   ── SOCIAL: PRESENCIA ──
+══════════════════════════════════════════ */
 function setPresence(state, section) {
   if (currentUID) updatePresence(currentUID, state, section).catch(() => {});
 }
@@ -634,6 +697,7 @@ function renderSocialMyID() {
   const d=$('#my-player-id-display');if(d)d.textContent=pid||'—';
 }
 
+/* ── FRIEND CARD con rareza en título ── */
 function friendCardHTML(f) {
   const lv = computeLevel(f.xp||0);
   const activeTitle = TITLES_DEF.find(t=>t.id===f.title_active);
@@ -641,25 +705,40 @@ function friendCardHTML(f) {
   const st = getFriendStatusInfo(f.presence);
   const sectionLabel = st.section ? (SECTION_LABELS[st.section]||st.section) : '';
   const lastSeenStr = st.lastSeen ? timeAgo(st.lastSeen) : '';
+
   const statusLine = st.state==='online'
-    ? `${st.dot} EN LÍNEA${sectionLabel?` · ${sectionLabel}`:''}`
+    ? `<span class="fc-status-dot online-dot"></span>EN LÍNEA${sectionLabel?` · ${sectionLabel}`:''}`
     : st.state==='away'
-      ? `${st.dot} AUSENTE`
-      : `${st.dot} DESCONECTADO${lastSeenStr?` · ${lastSeenStr}`:''}`;
+      ? `<span class="fc-status-dot away-dot"></span>AUSENTE`
+      : `<span class="fc-status-dot offline-dot"></span>DESCONECTADO${lastSeenStr?` · ${lastSeenStr}`:''}`;
+
+  /* Título con su rareza real */
   const titleHTML = activeTitle
-    ? `<div class="fc-title" style="color:${activeTitle.color}" data-rarity="${activeTitle.rarity||'comun'}">✦ ${activeTitle.name} ✦</div>`
+    ? `<div class="fc-title" data-rarity="${activeTitle.rarity||'comun'}">
+         <span class="fc-title-text tp-${activeTitle.rarity||'comun'}">✦ ${activeTitle.name} ✦</span>
+       </div>`
     : '';
+
+  const lvBadge = `<span class="fc-lv-badge">Nv.${lv}</span>`;
+
   return `<div class="friend-card" data-fuid="${f.uid}">
-    <div class="fc-avatar">${f.avatar||'🌙'}</div>
+    <div class="fc-status-bar ${st.state}"></div>
+    <div class="fc-avatar-wrap">
+      <div class="fc-avatar">${f.avatar||'🌙'}</div>
+      <div class="fc-status-indicator ${st.state}"></div>
+    </div>
     <div class="fc-info">
-      <div class="fc-name">${(f.nombre||'Aventurero').toUpperCase()}</div>
+      <div class="fc-name-row">
+        ${lvBadge}
+        <span class="fc-name">${(f.nombre||'Aventurero').toUpperCase()}</span>
+      </div>
       ${titleHTML}
-      <div class="fc-stats">Nv.${lv} · ⚡${f.xp||0} XP · 🏆 ${badgeCount} insignias</div>
-      <div class="fc-status ${st.state}">${statusLine}</div>
+      <div class="fc-stats">⚡${f.xp||0} XP &nbsp;·&nbsp; 🏆 ${badgeCount} insignias</div>
+      <div class="fc-status-text ${st.state}">${statusLine}</div>
     </div>
     <div class="fc-actions">
       <div class="fc-pid">${f.player_id||''}</div>
-      <button class="btn-remove-friend" data-uid="${f.uid}">✕ ELIMINAR</button>
+      <button class="btn-remove-friend" data-uid="${f.uid}">✕</button>
     </div>
   </div>`;
 }
@@ -680,15 +759,12 @@ async function renderSocial() {
   if(emptyEl)emptyEl.style.display='none';
   listEl.innerHTML=`<div style="font-family:var(--font-pixel);font-size:0.32rem;color:var(--muted);padding:12px 0">⟳ CARGANDO AMIGOS...</div>`;
 
-  // Clean up old listeners
   if(friendsUnsubscribe) { friendsUnsubscribe(); friendsUnsubscribe=null; }
 
-  // Load initial data
   const data = await getFriendsData(friendUIDs);
   data.forEach(f => { friendsCache[f.uid]=f; });
   renderFriendCards();
 
-  // Real-time presence
   friendsUnsubscribe = subscribeFriendPresence(friendUIDs, (uid, friendData) => {
     friendsCache[uid] = { ...friendsCache[uid], ...friendData };
     renderFriendCards();
@@ -701,7 +777,6 @@ function renderFriendCards(){
   if(!friends.length){listEl.innerHTML='';if(emptyEl)emptyEl.style.display='flex';return;}
   if(emptyEl)emptyEl.style.display='none';
 
-  // Sort: online first, then away, then offline
   const order={online:0,away:1,offline:2};
   friends.sort((a,b)=>{
     const sa=getFriendStatusInfo(a.presence).state, sb=getFriendStatusInfo(b.presence).state;
@@ -713,6 +788,7 @@ function renderFriendCards(){
     btn.addEventListener('click',async()=>{
       const uid=btn.dataset.uid;
       btn.disabled=true;btn.textContent='⟳';
+      /* Remoción mutua: también se elimina al usuario actual de la lista del amigo */
       await removeFriendByUID(currentUID,uid);
       const updated=getFriendsList().filter(id=>id!==uid);
       lsSet(FRIENDS_KEY,updated);
@@ -734,13 +810,23 @@ async function handleFriendSearch(){
   if(!found){resultDiv.innerHTML=`<p class="search-msg error">❌ No se encontró ningún jugador con ese ID</p>`;return;}
   if(found.uid===currentUID){resultDiv.innerHTML=`<p class="search-msg info">🌙 ¡Ese ID eres tú mismo!</p>`;return;}
   const alreadyFriend=getFriendsList().includes(found.uid);
-  const lv=computeLevel(found.xp||0),activeTitle=TITLES_DEF.find(t=>t.id===found.title_active),badgeCount=Array.isArray(found.badges)?found.badges.length:0;
+  const lv=computeLevel(found.xp||0);
+  const activeTitle=TITLES_DEF.find(t=>t.id===found.title_active);
+  const badgeCount=Array.isArray(found.badges)?found.badges.length:0;
+
+  /* Título con rareza en resultado de búsqueda */
+  const titleHTML = activeTitle
+    ? `<div class="frc-title" data-rarity="${activeTitle.rarity||'comun'}">
+         <span class="fc-title-text tp-${activeTitle.rarity||'comun'}">✦ ${activeTitle.name} ✦</span>
+       </div>`
+    : '';
+
   resultDiv.innerHTML=`
     <div class="friend-result-card">
       <div class="frc-avatar">${found.avatar||'🌙'}</div>
       <div class="frc-info">
         <div class="frc-name">${(found.nombre||'Aventurero').toUpperCase()}</div>
-        ${activeTitle?`<div class="frc-title" style="color:${activeTitle.color}">✦ ${activeTitle.name} ✦</div>`:''}
+        ${titleHTML}
         <div class="frc-stats">Nv.${lv} · ⚡${found.xp||0} XP · 🏆${badgeCount} insignias</div>
         <div class="frc-pid">${found.player_id||''}</div>
       </div>
@@ -750,15 +836,20 @@ async function handleFriendSearch(){
           : `<button class="btn-add-friend" data-uid="${found.uid}">➕ AÑADIR</button>`}
       </div>
     </div>`;
+
   resultDiv.querySelector('.btn-add-friend')?.addEventListener('click',async(e)=>{
-    const uid=e.target.dataset.uid;e.target.disabled=true;e.target.textContent='⟳ AÑADIENDO...';
+    const uid=e.target.dataset.uid;
+    e.target.disabled=true;e.target.textContent='⟳ AÑADIENDO...';
+    /* addFriendByUID ahora es MUTUO: también añade al otro usuario */
     await addFriendByUID(currentUID,uid);
     const friends=getFriendsList();
     if(!friends.includes(uid)){friends.push(uid);lsSet(FRIENDS_KEY,friends);}
-    toast('✓ AMIGO AÑADIDO','success');
+    toast('✓ AMIGO AÑADIDO — ¡También aparecerás en su lista!','success');
     addTimelineEvent({icon:'👥',title:'Nuevo amigo añadido',detail:(found.nombre||'Aventurero').toUpperCase()});
     renderSocial();
-    resultDiv.querySelector('.btn-add-friend')?.replaceWith(Object.assign(document.createElement('span'),{className:'frc-already',textContent:'✓ YA ES AMIGO'}));
+    resultDiv.querySelector('.btn-add-friend')?.replaceWith(
+      Object.assign(document.createElement('span'),{className:'frc-already',textContent:'✓ YA ES AMIGO'})
+    );
   });
 }
 
@@ -889,15 +980,12 @@ function startHoursTimer(){
 
 /* ── PRESENCE MANAGEMENT ── */
 function initPresence(){
-  // Visibilidad
   document.addEventListener('visibilitychange',()=>{
     setPresence(document.hidden?'away':'online', currentSection);
   });
-  // Heartbeat cada 2 min
   presenceHeartbeat=setInterval(()=>{
     setPresence(document.hidden?'away':'online', currentSection);
   },2*60*1000);
-  // Best-effort offline al cerrar
   window.addEventListener('beforeunload',()=>{
     setPresence('offline', currentSection);
     if(presenceHeartbeat)clearInterval(presenceHeartbeat);
@@ -909,21 +997,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   hideLoader(); initStars(); initNav(); initTabs();
   initAvatar(); initNameEdit(); initBadgeModal(); initLogout(); initBackToTop();
 
-  // Player ID: clic para copiar
   $('#player-id')?.addEventListener('click', copyPlayerID);
   $('#btn-copy-id')?.addEventListener('click', copyPlayerID);
 
-  // Filtros insignias
   $$('.bf-btn').forEach(btn=>btn.addEventListener('click',()=>{$$('.bf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');badgeCatFilter=btn.dataset.cat||'';renderBadges();}));
-
-  // Filtros títulos
   $$('.tf-btn').forEach(btn=>btn.addEventListener('click',()=>{$$('.tf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');titleCatFilter=btn.dataset.cat||'';renderTitles();}));
 
-  // Social: búsqueda
   $('#btn-search-friend')?.addEventListener('click', handleFriendSearch);
   $('#friend-search-input')?.addEventListener('keydown',e=>{if(e.key==='Enter')handleFriendSearch();});
 
-  // Buzón
   $('#btn-mark-all')?.addEventListener('click',()=>{
     const state=getBuzonState();BUZON_MESSAGES.filter(m=>!isBuzonExpired(m)).forEach(m=>{state[m.id]=true;});
     lsSet(BUZON_KEY,state);fbSaveBuzon(state);completeMissionSilent('d04');completeMissionSilent('w03');
@@ -931,14 +1013,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   $('#buzon-filter')?.addEventListener('change',e=>{buzonFilter=e.target.value;renderBuzon();});
 
-  // Timeline limpiar
   $('#btn-clear-timeline')?.addEventListener('click',()=>{
     if(!confirm('¿Limpiar historial de actividad?'))return;
     lsSet(TIMELINE_KEY,[]);if(currentUID)addTimelineEventDB(currentUID).catch(()=>{});
     renderTimeline();toast('🗑 HISTORIAL BORRADO','error');
   });
 
-  /* ── Firebase Auth ── */
   let firstLoad=true;
   onAuthChange(async(user)=>{
     if(!user){window.location.href='index.html';return;}

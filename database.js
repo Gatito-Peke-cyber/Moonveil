@@ -1,6 +1,6 @@
 /* =====================================================
-   Moonveil Portal — database.js  v2.2
-   + Sistema social: presencia, amigos, búsqueda por ID
+   Moonveil Portal — database.js  v2.3
+   + Sistema social: presencia, amigos MUTUOS, búsqueda por ID
    ===================================================== */
 
 import { db } from './firebase.js';
@@ -33,7 +33,7 @@ function generatePlayerID(uid) {
   return '#' + clean.slice(0, 4) + '-' + clean.slice(4, 8);
 }
 
-/* ─── CREAR DOC INICIAL (fix "invitado") ─── */
+/* ─── CREAR DOC INICIAL ─── */
 export async function createUserFromAuth(uid, authUser) {
   let lp = null;
   try { lp = JSON.parse(localStorage.getItem(PERFIL_KEY)); } catch {}
@@ -125,15 +125,33 @@ export async function searchUserByPlayerID(playerID) {
   } catch (e) { console.error('[DB] searchUserByPlayerID:', e); return null; }
 }
 
-/* ─── SOCIAL: AMIGOS ─── */
+/* ─── SOCIAL: AMIGOS MUTUOS ─── */
+/**
+ * Añade amistad MUTUA: A añade a B y B también tiene a A en su lista.
+ */
 export async function addFriendByUID(uid, friendUID) {
-  try { await updateDoc(userRef(uid), { friends: arrayUnion(friendUID), updatedAt: serverTimestamp() }); return true; }
-  catch (e) { console.error('[DB] addFriendByUID:', e); return false; }
+  try {
+    await Promise.all([
+      updateDoc(userRef(uid),       { friends: arrayUnion(friendUID), updatedAt: serverTimestamp() }),
+      updateDoc(userRef(friendUID), { friends: arrayUnion(uid),       updatedAt: serverTimestamp() }),
+    ]);
+    return true;
+  } catch (e) { console.error('[DB] addFriendByUID:', e); return false; }
 }
+
+/**
+ * Elimina amistad MUTUA: si A elimina a B, también se elimina A de la lista de B.
+ */
 export async function removeFriendByUID(uid, friendUID) {
-  try { await updateDoc(userRef(uid), { friends: arrayRemove(friendUID), updatedAt: serverTimestamp() }); return true; }
-  catch (e) { console.error('[DB] removeFriendByUID:', e); return false; }
+  try {
+    await Promise.all([
+      updateDoc(userRef(uid),       { friends: arrayRemove(friendUID), updatedAt: serverTimestamp() }),
+      updateDoc(userRef(friendUID), { friends: arrayRemove(uid),       updatedAt: serverTimestamp() }),
+    ]);
+    return true;
+  } catch (e) { console.error('[DB] removeFriendByUID:', e); return false; }
 }
+
 export async function getFriendsData(friendUIDs) {
   if (!friendUIDs?.length) return [];
   try {
