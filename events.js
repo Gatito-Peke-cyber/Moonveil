@@ -1,36 +1,9 @@
 /* =========================================================
-   Moonveil Portal — Events Hub (JS v3)
-
-   ¿Cómo agregar/editar tarjetas?
-   ————————————————————————————————
-   Cada tarjeta acepta estos campos:
-
-     title       (string)  — Nombre visible
-     desc        (string)  — Descripción corta
-     emoji       (string)  — Emoji principal
-     url         (string)  — Ruta de la página
-     bg          (string)  — (opcional) URL de imagen de fondo
-                             Ej: bg: "img/dragon-bg.jpg"
-                             Ej: bg: "https://i.imgur.com/abc.jpg"
-     expiry      (string)  — (opcional) "YYYY-MM-DD" — fecha en que se bloquea
-     startDate   (string)  — (opcional) "YYYY-MM-DD" — antes de esta fecha = cuenta regresiva
-     daysTotal   (number)  — (opcional) días totales del evento (para la barra)
-     isCalendar  (boolean) — (opcional) true = contador especial de días del mes
-     accent      (string)  — (opcional) color CSS del acento de la tarjeta
-                             Ej: accent: "#f43f5e"  accent: "#06b6d4"
-                             Si no se pone, usa el color de la categoría
-
-   ¿Cómo agregar una categoría?
-   ————————————————————————————————
-   Al final del array CATEGORIES agrega:
-   {
-     id:    "mi-id",
-     icon:  "⭐",
-     name:  "Mi Categoría",
-     color: "#6366f1",    ← color de acento de todas sus tarjetas
-     items: [ ...tarjetas... ]
-   }
+   Moonveil Portal — Events Hub (JS v3 + HUD Player)
    ========================================================= */
+
+import { onAuthChange }          from './auth.js';
+import { syncAllToLocalStorage } from './database.js';
 
 /* =========================================================
    CATEGORÍAS Y TARJETAS  ← edita aquí
@@ -40,51 +13,29 @@ const CATEGORIES = [
   // ── PRINCIPAL ──────────────────────────────────────────
   {
     id: "principal", icon: "🏠", name: "Principal",
-    color: "#a855f7",          // ← púrpura por defecto
+    color: "#a855f7",
     items: [
       { title:"Inicio",   desc:"Página de bienvenida del portal.",              emoji:"🌙", url:"inicio.html", bg:"img/picture6.jpg"  },
       { title:"Perfiles Aldeanil", desc:"Explora y gestiona los perfiles de los aldeanos.", emoji:"👤", url:"perfiles.html", bg:"vill/teacher.jpg" },
-      { title:"Noticias Aldeanil", desc:"Noticias del mundo.",       emoji:"📰", url:"noticias.html" ,startDate: "2026-02-23",bg: "gif/villager-news.gif"},
-      { title:"Foro Aldeanil",     desc:"Algunas novedades de los aldeanos. Y quien sabe un chisme...", emoji:"💬", url:"foro.html", bg:"vill/booktea.gif"     },
-      { title:"Contacto Aldeanil", desc:"Pues aqui se habla con los aldeanos del mundo. No todos pero si algunos...", emoji:"📩", url:"contactos.html", bg:"imagen/golem1.jpg",},
-      { title:"Updates",  desc:"Registro de todas las actualizaciones.",        emoji:"🔄", url:"updates.html" , startDate: "2026-03-01", bg:"img/picture1.jpg",},
-      { title:"History",  desc:"Algunas historias, sin concluir...",  emoji:"📜", url:"historia.html", startDate: "2026-05-01", bg:"imagen/diary.jpg"},
-      { title:"Cofres, y mas Cofres...", desc:"Aqui hay algunos cofres... ¿Que Sand Brill patrocino?... Pero de igual manera hay cofres, eh!...",   emoji:"⭐", url:"chest.html" ,
-        startDate: "2026-01-01",
-        bg:"img/picture4.jpg",
-      },
-            
+      { title:"Noticias Aldeanil", desc:"Noticias del mundo.",       emoji:"📰", url:"noticias.html", startDate:"2026-02-23", bg:"gif/villager-news.gif"},
+      { title:"Foro Aldeanil",     desc:"Algunas novedades de los aldeanos. Y quien sabe un chisme...", emoji:"💬", url:"foro.html", bg:"vill/booktea.gif"},
+      { title:"Contacto Aldeanil", desc:"Pues aqui se habla con los aldeanos del mundo. No todos pero si algunos...", emoji:"📩", url:"contactos.html", bg:"imagen/golem1.jpg"},
+      { title:"Updates",  desc:"Registro de todas las actualizaciones.",        emoji:"🔄", url:"updates.html", startDate:"2026-03-01", bg:"img/picture1.jpg"},
+      { title:"History",  desc:"Algunas historias, sin concluir...",            emoji:"📜", url:"historia.html", startDate:"2026-05-01", bg:"imagen/diary.jpg"},
+      { title:"Cofres, y mas Cofres...", desc:"Aqui hay algunos cofres... ¿Que Sand Brill patrocino?... Pero de igual manera hay cofres, eh!...", emoji:"⭐", url:"chest.html", startDate:"2026-01-01", bg:"img/picture4.jpg"},
     ]
   },
 
   // ── COMUNIDAD & ECONOMÍA ───────────────────────────────
   {
     id: "economia", icon: "💎", name: "Comunidad & Economía",
-    color: "#06b6d4",          // ← cyan
+    color: "#06b6d4",
     items: [
-      { title:"Tradeos", desc:"Sistema de intercambios entre aldeanos, aunque ellos solo piden esmeraldas.¡Que se puede hacer si solo piden eso!",   emoji:"🔀", url:"tradeos.html" ,
-        startDate: "2026-04-10",
-        bg:"img-pass/trading.jpg",
-      },
-      { title:"Tienda",  desc:"Compra lo que mas te convenga.¡Y eso si hay cupones!Obvio si tienes...", emoji:"🛒", url:"tienda.html", bg:"img/mine.gif"  },
-      { title:"Bank",    desc:"Gestiona tus monedas y depósitos.¡Que no se te pase su tiempo!",           emoji:"🏦", url:"banco.html", 
-        accent: "#10b981",  // verde especial para Bank
-        bg: "img/picture3.jpg" 
-      },
-      {
-        title:"Ruleta",  desc:"¡Prueba tu suerte y gana premios! Y si quieres mas tickets, compralos en la tienda...",
-        emoji:"🎫", url:"premios.html",
-        daysTotal: 44,
-        accent: "#f59e0b",   // ámbar para la ruleta
-        startDate: "2026-02-26",
-        bg: "gif/5am.gif"
-        // expiry: "2026-03-15"
-      },
-      { title:"Posts", desc:"Bueno, supongo que aqui postean los aldeanos...",   emoji:"💬", url:"ins.html" ,
-        startDate: "2026-04-01",
-        bg:"img/picture2.jpg",
-      },
-      
+      { title:"Tradeos", desc:"Sistema de intercambios entre aldeanos, aunque ellos solo piden esmeraldas.¡Que se puede hacer si solo piden eso!", emoji:"🔀", url:"tradeos.html", startDate:"2026-04-10", bg:"img-pass/trading.jpg"},
+      { title:"Tienda",  desc:"Compra lo que mas te convenga.¡Y eso si hay cupones!Obvio si tienes...", emoji:"🛒", url:"tienda.html", bg:"img/mine.gif"},
+      { title:"Bank",    desc:"Gestiona tus monedas y depósitos.¡Que no se te pase su tiempo!", emoji:"🏦", url:"banco.html", accent:"#10b981", bg:"img/picture3.jpg"},
+      { title:"Ruleta",  desc:"¡Prueba tu suerte y gana premios! Y si quieres mas tickets, compralos en la tienda...", emoji:"🎫", url:"premios.html", daysTotal:44, accent:"#f59e0b", startDate:"2026-02-26", bg:"gif/5am.gif"},
+      { title:"Posts",   desc:"Bueno, supongo que aqui postean los aldeanos...", emoji:"💬", url:"ins.html", startDate:"2026-04-01", bg:"img/picture2.jpg"},
     ]
   },
 
@@ -93,228 +44,45 @@ const CATEGORIES = [
     id: "herramientas", icon: "🛠️", name: "Herramientas & Minijuegos",
     color: "#06b6d4",
     items: [
-      {
-        title: "Calendar",
-        desc:  "Calendario de inicio de sesion. Se renueva cada mes.",
-        emoji: "📅", url: "calendar.html",
-        isCalendar: true,
-        accent: "#06b6d4",
-        bg: "gif/rain1.gif" 
-      },
-      { title:"Sand", desc:"...", emoji:"⚡", url:"SBM-G.html",
-        accent: "#f59e0b",
-        startDate: "2026-02-22",
-        expiry: "2026-04-15",  daysTotal: 60,
-        bg:"img/picture4.jpg"
-      },
-      {
-        title: "Minepass",
-        desc:  "Lleguemos hasta las estrellas, tu sabes que no te abandonare, porque eres mi gran amigo. Nunca lo olvides y siempre estara tu amiguito David Kal...",
-        emoji: "🎫", url: "pases.html",
-        startDate: "2026-02-28",
-        expiry: "2026-04-01",   daysTotal: 30,
-        accent: "#06b6d4",
-        bg: "img/universe1.gif"    // ← ej: "img/dragon-bg.jpg"
-      },
-      {
-        title: "Minigame",
-        desc:  "Un minijuego, asi que gestiona bien tu dinero y comercia bien... y ten cuidado con los ¡bandidos!... Asi que suerte",
-        emoji: "⭐⭐⭐", url: "min.html",
-        startDate: "2026-02-20",
-        expiry: "2026-04-01", daysTotal: 39,
-        accent: "#06b6d4",
-        bg: "gif/noche1.gif"    // ← ej: "img/dragon-bg.jpg"
-      },
-      {
-        title: "Harvest Corp",
-        desc:  "Maneja tu empresa de cultivos y haz que crezca con esfuerzo y sudor... Pues capaz no tanto pero haz que tu empresa este en lo alto y con marketing capaz llegue aun mas lejos...¡Yo confio en usted jefe!",
-        emoji: "🌟", url: "em.html",
-        startDate: "2026-02-20",
-        expiry: "2026-05-01", daysTotal: 69,
-        accent: "#f43f5e",
-        bg: "gif/2am.gif"    // ← ej: "img/dragon-bg.jpg"
-      },
-      {
-        title: "████ Master??",
-        desc:  "Supongo que el esta vez quizo o tratara de hacer una ¿broma?, bueno eso creemos, pero quien sabe...Que tramara esta vez...",
-        emoji: "🎭", url: "ddb.html",
-        startDate: "2026-03-30",
-        expiry: "2026-04-30", daysTotal: 30,
-        accent: "#f43f5e",
-        bg: "imagen/steve3.jpg"    // ← ej: "img/dragon-bg.jpg"
-      },
-      {
-        title: "Cultivos Eden",
-        desc:  "Hola amigos, aqui les habla Eden y pues quiero que me ayudes a generar mucho dinerito, pues ya que tu eres un estratega en los negocios pues se que tu podras.¿Verdad?",
-        emoji: "🌻", url: "cul.html",
-        startDate: "2026-02-20",
-        expiry: "2026-04-30", daysTotal: 30,
-        accent: "#f43f5e",
-        bg: "gif/4am.gif"    // ← ej: "img/dragon-bg.jpg"
-      },
-      {
-        title: "Investigaciones",
-        desc:  "¡Hola Agente ████! Tenemos que resolver estos casos, por eso necesitamos su ayuda, contamos contigo Agente...",
-        emoji: "🔎", url: "invs.html",
-        startDate: "2026-02-23",
-        expiry: "2026-04-30", daysTotal: 50,
-        accent: "#f43f5e",
-        bg: "gif/creaking-minecraft.gif"    // ← ej: "img/dragon-bg.jpg"
-      },
-      {
-        title: "Minelife",
-        desc:  "¡Hola ████! Bueno,¡eh!... No tengo palabras...",
-        emoji: "🌳", url: "minecraft.html",
-        startDate: "2026-02-20",
-        expiry: "2026-04-30", daysTotal: 50,
-        accent: "#f43f5e",
-        bg: "img-pass/fox-xy.jpg"    // ← ej: "img/dragon-bg.jpg"
-      },
-      {
-        title: "Minestone",
-        desc:  "¡Hola ████! Puedes sobrevivir, con 10 corazones,¿seguro? Pues si creo...!¡",
-        emoji: "🌳", url: "aventure.html",
-        startDate: "2026-02-20",
-        expiry: "2026-04-20", daysTotal: 50,
-        accent: "#f59e0b",
-        bg: "img-pass/pokki.jpg"    // ← ej: "img/dragon-bg.jpg"
-      },
+      { title:"Calendar", desc:"Calendario de inicio de sesion. Se renueva cada mes.", emoji:"📅", url:"calendar.html", isCalendar:true, accent:"#06b6d4", bg:"gif/rain1.gif"},
+      { title:"Sand", desc:"...", emoji:"⚡", url:"SBM-G.html", accent:"#f59e0b", startDate:"2026-02-22", expiry:"2026-04-15", daysTotal:60, bg:"img/picture4.jpg"},
+      { title:"Minepass", desc:"Lleguemos hasta las estrellas, tu sabes que no te abandonare, porque eres mi gran amigo. Nunca lo olvides y siempre estara tu amiguito David Kal...", emoji:"🎫", url:"pases.html", startDate:"2026-02-28", expiry:"2026-04-01", daysTotal:30, accent:"#06b6d4", bg:"img/universe1.gif"},
+      { title:"Minigame", desc:"Un minijuego, asi que gestiona bien tu dinero y comercia bien... y ten cuidado con los ¡bandidos!... Asi que suerte", emoji:"⭐⭐⭐", url:"min.html", startDate:"2026-02-20", expiry:"2026-04-01", daysTotal:39, accent:"#06b6d4", bg:"gif/noche1.gif"},
+      { title:"Harvest Corp", desc:"Maneja tu empresa de cultivos y haz que crezca con esfuerzo y sudor... Pues capaz no tanto pero haz que tu empresa este en lo alto y con marketing capaz llegue aun mas lejos...¡Yo confio en usted jefe!", emoji:"🌟", url:"em.html", startDate:"2026-02-20", expiry:"2026-05-01", daysTotal:69, accent:"#f43f5e", bg:"gif/2am.gif"},
+      { title:"████ Master??", desc:"Supongo que el esta vez quizo o tratara de hacer una ¿broma?, bueno eso creemos, pero quien sabe...Que tramara esta vez...", emoji:"🎭", url:"ddb.html", startDate:"2026-03-30", expiry:"2026-04-30", daysTotal:30, accent:"#f43f5e", bg:"imagen/steve3.jpg"},
+      { title:"Cultivos Eden", desc:"Hola amigos, aqui les habla Eden y pues quiero que me ayudes a generar mucho dinerito, pues ya que tu eres un estratega en los negocios pues se que tu podras.¿Verdad?", emoji:"🌻", url:"cul.html", startDate:"2026-02-20", expiry:"2026-04-30", daysTotal:30, accent:"#f43f5e", bg:"gif/4am.gif"},
+      { title:"Investigaciones", desc:"¡Hola Agente ████! Tenemos que resolver estos casos, por eso necesitamos su ayuda, contamos contigo Agente...", emoji:"🔎", url:"invs.html", startDate:"2026-02-23", expiry:"2026-04-30", daysTotal:50, accent:"#f43f5e", bg:"gif/creaking-minecraft.gif"},
+      { title:"Minelife", desc:"¡Hola ████! Bueno,¡eh!... No tengo palabras...", emoji:"🌳", url:"minecraft.html", startDate:"2026-02-20", expiry:"2026-04-30", daysTotal:50, accent:"#f43f5e", bg:"img-pass/fox-xy.jpg"},
+      { title:"Minestone", desc:"¡Hola ████! Puedes sobrevivir, con 10 corazones,¿seguro? Pues si creo...!¡", emoji:"🌳", url:"aventure.html", startDate:"2026-02-20", expiry:"2026-04-20", daysTotal:50, accent:"#f59e0b", bg:"img-pass/pokki.jpg"},
     ]
   },
 
   // ── EVENTOS ESPECIALES ────────────────────────────────
   {
     id: "eventos", icon: "🎉", name: "Eventos Especiales",
-    color: "#ec4899",          // ← rosa
+    color: "#ec4899",
     items: [
-      {
-        title: "Eventos",
-        desc:  "Centro de todos los eventos activos del mundo.",
-        emoji: "🎫", url: "eventos.html",
-        //expiry: "2026-04-15", daysTotal: 44,
-        accent: "#f43f5e", 
-        bg:"img-pass/animalsphoto.jpg"
-      },
-      {
-        title: "Valentine",
-        desc:  "Evento especial de San Valentín.¿Con un caso por resolver...?",
-        emoji: "💖", url: "sv.html",
-        expiry: "2026-02-20",   // ya caducó
-        daysTotal: 1,
-        accent: "#ec4899",
-        bg:"ach/5i.png"    // ← pon aquí la URL de imagen: "img/valentine-bg.jpg"
-      },
-      {
-        title: "Dragon Hunter",
-        desc:  "Caza 20 Ender Dragons y alcanza la gloria.",
-        emoji: "🐉", url: "dragon.html",
-        expiry: "2026-04-20", daysTotal: 20,
-        accent: "#a855f7",
-        bg: "ach/4y.png"    // ← ej: "img/dragon-bg.jpg"
-      },
-      {
-        title: "Año Lunar",
-        desc:  "Celebra el Año Nuevo Lunar con recompensas.",
-        emoji: "🏮", url: "lny.html",
-        expiry: "2026-03-06", daysTotal: 18,
-        accent: "#f59e0b",
-        bg: "img-pass/añomine.jpg"    // ← ej: "img/lny-bg.jpg"
-      },
-      {
-        title: "Event Emerald",
-        desc:  "La lluvia de Esmeraldas.",
-        emoji: "🟢", url: "emerald.html",
-        startDate: "2026-02-22",
-        expiry: "2026-03-30", daysTotal: 6,
-        accent: "#f59e0b",
-        bg: "ach/5y.png"    // ← ej: "img/lny-bg.jpg"
-      },
-      {
-        title: "Anniversary!!",
-        desc:  "Un año mas en este mundo cubico Moonveil...",
-        emoji: "🎂", url: "ann.html",
-        startDate: "2026-04-10",
-        expiry: "2026-12-30",  daysTotal: 120,
-        accent: "#f59e0b",
-        bg: "img-pass/partymine.jpg"    // ← ej: "img/lny-bg.jpg"
-      },
-      {
-        title: "Próximo Evento",
-        desc:  "Un nuevo evento se aproxima. ¡Prepárate!",
-        emoji: "🔮", url: "#",
-        startDate: "2030-04-01",
-        accent: "#818cf8"
-      },
-      {
-        title: "Minesafio",
-        desc:  "Seguro es muy facil, espero...",
-        emoji: "⚡", url: "batt.html",
-        startDate: "2026-03-04",
-        expiry: "2026-03-10", daysTotal: 6,
-        accent: "#f59e0b",
-        bg: "ach/2m.png"    // ← ej: "img/dragon-bg.jpg"
-      },
+      { title:"Eventos",         desc:"Centro de todos los eventos activos del mundo.",    emoji:"🎫", url:"eventos.html", accent:"#f43f5e", bg:"img-pass/animalsphoto.jpg"},
+      { title:"Valentine",       desc:"Evento especial de San Valentín.¿Con un caso por resolver...?", emoji:"💖", url:"sv.html", expiry:"2026-02-20", daysTotal:1, accent:"#ec4899", bg:"ach/5i.png"},
+      { title:"Dragon Hunter",   desc:"Caza 20 Ender Dragons y alcanza la gloria.",         emoji:"🐉", url:"dragon.html", expiry:"2026-04-20", daysTotal:20, accent:"#a855f7", bg:"ach/4y.png"},
+      { title:"Año Lunar",       desc:"Celebra el Año Nuevo Lunar con recompensas.",        emoji:"🏮", url:"lny.html", expiry:"2026-03-06", daysTotal:18, accent:"#f59e0b", bg:"img-pass/añomine.jpg"},
+      { title:"Event Emerald",   desc:"La lluvia de Esmeraldas.",                           emoji:"🟢", url:"emerald.html", startDate:"2026-02-22", expiry:"2026-03-30", daysTotal:6, accent:"#f59e0b", bg:"ach/5y.png"},
+      { title:"Anniversary!!",   desc:"Un año mas en este mundo cubico Moonveil...",        emoji:"🎂", url:"ann.html", startDate:"2026-04-10", expiry:"2026-12-30", daysTotal:120, accent:"#f59e0b", bg:"img-pass/partymine.jpg"},
+      { title:"Próximo Evento",  desc:"Un nuevo evento se aproxima. ¡Prepárate!",           emoji:"🔮", url:"#", startDate:"2030-04-01", accent:"#818cf8"},
+      { title:"Minesafio",       desc:"Seguro es muy facil, espero...",                     emoji:"⚡", url:"batt.html", startDate:"2026-03-04", expiry:"2026-03-10", daysTotal:6, accent:"#f59e0b", bg:"ach/2m.png"},
     ]
   },
-  {
-     id: "celebrar", icon: "⭐", name: "Celebraciones",
-     color: "#6366f1",
-     items: [
-       /*{
-         title: "Mi Página", desc: "Descripción.", emoji: "🌟", url: "mi-pagina.html",
-         bg: "img/mi-fondo.jpg",    // ← imagen de fondo (opcional)
-         accent: "#f43f5e",       // ← color de acento (opcional)
-         expiry: "2026-04-21",      // ← caducidad (opcional)
-         startDate: "2026-04-20",   // ← apertura futura (opcional)
-         daysTotal: 2,             // ← días del evento (opcional)
-         isCalendar: false,         // ← contador de mes (opcional)
-       },*/
-       {
-        title: "¡Que recuerdos...!",
-        desc:  "Pero no dejemos de seguir creando recuerdos",
-        emoji: "🌳", url: "album.html",
-        startDate: "2026-02-20",
-        expiry: "2026-06-01", daysTotal: 50,
-        accent: "#f59e0b",
-        bg: "img/universe1.gif"    // ← ej: "img/dragon-bg.jpg"
-      },
-      {
-        title: "♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡",
-        desc:  "Si que es un gran dia...¡Asi que celebremos!",
-        emoji: "🌟", url: "tsm.html",
-        startDate: "2026-04-20",
-        expiry: "2026-04-21", daysTotal: 2,
-        accent: "#f59e0b",
-        bg: "dav/alex1.jpg"    // ← ej: "img/dragon-bg.jpg"
-      },
-      {
-        title: "♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡",
-        desc:  "Si que es un gran dia...¡Asi que celebremos!",
-        emoji: "🌟", url: "lns.html",
-        startDate: "2026-06-17",
-        expiry: "2026-06-18", daysTotal: 2,
-        accent: "#f59e0b",
-        bg: "dav/steve2.jpg"    // ← ej: "img/dragon-bg.jpg"
-      },
-     ]
-  }
 
-  // ── PLANTILLA NUEVA CATEGORÍA ─────────────────────────
-  // {
-  //   id: "nueva", icon: "⭐", name: "Nueva Categoría",
-  //   color: "#6366f1",
-  //   items: [
-  //     {
-  //       title: "Mi Página", desc: "Descripción.", emoji: "🌟", url: "mi-pagina.html",
-  //       bg: "img/mi-fondo.jpg",     ← imagen de fondo (opcional)
-  //       accent: "#f43f5e",        ← color de acento (opcional)
-  //       expiry: "2026-12-31",       ← caducidad (opcional)
-  //       startDate: "2026-06-01",    ← apertura futura (opcional)
-  //       daysTotal: 30,              ← días del evento (opcional)
-  //       isCalendar: false,          ← contador de mes (opcional)
-  //     }
-  //   ]
-  // }
+  // ── CELEBRACIONES ─────────────────────────────────────
+  {
+    id: "celebrar", icon: "⭐", name: "Celebraciones",
+    color: "#6366f1",
+    items: [
+      { title:"¡Que recuerdos...!", desc:"Pero no dejemos de seguir creando recuerdos", emoji:"🌳", url:"album.html", startDate:"2026-02-20", expiry:"2026-06-01", daysTotal:50, accent:"#f59e0b", bg:"img/universe1.gif"},
+      { title:"♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡",  desc:"Si que es un gran dia...¡Asi que celebremos!", emoji:"🌟", url:"tsm.html", startDate:"2026-04-20", expiry:"2026-04-21", daysTotal:2, accent:"#f59e0b", bg:"dav/alex1.jpg"},
+      { title:"♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡",  desc:"Si que es un gran dia...¡Asi que celebremos!", emoji:"🌟", url:"lns.html", startDate:"2026-06-17", expiry:"2026-06-18", daysTotal:2, accent:"#f59e0b", bg:"dav/steve2.jpg"},
+    ]
+  },
 ];
 
 /* =========================================================
@@ -358,8 +126,7 @@ function daysLeftInMonth() {
 }
 
 /* =========================================================
-   CUENTA REGRESIVA (reutilizable)
-   colorClass: "" | "expiry" | "month"
+   CUENTA REGRESIVA
    ========================================================= */
 function buildCountdown(getValuesFn, colorClass) {
   const wrap = document.createElement("div");
@@ -432,81 +199,63 @@ function buildCard(item, index, categoryColor) {
   if (status === "expired") card.classList.add("card-locked");
   if (status === "soon")    card.classList.add("card-soon");
 
-  // Borde de acento sutil
   card.style.setProperty("--card-accent", accent);
 
-  /* ── Fondo de imagen ── */
   if (item.bg) {
     const bgDiv = document.createElement("div");
     bgDiv.className = "card-bg";
     bgDiv.style.backgroundImage = `url('${item.bg}')`;
     card.appendChild(bgDiv);
-
     const ov = document.createElement("div");
     ov.className = "card-overlay";
     card.appendChild(ov);
   } else {
-    /* Sin imagen: orbe de color decorativo en esquina superior derecha */
     const glow = document.createElement("div");
     glow.className = "card-glow";
-    glow.style.cssText = `
-      width:140px; height:140px;
-      top:-40px; right:-40px;
-      background:${accent};
-      opacity:0;
-    `;
+    glow.style.cssText = `width:140px;height:140px;top:-40px;right:-40px;background:${accent};opacity:0;`;
     card.appendChild(glow);
   }
 
-  /* ── Cuerpo ── */
   const body = document.createElement("div");
   body.className = "card-body";
 
-  // Emoji
   const em = document.createElement("div");
   em.className = "card-emoji";
   em.textContent = item.emoji || "📄";
   body.appendChild(em);
 
-  // Título
   const ti = document.createElement("div");
   ti.className = "card-title";
   ti.textContent = item.title;
   body.appendChild(ti);
 
-  // Línea separadora con color de acento
   const div = document.createElement("div");
   div.className = "card-divider";
   div.style.background = `linear-gradient(90deg, ${accent}99, ${accent}33)`;
   body.appendChild(div);
 
-  // Descripción
   const de = document.createElement("div");
   de.className = "card-desc";
   de.textContent = item.desc || "";
   body.appendChild(de);
 
-  /* ── Estado ── */
   if (status === "expired") {
     const chip = document.createElement("span");
     chip.className = "card-chip chip-exp";
     chip.textContent = "🔒 Evento terminado";
     body.appendChild(chip);
-
   } else if (status === "soon") {
     const chip = document.createElement("span");
     chip.className = "card-chip chip-soon";
     chip.textContent = "⏳ Próximamente";
     body.appendChild(chip);
     body.appendChild(buildCountdown(makeSoonFn(item.startDate), ""));
-
   } else if (item.isCalendar) {
     const chip = document.createElement("span");
     chip.className = "card-chip chip-calendar";
     chip.textContent = "📅 Se renueva cada mes";
     body.appendChild(chip);
     body.appendChild(buildCountdown(makeMonthFn(), "month"));
-
   } else if (item.expiry) {
     const remaining = daysUntil(parseDate(item.expiry));
     const chip = document.createElement("span");
@@ -520,7 +269,7 @@ function buildCard(item, index, categoryColor) {
 
   card.appendChild(body);
 
-  /* ── Barra de progreso ── */
+  // Barra de progreso
   if (status === "active" && item.expiry && item.daysTotal) {
     const end   = parseDate(item.expiry);
     const start = new Date(end);
@@ -530,13 +279,13 @@ function buildCard(item, index, categoryColor) {
 
     const barWrap = document.createElement("div"); barWrap.className = "card-days-bar";
     const fill    = document.createElement("div"); fill.className = "card-days-fill";
-    fill.style.cssText = `width:0%; background:linear-gradient(90deg,${accent}cc,${accent})`;
+    fill.style.cssText = `width:0%;background:linear-gradient(90deg,${accent}cc,${accent})`;
     barWrap.appendChild(fill);
     card.appendChild(barWrap);
     setTimeout(() => { fill.style.width = remaining + "%"; }, 400 + index*65);
   }
 
-  /* Barra del mes */
+  // Barra del mes
   if (status === "active" && item.isCalendar) {
     const { dayOfMonth, totalDays } = daysLeftInMonth();
     const pct = Math.round((dayOfMonth / totalDays) * 100);
@@ -548,7 +297,6 @@ function buildCard(item, index, categoryColor) {
     setTimeout(() => { fill.style.width = (100-pct) + "%"; }, 400 + index*65);
   }
 
-  /* ── Interacciones bloqueadas ── */
   if (status === "expired") {
     card.addEventListener("click", e => { e.preventDefault(); toast("🔒 Este evento ya terminó."); });
   }
@@ -560,7 +308,7 @@ function buildCard(item, index, categoryColor) {
 }
 
 /* =========================================================
-   RENDER
+   RENDER CATEGORÍAS
    ========================================================= */
 function render() {
   const hub = document.getElementById("hubBody");
@@ -590,7 +338,7 @@ function render() {
 }
 
 /* =========================================================
-   NAVBAR
+   NAVBAR TOGGLE
    ========================================================= */
 const navToggle = document.getElementById("navToggle");
 const navLinks  = document.getElementById("navLinks");
@@ -601,14 +349,7 @@ document.addEventListener("click", e => {
 });
 
 /* =========================================================
-   HUD BARS
-   ========================================================= */
-document.querySelectorAll(".hud-bar").forEach(b => {
-  b.style.setProperty("--v", b.dataset.val || 50);
-});
-
-/* =========================================================
-   PARTÍCULAS — coloridas y variadas
+   PARTÍCULAS
    ========================================================= */
 (function particles() {
   const c = document.getElementById("bgParticles");
@@ -660,22 +401,170 @@ function toast(msg) {
 }
 
 /* =========================================================
+   HUD — Títulos con rareza (copia mínima para el hub)
+   ========================================================= */
+const HUD_TITLES = [
+  { id:"tl_novato",          name:"NOVATO",                rarity:"comun"      },
+  { id:"tl_explorador",      name:"EXPLORADOR",             rarity:"comun"      },
+  { id:"tl_constante",       name:"CONSTANTE",              rarity:"comun"      },
+  { id:"tl_cazador",         name:"CAZADOR",                rarity:"comun"      },
+  { id:"tl_aventurero",      name:"AVENTURERO",             rarity:"comun"      },
+  { id:"tl_combatiente",     name:"COMBATIENTE",            rarity:"raro"       },
+  { id:"tl_guerrero",        name:"GUERRERO",               rarity:"raro"       },
+  { id:"tl_perseverante",    name:"PERSEVERANTE",           rarity:"raro"       },
+  { id:"tl_coleccionista",   name:"COLECCIONISTA",          rarity:"raro"       },
+  { id:"tl_veterano",        name:"VETERANO DE GUERRA",     rarity:"raro"       },
+  { id:"tl_rico",            name:"ADINERADO",              rarity:"raro"       },
+  { id:"tl_elite",           name:"ÉLITE",                  rarity:"epico"      },
+  { id:"tl_campeon",         name:"CAMPEÓN",                rarity:"epico"      },
+  { id:"tl_sdc",             name:"SEÑOR DE LA GUERRA",     rarity:"epico"      },
+  { id:"tl_magnate",         name:"MAGNATE DEL XP",         rarity:"epico"      },
+  { id:"tl_maestro",         name:"MAESTRO",                rarity:"legendario" },
+  { id:"tl_incansable",      name:"INCANSABLE",             rarity:"legendario" },
+  { id:"tl_supremo_col",     name:"SUPREMO COLECCIONISTA",  rarity:"legendario" },
+  { id:"tl_oscuro",          name:"SEÑOR OSCURO",           rarity:"legendario" },
+  { id:"tl_eterno",          name:"GUERRERO ETERNO",        rarity:"legendario" },
+  { id:"tl_leyenda",         name:"LEYENDA DEL PORTAL",     rarity:"legendario" },
+  { id:"tl_absoluto",        name:"EL ABSOLUTO",            rarity:"mitico"     },
+  { id:"tl_nexo_caos",       name:"NEXO DEL CAOS",          rarity:"mitico"     },
+  { id:"tl_dios",            name:"DIOS DEL PORTAL",        rarity:"mitico"     },
+  { id:"tl_pionero_mar2026", name:"PIONERO DE LUNA",        rarity:"especial"   },
+];
+
+/* Umbrales de nivel */
+const HUD_LVL_THR = [0,100,250,450,700,1000,1400,1850,2400,3000,3700,4500,5500,6800,8400,10200];
+
+function hudLS(key, fallback = null) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+  catch { return fallback; }
+}
+
+function hudLevel(xp) {
+  let lv = 1;
+  for (let i = 0; i < HUD_LVL_THR.length; i++) if (xp >= HUD_LVL_THR[i]) lv = i + 1;
+  return Math.min(lv, HUD_LVL_THR.length);
+}
+
+function hudXpPct(lv, xp) {
+  if (lv >= HUD_LVL_THR.length) return 100;
+  const base = HUD_LVL_THR[lv - 1], next = HUD_LVL_THR[lv];
+  return Math.min(100, Math.max(0, ((xp - base) / (next - base)) * 100));
+}
+
+function hudAnimateBar(elId, pct) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      el.style.setProperty("--v", Math.round(pct));
+      el.setAttribute("aria-valuenow", Math.round(pct));
+    }, 120);
+  });
+}
+
+function hudSet(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+/* ── Actualiza todo el HUD con datos de localStorage ── */
+function initHUD() {
+  const profile  = hudLS("mv_perfil",    {});
+  const inv      = hudLS("mv_inventory", {});
+  const badges   = hudLS("mv_badges",    []);
+  const missions = hudLS("mv_misiones",  {});
+  const titleId  = localStorage.getItem("mv_title_active") || "tl_novato";
+
+  const xp     = profile.xp    ?? 0;
+  const racha  = profile.racha ?? 0;
+  const lv     = hudLevel(xp);
+  const xpPct  = hudXpPct(lv, xp);
+  const hpPct  = Math.min(100, Math.round((racha / 30) * 100));
+  const mDone  = Object.values(missions).filter(m => m?.done).length;
+
+  // Avatar
+  const avatarEl = document.getElementById("hudAvatarEmoji");
+  if (avatarEl) avatarEl.textContent = profile.avatar || "🌙";
+
+  // Nombre (truncado para no romper layout)
+  const rawName = (profile.nombre || "AVENTURERO").toUpperCase();
+  hudSet("hudPlayerName", rawName.length > 11 ? rawName.slice(0, 10) + "…" : rawName);
+
+  // Nivel
+  hudSet("hudLevelChip", `Nv.${lv}`);
+
+  // Título activo con rareza
+  const titleEl = document.getElementById("hudPlayerTitle");
+  if (titleEl) {
+    const t = HUD_TITLES.find(x => x.id === titleId);
+    if (t) {
+      titleEl.textContent = `✦ ${t.name} ✦`;
+      titleEl.dataset.rarity = t.rarity;
+      titleEl.hidden = false;
+    } else {
+      titleEl.hidden = true;
+    }
+  }
+
+  // Barra Racha (HP)
+  hudAnimateBar("hudHpBar", hpPct);
+  hudSet("hudHpVal", `${racha}d`);
+
+  // Barra XP al siguiente nivel
+  hudAnimateBar("hudXpBar", Math.round(xpPct));
+  hudSet("hudXpVal", xp >= 1000
+    ? `${(xp/1000).toFixed(1)}k XP`
+    : `${xp} XP`);
+
+  // Mini stats
+  hudSet("hudRachaVal",    racha);
+  hudSet("hudBadgesVal",   badges.length);
+  hudSet("hudMissionsVal", mDone);
+
+  // Inventario
+  hudSet("hudTickets",   inv.tickets        ?? 0);
+  hudSet("hudKeys",      inv.keys           ?? 0);
+  hudSet("hudSuperKeys", inv.superstar_keys ?? 0);
+}
+
+/* =========================================================
    INIT
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
   render();
 
+  // Footer año
   const fy = document.getElementById("footerYear");
   if (fy) fy.textContent = new Date().getFullYear();
 
+  // Contador secciones activas
   const active = CATEGORIES.flatMap(c => c.items).filter(i => cardStatus(i) === "active").length;
   const badge  = document.getElementById("heroBadgeCount");
   if (badge) badge.textContent = active;
 
-  // Easter egg
+  // HUD — carga inmediata desde localStorage (sin esperar a Firebase)
+  initHUD();
+
+  // HUD — sincroniza con Firebase en segundo plano
+  onAuthChange(async (user) => {
+    if (!user) return;
+    try {
+      await syncAllToLocalStorage(user.uid, user);
+      initHUD(); // refresca con datos reales del servidor
+    } catch (err) {
+      console.warn("[Hub HUD] Firebase sync error:", err);
+    }
+  });
+
+  // Easter egg en el título
   document.querySelector(".ht-accent")?.addEventListener("click", () => {
-    const msgs = ["✨ ¡Moonveil Portal!","🌙 ¡Que empiece la aventura!","💫 ¡Explora todo!","🚀 ¡Eres una leyenda!"];
-    toast(msgs[Math.floor(Math.random()*msgs.length)]);
+    const msgs = [
+      "✨ ¡Moonveil Portal!",
+      "🌙 ¡Que empiece la aventura!",
+      "💫 ¡Explora todo!",
+      "🚀 ¡Eres una leyenda!",
+    ];
+    toast(msgs[Math.floor(Math.random() * msgs.length)]);
   });
 
   setTimeout(() => toast(`🌙 ${active} secciones activas esperándote`), 900);
