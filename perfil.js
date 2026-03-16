@@ -1,8 +1,10 @@
 /* =====================================================
-   Moonveil Portal — perfil.js  v2.3
+   Moonveil Portal — perfil.js  v2.4
    + Títulos rediseñados con rareza visual
    + Social con rareza en tarjetas de amigos
    + Sistema de amistad MUTUA
+   + Insignias de rol (Verificado / Developer / Admin)
+   + Botón de acceso al panel Admin
    ===================================================== */
 'use strict';
 
@@ -19,6 +21,9 @@ import {
   PLAYER_ID_KEY, FRIENDS_KEY,
 } from './database.js';
 
+/* ── NUEVO: import de roles ── */
+import { getUserRole } from './admin-database.js';
+
 /* ── KEYS localStorage ── */
 const PERFIL_KEY     = 'mv_perfil';
 const BADGES_KEY     = 'mv_badges';
@@ -30,11 +35,14 @@ const RESET_KEY      = 'mv_mission_resets';
 const BASELINE_KEY   = 'mv_baselines';
 const BADGE_SEEN_KEY = 'mv_badges_seen';
 
-let currentUID = null;
-let currentSection = 'resumen';
+let currentUID       = null;
+let currentSection   = 'resumen';
 let presenceHeartbeat = null;
 let friendsUnsubscribe = null;
-let friendsCache = {};
+let friendsCache     = {};
+
+/* ── NUEVO: rol del usuario actual ── */
+let currentUserRole  = 'user'; // 'user' | 'verified' | 'developer' | 'admin'
 
 /* ── LEVEL ── */
 const LEVEL_THR   = [0,100,250,450,700,1000,1400,1850,2400,3000,3700,4500,5500,6800,8400,10200];
@@ -71,38 +79,31 @@ const BADGES = [
 
 /* ── TÍTULOS ── */
 const TITLES_DEF = [
-  /* ── NIVEL ── */
-  { id:'tl_novato',         name:'NOVATO',               color:'#4a7060', req:'registro',     desc:'El inicio de toda aventura',       cat:'nivel',      rarity:'comun'     },
-  { id:'tl_explorador',     name:'EXPLORADOR',            color:'#30d158', req:'nivel>=3',     desc:'Alcanza el nivel 3',               cat:'nivel',      rarity:'comun'     },
-  { id:'tl_combatiente',    name:'COMBATIENTE',           color:'#ff9500', req:'nivel>=5',     desc:'Alcanza el nivel 5',               cat:'nivel',      rarity:'raro'      },
-  { id:'tl_guerrero',       name:'GUERRERO',              color:'#ff3b30', req:'nivel>=7',     desc:'Alcanza el nivel 7',               cat:'nivel',      rarity:'raro'      },
-  { id:'tl_elite',          name:'ÉLITE',                 color:'#bf5af2', req:'nivel>=9',     desc:'Alcanza el nivel 9',               cat:'nivel',      rarity:'epico'     },
-  { id:'tl_campeon',        name:'CAMPEÓN',               color:'#f5c518', req:'nivel>=11',    desc:'Alcanza el nivel 11',              cat:'nivel',      rarity:'epico'     },
-  { id:'tl_maestro',        name:'MAESTRO',               color:'#00e5ff', req:'nivel>=13',    desc:'Alcanza el nivel 13',              cat:'nivel',      rarity:'legendario'},
-  { id:'tl_leyenda',        name:'LEYENDA DEL PORTAL',    color:'#ff2d78', req:'nivel>=15',    desc:'Alcanza el nivel máximo (15)',     cat:'nivel',      rarity:'mitico'    },
-  /* ── RACHA ── */
-  { id:'tl_constante',      name:'CONSTANTE',             color:'#30d158', req:'racha>=3',     desc:'Racha de 3 días activo',           cat:'racha',      rarity:'comun'     },
-  { id:'tl_perseverante',   name:'PERSEVERANTE',          color:'#ff9500', req:'racha>=7',     desc:'Racha de 7 días activo',           cat:'racha',      rarity:'raro'      },
-  { id:'tl_incansable',     name:'INCANSABLE',            color:'#f5c518', req:'racha>=30',    desc:'Racha de 30 días activo',          cat:'racha',      rarity:'legendario'},
-  /* ── INSIGNIAS ── */
-  { id:'tl_cazador',        name:'CAZADOR',               color:'#30d158', req:'badges>=5',    desc:'Obtén 5 insignias',                cat:'logro',      rarity:'comun'     },
-  { id:'tl_coleccionista',  name:'COLECCIONISTA',         color:'#bf5af2', req:'badges>=10',   desc:'Obtén 10 insignias',               cat:'logro',      rarity:'raro'      },
-  { id:'tl_supremo_col',    name:'SUPREMO COLECCIONISTA', color:'#f5c518', req:'badges>=20',   desc:'Obtén las 20 insignias',           cat:'logro',      rarity:'legendario'},
-  /* ── MISIONES ── */
-  { id:'tl_aventurero',     name:'AVENTURERO',            color:'#30d158', req:'misiones>=5',  desc:'Completa 5 misiones',              cat:'pvp',        rarity:'comun'     },
-  { id:'tl_veterano',       name:'VETERANO DE GUERRA',    color:'#ff9500', req:'misiones>=20', desc:'Completa 20 misiones',             cat:'pvp',        rarity:'raro'      },
-  { id:'tl_sdc',            name:'SEÑOR DE LA GUERRA',    color:'#ff3b30', req:'misiones>=50', desc:'Completa 50 misiones',             cat:'pvp',        rarity:'epico'     },
-  /* ── XP ── */
-  { id:'tl_rico',           name:'ADINERADO',             color:'#f5c518', req:'xp>=1000',     desc:'Acumula 1000 XP',                  cat:'xp',         rarity:'raro'      },
-  { id:'tl_magnate',        name:'MAGNATE DEL XP',        color:'#ff9500', req:'xp>=5000',     desc:'Acumula 5000 XP',                  cat:'xp',         rarity:'epico'     },
-  { id:'tl_dios',           name:'DIOS DEL PORTAL',       color:'#00e5ff', req:'xp>=10000',    desc:'Acumula 10000 XP',                 cat:'xp',         rarity:'mitico'    },
-  /* ── LEGENDARIOS ── */
-  { id:'tl_oscuro',         name:'SEÑOR OSCURO',          color:'#ff2d78', req:'xp>=7500',     desc:'Acumula 7500 XP',                  cat:'legendario', rarity:'legendario'},
-  { id:'tl_eterno',         name:'GUERRERO ETERNO',       color:'#bf5af2', req:'racha>=14',    desc:'Racha de 14 días activo',          cat:'legendario', rarity:'legendario'},
-  { id:'tl_absoluto',       name:'EL ABSOLUTO',           color:'#00e5ff', req:'nivel>=15',    desc:'Llega al nivel 15',                cat:'legendario', rarity:'mitico'},
-  { id:'tl_nexo_caos',      name:'NEXO DEL CAOS',         color:'#bf5af2', req:'misiones>=30', desc:'Completa 30 misiones',             cat:'legendario', rarity:'mitico'    },
-  /* ── ESPECIALES (tiempo limitado) ── */
-  { id:'tl_pionero_mar2026',name:'PIONERO DE LUNA',       color:'#30d158', req:'registro',     desc:'Estuvo aquí el 14 de Marzo de 2026', cat:'especial', rarity:'especial', timeLimit:{ from:'2026-03-14', to:'2026-03-14' } },
+  { id:'tl_novato',         name:'NOVATO',               color:'#4a7060', req:'registro',     desc:'El inicio de toda aventura',         cat:'nivel',      rarity:'comun'     },
+  { id:'tl_explorador',     name:'EXPLORADOR',            color:'#30d158', req:'nivel>=3',     desc:'Alcanza el nivel 3',                 cat:'nivel',      rarity:'comun'     },
+  { id:'tl_combatiente',    name:'COMBATIENTE',           color:'#ff9500', req:'nivel>=5',     desc:'Alcanza el nivel 5',                 cat:'nivel',      rarity:'raro'      },
+  { id:'tl_guerrero',       name:'GUERRERO',              color:'#ff3b30', req:'nivel>=7',     desc:'Alcanza el nivel 7',                 cat:'nivel',      rarity:'raro'      },
+  { id:'tl_elite',          name:'ÉLITE',                 color:'#bf5af2', req:'nivel>=9',     desc:'Alcanza el nivel 9',                 cat:'nivel',      rarity:'epico'     },
+  { id:'tl_campeon',        name:'CAMPEÓN',               color:'#f5c518', req:'nivel>=11',    desc:'Alcanza el nivel 11',                cat:'nivel',      rarity:'epico'     },
+  { id:'tl_maestro',        name:'MAESTRO',               color:'#00e5ff', req:'nivel>=13',    desc:'Alcanza el nivel 13',                cat:'nivel',      rarity:'legendario'},
+  { id:'tl_leyenda',        name:'LEYENDA DEL PORTAL',    color:'#ff2d78', req:'nivel>=15',    desc:'Alcanza el nivel máximo (15)',       cat:'nivel',      rarity:'mitico'    },
+  { id:'tl_constante',      name:'CONSTANTE',             color:'#30d158', req:'racha>=3',     desc:'Racha de 3 días activo',             cat:'racha',      rarity:'comun'     },
+  { id:'tl_perseverante',   name:'PERSEVERANTE',          color:'#ff9500', req:'racha>=7',     desc:'Racha de 7 días activo',             cat:'racha',      rarity:'raro'      },
+  { id:'tl_incansable',     name:'INCANSABLE',            color:'#f5c518', req:'racha>=30',    desc:'Racha de 30 días activo',            cat:'racha',      rarity:'legendario'},
+  { id:'tl_cazador',        name:'CAZADOR',               color:'#30d158', req:'badges>=5',    desc:'Obtén 5 insignias',                  cat:'logro',      rarity:'comun'     },
+  { id:'tl_coleccionista',  name:'COLECCIONISTA',         color:'#bf5af2', req:'badges>=10',   desc:'Obtén 10 insignias',                 cat:'logro',      rarity:'raro'      },
+  { id:'tl_supremo_col',    name:'SUPREMO COLECCIONISTA', color:'#f5c518', req:'badges>=20',   desc:'Obtén las 20 insignias',             cat:'logro',      rarity:'legendario'},
+  { id:'tl_aventurero',     name:'AVENTURERO',            color:'#30d158', req:'misiones>=5',  desc:'Completa 5 misiones',                cat:'pvp',        rarity:'comun'     },
+  { id:'tl_veterano',       name:'VETERANO DE GUERRA',    color:'#ff9500', req:'misiones>=20', desc:'Completa 20 misiones',               cat:'pvp',        rarity:'raro'      },
+  { id:'tl_sdc',            name:'SEÑOR DE LA GUERRA',    color:'#ff3b30', req:'misiones>=50', desc:'Completa 50 misiones',               cat:'pvp',        rarity:'epico'     },
+  { id:'tl_rico',           name:'ADINERADO',             color:'#f5c518', req:'xp>=1000',     desc:'Acumula 1000 XP',                    cat:'xp',         rarity:'raro'      },
+  { id:'tl_magnate',        name:'MAGNATE DEL XP',        color:'#ff9500', req:'xp>=5000',     desc:'Acumula 5000 XP',                    cat:'xp',         rarity:'epico'     },
+  { id:'tl_dios',           name:'DIOS DEL PORTAL',       color:'#00e5ff', req:'xp>=10000',    desc:'Acumula 10000 XP',                   cat:'xp',         rarity:'mitico'    },
+  { id:'tl_oscuro',         name:'SEÑOR OSCURO',          color:'#ff2d78', req:'xp>=7500',     desc:'Acumula 7500 XP',                    cat:'legendario', rarity:'legendario'},
+  { id:'tl_eterno',         name:'GUERRERO ETERNO',       color:'#bf5af2', req:'racha>=14',    desc:'Racha de 14 días activo',            cat:'legendario', rarity:'legendario'},
+  { id:'tl_absoluto',       name:'EL ABSOLUTO',           color:'#00e5ff', req:'nivel>=15',    desc:'Llega al nivel 15',                  cat:'legendario', rarity:'mitico'    },
+  { id:'tl_nexo_caos',      name:'NEXO DEL CAOS',         color:'#bf5af2', req:'misiones>=30', desc:'Completa 30 misiones',               cat:'legendario', rarity:'mitico'    },
+  { id:'tl_pionero_mar2026',name:'PIONERO DE LUNA',       color:'#30d158', req:'registro',     desc:'Estuvo aquí el 14 de Marzo de 2026', cat:'especial',   rarity:'especial', timeLimit:{ from:'2026-03-14', to:'2026-03-14' } },
 ];
 
 /* ── INVENTARIO ── */
@@ -228,6 +229,56 @@ function formatHoras(h) {
   return `${hours}h ${mins}m`;
 }
 
+/* ══════════════════════════════════════════
+   ── NUEVO: INSIGNIA DE ROL ──
+   Genera el chip de Verificado / Developer / Admin
+   que aparece junto al nombre en el perfil.
+   Los usuarios normales no ven nada.
+══════════════════════════════════════════ */
+function roleBadgeHTML(role) {
+  if (!role || role === 'user') return '';
+  const map = {
+    verified:  {
+      icon: '✓', label: 'VERIFICADO',
+      color: '#00e5ff', glow: 'rgba(0,229,255,0.35)',
+      pulse: false,
+    },
+    developer: {
+      icon: '🛠️', label: 'DEVELOPER',
+      color: '#bf5af2', glow: 'rgba(191,90,242,0.35)',
+      pulse: false,
+    },
+    admin: {
+      icon: '👑', label: 'ADMIN',
+      color: '#ff2d78', glow: 'rgba(255,45,120,0.5)',
+      pulse: true,
+    },
+  };
+  const r = map[role];
+  if (!r) return '';
+  const pulseStyle = r.pulse
+    ? 'animation:glowPulse 2s ease-in-out infinite;'
+    : '';
+  return `<span
+    class="profile-role-badge"
+    style="
+      font-family:var(--font-pixel);
+      font-size:0.28rem;
+      color:${r.color};
+      background:${r.color}14;
+      border:1px solid ${r.color}88;
+      padding:3px 10px;
+      letter-spacing:2px;
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      box-shadow:0 0 10px ${r.glow};
+      ${pulseStyle}
+    "
+    title="Rol: ${r.label}"
+  >${r.icon} ${r.label}</span>`;
+}
+
 /* ── EARNED BADGES ── */
 function getEarnedBadgeIds(p) {
   const xp=p.xp||0, racha=p.racha||0, lv=computeLevel(xp);
@@ -312,7 +363,11 @@ function socialTitleHTML(titleId, cssClass = 'fc-title') {
   return `<div class="${cssClass}" data-rarity="${t.rarity||'comun'}">✦ ${t.name} ✦</div>`;
 }
 
-/* ── RENDER HEADER ── */
+/* ══════════════════════════════════════════
+   ── RENDER HEADER ──
+   (modificado para mostrar insignia de rol
+    y botón de admin si corresponde)
+══════════════════════════════════════════ */
 function renderHeader() {
   const p=getProfile(), lv=computeLevel(p.xp||0);
   const earned=getEarnedBadgeIds(p), mDone=Object.values(getMissions()).filter(m=>m?.done).length;
@@ -340,6 +395,16 @@ function renderHeader() {
 
   const pidEl = $('#player-id');
   if (pidEl) pidEl.textContent = playerID || '—';
+
+  /* ── NUEVO: mostrar insignia de rol ── */
+  const roleBadgeEl = $('#profile-role-badge');
+  if (roleBadgeEl) roleBadgeEl.innerHTML = roleBadgeHTML(currentUserRole);
+
+  /* ── NUEVO: mostrar botón del panel admin solo a admins ── */
+  const adminBtn = $('#btn-admin-panel');
+  if (adminBtn) {
+    adminBtn.style.display = currentUserRole === 'admin' ? '' : 'none';
+  }
 
   // Título activo
   const titleDisplay=$('#active-title-display'), titleBadge=$('#active-title-badge');
@@ -539,9 +604,7 @@ function renderInventory(){
   const t=$('#inv-total');if(t)t.textContent=total;
 }
 
-/* ══════════════════════════════════════════
-   ── RENDER TÍTULOS (REDISEÑADO v2.3) ──
-══════════════════════════════════════════ */
+/* ── RENDER TÍTULOS ── */
 let titleCatFilter='';
 function renderTitles(){
   const p=getProfile(), earnedSet=computeEarnedTitles(p), activeId=getActiveTitle();
@@ -559,64 +622,32 @@ function renderTitles(){
     const isLegend  = rarity === 'legendario';
     const isSpecial = rarity === 'especial';
     const starsHTML = rarityStarsHTML(rarity);
-
-    /* Partículas extra para míticos/legendarios desbloqueados */
     const particlesHTML = (isMythic || isLegend) && isEarned
-      ? `<div class="title-particles" aria-hidden="true">
-           <span class="tp-1">✦</span><span class="tp-2">✧</span>
-           <span class="tp-3">✦</span><span class="tp-4">✧</span>
-           <span class="tp-5">✦</span>
-         </div>`
-      : '';
-
-    /* Nombre del título: texto simple o gradient según rareza */
+      ? `<div class="title-particles" aria-hidden="true"><span class="tp-1">✦</span><span class="tp-2">✧</span><span class="tp-3">✦</span><span class="tp-4">✧</span><span class="tp-5">✦</span></div>` : '';
     const previewContent = isEarned
       ? `<span class="title-name-text tp-${rarity}">✦ ${t.name} ✦</span>`
       : `<span class="title-locked-placeholder">??? ??? ???</span>`;
-
-    /* Badge de tiempo limitado */
     const timeBadge = t.timeLimit
-      ? `<div class="title-time-badge">⏳ ${t.timeLimit.from} → ${t.timeLimit.to}</div>`
-      : '';
+      ? `<div class="title-time-badge">⏳ ${t.timeLimit.from} → ${t.timeLimit.to}</div>` : '';
 
-    return `<div class="title-card ${isEarned?'earned':'locked'} ${isActive?'title-active':''} reveal"
-              data-rarity="${rarity}" data-tid="${t.id}">
-
-      <!-- Banda superior de rareza -->
+    return `<div class="title-card ${isEarned?'earned':'locked'} ${isActive?'title-active':''} reveal" data-rarity="${rarity}" data-tid="${t.id}">
       <div class="tc-top-band"></div>
-
-      <!-- Cabecera: rareza + corona activo -->
       <div class="tc-header">
         <span class="title-rarity-badge ${rarity}">${rLabel}</span>
         ${isActive ? '<span class="title-active-chip">✦ ACTIVO</span>' : ''}
         ${isSpecial ? '<span class="title-special-chip">⏳ LTD</span>' : ''}
       </div>
-
-      <!-- Partículas decorativas (mítico/legendario) -->
       ${particlesHTML}
-
-      <!-- Estrellas de rareza -->
       <div class="title-stars" data-rarity="${rarity}">${starsHTML}</div>
-
-      <!-- Preview del título -->
       <div class="title-preview-wrap ${isEarned?'earned':'locked'}">
         ${!isEarned ? '<div class="title-lock-overlay"><span class="tc-lock-icon">🔒</span><span class="tc-lock-label">BLOQUEADO</span></div>' : ''}
-        <div class="title-preview tp-${rarity}">
-          ${previewContent}
-        </div>
+        <div class="title-preview tp-${rarity}">${previewContent}</div>
       </div>
-
-      <!-- Descripción del requisito -->
       <div class="title-req">${t.desc}</div>
-
       ${timeBadge}
-
-      <!-- Botón equipar -->
       ${isEarned && !isActive
         ? `<button class="btn-equip-title" data-tid="${t.id}">⚡ EQUIPAR</button>`
-        : isActive
-          ? `<div class="title-equipped-label">✓ EQUIPADO</div>`
-          : ''}
+        : isActive ? `<div class="title-equipped-label">✓ EQUIPADO</div>` : ''}
     </div>`;
   }).join('');
 
@@ -673,21 +704,16 @@ function markBuzonRead(id){
   toast('📬 MENSAJE LEÍDO','success');
 }
 
-/* ══════════════════════════════════════════
-   ── SOCIAL: PRESENCIA ──
-══════════════════════════════════════════ */
+/* ── SOCIAL: PRESENCIA ── */
 function setPresence(state, section) {
   if (currentUID) updatePresence(currentUID, state, section).catch(() => {});
 }
-
 function getFriendStatusInfo(presence) {
   if (!presence) return { state:'offline', dot:'⚫', label:'DESCONECTADO', section:null, lastSeen:null };
   const lastSeen = presence.lastSeen ? new Date(presence.lastSeen) : null;
   const minsAgo  = lastSeen ? Math.floor((Date.now()-lastSeen)/60000) : 999;
-  if (presence.state==='offline' || minsAgo>5)
-    return { state:'offline', dot:'⚫', label:'DESCONECTADO', section:null, lastSeen:presence.lastSeen };
-  if (presence.state==='away')
-    return { state:'away', dot:'🟡', label:'AUSENTE', section:null, lastSeen:null };
+  if (presence.state==='offline' || minsAgo>5) return { state:'offline', dot:'⚫', label:'DESCONECTADO', section:null, lastSeen:presence.lastSeen };
+  if (presence.state==='away')   return { state:'away',    dot:'🟡', label:'AUSENTE',       section:null, lastSeen:null };
   return { state:'online', dot:'🟢', label:'EN LÍNEA', section:presence.section, lastSeen:null };
 }
 
@@ -697,7 +723,6 @@ function renderSocialMyID() {
   const d=$('#my-player-id-display');if(d)d.textContent=pid||'—';
 }
 
-/* ── FRIEND CARD con rareza en título ── */
 function friendCardHTML(f) {
   const lv = computeLevel(f.xp||0);
   const activeTitle = TITLES_DEF.find(t=>t.id===f.title_active);
@@ -705,22 +730,14 @@ function friendCardHTML(f) {
   const st = getFriendStatusInfo(f.presence);
   const sectionLabel = st.section ? (SECTION_LABELS[st.section]||st.section) : '';
   const lastSeenStr = st.lastSeen ? timeAgo(st.lastSeen) : '';
-
   const statusLine = st.state==='online'
     ? `<span class="fc-status-dot online-dot"></span>EN LÍNEA${sectionLabel?` · ${sectionLabel}`:''}`
     : st.state==='away'
       ? `<span class="fc-status-dot away-dot"></span>AUSENTE`
       : `<span class="fc-status-dot offline-dot"></span>DESCONECTADO${lastSeenStr?` · ${lastSeenStr}`:''}`;
-
-  /* Título con su rareza real */
   const titleHTML = activeTitle
-    ? `<div class="fc-title" data-rarity="${activeTitle.rarity||'comun'}">
-         <span class="fc-title-text tp-${activeTitle.rarity||'comun'}">✦ ${activeTitle.name} ✦</span>
-       </div>`
-    : '';
-
+    ? `<div class="fc-title" data-rarity="${activeTitle.rarity||'comun'}"><span class="fc-title-text tp-${activeTitle.rarity||'comun'}">✦ ${activeTitle.name} ✦</span></div>` : '';
   const lvBadge = `<span class="fc-lv-badge">Nv.${lv}</span>`;
-
   return `<div class="friend-card" data-fuid="${f.uid}">
     <div class="fc-status-bar ${st.state}"></div>
     <div class="fc-avatar-wrap">
@@ -728,10 +745,7 @@ function friendCardHTML(f) {
       <div class="fc-status-indicator ${st.state}"></div>
     </div>
     <div class="fc-info">
-      <div class="fc-name-row">
-        ${lvBadge}
-        <span class="fc-name">${(f.nombre||'Aventurero').toUpperCase()}</span>
-      </div>
+      <div class="fc-name-row">${lvBadge}<span class="fc-name">${(f.nombre||'Aventurero').toUpperCase()}</span></div>
       ${titleHTML}
       <div class="fc-stats">⚡${f.xp||0} XP &nbsp;·&nbsp; 🏆 ${badgeCount} insignias</div>
       <div class="fc-status-text ${st.state}">${statusLine}</div>
@@ -747,24 +761,15 @@ async function renderSocial() {
   renderSocialMyID();
   const friendUIDs = getFriendsList();
   const countEl=$('#friends-count');if(countEl)countEl.textContent=friendUIDs.length;
-
   const listEl=$('#friends-list'),emptyEl=$('#friends-empty');
   if(!listEl)return;
-
-  if(!friendUIDs.length){
-    listEl.innerHTML='';
-    if(emptyEl)emptyEl.style.display='flex';
-    return;
-  }
+  if(!friendUIDs.length){listEl.innerHTML='';if(emptyEl)emptyEl.style.display='flex';return;}
   if(emptyEl)emptyEl.style.display='none';
   listEl.innerHTML=`<div style="font-family:var(--font-pixel);font-size:0.32rem;color:var(--muted);padding:12px 0">⟳ CARGANDO AMIGOS...</div>`;
-
-  if(friendsUnsubscribe) { friendsUnsubscribe(); friendsUnsubscribe=null; }
-
+  if(friendsUnsubscribe){friendsUnsubscribe();friendsUnsubscribe=null;}
   const data = await getFriendsData(friendUIDs);
   data.forEach(f => { friendsCache[f.uid]=f; });
   renderFriendCards();
-
   friendsUnsubscribe = subscribeFriendPresence(friendUIDs, (uid, friendData) => {
     friendsCache[uid] = { ...friendsCache[uid], ...friendData };
     renderFriendCards();
@@ -776,24 +781,16 @@ function renderFriendCards(){
   const friends = Object.values(friendsCache).filter(f=>getFriendsList().includes(f.uid));
   if(!friends.length){listEl.innerHTML='';if(emptyEl)emptyEl.style.display='flex';return;}
   if(emptyEl)emptyEl.style.display='none';
-
   const order={online:0,away:1,offline:2};
-  friends.sort((a,b)=>{
-    const sa=getFriendStatusInfo(a.presence).state, sb=getFriendStatusInfo(b.presence).state;
-    return (order[sa]||2)-(order[sb]||2);
-  });
-
+  friends.sort((a,b)=>{const sa=getFriendStatusInfo(a.presence).state,sb=getFriendStatusInfo(b.presence).state;return(order[sa]||2)-(order[sb]||2);});
   listEl.innerHTML=friends.map(f=>friendCardHTML(f)).join('');
   listEl.querySelectorAll('.btn-remove-friend').forEach(btn=>{
     btn.addEventListener('click',async()=>{
       const uid=btn.dataset.uid;
       btn.disabled=true;btn.textContent='⟳';
-      /* Remoción mutua: también se elimina al usuario actual de la lista del amigo */
       await removeFriendByUID(currentUID,uid);
       const updated=getFriendsList().filter(id=>id!==uid);
-      lsSet(FRIENDS_KEY,updated);
-      delete friendsCache[uid];
-      renderFriendCards();
+      lsSet(FRIENDS_KEY,updated);delete friendsCache[uid];renderFriendCards();
       const countEl=$('#friends-count');if(countEl)countEl.textContent=updated.length;
       toast('✓ AMIGO ELIMINADO','info');
     });
@@ -813,14 +810,8 @@ async function handleFriendSearch(){
   const lv=computeLevel(found.xp||0);
   const activeTitle=TITLES_DEF.find(t=>t.id===found.title_active);
   const badgeCount=Array.isArray(found.badges)?found.badges.length:0;
-
-  /* Título con rareza en resultado de búsqueda */
   const titleHTML = activeTitle
-    ? `<div class="frc-title" data-rarity="${activeTitle.rarity||'comun'}">
-         <span class="fc-title-text tp-${activeTitle.rarity||'comun'}">✦ ${activeTitle.name} ✦</span>
-       </div>`
-    : '';
-
+    ? `<div class="frc-title" data-rarity="${activeTitle.rarity||'comun'}"><span class="fc-title-text tp-${activeTitle.rarity||'comun'}">✦ ${activeTitle.name} ✦</span></div>` : '';
   resultDiv.innerHTML=`
     <div class="friend-result-card">
       <div class="frc-avatar">${found.avatar||'🌙'}</div>
@@ -836,11 +827,9 @@ async function handleFriendSearch(){
           : `<button class="btn-add-friend" data-uid="${found.uid}">➕ AÑADIR</button>`}
       </div>
     </div>`;
-
   resultDiv.querySelector('.btn-add-friend')?.addEventListener('click',async(e)=>{
     const uid=e.target.dataset.uid;
     e.target.disabled=true;e.target.textContent='⟳ AÑADIENDO...';
-    /* addFriendByUID ahora es MUTUO: también añade al otro usuario */
     await addFriendByUID(currentUID,uid);
     const friends=getFriendsList();
     if(!friends.includes(uid)){friends.push(uid);lsSet(FRIENDS_KEY,friends);}
@@ -870,9 +859,7 @@ function initTabs(){
       tab.classList.add('active');
       const panel=$(`#tab-${tab.dataset.tab}`);if(panel)panel.classList.add('active');
       const tn=tab.dataset.tab;
-      currentSection=tn;
-      setPresence('online', tn);
-      recordSectionVisit(tn);
+      currentSection=tn;setPresence('online',tn);recordSectionVisit(tn);
       switch(tn){
         case'insignias': renderBadges();completeMissionSilent('d06');break;
         case'misiones':  renderMissions();break;
@@ -992,7 +979,9 @@ function initPresence(){
   });
 }
 
-/* ── MAIN ── */
+/* ══════════════════════════════════════════
+   ── MAIN ──
+══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded',()=>{
   hideLoader(); initStars(); initNav(); initTabs();
   initAvatar(); initNameEdit(); initBadgeModal(); initLogout(); initBackToTop();
@@ -1019,25 +1008,50 @@ document.addEventListener('DOMContentLoaded',()=>{
     renderTimeline();toast('🗑 HISTORIAL BORRADO','error');
   });
 
-  let firstLoad=true;
+  let firstLoad = true;
   onAuthChange(async(user)=>{
     if(!user){window.location.href='index.html';return;}
-    currentUID=user.uid;
+    currentUID = user.uid;
     if(firstLoad){
-      firstLoad=false;toast('⟳ CARGANDO TU PROGRESO...','info');
+      firstLoad = false;
+      toast('⟳ CARGANDO TU PROGRESO...','info');
       try{
-        await syncAllToLocalStorage(user.uid,user);
+        await syncAllToLocalStorage(user.uid, user);
         toast('✓ PROGRESO SINCRONIZADO','success');
-      }catch(err){console.warn('[Perfil] sync error:',err);toast('⚠ Usando datos locales','info');}
+      }catch(err){
+        console.warn('[Perfil] sync error:',err);
+        toast('⚠ Usando datos locales','info');
+      }
+
+      /* ── NUEVO: cargar rol del usuario ─────────────── */
+      try {
+        currentUserRole = await getUserRole(user.uid);
+      } catch {
+        currentUserRole = 'user';
+      }
+      /* ─────────────────────────────────────────────── */
+
       checkMissionResets();
       startHoursTimer();
       initPresence();
       setPresence('online','resumen');
-      renderHeader();renderResumen();renderBuzon();recordVisit();
-      const activeTab=document.querySelector('.tab.active');
-      if(activeTab&&activeTab.dataset.tab!=='resumen'){
-        const tn=activeTab.dataset.tab;
-        switch(tn){case'insignias':renderBadges();break;case'misiones':renderMissions();break;case'actividad':renderTimeline();break;case'buzon':renderBuzon();break;case'inventario':renderInventory();break;case'titulos':renderTitles();break;case'social':renderSocial();break;}
+      renderHeader();  // ya incluye la insignia de rol y el botón admin
+      renderResumen();
+      renderBuzon();
+      recordVisit();
+
+      const activeTab = document.querySelector('.tab.active');
+      if(activeTab && activeTab.dataset.tab !== 'resumen'){
+        const tn = activeTab.dataset.tab;
+        switch(tn){
+          case'insignias':  renderBadges();   break;
+          case'misiones':   renderMissions(); break;
+          case'actividad':  renderTimeline(); break;
+          case'buzon':      renderBuzon();    break;
+          case'inventario': renderInventory();break;
+          case'titulos':    renderTitles();   break;
+          case'social':     renderSocial();   break;
+        }
       }
     }
   });

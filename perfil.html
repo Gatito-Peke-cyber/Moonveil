@@ -36,6 +36,10 @@
     </nav>
     <div class="nav-cta">
       <span id="xp-display" class="xp-badge">⚡ 0 XP</span>
+      <a href="admin.html"
+         id="btn-admin-panel"
+         style="display:none;font-family:var(--font-pixel);font-size:0.35rem;color:#ff2d78;background:rgba(255,45,120,0.1);border:2px solid #ff2d78;padding:5px 9px;box-shadow:2px 2px 0 #000;text-decoration:none;letter-spacing:1px;"
+      >👑 ADMIN</a>
       <button class="btn btn-logout" id="btn-logout">✕ SALIR</button>
     </div>
     <button class="hamburger" id="hamburger" aria-label="menú"><span></span><span></span><span></span></button>
@@ -62,6 +66,7 @@
         <div class="profile-name-row">
           <h1 class="profile-name" id="profile-name">CARGANDO...</h1>
           <button class="btn-edit-name" id="btn-edit-name" title="Editar nombre">✏️</button>
+          <span id="profile-role-badge"></span>
         </div>
 
         <!-- Título activo -->
