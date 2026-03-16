@@ -3,144 +3,176 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark light" />
   <title>Moonveil — Hub de Páginas</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Cinzel:wght@400;600;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Cinzel:wght@400;600;900&family=Space+Mono:wght@400;700&family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
 
   <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23d946ef'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%239333ea'/%3E%3C/svg%3E">
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23030610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%233b82f6'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2306b6d4'/%3E%3C/svg%3E">
 
   <link rel="stylesheet" href="events.css" />
-  <meta name="description" content="Moonveil Portal — Hub central de todas las páginas" />
 </head>
 <body>
 
-  <!-- Fondo partículas -->
+  <!-- Scan lines overlay -->
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <!-- Fondo partículas + estrellas fugaces -->
   <div class="bg">
     <canvas id="bgParticles" aria-hidden="true"></canvas>
   </div>
 
-  <!-- ===== HEADER ===== -->
+  <!-- ═══════════════════════════════════════
+       HEADER — PIXEL ART SPACE HUD
+       ═══════════════════════════════════════ -->
   <header class="top-hud" role="banner">
+
+    <!-- NAVBAR -->
     <nav class="navbar" aria-label="Navegación principal">
       <a class="brand" href="inicio.html" aria-label="Ir a inicio">
         <span class="cube" aria-hidden="true"></span>
-        <span class="brand__title">Moonveil <b>Portal</b></span>
+        <span class="brand__title">Moon<b>veil</b></span>
       </a>
       <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
       <ul class="nav-links" id="navLinks">
-        <li><a href="inicio.html">Inicio</a></li>
-        <li><a href="events.html" class="active">Hub</a></li>
-        <li><a href="perfiles.html">Perfil</a></li>
-        <li><a href="index.html">Salir</a></li>
+        <li><a href="inicio.html">🏠 Inicio</a></li>
+        <li><a href="events.html" class="active">⚡ Hub</a></li>
+        <li><a href="perfil.html">👤 Perfil</a></li>
+        <li><a href="#" id="btnLogout">✕ Salir</a></li>
       </ul>
     </nav>
 
-    <!-- ===== HUD STATS ===== -->
-    <div class="hud-stats" id="hudStats" aria-label="Indicadores del jugador">
+    <!-- ═══════════════════════════════════════
+         PLAYER HUD BAR — pixel art game style
+         ═══════════════════════════════════════ -->
+    <div class="player-hud" id="playerHud" aria-label="Datos del jugador">
 
-      <!-- Bloque Jugador -->
-      <div class="hud-player" id="hudPlayer">
-        <div class="hud-avatar-wrap">
-          <div class="hud-avatar-emoji" id="hudAvatarEmoji">🌙</div>
-          <div class="hud-avatar-ring"></div>
+      <!-- IDENTIDAD: Avatar + Nombre + Nivel -->
+      <div class="phud-identity">
+        <div class="phud-avatar-wrap">
+          <div class="phud-avatar-frame">
+            <span class="phud-avatar" id="hudAvatar">🌙</span>
+            <div class="phud-avatar-scan" aria-hidden="true"></div>
+          </div>
+          <div class="phud-status-dot" id="hudStatusDot"></div>
         </div>
-        <div class="hud-player-meta">
-          <span class="hud-player-name" id="hudPlayerName">AVENTURERO</span>
-          <span class="hud-player-title" id="hudPlayerTitle" hidden></span>
-        </div>
-        <span class="hud-level-chip" id="hudLevelChip">Nv.1</span>
-      </div>
-
-      <div class="hud-sep" aria-hidden="true"></div>
-
-      <!-- Barras HP / XP -->
-      <div class="hud-bars-block">
-        <div class="hud-bar-row">
-          <span class="hud-bar-icon" title="Racha de días">❤️</span>
-          <div class="hud-bar hp" id="hudHpBar" data-val="0"
-               role="progressbar" aria-label="Racha" aria-valuenow="0" aria-valuemax="100"></div>
-          <span class="hud-bar-val" id="hudHpVal">0d</span>
-        </div>
-        <div class="hud-bar-row">
-          <span class="hud-bar-icon" title="Experiencia">⚡</span>
-          <div class="hud-bar xp" id="hudXpBar" data-val="0"
-               role="progressbar" aria-label="XP" aria-valuenow="0" aria-valuemax="100"></div>
-          <span class="hud-bar-val" id="hudXpVal">0 XP</span>
+        <div class="phud-name-block">
+          <div class="phud-player-name" id="hudPlayerName">CARGANDO…</div>
+          <div class="phud-level-row">
+            <span class="phud-lv-chip">Nv.<span id="hudLevel">1</span></span>
+            <span class="phud-rank-name" id="hudRank">NOVATO</span>
+          </div>
+          <div class="phud-title-badge" id="hudTitleBadge" style="display:none">✦ <span id="hudTitleText"></span> ✦</div>
         </div>
       </div>
 
-      <div class="hud-sep hud-sep--hide-sm" aria-hidden="true"></div>
-
-      <!-- Mini Stats -->
-      <div class="hud-mini-stats hud-mini-stats--hide-sm">
-        <div class="hud-mini-item" title="Racha de días activos">
-          <span class="hud-mini-icon">🔥</span>
-          <span class="hud-mini-val" id="hudRachaVal">0</span>
-          <span class="hud-mini-key">racha</span>
+      <!-- BARRAS: HP + XP -->
+      <div class="phud-bars" aria-label="Barras de estado">
+        <div class="phud-bar-row">
+          <span class="pbar-lbl pbar-hp">HP</span>
+          <div class="pbar-track pbar-hp-track" role="progressbar" aria-valuenow="88" aria-valuemin="0" aria-valuemax="100">
+            <div class="pbar-fill pbar-hp-fill" style="width:88%"></div>
+            <div class="pbar-shimmer"></div>
+          </div>
+          <span class="pbar-num pbar-hp-num">88%</span>
         </div>
-        <div class="hud-mini-item" title="Insignias obtenidas">
-          <span class="hud-mini-icon">🏆</span>
-          <span class="hud-mini-val" id="hudBadgesVal">0</span>
-          <span class="hud-mini-key">insig.</span>
-        </div>
-        <div class="hud-mini-item" title="Misiones completadas">
-          <span class="hud-mini-icon">⚔️</span>
-          <span class="hud-mini-val" id="hudMissionsVal">0</span>
-          <span class="hud-mini-key">misión</span>
+        <div class="phud-bar-row">
+          <span class="pbar-lbl pbar-xp">XP</span>
+          <div class="pbar-track pbar-xp-track" role="progressbar" id="hudXpBar">
+            <div class="pbar-fill pbar-xp-fill" id="hudXpFill" style="width:0%"></div>
+            <div class="pbar-shimmer"></div>
+          </div>
+          <span class="pbar-num" id="hudXpVal">0/100</span>
         </div>
       </div>
 
-      <div class="hud-sep hud-sep--hide-sm" aria-hidden="true"></div>
-
-      <!-- Inventario rápido -->
-      <div class="hud__inv" aria-label="Inventario rápido">
-        <button class="slot" title="Tickets de Evento">
-          <span class="slot-emoji">🎫</span>
-          <span class="slot-count" id="hudTickets">0</span>
-        </button>
-        <button class="slot" title="Llaves de Cofre">
-          <span class="slot-emoji">🗝️</span>
-          <span class="slot-count" id="hudKeys">0</span>
-        </button>
-        <button class="slot slot-star" title="Llaves Superestrella">
-          <span class="slot-emoji">⭐</span>
-          <span class="slot-count" id="hudSuperKeys">0</span>
-        </button>
+      <!-- STATS RÁPIDOS -->
+      <div class="phud-stats" aria-label="Estadísticas">
+        <div class="phud-mini-stat">
+          <span class="pms-icon" aria-hidden="true">⚡</span>
+          <span class="pms-val" id="hudXpTotal">0</span>
+          <span class="pms-key">XP</span>
+        </div>
+        <div class="phud-mini-stat">
+          <span class="pms-icon" aria-hidden="true">🔥</span>
+          <span class="pms-val" id="hudRacha">0</span>
+          <span class="pms-key">RACHA</span>
+        </div>
+        <div class="phud-mini-stat">
+          <span class="pms-icon" aria-hidden="true">🏆</span>
+          <span class="pms-val" id="hudBadges">0</span>
+          <span class="pms-key">INSIG</span>
+        </div>
       </div>
 
-    </div><!-- /hud-stats -->
+      <!-- INVENTARIO RÁPIDO -->
+      <div class="phud-inventory" aria-label="Inventario rápido">
+        <div class="phud-slot" title="Tickets de evento">
+          <span class="phud-slot-icon" aria-hidden="true">🎫</span>
+          <span class="phud-slot-count" id="hudTickets">0</span>
+          <span class="phud-slot-label">TICKETS</span>
+        </div>
+        <div class="phud-slot phud-slot-rare" title="Llaves">
+          <span class="phud-slot-icon" aria-hidden="true">🗝️</span>
+          <span class="phud-slot-count" id="hudKeys">0</span>
+          <span class="phud-slot-label">LLAVES</span>
+        </div>
+        <div class="phud-slot phud-slot-legend" title="Llaves Superestrellas">
+          <span class="phud-slot-icon" aria-hidden="true">⭐</span>
+          <span class="phud-slot-count" id="hudSuperKeys">0</span>
+          <span class="phud-slot-label">SUPER</span>
+        </div>
+      </div>
+
+      <!-- PLAYER ID -->
+      <div class="phud-id-section" title="Clic para copiar ID" id="hudIdSection" role="button" tabindex="0" aria-label="Copiar tu ID de jugador">
+        <span class="phud-id-label">🪪 ID</span>
+        <span class="phud-id-val" id="hudPlayerId">—</span>
+        <div class="phud-id-scan" aria-hidden="true"></div>
+      </div>
+
+    </div>
   </header>
 
-  <!-- ===== MAIN ===== -->
+  <!-- ═══════════════════════════════════════
+       MAIN CONTENT
+       ═══════════════════════════════════════ -->
   <main class="hub-main" role="main">
 
-    <!-- Hero -->
-    <section class="hub-hero">
-      <h1 class="hub-title">
+    <section class="hub-hero" aria-labelledby="hubTitle">
+      <h1 class="hub-title" id="hubTitle">
         <span class="ht-line">MOONVEIL</span>
         <span class="ht-line ht-accent">HUB</span>
       </h1>
       <p class="hub-subtitle">Todas las secciones del portal en un solo lugar</p>
       <div class="hero-badge">
-        <span class="hero-badge-dot"></span>
+        <span class="hero-badge-dot" aria-hidden="true"></span>
         <span><b id="heroBadgeCount">—</b> secciones activas ahora mismo</span>
       </div>
     </section>
 
-    <!-- Cards generadas por events.js -->
-    <div class="hub-body" id="hubBody"></div>
+    <!-- Cards inyectadas por events.js -->
+    <div class="hub-body" id="hubBody" role="region" aria-label="Categorías del portal">
+    </div>
 
   </main>
 
   <!-- Footer -->
-  <footer class="hub-footer">
+  <footer class="hub-footer" role="contentinfo">
     <p>🌙 Moonveil Portal · Hub Central · <span id="footerYear"></span></p>
   </footer>
 
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Loader overlay -->
+  <div id="hudLoader" class="hud-loader" aria-busy="true" aria-label="Cargando perfil">
+    <div class="hl-inner">
+      <div class="hl-icon">🌌</div>
+      <div class="hl-text">CARGANDO DATOS…</div>
+      <div class="hl-bar"><div class="hl-fill" id="hlFill"></div></div>
+    </div>
+  </div>
 
   <script type="module" src="events.js"></script>
 </body>
