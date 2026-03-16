@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Moonveil — Contactos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap">
@@ -42,13 +42,16 @@
 </header>
 
 <!-- MESSENGER -->
-<main class="messenger">
+<main class="messenger" id="messenger">
 
   <!-- PANEL IZQUIERDO -->
-  <aside class="panel panel--left">
+  <aside class="panel panel--left" id="panelLeft">
     <div class="panel-hd">
       <span class="panel-hd-title">» CONTACTOS</span>
-      <span class="panel-hd-count" id="onlineCount">0 en línea</span>
+      <div style="display:flex;gap:5px;align-items:center">
+        <span class="panel-hd-count" id="onlineCount">0 en línea</span>
+        <button class="pix-icon-btn" id="btnNewGroup" title="Nuevo Grupo" style="width:26px;height:26px;font-size:.7rem">⊕</button>
+      </div>
     </div>
 
     <div class="search-box">
@@ -60,6 +63,14 @@
       <button class="stories-arrow" id="scrollLeft">◄</button>
       <div id="storiesContainer" class="stories-inner"></div>
       <button class="stories-arrow" id="scrollRight">►</button>
+    </div>
+
+    <!-- Grupos -->
+    <div class="contacts-sep" id="dividerGroups" style="display:none">
+      <span class="sep-line"></span><span class="sep-lbl">👥 GRUPOS</span><span class="sep-line"></span>
+    </div>
+    <div class="contacts-scroll" id="groupsScrollWrap" style="max-height:0;overflow:hidden">
+      <ul id="groupList" class="contacts-list"></ul>
     </div>
 
     <!-- Amigos -->
@@ -80,9 +91,10 @@
   </aside>
 
   <!-- PANEL DERECHO -->
-  <section class="panel panel--right">
+  <section class="panel panel--right" id="panelRight">
     <div class="chat-hd" id="chatHead">
       <div class="chat-peer">
+        <button class="pix-icon-btn back-btn hidden" id="btnBack">◄</button>
         <div class="chat-av" id="peerAvatar">🌙</div>
         <div class="chat-peer-info">
           <div class="chat-peer-name" id="peerName">SELECCIONA UN CONTACTO</div>
@@ -116,8 +128,8 @@
       <button type="button" class="pix-icon-btn" id="btnEmoji">😀</button>
       <button type="button" class="pix-icon-btn" id="btnAttach">📎</button>
       <input type="file" id="imgInput" accept="image/*" style="display:none" />
-      <input id="msgInput" type="text" placeholder="» ESCRIBE UN MENSAJE..." />
-      <button type="submit" class="pix-btn pix-btn--send">▶ ENVIAR</button>
+      <input id="msgInput" type="text" placeholder="» ESCRIBE UN MENSAJE..." enterkeyhint="send" />
+      <button type="submit" class="pix-btn pix-btn--send">▶</button>
 
       <div id="emojiPanel" class="emoji-panel hidden">
         <div class="emoji-cats">
@@ -180,10 +192,10 @@
       <div id="statusTabImage" class="stab-pane hidden">
         <div class="status-drop" id="statusImgDrop">
           <span style="font-size:2rem">🖼️</span>
-          <p>ARRASTRA O CLIC PARA ELEGIR</p>
+          <p>TOCA O ARRASTRA PARA ELEGIR</p>
           <input type="file" id="statusImgInput" accept="image/*" style="display:none" />
         </div>
-        <img id="statusImgPreview" class="hidden" alt="preview" />
+        <img id="statusImgPreview" class="hidden" alt="preview" style="width:100%;border-radius:4px;max-height:200px;object-fit:cover;margin-top:8px" />
         <input type="text" id="statusImgCaption" placeholder="Pie de foto (opcional)" class="sett-input" style="margin-top:8px" />
       </div>
       <div class="status-expiry">⏳ CADUCA EN <strong>15 DÍAS</strong></div>
@@ -191,6 +203,52 @@
     <div class="pix-modal-ft">
       <button class="pix-btn" id="statusCreatorCancel">CANCELAR</button>
       <button class="pix-btn pix-btn--primary" id="statusCreatorPublish">PUBLICAR ►</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREAR GRUPO -->
+<div class="pix-modal" id="groupModal" aria-hidden="true">
+  <div class="pix-modal-over" id="groupModalOverlay"></div>
+  <div class="pix-modal-box">
+    <div class="pix-modal-hd">
+      <span>👥 NUEVO GRUPO</span>
+      <button class="pix-icon-btn" id="groupModalClose">✕</button>
+    </div>
+    <div class="pix-modal-body">
+      <!-- Icono del grupo -->
+      <div class="sett-field">
+        <label class="sett-label">ICONO DEL GRUPO</label>
+        <div class="group-icon-row">
+          <div class="group-icon-preview" id="groupIconPreview">👥</div>
+          <div class="group-icon-options">
+            <div class="group-emoji-grid" id="groupEmojiGrid"></div>
+            <div class="group-icon-sep">— o —</div>
+            <button class="pix-btn pix-btn--sm" id="btnGroupImgPick" type="button">📷 SUBIR IMAGEN</button>
+            <input type="file" id="groupImgInput" accept="image/*" style="display:none" />
+          </div>
+        </div>
+      </div>
+      <!-- Nombre -->
+      <div class="sett-field" style="margin-top:14px">
+        <label class="sett-label">NOMBRE DEL GRUPO</label>
+        <input type="text" id="groupNameInput" class="sett-input" placeholder="Nombre del grupo..." maxlength="40" />
+      </div>
+      <!-- Seleccionar miembros -->
+      <div class="sett-field" style="margin-top:14px">
+        <label class="sett-label">AGREGAR AMIGOS</label>
+        <div class="group-members-list" id="groupMembersList">
+          <p class="group-no-friends" id="groupNoFriends" style="font-family:var(--fv);color:var(--muted);font-size:.95rem">Sin amigos para agregar</p>
+        </div>
+      </div>
+      <div class="group-selected-wrap">
+        <div class="sett-label" style="margin-bottom:4px">SELECCIONADOS: <span id="groupSelectedCount">0</span></div>
+        <div class="group-selected-chips" id="groupSelectedChips"></div>
+      </div>
+    </div>
+    <div class="pix-modal-ft">
+      <button class="pix-btn" id="groupModalCancel">CANCELAR</button>
+      <button class="pix-btn pix-btn--primary" id="groupModalCreate">CREAR GRUPO ►</button>
     </div>
   </div>
 </div>
@@ -215,41 +273,41 @@
       <div class="settings-body">
         <div class="sett-pane active" id="sett-profile">
           <div class="sett-sect-title">PERFIL DE CHAT</div>
-          <div class="sett-field"><label class="sett-label">NOMBRE EN CHAT</label><input type="text" id="settProfileName" class="sett-input" placeholder="Tu nombre..." /></div>
+          <div class="sett-field"><label class="sett-label">NOMBRE</label><input type="text" id="settProfileName" class="sett-input" placeholder="Tu nombre..." /></div>
           <div class="sett-field"><label class="sett-label">ESTADO</label><input type="text" id="settStatusMsg" class="sett-input" placeholder="Aqui en mi World..." maxlength="60" /></div>
-          <div class="sett-field"><label class="sett-label">AVATAR EMOJI</label><div class="emoji-av-grid" id="emojiAvatarPicker"></div></div>
+          <div class="sett-field"><label class="sett-label">AVATAR</label><div class="emoji-av-grid" id="emojiAvatarPicker"></div></div>
           <button class="pix-btn pix-btn--primary" id="settSaveProfile" style="margin-top:12px">💾 GUARDAR PERFIL</button>
         </div>
         <div class="sett-pane" id="sett-notifications">
           <div class="sett-sect-title">NOTIFICACIONES</div>
           <div class="sett-toggle"><div><strong>SONIDO</strong><small>Al recibir mensajes</small></div><label class="tog"><input type="checkbox" id="settSound" checked /><span class="tog-t"></span></label></div>
           <div class="sett-toggle"><div><strong>BADGE</strong><small>Contador de no leídos</small></div><label class="tog"><input type="checkbox" id="settBadge" checked /><span class="tog-t"></span></label></div>
-          <div class="sett-toggle"><div><strong>NOTIF. NAVEGADOR</strong><small>Requiere permiso</small></div><button class="pix-btn pix-btn--sm" id="settRequestNotif">SOLICITAR</button></div>
+          <div class="sett-toggle"><div><strong>NOTIF. NAVEGADOR</strong></div><button class="pix-btn pix-btn--sm" id="settRequestNotif">SOLICITAR</button></div>
         </div>
         <div class="sett-pane" id="sett-appearance">
           <div class="sett-sect-title">APARIENCIA</div>
           <div class="sett-field"><label class="sett-label">TAMAÑO FUENTE</label><div class="radio-row"><label class="rpill"><input type="radio" name="fontSize" value="small" />PEQUEÑO</label><label class="rpill"><input type="radio" name="fontSize" value="normal" checked />NORMAL</label><label class="rpill"><input type="radio" name="fontSize" value="large" />GRANDE</label></div></div>
-          <div class="sett-field"><label class="sett-label">FONDO CHAT</label><div class="wp-row"><button class="wp-btn active" data-wp="default">🌲 BOSQUE</button><button class="wp-btn" data-wp="green">💚 VERDE</button><button class="wp-btn" data-wp="purple">💜 PURPLE</button><button class="wp-btn" data-wp="blue">💙 AZUL</button><button class="wp-btn" data-wp="dark">🖤 NEGRO</button></div></div>
-          <div class="sett-toggle"><div><strong>COMPACTO</strong><small>Burbujas más juntas</small></div><label class="tog"><input type="checkbox" id="settCompact" /><span class="tog-t"></span></label></div>
-          <div class="sett-toggle"><div><strong>ENTER = ENVIAR</strong><small>Shift+Enter nueva línea</small></div><label class="tog"><input type="checkbox" id="settEnterSend" checked /><span class="tog-t"></span></label></div>
+          <div class="sett-field"><label class="sett-label">FONDO CHAT</label><div class="wp-row"><button class="wp-btn active" data-wp="default">🌲</button><button class="wp-btn" data-wp="green">💚</button><button class="wp-btn" data-wp="purple">💜</button><button class="wp-btn" data-wp="blue">💙</button><button class="wp-btn" data-wp="dark">🖤</button></div></div>
+          <div class="sett-toggle"><div><strong>COMPACTO</strong></div><label class="tog"><input type="checkbox" id="settCompact" /><span class="tog-t"></span></label></div>
+          <div class="sett-toggle"><div><strong>ENTER = ENVIAR</strong></div><label class="tog"><input type="checkbox" id="settEnterSend" checked /><span class="tog-t"></span></label></div>
         </div>
         <div class="sett-pane" id="sett-privacy">
           <div class="sett-sect-title">PRIVACIDAD</div>
-          <div class="sett-toggle"><div><strong>MOSTRAR ÚLTIMA VEZ</strong><small>Amigos ven tu conexión</small></div><label class="tog"><input type="checkbox" id="settLastSeen" checked /><span class="tog-t"></span></label></div>
-          <div class="sett-toggle"><div><strong>CONFIRMACIÓN LECTURA</strong><small>Amigos ven ✓✓</small></div><label class="tog"><input type="checkbox" id="settReadReceipts" checked /><span class="tog-t"></span></label></div>
+          <div class="sett-toggle"><div><strong>ÚLTIMA VEZ</strong></div><label class="tog"><input type="checkbox" id="settLastSeen" checked /><span class="tog-t"></span></label></div>
+          <div class="sett-toggle"><div><strong>CONFIRMACIÓN LECTURA</strong></div><label class="tog"><input type="checkbox" id="settReadReceipts" checked /><span class="tog-t"></span></label></div>
           <div class="sett-field"><label class="sett-label">VIS. ESTADOS</label><select id="settStoryVisibility" class="sett-select"><option value="friends">MIS AMIGOS</option><option value="nobody">NADIE</option></select></div>
         </div>
         <div class="sett-pane" id="sett-account">
           <div class="sett-sect-title">MI CUENTA</div>
           <div class="sic"><div class="sic-lbl">🪪 PLAYER ID</div><div class="sic-row"><code id="settPlayerId">—</code><button class="pix-btn pix-btn--sm" id="settCopyPlayerId">📋 COPIAR</button></div><small>Compártelo para que amigos te encuentren</small></div>
           <div class="sic"><div class="sic-lbl">📧 CORREO</div><p id="settEmail" class="sic-val">—</p></div>
-          <div class="sic"><div class="sic-lbl">📦 VERSIÓN</div><p class="sic-val">Moonveil Contactos v3.0</p></div>
+          <div class="sic"><div class="sic-lbl">📦 VERSIÓN</div><p class="sic-val">Moonveil Contactos v4.0</p></div>
         </div>
         <div class="sett-pane" id="sett-danger">
           <div class="sett-sect-title" style="color:var(--red)">⚠️ PELIGRO</div>
-          <div class="danger-row"><div><strong>LIMPIAR CHATS BOTS</strong><small>Borra mensajes locales</small></div><button class="pix-btn pix-btn--danger" id="settClearBotChats">🗑️ LIMPIAR</button></div>
-          <div class="danger-row"><div><strong>ELIMINAR ESTADOS</strong><small>Borra tus estados</small></div><button class="pix-btn pix-btn--danger" id="settDeleteStatuses">🗑️ BORRAR</button></div>
-          <div class="danger-row"><div><strong>CERRAR SESIÓN</strong><small>Salir de tu cuenta</small></div><button class="pix-btn pix-btn--danger" id="settSignOut">🚪 SALIR</button></div>
+          <div class="danger-row"><div><strong>LIMPIAR CHATS BOTS</strong><small>Borra mensajes locales</small></div><button class="pix-btn pix-btn--danger" id="settClearBotChats">🗑️</button></div>
+          <div class="danger-row"><div><strong>ELIMINAR ESTADOS</strong></div><button class="pix-btn pix-btn--danger" id="settDeleteStatuses">🗑️</button></div>
+          <div class="danger-row"><div><strong>CERRAR SESIÓN</strong></div><button class="pix-btn pix-btn--danger" id="settSignOut">🚪</button></div>
         </div>
       </div>
     </div>
@@ -260,7 +318,7 @@
 <div class="pix-modal" id="contactModal" aria-hidden="true">
   <div class="pix-modal-over" id="modalOverlay"></div>
   <div class="pix-modal-box">
-    <div class="pix-modal-hd"><span id="modalTitle">CONTACTO</span><button class="pix-icon-btn" id="modalClose">✕</button></div>
+    <div class="pix-modal-hd"><span id="modalTitle">INFO</span><button class="pix-icon-btn" id="modalClose">✕</button></div>
     <div class="pix-modal-body" id="modalBody"></div>
     <div class="pix-modal-ft"><button class="pix-btn pix-btn--primary" id="modalAction">ACEPTAR</button></div>
   </div>
