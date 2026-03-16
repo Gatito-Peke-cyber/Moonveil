@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hub Central — Moonveil Portal</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23050710'/><rect x='4' y='4' width='24' height='24' fill='%2300e5ff'/><rect x='8' y='8' width='16' height='16' fill='%237b2fff'/><text x='16' y='22' text-anchor='middle' fill='%23e0f0ff' font-size='11' font-weight='bold'>M</text></svg>">
+  <title>Moonveil — Hub de Secciones</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23030a1a'/><rect x='4' y='4' width='24' height='24' rx='2' fill='%2300d4ff'/><text x='16' y='22' text-anchor='middle' fill='%23030a1a' font-size='14' font-weight='bold'>M</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap">
   <link rel="stylesheet" href="events.css"/>
 </head>
 <body>
 
-<!-- Scanlines -->
+<!-- Fondo escanlines -->
 <div class="scanlines" aria-hidden="true"></div>
 
-<!-- Stars canvas con estrellas fugaces -->
-<canvas id="starsCanvas" class="stars-canvas" aria-hidden="true"></canvas>
+<!-- Canvas estrellas y meteoros -->
+<canvas id="stars-canvas" class="stars-canvas" aria-hidden="true"></canvas>
 
 <!-- LOADER -->
 <div id="loader">
@@ -26,116 +26,85 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════
-     HEADER
-═══════════════════════════════════ -->
-<header class="header" role="banner">
+<!-- ══════════════════════════
+     HEADER  (igual a perfil)
+══════════════════════════════ -->
+<header class="header">
   <div class="container nav-wrap">
+
+    <!-- Brand -->
     <div class="nav-brand">
       <div class="brand-cube-sm"></div>
-      <a href="inicio.html" class="logo">Moon<span>veil</span></a>
+      <span class="logo">Moon<span>veil</span></span>
     </div>
 
+    <!-- Nav pills -->
     <nav class="nav" id="main-nav">
       <a href="inicio.html"   class="nav-pill np-home">🏠 INICIO</a>
       <a href="events.html"   class="nav-pill np-hub active">🌌 HUB</a>
-      <a href="perfiles.html" class="nav-pill np-prof">👤 PERFIL</a>
-      <a href="index.html"    class="nav-pill np-out" id="btnLogout">✕ SALIR</a>
+      <a href="perfiles.html" class="nav-pill np-perfil">👤 PERFIL</a>
     </nav>
 
+    <!-- Zona derecha: info usuario + salir -->
     <div class="nav-cta">
-      <span class="hud-avatar-badge" id="hudAvatar">🌙</span>
-      <span class="hud-xp-badge" id="hudXP">⚡ 0 XP</span>
+      <div class="nav-user-info" id="nav-user-info">
+        <span class="nav-avatar" id="nav-avatar">🌙</span>
+        <span class="nav-username" id="nav-username">EXPLORADOR</span>
+        <span class="xp-badge" id="xp-display">⚡ 0 XP</span>
+      </div>
+      <button class="btn btn-logout" id="btn-logout">✕ SALIR</button>
     </div>
 
-    <button class="hamburger" id="hamburger" aria-label="Menú">
+    <!-- Hamburger mobile -->
+    <button class="hamburger" id="hamburger" aria-label="Abrir menú">
       <span></span><span></span><span></span>
     </button>
-  </div>
 
-  <!-- HUD strip -->
-  <div class="hud-strip">
-    <div class="container hud-strip-inner">
-      <div class="hud-bars-group">
-        <div class="hud-bar-row">
-          <span class="hb-label hp-label">HP</span>
-          <div class="hud-bar hp-bar">
-            <div class="hud-bar-fill hp-fill" id="barHPFill" style="width:88%"></div>
-          </div>
-          <span class="hb-val" id="barHPVal">88</span>
-        </div>
-        <div class="hud-bar-row">
-          <span class="hb-label xp-label">XP</span>
-          <div class="hud-bar xp-bar">
-            <div class="hud-bar-fill xp-fill" id="barXPFill" style="width:0%"></div>
-          </div>
-          <span class="hb-val" id="barXPVal">0</span>
-        </div>
-      </div>
-
-      <div class="hud-slots">
-        <div class="slot" title="Tickets">
-          <span class="slot-icon">🎫</span>
-          <span class="slot-count" id="slotTickets">0</span>
-        </div>
-        <div class="slot" title="Llaves">
-          <span class="slot-icon">🗝️</span>
-          <span class="slot-count" id="slotKeys">0</span>
-        </div>
-        <div class="slot" title="Llaves Superestrellas">
-          <span class="slot-icon">⭐</span>
-          <span class="slot-count" id="slotSuperKeys">0</span>
-        </div>
-      </div>
-
-      <div class="hud-player-info">
-        <span class="hpi-name" id="hpiName">AVENTURERO</span>
-        <span class="hpi-level" id="hpiLevel">Nv.1</span>
-        <span class="hpi-online">● EN LÍNEA</span>
-      </div>
-    </div>
   </div>
 </header>
 
-<!-- ═══════════════════════════════════
+<!-- ══════════════════════════
      MAIN
-═══════════════════════════════════ -->
+══════════════════════════════ -->
 <main class="hub-main" role="main">
 
+  <!-- Hero -->
   <section class="hub-hero">
-    <div class="hero-live-badge">
-      <span class="hlb-dot"></span>
-      <span id="heroBadgeCount">—</span>&nbsp;SECCIONES ACTIVAS
+    <!-- Destellos decorativos -->
+    <div class="hero-stars-deco" aria-hidden="true">
+      <span class="hsd-1">✦</span>
+      <span class="hsd-2">★</span>
+      <span class="hsd-3">✦</span>
+      <span class="hsd-4">☆</span>
+      <span class="hsd-5">✧</span>
     </div>
+
     <h1 class="hub-title">
-      <span class="ht-sub">MOONVEIL</span>
-      <span class="ht-main">HUB CENTRAL</span>
+      <span class="ht-line">MOONVEIL</span>
+      <span class="ht-line ht-accent">HUB CENTRAL</span>
     </h1>
-    <p class="hub-subtitle">▸ TODAS LAS SECCIONES DEL PORTAL EN UN SOLO LUGAR ◂</p>
-    <div class="hero-stars-row" aria-hidden="true">
-      <span class="hsr s1">★</span>
-      <span class="hsr s2">✦</span>
-      <span class="hsr s3">🌙</span>
-      <span class="hsr s4">✦</span>
-      <span class="hsr s5">★</span>
+    <p class="hub-subtitle">▸ TODAS LAS SECCIONES DEL PORTAL ◂</p>
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      <span><b id="heroBadgeCount">—</b> secciones activas ahora mismo</span>
     </div>
   </section>
 
-  <div class="hub-body" id="hubBody">
-    <div class="loading-placeholder">
-      <span class="lp-icon">🌌</span>
-      <span class="lp-text">CARGANDO SECCIONES...</span>
-    </div>
-  </div>
+  <!-- Tarjetas generadas por events.js -->
+  <div class="hub-body" id="hubBody"></div>
 
 </main>
 
+<!-- Footer -->
 <footer class="hub-footer">
-  <p>🌙 MOONVEIL PORTAL · HUB CENTRAL · <span id="footerYear"></span></p>
+  <p>🌌 Moonveil Portal · Hub Central · <span id="footerYear"></span></p>
 </footer>
 
-<div id="toast" role="status" aria-live="polite"></div>
-<button class="back-to-top" id="backTop">▲</button>
+<!-- Toast -->
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Volver arriba -->
+<button class="back-to-top" id="back-top" title="Volver arriba">▲</button>
 
 <script type="module" src="events.js"></script>
 </body>

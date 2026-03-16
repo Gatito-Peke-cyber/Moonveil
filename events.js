@@ -1,117 +1,112 @@
 /* =========================================================
-   Moonveil Portal — events.js  v4
-   Pixel Art Space Theme · Firebase Auth · Shooting Stars
+   Moonveil Portal — Events Hub JS  v4
+   + Firebase auth (header usuario)
+   + Estrellas fugaces + partículas espaciales
+   + Tarjetas pixel art con contadores
 
    ¿Cómo agregar/editar tarjetas?
-   ————————————————————————————————
-   Cada tarjeta acepta:
-     title      (string)  — Nombre visible
-     desc       (string)  — Descripción corta
-     emoji      (string)  — Emoji principal
-     url        (string)  — Ruta de la página
-     bg         (string)  — (opcional) URL imagen de fondo
-     expiry     (string)  — (opcional) "YYYY-MM-DD" — fecha en que se bloquea
-     startDate  (string)  — (opcional) "YYYY-MM-DD" — antes de esta = próximamente
-     daysTotal  (number)  — (opcional) días totales del evento (barra de progreso)
-     isCalendar (boolean) — (opcional) true = contador días del mes
-     accent     (string)  — (opcional) color CSS del acento de la tarjeta
+   ─────────────────────────────────
+   title       (string)  — Nombre visible
+   desc        (string)  — Descripción corta
+   emoji       (string)  — Emoji principal
+   url         (string)  — Ruta de la página
+   bg          (string)  — URL imagen de fondo (opcional)
+   expiry      (string)  — "YYYY-MM-DD" fecha de bloqueo (opcional)
+   startDate   (string)  — "YYYY-MM-DD" cuenta regresiva (opcional)
+   daysTotal   (number)  — días totales del evento (opcional)
+   isCalendar  (boolean) — contador de días del mes (opcional)
+   accent      (string)  — color CSS de acento (opcional)
    ========================================================= */
 
-import { auth }   from './firebase.js';
-import { onAuthStateChanged, signOut }
-  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+import { onAuthChange, logout } from './auth.js';
 
-/* ── Presencia (opcional, no bloquea si falla) ── */
-async function tryUpdatePresence(uid, state, section) {
-  try {
-    const { updatePresence } = await import('./database.js');
-    await updatePresence(uid, state, section);
-  } catch { /* silencioso */ }
-}
+/* ── Lectura de localStorage (sincronizado por database.js) ── */
+const PERFIL_KEY    = 'mv_perfil';
+const INVENTORY_KEY = 'mv_inventory';
 
-/* =========================================================
+/* ══════════════════════════════════════════
    CATEGORÍAS Y TARJETAS  ← edita aquí
-   ========================================================= */
+══════════════════════════════════════════ */
 const CATEGORIES = [
 
   // ── PRINCIPAL ──────────────────────────────────────────
   {
     id: "principal", icon: "🏠", name: "Principal",
-    color: "#a855f7",
+    color: "#00d4ff",
     items: [
-      { title:"Inicio",            desc:"Página de bienvenida del portal.",                        emoji:"🌙", url:"inicio.html",    bg:"img/picture6.jpg"        },
-      { title:"Perfiles Aldeanil", desc:"Explora y gestiona los perfiles de los aldeanos.",        emoji:"👤", url:"perfiles.html",  bg:"vill/teacher.jpg"        },
-      { title:"Noticias Aldeanil", desc:"Noticias del mundo.",                                     emoji:"📰", url:"noticias.html",  bg:"gif/villager-news.gif",   startDate:"2026-02-23" },
-      { title:"Foro Aldeanil",     desc:"Novedades de los aldeanos. Y quien sabe algún chisme...", emoji:"💬", url:"foro.html",      bg:"vill/booktea.gif"         },
-      { title:"Contacto Aldeanil", desc:"Habla con los aldeanos del mundo.",                       emoji:"📩", url:"contactos.html", bg:"imagen/golem1.jpg"        },
-      { title:"Updates",           desc:"Registro de todas las actualizaciones.",                  emoji:"🔄", url:"updates.html",   bg:"img/picture1.jpg",        startDate:"2026-03-01" },
-      { title:"History",           desc:"Algunas historias, sin concluir...",                      emoji:"📜", url:"historia.html",  bg:"imagen/diary.jpg",        startDate:"2026-05-01" },
-      { title:"Cofres, y mas Cofres...", desc:"¡Sand Brill patrocina! Hay cofres esperándote...", emoji:"⭐", url:"chest.html",     bg:"img/picture4.jpg",        startDate:"2026-01-01" },
+      { title:"Inicio",   desc:"Página de bienvenida del portal.",              emoji:"🌙", url:"inicio.html", bg:"img/picture6.jpg"  },
+      { title:"Perfiles Aldeanil", desc:"Explora y gestiona los perfiles de los aldeanos.", emoji:"👤", url:"perfiles.html", bg:"vill/teacher.jpg" },
+      { title:"Noticias Aldeanil", desc:"Noticias del mundo.",       emoji:"📰", url:"noticias.html", startDate:"2026-02-23", bg:"gif/villager-news.gif"},
+      { title:"Foro Aldeanil",     desc:"Algunas novedades de los aldeanos. Y quien sabe un chisme...", emoji:"💬", url:"foro.html", bg:"vill/booktea.gif" },
+      { title:"Contacto Aldeanil", desc:"Pues aqui se habla con los aldeanos del mundo. No todos pero si algunos...", emoji:"📩", url:"contactos.html", bg:"imagen/golem1.jpg"},
+      { title:"Updates",  desc:"Registro de todas las actualizaciones.",        emoji:"🔄", url:"updates.html", startDate:"2026-03-01", bg:"img/picture1.jpg"},
+      { title:"History",  desc:"Algunas historias, sin concluir...",  emoji:"📜", url:"historia.html", startDate:"2026-05-01", bg:"imagen/diary.jpg"},
+      { title:"Cofres, y mas Cofres...", desc:"Aqui hay algunos cofres... ¿Que Sand Brill patrocino?... Pero de igual manera hay cofres, eh!...", emoji:"⭐", url:"chest.html", startDate:"2026-01-01", bg:"img/picture4.jpg"},
     ]
   },
 
   // ── COMUNIDAD & ECONOMÍA ───────────────────────────────
   {
     id: "economia", icon: "💎", name: "Comunidad & Economía",
-    color: "#06b6d4",
+    color: "#3b82f6",
     items: [
-      { title:"Tradeos", desc:"Intercambios entre aldeanos — ¡solo aceptan esmeraldas!",          emoji:"🔀", url:"tradeos.html", bg:"img-pass/trading.jpg",   startDate:"2026-04-10" },
-      { title:"Tienda",  desc:"Compra lo que más te convenga. ¡Y hay cupones!",                   emoji:"🛒", url:"tienda.html",  bg:"img/mine.gif"            },
-      { title:"Bank",    desc:"Gestiona tus monedas y depósitos. ¡Que no se pase su tiempo!",     emoji:"🏦", url:"banco.html",   bg:"img/picture3.jpg",       accent:"#10b981" },
-      { title:"Ruleta",  desc:"¡Prueba tu suerte y gana premios! Más tickets en la tienda...",    emoji:"🎫", url:"premios.html", bg:"gif/5am.gif",             daysTotal:44, accent:"#f59e0b", startDate:"2026-02-26" },
-      { title:"Posts",   desc:"Bueno, supongo que aquí postean los aldeanos...",                  emoji:"💬", url:"ins.html",     bg:"img/picture2.jpg",        startDate:"2026-04-01" },
+      { title:"Tradeos", desc:"Sistema de intercambios entre aldeanos, aunque ellos solo piden esmeraldas. ¡Que se puede hacer si solo piden eso!", emoji:"🔀", url:"tradeos.html", startDate:"2026-04-10", bg:"img-pass/trading.jpg"},
+      { title:"Tienda",  desc:"Compra lo que mas te convenga. ¡Y eso si hay cupones! Obvio si tienes...", emoji:"🛒", url:"tienda.html", bg:"img/mine.gif"},
+      { title:"Bank",    desc:"Gestiona tus monedas y depósitos. ¡Que no se te pase su tiempo!", emoji:"🏦", url:"banco.html", accent:"#34d399", bg:"img/picture3.jpg"},
+      { title:"Ruleta",  desc:"¡Prueba tu suerte y gana premios! Y si quieres mas tickets, compralos en la tienda...", emoji:"🎫", url:"premios.html", daysTotal:44, accent:"#fbbf24", startDate:"2026-02-26", bg:"gif/5am.gif"},
+      { title:"Posts",   desc:"Bueno, supongo que aqui postean los aldeanos...", emoji:"💬", url:"ins.html", startDate:"2026-04-01", bg:"img/picture2.jpg"},
     ]
   },
 
-  // ── HERRAMIENTAS & MINIJUEGOS ─────────────────────────
+  // ── HERRAMIENTAS & MINIJUEGOS ──────────────────────────
   {
     id: "herramientas", icon: "🛠️", name: "Herramientas & Minijuegos",
-    color: "#06b6d4",
+    color: "#818cf8",
     items: [
-      { title:"Calendar",         desc:"Calendario de inicio de sesión. Se renueva cada mes.",                                              emoji:"📅", url:"calendar.html",  bg:"gif/rain1.gif",            isCalendar:true, accent:"#06b6d4" },
-      { title:"Sand",             desc:"...",                                                                                                emoji:"⚡", url:"SBM-G.html",     bg:"img/picture4.jpg",         accent:"#f59e0b",  startDate:"2026-02-22", expiry:"2026-04-15", daysTotal:60 },
-      { title:"Minepass",         desc:"Lleguemos hasta las estrellas, tu sabes que no te abandonaré, porque eres mi gran amigo...",        emoji:"🎫", url:"pases.html",     bg:"img/universe1.gif",        accent:"#06b6d4",  startDate:"2026-02-28", expiry:"2026-04-01", daysTotal:30 },
-      { title:"Minigame",         desc:"Un minijuego — gestiona bien tu dinero y ten cuidado con los ¡bandidos!",                          emoji:"⭐⭐⭐", url:"min.html", bg:"gif/noche1.gif",           accent:"#06b6d4",  startDate:"2026-02-20", expiry:"2026-04-01", daysTotal:39 },
-      { title:"Harvest Corp",     desc:"Maneja tu empresa de cultivos y haz que crezca. ¡Yo confío en usted jefe!",                        emoji:"🌟", url:"em.html",        bg:"gif/2am.gif",              accent:"#f43f5e",  startDate:"2026-02-20", expiry:"2026-05-01", daysTotal:69 },
-      { title:"████ Master??",    desc:"¿Broma? ¿O algo más? Quien sabe qué tramará esta vez...",                                          emoji:"🎭", url:"ddb.html",       bg:"imagen/steve3.jpg",        accent:"#f43f5e",  startDate:"2026-03-30", expiry:"2026-04-30", daysTotal:30 },
-      { title:"Cultivos Eden",    desc:"Ayuda a Eden a generar mucho dinerito. ¿Verdad que puedes, estratega?",                            emoji:"🌻", url:"cul.html",       bg:"gif/4am.gif",              accent:"#f43f5e",  startDate:"2026-02-20", expiry:"2026-04-30", daysTotal:30 },
-      { title:"Investigaciones",  desc:"¡Hola Agente ████! Tenemos casos por resolver. Contamos contigo...",                               emoji:"🔎", url:"invs.html",      bg:"gif/creaking-minecraft.gif",accent:"#f43f5e", startDate:"2026-02-23", expiry:"2026-04-30", daysTotal:50 },
-      { title:"Minelife",         desc:"¡Hola ████! Bueno, ¡eh!... No tengo palabras...",                                                  emoji:"🌳", url:"minecraft.html", bg:"img-pass/fox-xy.jpg",      accent:"#f43f5e",  startDate:"2026-02-20", expiry:"2026-04-30", daysTotal:50 },
-      { title:"Minestone",        desc:"¡Hola ████! ¿Puedes sobrevivir con 10 corazones? Seguro que sí...",                               emoji:"🌳", url:"aventure.html",  bg:"img-pass/pokki.jpg",        accent:"#f59e0b", startDate:"2026-02-20", expiry:"2026-04-20", daysTotal:50 },
+      { title:"Calendar", desc:"Calendario de inicio de sesion. Se renueva cada mes.", emoji:"📅", url:"calendar.html", isCalendar:true, accent:"#22d3ee", bg:"gif/rain1.gif"},
+      { title:"Sand", desc:"...", emoji:"⚡", url:"SBM-G.html", accent:"#fbbf24", startDate:"2026-02-22", expiry:"2026-04-15", daysTotal:60, bg:"img/picture4.jpg"},
+      { title:"Minepass", desc:"Lleguemos hasta las estrellas, tu sabes que no te abandonare, porque eres mi gran amigo. Nunca lo olvides y siempre estara tu amiguito David Kal...", emoji:"🎫", url:"pases.html", startDate:"2026-02-28", expiry:"2026-04-01", daysTotal:30, accent:"#00d4ff", bg:"img/universe1.gif"},
+      { title:"Minigame", desc:"Un minijuego, asi que gestiona bien tu dinero y comercia bien... y ten cuidado con los ¡bandidos!... Asi que suerte", emoji:"⭐⭐⭐", url:"min.html", startDate:"2026-02-20", expiry:"2026-04-01", daysTotal:39, accent:"#818cf8", bg:"gif/noche1.gif"},
+      { title:"Harvest Corp", desc:"Maneja tu empresa de cultivos y haz que crezca con esfuerzo y sudor... Pues capaz no tanto pero haz que tu empresa este en lo alto y con marketing capaz llegue aun mas lejos... ¡Yo confio en usted jefe!", emoji:"🌟", url:"em.html", startDate:"2026-02-20", expiry:"2026-05-01", daysTotal:69, accent:"#f472b6", bg:"gif/2am.gif"},
+      { title:"████ Master??", desc:"Supongo que el esta vez quizo o tratara de hacer una ¿broma?, bueno eso creemos, pero quien sabe... Que tramara esta vez...", emoji:"🎭", url:"ddb.html", startDate:"2026-03-30", expiry:"2026-04-30", daysTotal:30, accent:"#f87171", bg:"imagen/steve3.jpg"},
+      { title:"Cultivos Eden", desc:"Hola amigos, aqui les habla Eden y pues quiero que me ayudes a generar mucho dinerito, pues ya que tu eres un estratega en los negocios pues se que tu podras. ¿Verdad?", emoji:"🌻", url:"cul.html", startDate:"2026-02-20", expiry:"2026-04-30", daysTotal:30, accent:"#f472b6", bg:"gif/4am.gif"},
+      { title:"Investigaciones", desc:"¡Hola Agente ████! Tenemos que resolver estos casos, por eso necesitamos su ayuda, contamos contigo Agente...", emoji:"🔎", url:"invs.html", startDate:"2026-02-23", expiry:"2026-04-30", daysTotal:50, accent:"#f87171", bg:"gif/creaking-minecraft.gif"},
+      { title:"Minelife", desc:"¡Hola ████! Bueno, ¡eh!... No tengo palabras...", emoji:"🌳", url:"minecraft.html", startDate:"2026-02-20", expiry:"2026-04-30", daysTotal:50, accent:"#f87171", bg:"img-pass/fox-xy.jpg"},
+      { title:"Minestone", desc:"¡Hola ████! Puedes sobrevivir, con 10 corazones, ¿seguro? Pues si creo...!¡", emoji:"🌳", url:"aventure.html", startDate:"2026-02-20", expiry:"2026-04-20", daysTotal:50, accent:"#fbbf24", bg:"img-pass/pokki.jpg"},
     ]
   },
 
   // ── EVENTOS ESPECIALES ────────────────────────────────
   {
     id: "eventos", icon: "🎉", name: "Eventos Especiales",
-    color: "#ec4899",
+    color: "#f472b6",
     items: [
-      { title:"Eventos",        desc:"Centro de todos los eventos activos del mundo.",           emoji:"🎫", url:"eventos.html",  bg:"img-pass/animalsphoto.jpg", accent:"#f43f5e" },
-      { title:"Valentine",      desc:"Evento especial de San Valentín. ¿Con un caso por resolver?", emoji:"💖", url:"sv.html",  bg:"ach/5i.png",                accent:"#ec4899", expiry:"2026-02-20", daysTotal:1 },
-      { title:"Dragon Hunter",  desc:"Caza 20 Ender Dragons y alcanza la gloria.",              emoji:"🐉", url:"dragon.html",   bg:"ach/4y.png",                accent:"#a855f7", expiry:"2026-04-20", daysTotal:20 },
-      { title:"Año Lunar",      desc:"Celebra el Año Nuevo Lunar con recompensas.",             emoji:"🏮", url:"lny.html",      bg:"img-pass/añomine.jpg",      accent:"#f59e0b", expiry:"2026-03-06", daysTotal:18 },
-      { title:"Event Emerald",  desc:"La lluvia de Esmeraldas.",                                emoji:"🟢", url:"emerald.html",  bg:"ach/5y.png",                accent:"#10b981", startDate:"2026-02-22", expiry:"2026-03-30", daysTotal:6 },
-      { title:"Anniversary!!", desc:"Un año más en este mundo cúbico Moonveil...",              emoji:"🎂", url:"ann.html",      bg:"img-pass/partymine.jpg",    accent:"#f59e0b", startDate:"2026-04-10", expiry:"2026-12-30", daysTotal:120 },
-      { title:"Próximo Evento", desc:"Un nuevo evento se aproxima. ¡Prepárate!",                emoji:"🔮", url:"#",             accent:"#818cf8",               startDate:"2030-04-01" },
-      { title:"Minesafio",      desc:"Seguro es muy fácil, espero...",                          emoji:"⚡", url:"batt.html",     bg:"ach/2m.png",                accent:"#f59e0b", startDate:"2026-03-04", expiry:"2026-03-10", daysTotal:6 },
+      { title:"Eventos", desc:"Centro de todos los eventos activos del mundo.", emoji:"🎫", url:"eventos.html", accent:"#f87171", bg:"img-pass/animalsphoto.jpg"},
+      { title:"Valentine", desc:"Evento especial de San Valentín. ¿Con un caso por resolver...?", emoji:"💖", url:"sv.html", expiry:"2026-02-20", daysTotal:1, accent:"#f472b6", bg:"ach/5i.png"},
+      { title:"Dragon Hunter", desc:"Caza 20 Ender Dragons y alcanza la gloria.", emoji:"🐉", url:"dragon.html", expiry:"2026-04-20", daysTotal:20, accent:"#a78bfa", bg:"ach/4y.png"},
+      { title:"Año Lunar", desc:"Celebra el Año Nuevo Lunar con recompensas.", emoji:"🏮", url:"lny.html", expiry:"2026-03-06", daysTotal:18, accent:"#fbbf24", bg:"img-pass/añomine.jpg"},
+      { title:"Event Emerald", desc:"La lluvia de Esmeraldas.", emoji:"🟢", url:"emerald.html", startDate:"2026-02-22", expiry:"2026-03-30", daysTotal:6, accent:"#34d399", bg:"ach/5y.png"},
+      { title:"Anniversary!!", desc:"Un año mas en este mundo cubico Moonveil...", emoji:"🎂", url:"ann.html", startDate:"2026-04-10", expiry:"2026-12-30", daysTotal:120, accent:"#fbbf24", bg:"img-pass/partymine.jpg"},
+      { title:"Próximo Evento", desc:"Un nuevo evento se aproxima. ¡Prepárate!", emoji:"🔮", url:"#", startDate:"2030-04-01", accent:"#818cf8"},
+      { title:"Minesafio", desc:"Seguro es muy facil, espero...", emoji:"⚡", url:"batt.html", startDate:"2026-03-04", expiry:"2026-03-10", daysTotal:6, accent:"#fbbf24", bg:"ach/2m.png"},
     ]
   },
 
   // ── CELEBRACIONES ─────────────────────────────────────
   {
     id: "celebrar", icon: "⭐", name: "Celebraciones",
-    color: "#6366f1",
+    color: "#fbbf24",
     items: [
-      { title:"¡Que recuerdos...!",         desc:"Pero no dejemos de seguir creando recuerdos",            emoji:"🌳", url:"album.html", bg:"img/universe1.gif",  accent:"#f59e0b", startDate:"2026-02-20", expiry:"2026-06-01", daysTotal:50 },
-      { title:"♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡",            desc:"Si que es un gran dia...¡Asi que celebremos!",           emoji:"🌟", url:"tsm.html",   bg:"dav/alex1.jpg",      accent:"#f59e0b", startDate:"2026-04-20", expiry:"2026-04-21", daysTotal:2 },
-      { title:"♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡",            desc:"Si que es un gran dia...¡Asi que celebremos!",           emoji:"🌟", url:"lns.html",   bg:"dav/steve2.jpg",     accent:"#f59e0b", startDate:"2026-06-17", expiry:"2026-06-18", daysTotal:2 },
+      { title:"¡Que recuerdos...!", desc:"Pero no dejemos de seguir creando recuerdos", emoji:"🌳", url:"album.html", startDate:"2026-02-20", expiry:"2026-06-01", daysTotal:50, accent:"#fbbf24", bg:"img/universe1.gif"},
+      { title:"♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡", desc:"Si que es un gran dia... ¡Asi que celebremos!", emoji:"🌟", url:"tsm.html", startDate:"2026-04-20", expiry:"2026-04-21", daysTotal:2, accent:"#f472b6", bg:"dav/alex1.jpg"},
+      { title:"♡♡♡♡♡♡♡♡♡♡♡♡♡♡♡", desc:"Si que es un gran dia... ¡Asi que celebremos!", emoji:"🌟", url:"lns.html", startDate:"2026-06-17", expiry:"2026-06-18", daysTotal:2, accent:"#f472b6", bg:"dav/steve2.jpg"},
     ]
   }
 ];
 
-/* =========================================================
+/* ══════════════════════════════════════════
    UTILIDADES DE FECHA
-   ========================================================= */
+══════════════════════════════════════════ */
 function today() {
   const d = new Date(); d.setHours(0,0,0,0); return d;
 }
@@ -149,15 +144,15 @@ function daysLeftInMonth() {
   };
 }
 
-/* =========================================================
+/* ══════════════════════════════════════════
    CUENTA REGRESIVA
-   ========================================================= */
+══════════════════════════════════════════ */
 function buildCountdown(getValuesFn, colorClass) {
   const wrap = document.createElement("div");
   wrap.className = "card-countdown" + (colorClass ? ` card-${colorClass}-cd` : "");
 
   const PARTS  = ["d","h","m","s"];
-  const LABELS = { d:"días", h:"horas", m:"min", s:"seg" };
+  const LABELS = { d:"días", h:"hrs", m:"min", s:"seg" };
   const els    = {};
 
   PARTS.forEach(p => {
@@ -175,7 +170,7 @@ function buildCountdown(getValuesFn, colorClass) {
   function update() {
     const v = getValuesFn();
     if (!v) {
-      wrap.innerHTML = '<span class="card-chip chip-ok" style="margin-top:8px">¡COMENZÓ!</span>';
+      wrap.innerHTML = '<span class="card-chip chip-ok">¡COMENZÓ!</span>';
       return;
     }
     els.d.textContent = String(v.d).padStart(2,"0");
@@ -210,17 +205,17 @@ function makeMonthFn() {
   };
 }
 
-/* =========================================================
-   CONSTRUIR TARJETA (Pixel Art)
-   ========================================================= */
+/* ══════════════════════════════════════════
+   CONSTRUIR TARJETA
+══════════════════════════════════════════ */
 function buildCard(item, index, categoryColor) {
   const status = cardStatus(item);
-  const accent = item.accent || categoryColor || "#00e5ff";
+  const accent = item.accent || categoryColor || "#00d4ff";
 
   const tag  = (status === "active" && item.url && item.url !== "#") ? "a" : "div";
   const card = document.createElement(tag);
   card.className = "hub-card";
-  card.style.animationDelay = `${index * 0.06}s`;
+  card.style.animationDelay = `${index * 0.07}s`;
   if (tag === "a") card.href = item.url;
 
   if (status === "expired") card.classList.add("card-locked");
@@ -228,7 +223,7 @@ function buildCard(item, index, categoryColor) {
 
   card.style.setProperty("--card-accent", accent);
 
-  /* Fondo imagen */
+  /* Fondo de imagen */
   if (item.bg) {
     const bgDiv = document.createElement("div");
     bgDiv.className = "card-bg";
@@ -258,9 +253,10 @@ function buildCard(item, index, categoryColor) {
   ti.textContent = item.title;
   body.appendChild(ti);
 
-  const div = document.createElement("div");
-  div.className = "card-divider";
-  body.appendChild(div);
+  const divider = document.createElement("div");
+  divider.className = "card-divider";
+  divider.style.background = accent;
+  body.appendChild(divider);
 
   const de = document.createElement("div");
   de.className = "card-desc";
@@ -284,7 +280,7 @@ function buildCard(item, index, categoryColor) {
   } else if (item.isCalendar) {
     const chip = document.createElement("span");
     chip.className = "card-chip chip-calendar";
-    chip.textContent = "📅 RENUEVA CADA MES";
+    chip.textContent = "📅 RENOV. MENSUAL";
     body.appendChild(chip);
     body.appendChild(buildCountdown(makeMonthFn(), "month"));
 
@@ -293,8 +289,8 @@ function buildCard(item, index, categoryColor) {
     const chip = document.createElement("span");
     chip.className = "card-chip chip-ok";
     chip.textContent = remaining > 0
-      ? `✅ ACTIVO · ${remaining}D`
-      : "✅ ACTIVO · ¡HOY!";
+      ? `✅ ACTIVO · TERMINA EN ${remaining}D`
+      : "✅ ACTIVO · ¡ÚLTIMO DÍA!";
     body.appendChild(chip);
     body.appendChild(buildCountdown(makeExpiryFn(item.expiry), "expiry"));
   }
@@ -310,11 +306,11 @@ function buildCard(item, index, categoryColor) {
     const remaining = Math.max(0, 100 - Math.min(100, Math.round((elapsed / item.daysTotal)*100)));
 
     const barWrap = document.createElement("div"); barWrap.className = "card-days-bar";
-    const fill    = document.createElement("div"); fill.className    = "card-days-fill";
-    fill.style.cssText = `width:0%; background:linear-gradient(90deg,${accent}aa,${accent})`;
+    const fill    = document.createElement("div"); fill.className = "card-days-fill";
+    fill.style.cssText = `width:0%;background:linear-gradient(90deg,${accent}99,${accent})`;
     barWrap.appendChild(fill);
     card.appendChild(barWrap);
-    setTimeout(() => { fill.style.width = remaining + "%"; }, 420 + index*60);
+    setTimeout(() => { fill.style.width = remaining + "%"; }, 400 + index*65);
   }
 
   /* Barra del mes */
@@ -322,32 +318,27 @@ function buildCard(item, index, categoryColor) {
     const { dayOfMonth, totalDays } = daysLeftInMonth();
     const pct = Math.round((dayOfMonth / totalDays) * 100);
     const barWrap = document.createElement("div"); barWrap.className = "card-days-bar";
-    const fill    = document.createElement("div"); fill.className    = "card-days-fill month-fill";
+    const fill    = document.createElement("div"); fill.className = "card-days-fill month-fill";
     fill.style.width = "0%";
     barWrap.appendChild(fill);
     card.appendChild(barWrap);
-    setTimeout(() => { fill.style.width = (100-pct) + "%"; }, 420 + index*60);
+    setTimeout(() => { fill.style.width = (100-pct) + "%"; }, 400 + index*65);
   }
 
-  /* Click bloqueado */
+  /* Interacciones bloqueadas */
   if (status === "expired") {
-    card.addEventListener("click", e => {
-      e.preventDefault();
-      card.classList.add("shake");
-      setTimeout(() => card.classList.remove("shake"), 450);
-      toast("🔒 ESTE EVENTO YA TERMINÓ");
-    });
+    card.addEventListener("click", e => { e.preventDefault(); toast("🔒 Este evento ya terminó."); });
   }
   if (status === "soon") {
-    card.addEventListener("click", e => { e.preventDefault(); toast("⏳ ¡PRONTO DISPONIBLE!"); });
+    card.addEventListener("click", e => { e.preventDefault(); toast("⏳ ¡Pronto disponible, espéralo!"); });
   }
 
   return card;
 }
 
-/* =========================================================
-   RENDER CATEGORÍAS
-   ========================================================= */
+/* ══════════════════════════════════════════
+   RENDER HUB
+══════════════════════════════════════════ */
 function render() {
   const hub = document.getElementById("hubBody");
   if (!hub) return;
@@ -356,14 +347,14 @@ function render() {
   CATEGORIES.forEach((cat, ci) => {
     const section = document.createElement("section");
     section.className = "category";
-    section.style.animationDelay = `${ci * 0.08}s`;
+    section.style.animationDelay = `${ci * 0.1}s`;
 
     const header = document.createElement("div");
     header.className = "category-header";
     header.innerHTML = `
       <span class="category-icon">${cat.icon}</span>
       <span class="category-name">${cat.name}</span>
-      <span class="category-count">${cat.items.length} SECCIÓN${cat.items.length !== 1 ? "ES" : ""}</span>
+      <span class="category-count">${cat.items.length} sección${cat.items.length!==1?"es":""}</span>
     `;
     section.appendChild(header);
 
@@ -375,202 +366,218 @@ function render() {
   });
 }
 
-/* =========================================================
-   ESTRELLAS FUGACES + PARTÍCULAS ESPACIALES
-   ========================================================= */
-function initStars() {
-  const canvas = document.getElementById("starsCanvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const dpi = Math.max(1, window.devicePixelRatio || 1);
+/* ══════════════════════════════════════════
+   HEADER: cargar datos del usuario
+══════════════════════════════════════════ */
+function loadUserHeader() {
+  try {
+    const raw = localStorage.getItem(PERFIL_KEY);
+    if (!raw) return;
+    const p = JSON.parse(raw);
+
+    const avatarEl   = document.getElementById("nav-avatar");
+    const usernameEl = document.getElementById("nav-username");
+    const xpEl       = document.getElementById("xp-display");
+
+    if (avatarEl)   avatarEl.textContent   = p.avatar  || "🌙";
+    if (usernameEl) usernameEl.textContent = (p.nombre || "EXPLORADOR").toUpperCase();
+    if (xpEl)       xpEl.textContent       = `⚡ ${p.xp || 0} XP`;
+  } catch { /* sin datos locales, se muestra el default */ }
+}
+
+/* ══════════════════════════════════════════
+   PARTÍCULAS ESPACIALES + ESTRELLAS FUGACES
+══════════════════════════════════════════ */
+function initSpaceCanvas() {
+  const c = document.getElementById("stars-canvas");
+  if (!c) return;
+  const ctx = c.getContext("2d");
+  const dpi = Math.max(1, devicePixelRatio || 1);
+
   let W, H, stars, shootingStars;
 
-  /* Colores espaciales */
-  const COLORS = ["#00e5ff","#7b2fff","#a855f7","#ff2d9b","#ffffff","#ffd700","#66f9ff"];
+  /* ── Colores de partículas ── */
+  const COLORS = [
+    "rgba(0,212,255,",    // cyan
+    "rgba(59,130,246,",   // blue
+    "rgba(129,140,248,",  // indigo
+    "rgba(167,139,250,",  // purple
+    "rgba(34,211,238,",   // cyan2
+    "rgba(200,224,255,",  // white-blue
+  ];
 
-  const init = () => {
-    W = canvas.width  = window.innerWidth  * dpi;
-    H = canvas.height = window.innerHeight * dpi;
+  function init() {
+    W = c.width  = innerWidth  * dpi;
+    H = c.height = innerHeight * dpi;
 
-    /* Estrellas fijas */
-    stars = Array.from({ length: 140 }, () => ({
+    /* Estrellas estáticas pequeñas */
+    stars = Array.from({ length: 200 }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
-      r: (.5 + Math.random() * 2) * dpi,
-      a: .06 + Math.random() * .25,
-      speed: .05 + Math.random() * .4,
-      ci: Math.floor(Math.random() * COLORS.length),
-      tw: Math.random() * Math.PI * 2,
-      tws: .02 + Math.random() * .03
+      r: (0.3 + Math.random() * 1.8) * dpi,
+      a: 0.1 + Math.random() * 0.6,
+      twinkleSpeed: 0.02 + Math.random() * 0.04,
+      twinklePhase: Math.random() * Math.PI * 2,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      floating: Math.random() > 0.7,
+      vy: Math.random() > 0.7 ? (0.05 + Math.random() * 0.2) : 0,
     }));
 
-    /* Estrellas fugaces */
-    shootingStars = Array.from({ length: 4 }, () => createShootingStar());
-  };
-
-  function createShootingStar() {
-    return {
-      x: Math.random() * W,
-      y: Math.random() * H * 0.5,
-      len: (80 + Math.random() * 200) * dpi,
-      speed: (3 + Math.random() * 8) * dpi,
-      angle: (25 + Math.random() * 20) * Math.PI / 180, /* diagonal */
-      alpha: 0,
-      maxAlpha: .6 + Math.random() * .4,
-      state: "appearing", /* appearing | moving | fading | waiting */
-      wait: Math.random() * 300,
-      waitTick: 0,
-      color: COLORS[Math.floor(Math.random() * 3)] /* cyan/purple/pink */
-    };
+    /* Estrellas fugaces (meteoros) */
+    shootingStars = [];
   }
 
-  function updateShootingStar(s) {
-    if (s.state === "waiting") {
-      s.waitTick++;
-      if (s.waitTick >= s.wait) {
-        Object.assign(s, createShootingStar());
-        s.state = "appearing";
-        s.waitTick = 0;
-      }
-      return;
-    }
-    if (s.state === "appearing") {
-      s.alpha += .04;
-      if (s.alpha >= s.maxAlpha) s.state = "moving";
-    }
-    if (s.state === "moving") {
-      s.x += Math.cos(s.angle) * s.speed;
-      s.y += Math.sin(s.angle) * s.speed;
-      if (s.x > W || s.y > H) s.state = "fading";
-    }
-    if (s.state === "fading") {
-      s.alpha -= .06;
-      s.x += Math.cos(s.angle) * s.speed;
-      s.y += Math.sin(s.angle) * s.speed;
-      if (s.alpha <= 0) { s.state = "waiting"; s.wait = 120 + Math.random() * 400; s.waitTick = 0; }
-    }
+  /* Lanzar estrella fugaz */
+  function spawnShootingStar() {
+    const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.3; // ~45°
+    const speed = (6 + Math.random() * 8) * dpi;
+    const length= (80 + Math.random() * 160) * dpi;
+    const colorIdx = Math.random() > 0.7 ? 1 : 0; // mayormente cyan
+    shootingStars.push({
+      x: Math.random() * W * 0.8,
+      y: Math.random() * H * 0.4,
+      vx:  Math.cos(angle) * speed,
+      vy:  Math.sin(angle) * speed,
+      length,
+      life: 1.0,
+      decay: 0.012 + Math.random() * 0.018,
+      color: COLORS[colorIdx],
+      width: (0.8 + Math.random() * 1.4) * dpi,
+    });
   }
 
-  function drawShootingStar(s) {
-    if (s.alpha <= 0) return;
-    const tailX = s.x - Math.cos(s.angle) * s.len;
-    const tailY = s.y - Math.sin(s.angle) * s.len;
-    const grad = ctx.createLinearGradient(tailX, tailY, s.x, s.y);
-    grad.addColorStop(0, `rgba(255,255,255,0)`);
-    grad.addColorStop(0.7, `${s.color}${Math.floor(s.alpha * 160).toString(16).padStart(2,"0")}`);
-    grad.addColorStop(1, `rgba(255,255,255,${s.alpha * 0.9})`);
-    ctx.beginPath();
-    ctx.moveTo(tailX, tailY);
-    ctx.lineTo(s.x, s.y);
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = 1.5 * dpi;
-    ctx.stroke();
-    /* puntito brillante en la cabeza */
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, 2 * dpi, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255,255,255,${s.alpha})`;
-    ctx.fill();
-  }
+  /* Temporizador de estrellas fugaces */
+  let shootTimer = 0;
+  const shootInterval = 110 + Math.random() * 200; // cuadros entre meteoros
 
-  const tick = () => {
+  function tick() {
     ctx.clearRect(0, 0, W, H);
 
-    /* Nebulosas de fondo (radiales estáticas, muy sutiles) */
-    [
-      { x: W*.15, y: H*.2,  r: W*.35, c: "rgba(0,229,255,.025)"  },
-      { x: W*.85, y: H*.75, r: W*.3,  c: "rgba(123,47,255,.03)"  },
-      { x: W*.5,  y: H*.5,  r: W*.4,  c: "rgba(255,45,155,.015)" },
-    ].forEach(nb => {
-      const g = ctx.createRadialGradient(nb.x, nb.y, 0, nb.x, nb.y, nb.r);
-      g.addColorStop(0, nb.c); g.addColorStop(1, "transparent");
-      ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-    });
-
-    /* Estrellas fijas */
+    /* Partículas flotantes (estrellas de fondo) */
     stars.forEach(s => {
-      s.y += s.speed * 0.12;
-      s.x += Math.sin(s.y * .0005 + s.tw) * .3;
-      s.tw += s.tws;
-      if (s.y > H) { s.y = -5; s.x = Math.random() * W; }
-      const alpha = s.a * (.6 + .4 * Math.sin(s.tw));
+      s.twinklePhase += s.twinkleSpeed;
+      const alpha = s.a * (0.5 + 0.5 * Math.sin(s.twinklePhase));
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `${COLORS[s.ci]}${Math.floor(alpha * 255).toString(16).padStart(2,"0")}`;
+      ctx.fillStyle = s.color + alpha + ")";
       ctx.fill();
+
+      if (s.floating) {
+        s.y -= s.vy;
+        if (s.y < -10) s.y = H + 10;
+      }
     });
 
     /* Estrellas fugaces */
-    shootingStars.forEach(s => { updateShootingStar(s); drawShootingStar(s); });
+    shootTimer++;
+    if (shootTimer >= shootInterval) {
+      shootTimer = 0;
+      if (shootingStars.length < 3) spawnShootingStar();
+    }
+
+    shootingStars = shootingStars.filter(m => m.life > 0);
+
+    shootingStars.forEach(m => {
+      const tailX = m.x - (m.vx / Math.hypot(m.vx, m.vy)) * m.length;
+      const tailY = m.y - (m.vy / Math.hypot(m.vx, m.vy)) * m.length;
+
+      const grad = ctx.createLinearGradient(tailX, tailY, m.x, m.y);
+      grad.addColorStop(0, m.color + "0)");
+      grad.addColorStop(0.6, m.color + (m.life * 0.4) + ")");
+      grad.addColorStop(1,   m.color + m.life + ")");
+
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(m.x, m.y);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = m.width * m.life;
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      /* Punta brillante */
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, m.width * 1.5 * m.life, 0, Math.PI * 2);
+      ctx.fillStyle = m.color + m.life + ")";
+      ctx.fill();
+
+      m.x += m.vx;
+      m.y += m.vy;
+      m.life -= m.decay;
+    });
 
     requestAnimationFrame(tick);
-  };
+  }
 
   init();
   tick();
-  window.addEventListener("resize", init);
+  addEventListener("resize", init);
 }
 
-/* =========================================================
-   HUD — CARGAR DATOS DEL USUARIO (localStorage)
-   ========================================================= */
-function loadHUDData() {
-  try {
-    const profile  = JSON.parse(localStorage.getItem("mv_perfil") || "{}");
-    const inventory= JSON.parse(localStorage.getItem("mv_inventory") || "{}");
-    const badges   = JSON.parse(localStorage.getItem("mv_badges") || "[]");
+/* ══════════════════════════════════════════
+   LOADER
+══════════════════════════════════════════ */
+function hideLoader() {
+  const loader = document.getElementById("loader");
+  if (!loader) return;
+  let w = 0;
+  const fill = document.getElementById("ld-fill");
+  const iv = setInterval(() => {
+    w += Math.random() * 18 + 6;
+    if (fill) fill.style.width = Math.min(w, 100) + "%";
+    if (w >= 100) {
+      clearInterval(iv);
+      setTimeout(() => {
+        loader.style.transition = "opacity 0.4s";
+        loader.style.opacity = "0";
+        setTimeout(() => loader.style.display = "none", 400);
+      }, 300);
+    }
+  }, 70);
+}
 
-    /* Nombre y avatar */
-    const name   = (profile.nombre || "AVENTURERO").toUpperCase();
-    const avatar = profile.avatar || "🌙";
-    const xp     = profile.xp || 0;
-
-    const LEVEL_THR = [0,100,250,450,700,1000,1400,1850,2400,3000,3700,4500,5500,6800,8400,10200];
-    let lv = 1;
-    LEVEL_THR.forEach((t, i) => { if (xp >= t) lv = i+1; });
-    lv = Math.min(lv, LEVEL_THR.length);
-    const nextXP   = LEVEL_THR[lv] || 10200;
-    const prevXP   = LEVEL_THR[lv-1] || 0;
-    const xpPct    = Math.min(100, Math.round(((xp - prevXP) / (nextXP - prevXP)) * 100));
-    const hpPct    = Math.min(100, Math.round((profile.racha || 0) / 30 * 100)) || 88;
-
-    /* Nav CTA */
-    const hudAvatar = document.getElementById("hudAvatar");
-    const hudXP     = document.getElementById("hudXP");
-    if (hudAvatar) hudAvatar.textContent = avatar;
-    if (hudXP)     hudXP.textContent     = `⚡ ${xp} XP`;
-
-    /* HUD strip */
-    const hpiName  = document.getElementById("hpiName");
-    const hpiLevel = document.getElementById("hpiLevel");
-    if (hpiName)  hpiName.textContent  = name;
-    if (hpiLevel) hpiLevel.textContent = `Nv.${lv}`;
-
-    /* Barras */
-    const barXPFill = document.getElementById("barXPFill");
-    const barHPFill = document.getElementById("barHPFill");
-    const barXPVal  = document.getElementById("barXPVal");
-    const barHPVal  = document.getElementById("barHPVal");
-    if (barXPFill) setTimeout(() => { barXPFill.style.width = xpPct + "%"; }, 400);
-    if (barHPFill) setTimeout(() => { barHPFill.style.width = hpPct + "%"; }, 400);
-    if (barXPVal)  barXPVal.textContent = xpPct;
-    if (barHPVal)  barHPVal.textContent = hpPct;
-
-    /* Slots inventario */
-    const sTickets  = document.getElementById("slotTickets");
-    const sKeys     = document.getElementById("slotKeys");
-    const sSuperKeys= document.getElementById("slotSuperKeys");
-    if (sTickets)   sTickets.textContent   = inventory.tickets        || 0;
-    if (sKeys)      sKeys.textContent      = inventory.keys           || 0;
-    if (sSuperKeys) sSuperKeys.textContent = inventory.superstar_keys || 0;
-
-  } catch(e) {
-    console.warn("[HUD] Error cargando datos:", e);
+/* ══════════════════════════════════════════
+   NAVBAR MOBILE
+══════════════════════════════════════════ */
+function initNav() {
+  const ham = document.getElementById("hamburger");
+  const nav = document.getElementById("main-nav");
+  if (ham && nav) {
+    ham.addEventListener("click", () => nav.classList.toggle("open"));
+    document.addEventListener("click", e => {
+      if (!ham.contains(e.target) && !nav.contains(e.target))
+        nav.classList.remove("open");
+    });
   }
 }
 
-/* =========================================================
+/* ══════════════════════════════════════════
+   LOGOUT
+══════════════════════════════════════════ */
+function initLogout() {
+  document.getElementById("btn-logout")?.addEventListener("click", async () => {
+    if (!confirm("¿Cerrar sesión?")) return;
+    try { await logout(); } catch {}
+    window.location.href = "index.html";
+  });
+}
+
+/* ══════════════════════════════════════════
+   BACK TO TOP
+══════════════════════════════════════════ */
+function initBackToTop() {
+  const btn = document.getElementById("back-top");
+  if (!btn) return;
+  window.addEventListener("scroll", () =>
+    btn.classList.toggle("show", window.scrollY > 400)
+  );
+  btn.addEventListener("click", () =>
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  );
+}
+
+/* ══════════════════════════════════════════
    TOAST
-   ========================================================= */
+══════════════════════════════════════════ */
 function toast(msg) {
   const el = document.getElementById("toast");
   if (!el) return;
@@ -580,112 +587,33 @@ function toast(msg) {
   el._t = setTimeout(() => el.classList.remove("show"), 2800);
 }
 
-/* =========================================================
-   LOADER
-   ========================================================= */
-function hideLoader() {
-  const loader = document.getElementById("loader");
-  if (!loader) return;
-  let w = 0;
-  const fill = document.getElementById("ld-fill");
-  const iv = setInterval(() => {
-    w += Math.random() * 20 + 5;
-    if (fill) fill.style.width = Math.min(w, 100) + "%";
-    if (w >= 100) {
-      clearInterval(iv);
-      setTimeout(() => {
-        loader.style.transition = "opacity 0.4s";
-        loader.style.opacity    = "0";
-        setTimeout(() => loader.style.display = "none", 400);
-      }, 250);
-    }
-  }, 60);
-}
-
-/* =========================================================
-   NAVBAR HAMBURGER + BACK TO TOP
-   ========================================================= */
-function initNav() {
-  const ham = document.getElementById("hamburger");
-  const nav = document.getElementById("main-nav");
-  ham?.addEventListener("click", () => nav.classList.toggle("open"));
-  document.addEventListener("click", e => {
-    if (!ham?.contains(e.target) && !nav?.contains(e.target))
-      nav?.classList.remove("open");
-  });
-}
-
-function initBackToTop() {
-  const btn = document.getElementById("backTop");
-  if (!btn) return;
-  window.addEventListener("scroll", () => btn.classList.toggle("show", window.scrollY > 400));
-  btn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-}
-
-/* =========================================================
-   LOGOUT
-   ========================================================= */
-function initLogout() {
-  document.getElementById("btnLogout")?.addEventListener("click", async (e) => {
-    e.preventDefault();
-    if (!confirm("¿Cerrar sesión?")) return;
-    try {
-      await signOut(auth);
-    } catch {}
-    window.location.href = "index.html";
-  });
-}
-
-/* =========================================================
+/* ══════════════════════════════════════════
    INIT
-   ========================================================= */
+══════════════════════════════════════════ */
 document.addEventListener("DOMContentLoaded", () => {
   hideLoader();
-  initStars();
+  initSpaceCanvas();
   initNav();
-  initBackToTop();
   initLogout();
+  initBackToTop();
 
-  /* Footer año */
-  const fy = document.getElementById("footerYear");
-  if (fy) fy.textContent = new Date().getFullYear();
-
-  /* Verificar autenticación */
-  onAuthStateChanged(auth, (user) => {
+  /* Verificar sesión con Firebase */
+  onAuthChange(user => {
     if (!user) {
-      /* No autenticado → redirigir */
       window.location.href = "index.html";
       return;
     }
-
-    /* Cargar HUD con datos del usuario */
-    loadHUDData();
-
-    /* Renderizar tarjetas */
+    loadUserHeader();
     render();
 
-    /* Badge de secciones activas */
+    const fy = document.getElementById("footerYear");
+    if (fy) fy.textContent = new Date().getFullYear();
+
     const active = CATEGORIES.flatMap(c => c.items)
       .filter(i => cardStatus(i) === "active").length;
     const badge = document.getElementById("heroBadgeCount");
     if (badge) badge.textContent = active;
 
-    /* Actualizar presencia */
-    tryUpdatePresence(user.uid, "online", "hub");
-
-    /* Toast de bienvenida */
-    const name = JSON.parse(localStorage.getItem("mv_perfil") || "{}").nombre || "AVENTURERO";
-    setTimeout(() => toast(`🌌 BIENVENIDO, ${name.toUpperCase()}! · ${active} SECCIONES ACTIVAS`), 900);
-  });
-
-  /* Easter egg en el título */
-  document.querySelector(".ht-main")?.addEventListener("click", () => {
-    const msgs = [
-      "🌌 ¡MOONVEIL PORTAL!",
-      "✦ ¡QUE EMPIECE LA AVENTURA!",
-      "💫 ¡EXPLORA EL COSMOS!",
-      "🚀 ¡LEYENDA DEL ESPACIO!"
-    ];
-    toast(msgs[Math.floor(Math.random() * msgs.length)]);
+    setTimeout(() => toast(`🌌 ${active} secciones activas esperándote`), 900);
   });
 });
