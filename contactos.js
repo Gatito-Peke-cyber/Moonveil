@@ -9,7 +9,12 @@ import {
   serverTimestamp, arrayUnion, arrayRemove, getDocs, where
 } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js';
-import { ref as sRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-storage.js';
+/* Firebase Storage ya no se usa — imágenes van a Cloudinary */
+/* import { ref as sRef, uploadBytes, getDownloadURL } from '...storage.js'; */
+
+/* ── Cloudinary config ── */
+const CLOUDINARY_CLOUD  = 'dmi37poer';
+const CLOUDINARY_PRESET = 'moonveil_uploads'; // Unsigned preset (crea en Cloudinary Dashboard > Settings > Upload > Upload presets > Signing Mode: Unsigned)
 
 /* ── Title map ── */
 const TM = {
@@ -611,15 +616,30 @@ async function sendGroupMsg(text,imageUrl,localId){
 }
 
 /* ══════════════════════════════════════
-   IMAGE UPLOAD — used for chat, status, and group icons
-   NOTE: Make sure your Firebase Storage rules allow writes:
-   allow write: if request.auth != null;
+   IMAGE UPLOAD — Cloudinary (gratis, sin plan de paga)
+   URL pública visible para todos los usuarios.
+   REQUIERE: crear un upload preset sin firma en Cloudinary:
+     Dashboard → Settings → Upload → Upload presets
+     → Add upload preset → Signing Mode: Unsigned → nombre: moonveil_uploads
 ══════════════════════════════════════ */
-async function uploadImg(file,folder='chat_images'){
-  const path=`${folder}/${CU.uid}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._]/g,'_')}`;
-  const r=sRef(storage,path);
-  await uploadBytes(r,file);
-  return getDownloadURL(r);
+async function uploadImg(file, folder = 'chat_images') {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_PRESET);
+  formData.append('folder', `moonveil/${folder}`);
+
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,
+    { method: 'POST', body: formData }
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `Cloudinary error ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.secure_url; // URL HTTPS pública, visible para todos
 }
 
 $('#imgInput')?.addEventListener('change',e=>{
