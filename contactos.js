@@ -539,7 +539,6 @@ function appendMsg(msg, contact, chatType) {
     avHtml=`<div class="m-av">${avHTML(av,28)}</div>`;
   } else {
     if(chatType==='group'){
-      // Find the sender's info
       const sender=friendList.find(f=>f.uid===msg.senderId);
       const sav=sender?.avatar||'👤';
       avHtml=`<div class="m-av">${avHTML(sav,28)}</div>`;
@@ -548,17 +547,20 @@ function appendMsg(msg, contact, chatType) {
     }
   }
 
-  // Sender name for groups (peer messages only)
+  // Sender name for groups
   let senderName='';
   if(chatType==='group'&&!isMine){
     const sn=msg.senderName||'Jugador';
     senderName=`<div class="m-sender">${esc(sn.toUpperCase())}</div>`;
   }
 
-  // Content
+  // Content — use raw URL in src (Firebase download URLs are safe; esc() is not needed for src)
   let content='';
   if(msg.type==='image'&&msg.imageUrl){
-    content=`<img src="${esc(msg.imageUrl)}" alt="imagen" class="chat-image" onclick="window.open('${esc(msg.imageUrl)}','_blank')" />`;
+    const url=msg.imageUrl;
+    // onerror: replace with a "no disponible" card
+    const errHandler=`this.parentElement.innerHTML='<div class=\\"img-error\\"><span>🖼️</span><span>IMAGEN NO DISPONIBLE</span><span style=\\"font-size:.18rem\\">Verifica reglas de Storage</span></div>'`;
+    content=`<img src="${url}" alt="imagen" class="chat-image" crossorigin="anonymous" onerror="${errHandler}" onclick="window.open('${url}','_blank')" loading="lazy" />`;
   } else {
     content=`<div class="m-text">${fmtText(msg.text||'')}</div>`;
   }
@@ -697,9 +699,9 @@ function showOptimisticMsg(text,dataUrl,localId){
   node.className=`msg me ${currentType}-msg ${s.compact?'compact':''} pending`;
   node.setAttribute('data-local-id',localId);
   let content='';
-  if(dataUrl){content=`<img src="${esc(dataUrl)}" class="chat-image" alt="imagen" />`;}
+  if(dataUrl){content=`<img src="${dataUrl}" class="chat-image" alt="enviando..." />`;}
   if(text){content+=`<div class="m-text">${fmtText(text)}</div>`;}
-  node.innerHTML=`<div class="m-av">${avHTML(av,28)}</div><div class="bubble">${content}<div class="m-meta"><span>${timeNow()}</span><span class="m-ticks sent">⟳</span></div></div>`;
+  node.innerHTML=`<div class="m-av">${avHTML(av,28)}</div><div class="bubble">${content}<div class="m-meta"><span>${timeNow()}</span><span class="m-ticks" style="font-size:.27rem">⟳</span></div></div>`;
   th.appendChild(node);
   scrollThread();
 }
@@ -745,7 +747,7 @@ $('#btnInfo')?.addEventListener('click',()=>{
   const g=groupList.find(c=>c.id===currentId);
   const f=friendList.find(c=>c.id===currentId);
   const b=BOTS.find(c=>c.id===currentId);
-  if(g) openGroupInfo(g); else if(f) openFriendInfo(f); else if(b) openBotInfo(b);
+  if(g) openGroupSettings(g); else if(f) openFriendInfo(f); else if(b) openBotInfo(b);
 });
 $('#btnPin')?.addEventListener('click',()=>{if(!currentId)return;if(pinned.has(currentId)){pinned.delete(currentId);toast('Desanclado');}else{pinned.add(currentId);toast('📌 Anclado');}renderAll();});
 $('#btnMute')?.addEventListener('click',()=>{if(!currentId)return;if(muted.has(currentId)){muted.delete(currentId);toast('🔔 Sonido activado');}else{muted.add(currentId);toast('🔕 Silenciado');}});
@@ -758,7 +760,7 @@ function playNotif(){if(!getS().sound||muted.has(currentId))return;try{const a=$
 ══════════════════════════════════════ */
 const openModal=id=>{const m=$(id);if(!m)return;m.classList.add('show');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';};
 const closeModal=id=>{const m=$(id);if(!m)return;m.classList.remove('show');m.setAttribute('aria-hidden','true');document.body.style.overflow='';};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')['#contactModal','#settingsModal','#statusCreatorModal','#groupModal'].forEach(closeModal);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')['#contactModal','#settingsModal','#statusCreatorModal','#groupModal','#groupSettingsModal'].forEach(closeModal);});
 $('#modalOverlay')?.addEventListener('click',()=>closeModal('#contactModal'));
 $('#modalClose')?.addEventListener('click',()=>closeModal('#contactModal'));
 $('#modalAction')?.addEventListener('click',()=>closeModal('#contactModal'));
@@ -796,6 +798,234 @@ function openBotInfo(c){
   $('#modalTitle').textContent=c.name.toUpperCase();
   $('#modalBody').innerHTML=`<div class="modal-info-grid"><div class="mig-block"><div class="mig-title">PERFIL</div><div class="mig-row"><strong>Alias:</strong> ${esc(c.alias)}</div></div><div class="mig-block"><div class="mig-title">ESTADO</div><div class="mig-row">${c.online?'🟢 EN LÍNEA':'⚫ DESCONECTADO'}</div></div><div class="mig-block full"><div class="mig-title">DESC.</div><div class="mig-row">${esc(c.desc)}</div></div></div>`;
   openModal('#contactModal');
+}
+
+/* ══════════════════════════════════════
+   GROUP SETTINGS — leave · dissolve · members · edit
+══════════════════════════════════════ */
+const GROUP_EMOJIS_SETTINGS=['👥','⚔️','🎮','🌙','🔥','💎','🏆','🌿','🚀','🎯','🎵','⭐','🐺','🦊','🌈','💜'];
+let gsCurrentGroup=null, gsNewIconFile=null, gsNewIconEmoji=null;
+
+function openGroupSettings(group){
+  gsCurrentGroup=group;
+  gsNewIconFile=null; gsNewIconEmoji=null;
+  const isCreator=group.createdBy===CU.uid;
+
+  // Header
+  $('#groupSettingsTitle').textContent=`⚙️ ${group.name.toUpperCase()}`;
+
+  // Icon preview
+  const iconWrap=$('#gsIconWrap');
+  if(iconWrap){
+    iconWrap.innerHTML=group.iconUrl
+      ?`<img src="${group.iconUrl}" alt="" />`
+      :`<span>${esc(group.icon||'👥')}</span>`;
+  }
+
+  // Name + meta
+  const nd=$('#gsGroupNameDisplay');if(nd)nd.textContent=group.name;
+  const gm=$('#gsGroupMeta');if(gm)gm.textContent=`${group.members.length} miembros · creado por ${isCreator?'ti':'otro'}`;
+
+  // Edit name row visibility
+  $('#gsNameEditRow')?.classList.add('hidden');
+  const editBtn=$('#gsBtnEditName');
+  if(editBtn){editBtn.style.display=isCreator?'':'none';}
+
+  // Icon section visibility
+  const iconSec=$('#gsIconSection');
+  if(iconSec){iconSec.style.display=isCreator?'':'none';}
+
+  // Build emoji grid for settings
+  const gg=$('#gsEmojiGrid');
+  if(gg){
+    gg.innerHTML=GROUP_EMOJIS_SETTINGS.map(e=>`<button class="group-em" data-ge="${e}">${e}</button>`).join('');
+    $$('.group-em',gg).forEach(b=>b.addEventListener('click',()=>{
+      gsNewIconEmoji=b.dataset.ge;gsNewIconFile=null;
+      $$('.group-em',gg).forEach(x=>x.classList.remove('active'));b.classList.add('active');
+      const iw=$('#gsIconWrap');if(iw){iw.innerHTML='';iw.textContent=gsNewIconEmoji;}
+    }));
+  }
+  const gs=$('#gsImgStatus');if(gs)gs.textContent='';
+
+  // Members list
+  renderGsMembers(group,isCreator);
+
+  // Add member section
+  const addSec=$('#gsAddSection');
+  if(addSec){addSec.style.display=isCreator?'':'none';}
+  if(isCreator)renderGsAddList(group);
+
+  // Footer buttons
+  const leaveBtn=$('#gsBtnLeave');
+  const dissolveBtn=$('#gsBtnDissolve');
+  if(leaveBtn){
+    leaveBtn.style.display=isCreator?'none':'';
+    leaveBtn.textContent='🚪 SALIR DEL GRUPO';
+  }
+  if(dissolveBtn){
+    dissolveBtn.classList.toggle('hidden',!isCreator);
+  }
+
+  openModal('#groupSettingsModal');
+}
+
+function renderGsMembers(group,isCreator){
+  const list=$('#gsMembersList'),cnt=$('#gsMemberCount');
+  if(!list) return;
+  if(cnt)cnt.textContent=`(${group.members.length})`;
+  const s=getS();
+  list.innerHTML=group.members.map(uid=>{
+    const isMe=uid===CU.uid;
+    const f=friendList.find(x=>x.uid===uid);
+    const name=isMe?(s.profileName||myProfile.nombre||'Tú'):(f?f.name:'Miembro');
+    const avatar=isMe?(s.emojiAvatar||myProfile.avatar||'👤'):(f?f.avatar:'👤');
+    const online=isMe?true:(f?f.online:false);
+    const titleId=isMe?'':(f?f.titleId:'');
+    const t=titleId?TM[titleId]:null;
+    const isCreatorMember=uid===group.createdBy;
+    return`<div class="gs-member ${online?'online-m':''}">
+      <div class="gs-m-av">${avHTML(avatar,36)}<div class="gs-m-status-dot ${online?'online':''}"></div></div>
+      <div class="gs-m-info">
+        <div class="gs-m-name">${esc(name)}${isMe?' <span style="color:var(--muted);font-size:.75em">(Tú)</span>':''}${isCreatorMember?'<span class="gs-creator-chip">★ CREADOR</span>':''}</div>
+        ${t?`<div class="gs-m-title ci-title tp-${t.r}">✦ ${esc(t.n)} ✦</div>`:''}
+        <div class="gs-m-conn ${online?'online':'offline'}">${online?'● EN LÍNEA':'○ DESCONECTADO'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderGsAddList(group){
+  const list=$('#gsAddList'); if(!list) return;
+  const notIn=friendList.filter(f=>!group.members.includes(f.uid));
+  if(!notIn.length){list.innerHTML=`<p class="gs-no-friends">Todos tus amigos ya están en el grupo</p>`;return;}
+  list.innerHTML=notIn.map(f=>{
+    return`<div class="gs-add-row" data-uid="${esc(f.uid)}">
+      <div class="gs-m-av" style="width:32px;height:32px;font-size:1rem;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${avHTML(f.avatar,32)}</div>
+      <span style="font-family:var(--fp);font-size:.26rem;color:var(--white);flex:1">${esc(f.name.toUpperCase())}</span>
+      <button class="gs-add-btn" data-uid="${esc(f.uid)}">➕ AÑADIR</button>
+    </div>`;
+  }).join('');
+  $$('.gs-add-btn',list).forEach(btn=>btn.addEventListener('click',async()=>{
+    const uid=btn.dataset.uid; btn.disabled=true; btn.textContent='⟳';
+    await addMemberToGroup(gsCurrentGroup.id,uid);
+    btn.closest('.gs-add-row').remove();
+    toast(`✅ Miembro añadido`);
+  }));
+}
+
+// Group settings event listeners
+$('#groupSettingsClose')?.addEventListener('click',()=>closeModal('#groupSettingsModal'));
+$('#groupSettingsOverlay')?.addEventListener('click',()=>closeModal('#groupSettingsModal'));
+
+$('#gsBtnEditName')?.addEventListener('click',()=>{
+  const row=$('#gsNameEditRow');row?.classList.remove('hidden');
+  const inp=$('#gsNameInput');if(inp){inp.value=gsCurrentGroup?.name||'';inp.focus();}
+});
+$('#gsCancelName')?.addEventListener('click',()=>$('#gsNameEditRow')?.classList.add('hidden'));
+$('#gsSaveName')?.addEventListener('click',async()=>{
+  const name=$('#gsNameInput')?.value.trim(); if(!name)return;
+  const btn=$('#gsSaveName');btn.disabled=true;btn.textContent='⟳';
+  try{
+    await updateDoc(doc(db,'groups',gsCurrentGroup.id),{name});
+    gsCurrentGroup.name=name;
+    const idx=groupList.findIndex(x=>x.id===gsCurrentGroup.id);
+    if(idx>=0)groupList[idx].name=name;
+    $('#gsGroupNameDisplay').textContent=name;
+    $('#groupSettingsTitle').textContent=`⚙️ ${name.toUpperCase()}`;
+    renderGroups(); updateChatHd(gsCurrentGroup);
+    $('#gsNameEditRow')?.classList.add('hidden');
+    toast('✅ Nombre actualizado');
+  }catch(e){toast('❌ Error','error');console.error(e);}
+  btn.disabled=false;btn.textContent='✓';
+});
+
+// Group icon image upload
+$('#gsBtnImgIcon')?.addEventListener('click',()=>$('#gsIconImgInput')?.click());
+$('#gsIconImgInput')?.addEventListener('change',e=>{
+  const f=e.target.files?.[0]; if(!f) return;
+  gsNewIconFile=f; gsNewIconEmoji=null;
+  const r=new FileReader(); r.onload=ev=>{
+    const iw=$('#gsIconWrap');if(iw)iw.innerHTML=`<img src="${ev.target.result}" alt="" />`;
+    const gs=$('#gsImgStatus');if(gs)gs.textContent=f.name.slice(0,20)+'...';
+  }; r.readAsDataURL(f);
+});
+
+// Auto-save icon when emoji/image chosen (save button on icon section)
+// Actually save happens when user explicitly saves - we track gsNewIconEmoji/gsNewIconFile
+// Add a "Guardar icono" button area
+$('#gsIconWrap')?.addEventListener('click',()=>{
+  if(gsCurrentGroup?.createdBy!==CU?.uid) return;
+  if(!gsNewIconEmoji&&!gsNewIconFile){toast('Elige un emoji o imagen primero','info');return;}
+  saveGroupIcon();
+});
+async function saveGroupIcon(){
+  const btn=$('#gsBtnImgIcon'); if(btn){btn.disabled=true;}
+  try{
+    let iconUrl=gsCurrentGroup.iconUrl||null;
+    let icon=gsCurrentGroup.icon||'👥';
+    if(gsNewIconFile){
+      toast('📤 Subiendo icono...','info');
+      try{iconUrl=await uploadImg(gsNewIconFile,'group_icons');}
+      catch(uploadErr){toast(`❌ Error Storage: ${uploadErr.code||uploadErr.message}`,'error');if(btn)btn.disabled=false;return;}
+    }
+    if(gsNewIconEmoji){icon=gsNewIconEmoji;iconUrl=null;}
+    await updateDoc(doc(db,'groups',gsCurrentGroup.id),{icon,iconUrl:iconUrl||null});
+    gsCurrentGroup.icon=icon;gsCurrentGroup.iconUrl=iconUrl||null;
+    const idx=groupList.findIndex(x=>x.id===gsCurrentGroup.id);
+    if(idx>=0){groupList[idx].icon=icon;groupList[idx].iconUrl=iconUrl||null;}
+    renderGroups(); updateChatHd(gsCurrentGroup);
+    gsNewIconFile=null;gsNewIconEmoji=null;
+    toast('✅ Icono actualizado');
+  }catch(e){toast('❌ Error','error');console.error(e);}
+  if(btn)btn.disabled=false;
+}
+
+$('#gsBtnLeave')?.addEventListener('click',async()=>{
+  if(!gsCurrentGroup) return;
+  if(!confirm(`¿Salir del grupo "${gsCurrentGroup.name}"?`)) return;
+  const btn=$('#gsBtnLeave');btn.disabled=true;btn.textContent='⟳';
+  try{
+    await updateDoc(doc(db,'groups',gsCurrentGroup.id),{members:arrayRemove(CU.uid)});
+    groupList=groupList.filter(g=>g.id!==gsCurrentGroup.id);
+    if(currentId===gsCurrentGroup.id){
+      currentId=null;currentType=null;currentGroupId=null;
+      if(msgUnsub){msgUnsub();msgUnsub=null;}
+      $('#thread').innerHTML='<div class="chat-empty"><div class="ce-icon">📡</div><div class="ce-title">MOONVEIL CHAT</div><div class="ce-desc">Selecciona un contacto</div></div>';
+      showContactsPanel();
+    }
+    closeModal('#groupSettingsModal');renderGroups();
+    toast('✅ Saliste del grupo');
+  }catch(e){toast('❌ Error','error');console.error(e);btn.disabled=false;btn.textContent='🚪 SALIR';}
+});
+
+$('#gsBtnDissolve')?.addEventListener('click',async()=>{
+  if(!gsCurrentGroup) return;
+  if(!confirm(`¿Disolver permanentemente el grupo "${gsCurrentGroup.name}"? Esto eliminará todos los mensajes.`)) return;
+  const btn=$('#gsBtnDissolve');btn.disabled=true;btn.textContent='⟳';
+  try{
+    await deleteDoc(doc(db,'groups',gsCurrentGroup.id));
+    // delete messages subcollection is not possible from client; just remove group doc
+    groupList=groupList.filter(g=>g.id!==gsCurrentGroup.id);
+    if(currentId===gsCurrentGroup.id){
+      currentId=null;currentType=null;currentGroupId=null;
+      if(msgUnsub){msgUnsub();msgUnsub=null;}
+      $('#thread').innerHTML='<div class="chat-empty"><div class="ce-icon">📡</div><div class="ce-title">MOONVEIL CHAT</div><div class="ce-desc">Selecciona un contacto</div></div>';
+      showContactsPanel();
+    }
+    closeModal('#groupSettingsModal');renderGroups();
+    toast('✅ Grupo disuelto');
+  }catch(e){toast('❌ Error','error');console.error(e);btn.disabled=false;btn.textContent='💥 DISOLVER';}
+});
+
+async function addMemberToGroup(groupId,uid){
+  await updateDoc(doc(db,'groups',groupId),{members:arrayUnion(uid)});
+  const idx=groupList.findIndex(x=>x.id===groupId);
+  if(idx>=0&&!groupList[idx].members.includes(uid)){
+    groupList[idx].members.push(uid);
+    if(gsCurrentGroup?.id===groupId)gsCurrentGroup.members.push(uid);
+    renderGsMembers(groupList[idx],groupList[idx].createdBy===CU.uid);
+    renderGroups();
+  }
 }
 
 /* ══════════════════════════════════════

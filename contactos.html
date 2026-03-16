@@ -253,6 +253,60 @@
   </div>
 </div>
 
+<!-- GROUP SETTINGS MODAL -->
+<div class="pix-modal" id="groupSettingsModal" aria-hidden="true">
+  <div class="pix-modal-over" id="groupSettingsOverlay"></div>
+  <div class="pix-modal-box">
+    <div class="pix-modal-hd">
+      <span id="groupSettingsTitle">⚙️ AJUSTES DEL GRUPO</span>
+      <button class="pix-icon-btn" id="groupSettingsClose">✕</button>
+    </div>
+    <!-- Icon + Name -->
+    <div class="pix-modal-body" style="padding:0">
+      <div class="gs-hero">
+        <div class="gs-icon-wrap" id="gsIconWrap">👥</div>
+        <div class="gs-hero-info">
+          <div class="gs-name-row">
+            <span id="gsGroupNameDisplay">Grupo</span>
+            <button class="pix-icon-btn" id="gsBtnEditName" title="Editar nombre" style="width:26px;height:26px;font-size:.65rem">✏️</button>
+          </div>
+          <div class="gs-meta" id="gsGroupMeta">0 miembros</div>
+        </div>
+      </div>
+      <!-- Edit name inline -->
+      <div id="gsNameEditRow" class="gs-name-edit hidden">
+        <input type="text" id="gsNameInput" class="sett-input" placeholder="Nuevo nombre..." maxlength="40" />
+        <button class="pix-btn pix-btn--primary pix-btn--sm" id="gsSaveName">✓</button>
+        <button class="pix-btn pix-btn--sm" id="gsCancelName">✕</button>
+      </div>
+      <!-- Edit icon -->
+      <div class="gs-section" id="gsIconSection">
+        <div class="gs-section-title">🎨 ICONO</div>
+        <div class="group-emoji-grid" id="gsEmojiGrid"></div>
+        <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+          <button class="pix-btn pix-btn--sm" id="gsBtnImgIcon" type="button">📷 IMAGEN</button>
+          <input type="file" id="gsIconImgInput" accept="image/*" style="display:none" />
+          <span class="sett-label" id="gsImgStatus"></span>
+        </div>
+      </div>
+      <!-- Members list -->
+      <div class="gs-section">
+        <div class="gs-section-title">👥 MIEMBROS <span id="gsMemberCount" style="color:var(--muted);font-size:.85em"></span></div>
+        <div class="gs-members-list" id="gsMembersList"></div>
+      </div>
+      <!-- Add members (creator) -->
+      <div class="gs-section" id="gsAddSection">
+        <div class="gs-section-title">➕ AGREGAR MIEMBRO</div>
+        <div class="gs-add-list" id="gsAddList"></div>
+      </div>
+    </div>
+    <div class="pix-modal-ft" id="groupSettingsFt">
+      <button class="pix-btn pix-btn--danger" id="gsBtnLeave">🚪 SALIR</button>
+      <button class="pix-btn pix-btn--danger hidden" id="gsBtnDissolve">💥 DISOLVER</button>
+    </div>
+  </div>
+</div>
+
 <!-- AJUSTES -->
 <div class="pix-modal" id="settingsModal" aria-hidden="true">
   <div class="pix-modal-over" id="settingsOverlay"></div>
