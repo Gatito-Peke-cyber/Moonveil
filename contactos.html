@@ -3,207 +3,274 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark light" />
   <title>Moonveil — Contactos</title>
-
-  <!-- Fuentes -->
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
-
-  <!-- CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230a0e0d'/%3E%3Crect x='8' y='8' width='48' height='48' rx='4' fill='%2330d158'/%3E%3Ctext x='32' y='42' text-anchor='middle' fill='%230a0e0d' font-size='22' font-weight='bold'%3EC%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="contactos.css" />
-
-  <meta name="description" content="Contactos estilo WhatsApp con respuestas por opciones, keywords, cliché o censura. Integrado con el diseño Moonveil Portal." />
 </head>
-<body class="theme-auto">
-  <!-- Fondo -->
-  <div class="bg">
-    <canvas id="bgParticles" aria-hidden="true"></canvas>
-    <div class="bg-parallax">
-      <div class="layer sky" aria-hidden="true"></div>
-      <div class="layer far" aria-hidden="true"></div>
-      <div class="layer mid" aria-hidden="true"></div>
-      <div class="layer near" aria-hidden="true"></div>
-    </div>
-  </div>
+<body>
+<div class="scanlines" aria-hidden="true"></div>
+<canvas id="stars-canvas" class="stars-canvas" aria-hidden="true"></canvas>
 
-  <!-- HUD / Navbar -->
-  <header class="top-hud" role="banner">
-    <nav class="navbar" aria-label="Navegación principal">
-      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
-        <span class="cube" aria-hidden="true"></span>
-        <span class="brand__title">Moonveil <b>Portal</b></span>
-      </a>
-      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="inicio.html">Inicio</a></li>
-        <li><a href="contactos.html" class="active">Contactos</a></li>
-        <li><a href="index.html">Salir</a></li>
-      </ul>
+<!-- HEADER -->
+<header class="header">
+  <div class="nav-wrap">
+    <div class="nav-brand">
+      <div class="brand-cube"></div>
+      <span class="logo">Moon<span>veil</span></span>
+    </div>
+    <nav class="nav" id="main-nav">
+      <a href="inicio.html" class="nav-pill np-home">🏠 INICIO</a>
+      <a href="perfil.html" class="nav-pill np-profile">👤 PERFIL</a>
+      <a href="contactos.html" class="nav-pill np-contacts active">💬 CHAT</a>
+      <a href="index.html" class="nav-pill np-exit">✕ SALIR</a>
     </nav>
-
-    <div class="hud-stats" aria-label="Indicadores">
-      <div class="hud__bars">
-        <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
-        <div class="hud-bar xp" data-val="62" aria-label="Experiencia 62%"></div>
-      </div>
-      <div class="hud__inv" aria-label="Inventario rápido">
-        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
-        <button class="slot" title="Mapa"><span class="i i-map" aria-hidden="true"></span></button>
-        <button class="slot" title="Pluma"><span class="i i-feather" aria-hidden="true"></span></button>
+    <div class="nav-right">
+      <div class="my-pill">
+        <div class="my-av" id="myAvatarHeader">🌙</div>
+        <div class="my-info">
+          <span class="my-name" id="myDisplayName">JUGADOR</span>
+          <span class="my-status" id="myStatusText">Aqui en mi World</span>
+        </div>
+        <button class="pix-icon-btn" id="btnAddStatus" title="Nuevo Estado">＋</button>
+        <button class="pix-icon-btn" id="btnSettings" title="Ajustes">⚙</button>
       </div>
     </div>
-  </header>
-
-  <!-- Shell -->
-  <main class="messenger" role="main">
-    <!-- Panel izquierdo: contactos -->
-    <aside class="panel panel--left" aria-label="Lista de contactos">
-      <header class="panel__head">
-        <div class="me">
-          <div class="avatar me__avatar" aria-hidden="true">
-            <img src="img/imper.jpg" alt="" />
-          </div>
-          <div class="me__info">
-            <strong>Jugador</strong>
-            <small class="muted">Aqui en mi World</small>
-          </div>
-        </div>
-        <div class="actions">
-          <button class="icon-btn" id="btnNewChat" title="Nuevo chat"><span class="icon i-plus"></span></button>
-          <button class="icon-btn" id="btnSettings" title="Ajustes"><span class="icon i-gear"></span></button>
-        </div>
-      </header>
-
-      <div class="search-wrap">
-        <input id="searchContacts" type="search" placeholder="Buscar contacto…" aria-label="Buscar contacto" />
-      </div>
-      
-      <!-- BARRA DE ESTADOS -->
-      <div class="stories-bar">
-        <button class="scroll-left" aria-label="Anterior">⟨</button>
-        <div id="storiesContainer" class="stories-container"></div>
-        <button class="scroll-right" aria-label="Siguiente">⟩</button>
-      </div>
-
-      <!-- LISTA DE CONTACTOS CON SCROLL -->
-      <div class="contacts-scroll">
-        <ul id="contactList" class="contacts" role="listbox" aria-label="Contactos">
-          <!-- Items generados por JS -->
-        </ul>
-      </div>
-    </aside>
-
-    <!-- Panel derecho: chat -->
-    <section class="panel panel--right" aria-label="Chat">
-      <!-- Header chat -->
-      <header class="chat__head" id="chatHead">
-        <div class="chat__peer">
-          <div class="avatar peer__avatar" id="peerAvatar" aria-hidden="true"></div>
-          <div class="peer__meta">
-            <strong id="peerName">Selecciona un contacto</strong>
-            <small id="peerStatus" class="muted">—</small>
-          </div>
-        </div>
-        <div class="chat__actions">
-          <button class="icon-btn" id="btnInfo" title="Info del contacto"><span class="icon i-info"></span></button>
-          <button class="icon-btn" id="btnPin" title="Anclar"><span class="icon i-pin"></span></button>
-          <button class="icon-btn" id="btnMute" title="Silenciar"><span class="icon i-bell"></span></button>
-        </div>
-      </header>
-
-      <!-- Thread con altura fija y scroll -->
-      <div id="thread" class="chat__thread" role="log" aria-live="polite" aria-relevant="additions">
-        <div class="empty-hint">
-          <h3>Bienvenido a Contactos</h3>
-          <p class="muted">Selecciona un contacto de la izquierda para empezar a chatear. Estilo W, con opciones y respuestas dinámicas.</p>
-        </div>
-      </div>
-
-      <!-- Quick replies -->
-      <div id="quickBar" class="chat__quick hidden" aria-label="Respuestas rápidas">
-        <!-- Botones generados por JS -->
-      </div>
-
-      <!-- Composer -->
-      <form id="composer" class="chat__composer" autocomplete="off" novalidate>
-        <button type="button" class="icon-btn" id="btnEmoji" title="Emojis"><span class="icon i-emoji"></span></button>
-        <button type="button" class="icon-btn" id="btnAttach" title="Adjuntar"><span class="icon i-clip"></span></button>
-        
-        <input id="msgInput" name="message" type="text" placeholder="Escribe un mensaje…" aria-label="Escribir mensaje" />
-
-        <button type="submit" class="btn btn--primary" id="btnSend" aria-label="Enviar">
-          <span class="btn__content">
-            <span class="icon i-send"></span>
-          </span>
-          <span class="btn__spinner" aria-hidden="true"></span>
-        </button>
-
-        <!-- Panel de Emojis -->
-        <div id="emojiPanel" class="emoji-panel hidden">
-          <div class="emoji-header">
-            <button data-category="smileys">😀</button>
-            <button data-category="animals">🐶</button>
-            <button data-category="food">🍕</button>
-            <button data-category="activity">⚽️</button>
-            <button data-category="hearts">❤️</button>
-          </div>
-          <div class="emoji-content" id="emojiContent">
-            <!-- emojis cargados por JS -->
-          </div>
-        </div>
-      </form>
-    </section>
-  </main>
-
-  <!-- VISOR DE ESTADOS -->
-  <div id="storyViewer" class="story-viewer">
-    <div class="story-header">
-      <img id="viewerAvatar" class="viewer-avatar" alt="">
-      <span id="viewerName" class="viewer-name"></span>
-      <button id="closeViewer" aria-label="Cerrar">✕</button>
-    </div>
-
-    <div class="progress-bars" id="progressBars"></div>
-
-    <div id="storyContent" class="story-content"></div>
-
-    <button class="prev-story" aria-label="Anterior">⟨</button>
-    <button class="next-story" aria-label="Siguiente">⟩</button>
+    <button class="hamburger" id="hamburger" aria-label="menú"><span></span><span></span><span></span></button>
   </div>
+</header>
 
-  <!-- Modal info contacto -->
-  <div class="modal" id="contactModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal__overlay" id="modalOverlay"></div>
-    <div class="modal__dialog" role="document">
-      <header class="modal__head">
-        <h3 id="modalTitle">Contacto</h3>
-        <button class="icon-btn" id="modalClose" aria-label="Cerrar"><span class="i i-close"></span></button>
-      </header>
-      <section class="modal__body" id="modalBody">
-        <!-- Info generada por JS -->
-      </section>
-      <footer class="modal__foot">
-        <button class="btn btn--primary" id="modalAction">Aceptar</button>
-      </footer>
+<!-- MESSENGER -->
+<main class="messenger">
+
+  <!-- PANEL IZQUIERDO -->
+  <aside class="panel panel--left">
+    <div class="panel-hd">
+      <span class="panel-hd-title">» CONTACTOS</span>
+      <span class="panel-hd-count" id="onlineCount">0 en línea</span>
+    </div>
+
+    <div class="search-box">
+      <input id="searchContacts" type="search" placeholder="» BUSCAR..." autocomplete="off" spellcheck="false" />
+    </div>
+
+    <!-- Stories -->
+    <div class="stories-bar">
+      <button class="stories-arrow" id="scrollLeft">◄</button>
+      <div id="storiesContainer" class="stories-inner"></div>
+      <button class="stories-arrow" id="scrollRight">►</button>
+    </div>
+
+    <!-- Amigos -->
+    <div class="contacts-sep" id="dividerFriends" style="display:none">
+      <span class="sep-line"></span><span class="sep-lbl">🤝 AMIGOS</span><span class="sep-line"></span>
+    </div>
+    <div class="contacts-scroll" id="friendsScrollWrap" style="max-height:0;overflow:hidden">
+      <ul id="friendList" class="contacts-list"></ul>
+    </div>
+
+    <!-- Bots -->
+    <div class="contacts-sep">
+      <span class="sep-line"></span><span class="sep-lbl">🎮 PERSONAJES</span><span class="sep-line"></span>
+    </div>
+    <div class="contacts-scroll contacts-scroll--bots">
+      <ul id="contactList" class="contacts-list"></ul>
+    </div>
+  </aside>
+
+  <!-- PANEL DERECHO -->
+  <section class="panel panel--right">
+    <div class="chat-hd" id="chatHead">
+      <div class="chat-peer">
+        <div class="chat-av" id="peerAvatar">🌙</div>
+        <div class="chat-peer-info">
+          <div class="chat-peer-name" id="peerName">SELECCIONA UN CONTACTO</div>
+          <div class="chat-peer-status" id="peerStatus">—</div>
+        </div>
+      </div>
+      <div class="chat-hd-btns">
+        <button class="pix-icon-btn" id="btnInfo" title="Info">ℹ</button>
+        <button class="pix-icon-btn" id="btnPin" title="Anclar">📌</button>
+        <button class="pix-icon-btn" id="btnMute" title="Silenciar">🔔</button>
+      </div>
+    </div>
+
+    <div id="thread" class="chat-thread">
+      <div class="chat-empty">
+        <div class="ce-icon">📡</div>
+        <div class="ce-title">MOONVEIL CHAT</div>
+        <div class="ce-desc">Selecciona un contacto de la izquierda</div>
+      </div>
+    </div>
+
+    <div id="quickBar" class="quick-bar hidden"></div>
+
+    <div id="imgPreviewBar" class="img-preview hidden">
+      <img id="imgPreviewThumb" alt="" />
+      <span id="imgPreviewName"></span>
+      <button id="imgPreviewRemove" class="pix-icon-btn">✕</button>
+    </div>
+
+    <form id="composer" class="composer" autocomplete="off" novalidate>
+      <button type="button" class="pix-icon-btn" id="btnEmoji">😀</button>
+      <button type="button" class="pix-icon-btn" id="btnAttach">📎</button>
+      <input type="file" id="imgInput" accept="image/*" style="display:none" />
+      <input id="msgInput" type="text" placeholder="» ESCRIBE UN MENSAJE..." />
+      <button type="submit" class="pix-btn pix-btn--send">▶ ENVIAR</button>
+
+      <div id="emojiPanel" class="emoji-panel hidden">
+        <div class="emoji-cats">
+          <button type="button" data-cat="smileys" class="active">😀</button>
+          <button type="button" data-cat="animals">🐶</button>
+          <button type="button" data-cat="food">🍕</button>
+          <button type="button" data-cat="activity">⚽</button>
+          <button type="button" data-cat="hearts">❤️</button>
+        </div>
+        <div class="emoji-grid" id="emojiContent"></div>
+      </div>
+    </form>
+  </section>
+</main>
+
+<!-- VISOR DE ESTADOS -->
+<div id="storyViewer" class="story-viewer">
+  <div class="sv-hd">
+    <div class="sv-av" id="viewerAvatar">🌙</div>
+    <div class="sv-meta">
+      <span class="sv-name" id="viewerName"></span>
+      <span class="sv-time" id="viewerTime"></span>
+    </div>
+    <span class="sv-views" id="viewerViews"></span>
+    <button id="closeViewer" class="pix-icon-btn">✕</button>
+  </div>
+  <div class="sv-bars" id="progressBars"></div>
+  <div id="storyContent" class="sv-content"></div>
+  <button class="sv-nav sv-prev" id="svPrev">◄</button>
+  <button class="sv-nav sv-next" id="svNext">►</button>
+</div>
+
+<!-- CREAR ESTADO -->
+<div class="pix-modal" id="statusCreatorModal" aria-hidden="true">
+  <div class="pix-modal-over" id="statusCreatorOverlay"></div>
+  <div class="pix-modal-box">
+    <div class="pix-modal-hd">
+      <span>✨ NUEVO ESTADO</span>
+      <button class="pix-icon-btn" id="statusCreatorClose">✕</button>
+    </div>
+    <div class="pix-modal-body">
+      <div class="status-tabs">
+        <button class="stab active" data-tab="text">📝 TEXTO</button>
+        <button class="stab" data-tab="image">🖼️ IMAGEN</button>
+      </div>
+      <div id="statusTabText" class="stab-pane">
+        <div class="status-preview" id="statusTextPreview"><p id="statusTextPreviewContent">Tu estado aquí…</p></div>
+        <textarea id="statusTextInput" placeholder="¿Qué quieres compartir?" maxlength="150" rows="3"></textarea>
+        <div class="status-chars"><span id="statusCharCount">0</span>/150</div>
+        <div class="sett-label" style="margin:8px 0 6px">COLOR:</div>
+        <div class="status-colors">
+          <button class="sc active" data-color="#0a1a10" style="background:#0a1a10"></button>
+          <button class="sc" data-color="#0a0a1e" style="background:#0a0a1e"></button>
+          <button class="sc" data-color="#1e0a0a" style="background:#1e0a0a"></button>
+          <button class="sc" data-color="#0a1e1a" style="background:#0a1e1a"></button>
+          <button class="sc" data-color="#1a1a1a" style="background:#1a1a1a"></button>
+          <button class="sc" data-color="#1e1600" style="background:#1e1600"></button>
+        </div>
+      </div>
+      <div id="statusTabImage" class="stab-pane hidden">
+        <div class="status-drop" id="statusImgDrop">
+          <span style="font-size:2rem">🖼️</span>
+          <p>ARRASTRA O CLIC PARA ELEGIR</p>
+          <input type="file" id="statusImgInput" accept="image/*" style="display:none" />
+        </div>
+        <img id="statusImgPreview" class="hidden" alt="preview" />
+        <input type="text" id="statusImgCaption" placeholder="Pie de foto (opcional)" class="sett-input" style="margin-top:8px" />
+      </div>
+      <div class="status-expiry">⏳ CADUCA EN <strong>15 DÍAS</strong></div>
+    </div>
+    <div class="pix-modal-ft">
+      <button class="pix-btn" id="statusCreatorCancel">CANCELAR</button>
+      <button class="pix-btn pix-btn--primary" id="statusCreatorPublish">PUBLICAR ►</button>
     </div>
   </div>
+</div>
 
-  <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<!-- AJUSTES -->
+<div class="pix-modal" id="settingsModal" aria-hidden="true">
+  <div class="pix-modal-over" id="settingsOverlay"></div>
+  <div class="pix-modal-box pix-modal-lg">
+    <div class="pix-modal-hd">
+      <span>⚙️ AJUSTES</span>
+      <button class="pix-icon-btn" id="settingsClose">✕</button>
+    </div>
+    <div class="settings-layout">
+      <nav class="settings-nav">
+        <button class="sn-btn active" data-sec="profile">👤 PERFIL</button>
+        <button class="sn-btn" data-sec="notifications">🔔 NOTIF.</button>
+        <button class="sn-btn" data-sec="appearance">🎨 ESTILO</button>
+        <button class="sn-btn" data-sec="privacy">🔒 PRIVACIDAD</button>
+        <button class="sn-btn" data-sec="account">🪪 CUENTA</button>
+        <button class="sn-btn sn-danger" data-sec="danger">⚠️ PELIGRO</button>
+      </nav>
+      <div class="settings-body">
+        <div class="sett-pane active" id="sett-profile">
+          <div class="sett-sect-title">PERFIL DE CHAT</div>
+          <div class="sett-field"><label class="sett-label">NOMBRE EN CHAT</label><input type="text" id="settProfileName" class="sett-input" placeholder="Tu nombre..." /></div>
+          <div class="sett-field"><label class="sett-label">ESTADO</label><input type="text" id="settStatusMsg" class="sett-input" placeholder="Aqui en mi World..." maxlength="60" /></div>
+          <div class="sett-field"><label class="sett-label">AVATAR EMOJI</label><div class="emoji-av-grid" id="emojiAvatarPicker"></div></div>
+          <button class="pix-btn pix-btn--primary" id="settSaveProfile" style="margin-top:12px">💾 GUARDAR PERFIL</button>
+        </div>
+        <div class="sett-pane" id="sett-notifications">
+          <div class="sett-sect-title">NOTIFICACIONES</div>
+          <div class="sett-toggle"><div><strong>SONIDO</strong><small>Al recibir mensajes</small></div><label class="tog"><input type="checkbox" id="settSound" checked /><span class="tog-t"></span></label></div>
+          <div class="sett-toggle"><div><strong>BADGE</strong><small>Contador de no leídos</small></div><label class="tog"><input type="checkbox" id="settBadge" checked /><span class="tog-t"></span></label></div>
+          <div class="sett-toggle"><div><strong>NOTIF. NAVEGADOR</strong><small>Requiere permiso</small></div><button class="pix-btn pix-btn--sm" id="settRequestNotif">SOLICITAR</button></div>
+        </div>
+        <div class="sett-pane" id="sett-appearance">
+          <div class="sett-sect-title">APARIENCIA</div>
+          <div class="sett-field"><label class="sett-label">TAMAÑO FUENTE</label><div class="radio-row"><label class="rpill"><input type="radio" name="fontSize" value="small" />PEQUEÑO</label><label class="rpill"><input type="radio" name="fontSize" value="normal" checked />NORMAL</label><label class="rpill"><input type="radio" name="fontSize" value="large" />GRANDE</label></div></div>
+          <div class="sett-field"><label class="sett-label">FONDO CHAT</label><div class="wp-row"><button class="wp-btn active" data-wp="default">🌲 BOSQUE</button><button class="wp-btn" data-wp="green">💚 VERDE</button><button class="wp-btn" data-wp="purple">💜 PURPLE</button><button class="wp-btn" data-wp="blue">💙 AZUL</button><button class="wp-btn" data-wp="dark">🖤 NEGRO</button></div></div>
+          <div class="sett-toggle"><div><strong>COMPACTO</strong><small>Burbujas más juntas</small></div><label class="tog"><input type="checkbox" id="settCompact" /><span class="tog-t"></span></label></div>
+          <div class="sett-toggle"><div><strong>ENTER = ENVIAR</strong><small>Shift+Enter nueva línea</small></div><label class="tog"><input type="checkbox" id="settEnterSend" checked /><span class="tog-t"></span></label></div>
+        </div>
+        <div class="sett-pane" id="sett-privacy">
+          <div class="sett-sect-title">PRIVACIDAD</div>
+          <div class="sett-toggle"><div><strong>MOSTRAR ÚLTIMA VEZ</strong><small>Amigos ven tu conexión</small></div><label class="tog"><input type="checkbox" id="settLastSeen" checked /><span class="tog-t"></span></label></div>
+          <div class="sett-toggle"><div><strong>CONFIRMACIÓN LECTURA</strong><small>Amigos ven ✓✓</small></div><label class="tog"><input type="checkbox" id="settReadReceipts" checked /><span class="tog-t"></span></label></div>
+          <div class="sett-field"><label class="sett-label">VIS. ESTADOS</label><select id="settStoryVisibility" class="sett-select"><option value="friends">MIS AMIGOS</option><option value="nobody">NADIE</option></select></div>
+        </div>
+        <div class="sett-pane" id="sett-account">
+          <div class="sett-sect-title">MI CUENTA</div>
+          <div class="sic"><div class="sic-lbl">🪪 PLAYER ID</div><div class="sic-row"><code id="settPlayerId">—</code><button class="pix-btn pix-btn--sm" id="settCopyPlayerId">📋 COPIAR</button></div><small>Compártelo para que amigos te encuentren</small></div>
+          <div class="sic"><div class="sic-lbl">📧 CORREO</div><p id="settEmail" class="sic-val">—</p></div>
+          <div class="sic"><div class="sic-lbl">📦 VERSIÓN</div><p class="sic-val">Moonveil Contactos v3.0</p></div>
+        </div>
+        <div class="sett-pane" id="sett-danger">
+          <div class="sett-sect-title" style="color:var(--red)">⚠️ PELIGRO</div>
+          <div class="danger-row"><div><strong>LIMPIAR CHATS BOTS</strong><small>Borra mensajes locales</small></div><button class="pix-btn pix-btn--danger" id="settClearBotChats">🗑️ LIMPIAR</button></div>
+          <div class="danger-row"><div><strong>ELIMINAR ESTADOS</strong><small>Borra tus estados</small></div><button class="pix-btn pix-btn--danger" id="settDeleteStatuses">🗑️ BORRAR</button></div>
+          <div class="danger-row"><div><strong>CERRAR SESIÓN</strong><small>Salir de tu cuenta</small></div><button class="pix-btn pix-btn--danger" id="settSignOut">🚪 SALIR</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-  <!-- Botón flotante de música -->
-  <button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
+<!-- MODAL INFO -->
+<div class="pix-modal" id="contactModal" aria-hidden="true">
+  <div class="pix-modal-over" id="modalOverlay"></div>
+  <div class="pix-modal-box">
+    <div class="pix-modal-hd"><span id="modalTitle">CONTACTO</span><button class="pix-icon-btn" id="modalClose">✕</button></div>
+    <div class="pix-modal-body" id="modalBody"></div>
+    <div class="pix-modal-ft"><button class="pix-btn pix-btn--primary" id="modalAction">ACEPTAR</button></div>
+  </div>
+</div>
 
-  <!-- Música de fondo -->
-  <audio id="bg-music" loop>
-    <source src="music/november.mp3" type="audio/mpeg" />
-  </audio>
+<div id="toast"></div>
+<button class="music-btn" id="musicBtn" onclick="toggleMusic()">🎵</button>
+<audio id="bg-music" loop><source src="music/november.mp3" type="audio/mpeg" /></audio>
+<audio id="notifSound" preload="auto"><source src="music/1234.mp3" type="audio/mpeg" /></audio>
 
-  <!-- JS -->
-  <script type="module" src="contactos.js"></script>
+<script type="module" src="contactos.js"></script>
 </body>
 </html>
