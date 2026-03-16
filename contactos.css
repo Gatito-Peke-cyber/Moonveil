@@ -296,7 +296,7 @@ img,canvas{display:block;max-width:100%}
 .quick-bar::-webkit-scrollbar{display:none}
 .qr{
   font-family:var(--fp);
-  font-size:.85rem;  /* WAS .32rem — much bigger now */
+  font-size:.50rem;  /* WAS .32rem — much bigger now */
   border:2px solid var(--primary-d);
   background:rgba(48,209,88,.08);color:var(--primary);
   padding:10px 18px;
