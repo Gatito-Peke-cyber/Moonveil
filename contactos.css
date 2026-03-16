@@ -177,13 +177,13 @@ img,canvas{display:block;max-width:100%}
 .ci-online-dot.online{background:var(--primary);animation:onlinePing 2s ease-in-out infinite}
 
 .ci-meta{min-width:0;display:flex;flex-direction:column;gap:3px}
-.ci-name{font-family:var(--fo);font-size:.6rem;font-weight:700;display:flex;align-items:center;gap:5px;overflow:hidden}
+.ci-name{font-family:var(--fo);font-size:.55rem;font-weight:700;display:flex;align-items:center;gap:5px;overflow:hidden}
 .ci-name-text{color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ci-sub{font-family:var(--fv);font-size:.88rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* ── TITLE TAG — bigger now ── */
+/* ── TITLE TAG — readable size ── */
 .ci-title{
-  font-family:var(--fp);font-size:.26rem;letter-spacing:.5px;
+  font-family:var(--fp);font-size:.3rem;letter-spacing:.5px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   line-height:1.8;
 }
@@ -225,8 +225,8 @@ img,canvas{display:block;max-width:100%}
 }
 .chat-av img{width:100%;height:100%;object-fit:cover;display:block}
 .chat-peer-info{display:flex;flex-direction:column;gap:2px;min-width:0}
-.chat-peer-name{font-family:var(--fo);font-weight:700;font-size:.75rem;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:colorCycle 8s linear infinite}
-.chat-peer-status{font-family:var(--fv);font-size:.88rem;color:var(--muted)}
+.chat-peer-name{font-family:var(--fo);font-weight:700;font-size:.68rem;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:colorCycle 8s linear infinite}
+.chat-peer-status{font-family:var(--fv);font-size:.9rem;color:var(--muted)}
 .chat-peer-status.online{color:var(--primary)}
 .chat-hd-btns{display:flex;gap:5px;flex-shrink:0}
 
@@ -334,10 +334,10 @@ img,canvas{display:block;max-width:100%}
 
 /* Meta row */
 .msg .m-meta{
-  font-family:var(--fp);font-size:.18rem;color:var(--muted);
-  margin-top:5px;display:flex;align-items:center;gap:5px;opacity:.7;
+  font-family:var(--fp);font-size:.23rem;color:var(--muted);
+  margin-top:5px;display:flex;align-items:center;gap:5px;opacity:.75;
 }
-.msg .m-ticks{margin-left:auto;font-size:.2rem}
+.msg .m-ticks{margin-left:auto;font-size:.23rem}
 .msg .m-ticks.sent{color:var(--muted)}
 .msg .m-ticks.read{color:var(--primary)}
 
@@ -362,8 +362,8 @@ img,canvas{display:block;max-width:100%}
 .quick-bar{display:flex;flex-wrap:wrap;gap:5px;padding:7px 10px;border-top:2px solid var(--border);background:rgba(15,23,17,.6);flex-shrink:0;animation:fadeUp .2s ease;overflow-x:auto;scrollbar-width:none}
 .quick-bar::-webkit-scrollbar{display:none}
 .qr{
-  font-family:var(--fp);font-size:.22rem;border:2px solid var(--primary-d);
-  background:rgba(48,209,88,.06);color:var(--primary);padding:5px 9px;
+  font-family:var(--fp);font-size:.3rem;border:2px solid var(--primary-d);
+  background:rgba(48,209,88,.06);color:var(--primary);padding:6px 11px;
   box-shadow:2px 2px 0 #000;transition:.1s;letter-spacing:.5px;
   white-space:nowrap;flex-shrink:0;touch-action:manipulation;
 }

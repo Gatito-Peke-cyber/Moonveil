@@ -474,31 +474,49 @@ function openFriendChat(friend){
    GROUP CHAT
 ══════════════════════════════════════ */
 function openGroupChat(group){
-  const cid=`group_${group.id}`;
   const th=$('#thread');
-  th.innerHTML=`<div class="chat-empty"><div class="ce-desc">Cargando...</div></div>`;
+  th.innerHTML=`<div class="chat-empty"><div class="ce-desc">Cargando grupo...</div></div>`;
   let first=true;
-  msgUnsub=onSnapshot(query(collection(db,'groupChats',group.id,'messages'),orderBy('timestamp','asc'),limit(120)),
-    snap=>{
-      if(first){
-        first=false; th.innerHTML='';
-        if(snap.empty) th.innerHTML=`<div class="chat-empty"><div class="ce-icon">👥</div><div class="ce-desc">¡Empieza la conversación!</div></div>`;
-        snap.docs.forEach(d=>appendMsg({id:d.id,...d.data()},group,'group'));
-      } else {
-        snap.docChanges().forEach(ch=>{
-          if(ch.type==='added'){
-            const m={id:ch.doc.id,...ch.doc.data()};
-            if(m.senderId===CU.uid&&localSentIds.has(m._localId||'X')){localSentIds.delete(m._localId);const p=$(`[data-local-id="${CSS.escape(m._localId)}"]`);if(p)p.remove();}
-            $('#thread .chat-empty')?.remove();
-            appendMsg(m,group,'group');
-            if(m.senderId!==CU.uid)playNotif();
-          }
-        });
+
+  // Try with orderBy first (requires Firestore index); fall back to unordered if index missing
+  const buildQuery = (ordered=true) => ordered
+    ? query(collection(db,'groupChats',group.id,'messages'), orderBy('timestamp','asc'), limit(120))
+    : query(collection(db,'groupChats',group.id,'messages'), limit(120));
+
+  const startListen = (ordered=true) => {
+    if(msgUnsub){msgUnsub();msgUnsub=null;}
+    msgUnsub=onSnapshot(buildQuery(ordered),
+      snap=>{
+        if(first){
+          first=false; th.innerHTML='';
+          if(snap.empty) th.innerHTML=`<div class="chat-empty"><div class="ce-icon">👥</div><div class="ce-desc">¡Empieza la conversación!</div></div>`;
+          const docs = ordered ? snap.docs : [...snap.docs].sort((a,b)=>{const ta=a.data().timestamp?.toMillis?.()||0,tb=b.data().timestamp?.toMillis?.()||0;return ta-tb;});
+          docs.forEach(d=>appendMsg({id:d.id,...d.data()},group,'group'));
+        } else {
+          snap.docChanges().forEach(ch=>{
+            if(ch.type==='added'){
+              const m={id:ch.doc.id,...ch.doc.data()};
+              if(m.senderId===CU.uid&&localSentIds.has(m._localId||'X')){localSentIds.delete(m._localId);const p=$(`[data-local-id="${CSS.escape(m._localId)}"]`);if(p)p.remove();}
+              $('#thread .chat-empty')?.remove();
+              appendMsg(m,group,'group');
+              if(m.senderId!==CU.uid)playNotif();
+            }
+          });
+        }
+        scrollThread();
+      },
+      err=>{
+        console.warn('group snap err',err.code, err.message);
+        if(ordered && (err.code==='failed-precondition'||err.message?.includes('index'))){
+          // No composite index yet — retry without orderBy
+          first=true; startListen(false);
+        } else {
+          th.innerHTML=`<div class="chat-empty"><div class="ce-desc" style="color:var(--red)">Error cargando mensajes<br><small>${err.code||err.message}</small></div></div>`;
+        }
       }
-      scrollThread();
-    },
-    err=>console.error('group msg err',err)
-  );
+    );
+  };
+  startListen(true);
   const qb=$('#quickBar');
   qb.innerHTML=['👋','😄','🎮','🔥','⭐'].map(q=>`<button class="qr" data-q="${esc(q)}">${esc(q)}</button>`).join('');
   qb.classList.remove('hidden');
@@ -992,23 +1010,38 @@ $('#statusImgInput')?.addEventListener('change',e=>{
   const r=new FileReader(); r.onload=ev=>{const p=$('#statusImgPreview');if(p){p.src=ev.target.result;p.classList.remove('hidden');}const d=$('#statusImgDrop');if(d)d.style.display='none';}; r.readAsDataURL(f);
 });
 $('#statusCreatorPublish')?.addEventListener('click',async()=>{
-  const btn=$('#statusCreatorPublish');btn.textContent='⏳...';btn.disabled=true;
+  const btn=$('#statusCreatorPublish');
+  btn.textContent='⏳...';btn.disabled=true;
+  const reset=()=>{btn.textContent='PUBLICAR ►';btn.disabled=false;};
   try{
     const tab=$('.stab.active')?.dataset.tab||'text';
     if(tab==='text'){
       const text=$('#statusTextInput')?.value.trim();
-      if(!text){toast('Escribe algo primero','error');btn.textContent='PUBLICAR ►';btn.disabled=false;return;}
+      if(!text){toast('Escribe algo primero','error');reset();return;}
       await createStatus('text',text,'',scColor);
+      closeModal('#statusCreatorModal');
+      toast('✅ Estado publicado (15 días)');
     } else {
-      if(!scImg){toast('Selecciona una imagen','error');btn.textContent='PUBLICAR ►';btn.disabled=false;return;}
-      toast('📤 Subiendo...','info');
-      const url=await uploadImg(scImg,'statuses');
+      if(!scImg){toast('Selecciona una imagen primero','error');reset();return;}
+      toast('📤 Subiendo imagen...','info');
+      let url;
+      try{
+        url=await uploadImg(scImg,'statuses');
+      } catch(uploadErr){
+        console.error('upload error',uploadErr);
+        toast(`❌ Error al subir: ${uploadErr.code||uploadErr.message||'revisa las reglas de Storage'}`, 'error');
+        reset(); return;
+      }
       const cap=$('#statusImgCaption')?.value.trim()||'';
       await createStatus('image',url,cap,'');
+      closeModal('#statusCreatorModal');
+      toast('✅ Estado publicado (15 días)');
     }
-    closeModal('#statusCreatorModal');toast('✅ Estado publicado (15 días)');
-  } catch(e){toast('❌ Error','error');console.error(e);}
-  btn.textContent='PUBLICAR ►';btn.disabled=false;
+  } catch(e){
+    console.error('publish status error',e);
+    toast(`❌ Error: ${e.code||e.message||'inténtalo de nuevo'}`, 'error');
+  }
+  reset();
 });
 async function createStatus(type,content,caption,bgColor){
   const id=`st_${Date.now()}`,now=new Date(),exp=new Date(now.getTime()+15*24*3600*1000);
