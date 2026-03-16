@@ -5,12 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark light" />
   <title>Moonveil — Contactos</title>
+
+  <!-- Fuentes -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  
+  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23111610'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%2330d158'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%2316a34a'/%3E%3C/svg%3E">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="contactos.css" />
+
+  <meta name="description" content="Contactos estilo WhatsApp con respuestas por opciones, keywords, cliché o censura. Integrado con el diseño Moonveil Portal." />
 </head>
-<body>
+<body class="theme-auto">
   <!-- Fondo -->
   <div class="bg">
     <canvas id="bgParticles" aria-hidden="true"></canvas>
@@ -36,6 +44,7 @@
         <li><a href="index.html">Salir</a></li>
       </ul>
     </nav>
+
     <div class="hud-stats" aria-label="Indicadores">
       <div class="hud__bars">
         <div class="hud-bar hp" data-val="88" aria-label="Vida 88%"></div>
@@ -51,62 +60,46 @@
 
   <!-- Shell -->
   <main class="messenger" role="main">
-    <!-- Panel izquierdo -->
+    <!-- Panel izquierdo: contactos -->
     <aside class="panel panel--left" aria-label="Lista de contactos">
       <header class="panel__head">
         <div class="me">
-          <div class="avatar me__avatar" id="myAvatarWrap" aria-hidden="true">
-            <img src="img/imper.jpg" alt="" id="myAvatarImg" />
+          <div class="avatar me__avatar" aria-hidden="true">
+            <img src="img/imper.jpg" alt="" />
           </div>
           <div class="me__info">
-            <strong id="myDisplayName">Jugador</strong>
-            <small class="muted" id="myStatusText">Aqui en mi World</small>
+            <strong>Jugador</strong>
+            <small class="muted">Aqui en mi World</small>
           </div>
         </div>
         <div class="actions">
-          <button class="icon-btn" id="btnAddStatus" title="Agregar Estado">
-            <span class="icon-text">+</span>
-          </button>
-          <button class="icon-btn" id="btnNewChat" title="Nuevo chat">
-            <span class="icon i-plus"></span>
-          </button>
-          <button class="icon-btn" id="btnSettings" title="Ajustes">
-            <span class="icon i-gear"></span>
-          </button>
+          <button class="icon-btn" id="btnNewChat" title="Nuevo chat"><span class="icon i-plus"></span></button>
+          <button class="icon-btn" id="btnSettings" title="Ajustes"><span class="icon i-gear"></span></button>
         </div>
       </header>
 
       <div class="search-wrap">
         <input id="searchContacts" type="search" placeholder="Buscar contacto…" aria-label="Buscar contacto" />
       </div>
-
-      <!-- Barra de estados -->
+      
+      <!-- BARRA DE ESTADOS -->
       <div class="stories-bar">
         <button class="scroll-left" aria-label="Anterior">⟨</button>
         <div id="storiesContainer" class="stories-container"></div>
         <button class="scroll-right" aria-label="Siguiente">⟩</button>
       </div>
 
-      <!-- Separador: amigos -->
-      <div class="contacts-divider" id="dividerFriends" style="display:none">
-        <span>🤝 Amigos</span>
-      </div>
-      <!-- Amigos de Firebase -->
-      <div class="contacts-scroll" id="friendsScrollWrap" style="flex:0;min-height:0">
-        <ul id="friendList" class="contacts" role="listbox" aria-label="Amigos"></ul>
-      </div>
-
-      <!-- Separador: contactos bot -->
-      <div class="contacts-divider">
-        <span>🎮 Personajes</span>
-      </div>
+      <!-- LISTA DE CONTACTOS CON SCROLL -->
       <div class="contacts-scroll">
-        <ul id="contactList" class="contacts" role="listbox" aria-label="Contactos"></ul>
+        <ul id="contactList" class="contacts" role="listbox" aria-label="Contactos">
+          <!-- Items generados por JS -->
+        </ul>
       </div>
     </aside>
 
     <!-- Panel derecho: chat -->
     <section class="panel panel--right" aria-label="Chat">
+      <!-- Header chat -->
       <header class="chat__head" id="chatHead">
         <div class="chat__peer">
           <div class="avatar peer__avatar" id="peerAvatar" aria-hidden="true"></div>
@@ -122,334 +115,77 @@
         </div>
       </header>
 
-      <!-- Thread -->
+      <!-- Thread con altura fija y scroll -->
       <div id="thread" class="chat__thread" role="log" aria-live="polite" aria-relevant="additions">
         <div class="empty-hint">
           <h3>Bienvenido a Contactos</h3>
-          <p class="muted">Selecciona un contacto de la izquierda para empezar a chatear.</p>
+          <p class="muted">Selecciona un contacto de la izquierda para empezar a chatear. Estilo W, con opciones y respuestas dinámicas.</p>
         </div>
       </div>
 
       <!-- Quick replies -->
-      <div id="quickBar" class="chat__quick hidden" aria-label="Respuestas rápidas"></div>
-
-      <!-- Image preview strip -->
-      <div id="imgPreviewBar" class="img-preview-bar hidden">
-        <img id="imgPreviewThumb" alt="preview" />
-        <span id="imgPreviewName"></span>
-        <button id="imgPreviewRemove" aria-label="Quitar imagen">✕</button>
+      <div id="quickBar" class="chat__quick hidden" aria-label="Respuestas rápidas">
+        <!-- Botones generados por JS -->
       </div>
 
       <!-- Composer -->
       <form id="composer" class="chat__composer" autocomplete="off" novalidate>
         <button type="button" class="icon-btn" id="btnEmoji" title="Emojis"><span class="icon i-emoji"></span></button>
-        <button type="button" class="icon-btn" id="btnAttach" title="Adjuntar imagen"><span class="icon i-clip"></span></button>
-        <input type="file" id="imgInput" accept="image/*" style="display:none" aria-hidden="true" />
-
+        <button type="button" class="icon-btn" id="btnAttach" title="Adjuntar"><span class="icon i-clip"></span></button>
+        
         <input id="msgInput" name="message" type="text" placeholder="Escribe un mensaje…" aria-label="Escribir mensaje" />
 
         <button type="submit" class="btn btn--primary" id="btnSend" aria-label="Enviar">
-          <span class="btn__content"><span class="icon i-send"></span></span>
+          <span class="btn__content">
+            <span class="icon i-send"></span>
+          </span>
           <span class="btn__spinner" aria-hidden="true"></span>
         </button>
 
         <!-- Panel de Emojis -->
         <div id="emojiPanel" class="emoji-panel hidden">
           <div class="emoji-header">
-            <button type="button" data-category="smileys">😀</button>
-            <button type="button" data-category="animals">🐶</button>
-            <button type="button" data-category="food">🍕</button>
-            <button type="button" data-category="activity">⚽️</button>
-            <button type="button" data-category="hearts">❤️</button>
+            <button data-category="smileys">😀</button>
+            <button data-category="animals">🐶</button>
+            <button data-category="food">🍕</button>
+            <button data-category="activity">⚽️</button>
+            <button data-category="hearts">❤️</button>
           </div>
-          <div class="emoji-content" id="emojiContent"></div>
+          <div class="emoji-content" id="emojiContent">
+            <!-- emojis cargados por JS -->
+          </div>
         </div>
       </form>
     </section>
   </main>
 
-  <!-- ═══ VISOR DE ESTADOS ═══ -->
+  <!-- VISOR DE ESTADOS -->
   <div id="storyViewer" class="story-viewer">
     <div class="story-header">
-      <img id="viewerAvatar" class="viewer-avatar" alt="" />
-      <div class="viewer-info">
-        <span id="viewerName" class="viewer-name"></span>
-        <span id="viewerTime" class="viewer-time muted"></span>
-      </div>
-      <div class="viewer-actions">
-        <span id="viewerViews" class="viewer-views muted"></span>
-        <button id="closeViewer" aria-label="Cerrar">✕</button>
-      </div>
+      <img id="viewerAvatar" class="viewer-avatar" alt="">
+      <span id="viewerName" class="viewer-name"></span>
+      <button id="closeViewer" aria-label="Cerrar">✕</button>
     </div>
+
     <div class="progress-bars" id="progressBars"></div>
+
     <div id="storyContent" class="story-content"></div>
+
     <button class="prev-story" aria-label="Anterior">⟨</button>
     <button class="next-story" aria-label="Siguiente">⟩</button>
   </div>
 
-  <!-- ═══ CREAR ESTADO ═══ -->
-  <div class="modal" id="statusCreatorModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="statusCreatorTitle">
-    <div class="modal__overlay" id="statusCreatorOverlay"></div>
-    <div class="modal__dialog status-creator-dialog">
-      <header class="modal__head">
-        <h3 id="statusCreatorTitle">✨ Nuevo Estado</h3>
-        <button class="icon-btn" id="statusCreatorClose" aria-label="Cerrar"><span>✕</span></button>
-      </header>
-      <section class="modal__body">
-        <!-- Tabs -->
-        <div class="status-tabs">
-          <button class="status-tab active" data-tab="text">📝 Texto</button>
-          <button class="status-tab" data-tab="image">🖼️ Imagen</button>
-        </div>
-
-        <!-- Text status -->
-        <div id="statusTabText" class="status-tab-content">
-          <div class="status-preview-text" id="statusTextPreview">
-            <p id="statusTextPreviewContent">Tu estado aquí…</p>
-          </div>
-          <textarea id="statusTextInput" placeholder="¿Qué quieres compartir?" maxlength="150" rows="3"></textarea>
-          <div class="status-chars"><span id="statusCharCount">0</span>/150</div>
-          <div class="status-colors-label">Color de fondo:</div>
-          <div class="status-colors" id="statusColorPicker">
-            <button class="color-swatch active" data-color="#1a2a1e" style="background:#1a2a1e"></button>
-            <button class="color-swatch" data-color="#1a1a2e" style="background:#1a1a2e"></button>
-            <button class="color-swatch" data-color="#2e1a1a" style="background:#2e1a1a"></button>
-            <button class="color-swatch" data-color="#1a2e2a" style="background:#1a2e2a"></button>
-            <button class="color-swatch" data-color="#2e2a1a" style="background:#2e2a1a"></button>
-            <button class="color-swatch" data-color="#1e1e1e" style="background:#1e1e1e"></button>
-            <button class="color-swatch" data-color="#0d1512" style="background:#0d1512"></button>
-          </div>
-        </div>
-
-        <!-- Image status -->
-        <div id="statusTabImage" class="status-tab-content hidden">
-          <div class="status-img-drop" id="statusImgDrop">
-            <div class="drop-icon">🖼️</div>
-            <p>Arrastra una imagen o haz clic para elegir</p>
-            <input type="file" id="statusImgInput" accept="image/*" style="display:none" />
-          </div>
-          <img id="statusImgPreview" class="hidden" alt="preview" />
-          <input type="text" id="statusImgCaption" placeholder="Pie de foto (opcional)" />
-        </div>
-
-        <div class="status-expiry-note">⏳ El estado caduca automáticamente en <strong>15 días</strong></div>
-      </section>
-      <footer class="modal__foot">
-        <button class="btn btn--secondary" id="statusCreatorCancel">Cancelar</button>
-        <button class="btn btn--primary" id="statusCreatorPublish">Publicar Estado</button>
-      </footer>
-    </div>
-  </div>
-
-  <!-- ═══ AJUSTES ═══ -->
-  <div class="modal" id="settingsModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-    <div class="modal__overlay" id="settingsOverlay"></div>
-    <div class="modal__dialog settings-dialog">
-      <header class="modal__head">
-        <h3 id="settingsTitle">⚙️ Ajustes</h3>
-        <button class="icon-btn" id="settingsClose" aria-label="Cerrar"><span>✕</span></button>
-      </header>
-      <div class="settings-layout">
-        <!-- Sidebar de secciones -->
-        <nav class="settings-nav">
-          <button class="sett-nav-btn active" data-section="profile">👤 Perfil</button>
-          <button class="sett-nav-btn" data-section="notifications">🔔 Notificaciones</button>
-          <button class="sett-nav-btn" data-section="appearance">🎨 Apariencia</button>
-          <button class="sett-nav-btn" data-section="privacy">🔒 Privacidad</button>
-          <button class="sett-nav-btn" data-section="account">🪪 Mi Cuenta</button>
-          <button class="sett-nav-btn danger-nav" data-section="danger">⚠️ Peligro</button>
-        </nav>
-        <!-- Contenido -->
-        <div class="settings-content">
-
-          <!-- Perfil -->
-          <div class="sett-section active" id="sett-profile">
-            <h4>Perfil de Chat</h4>
-            <div class="sett-field">
-              <label>Nombre en chat</label>
-              <input type="text" id="settProfileName" placeholder="Tu nombre…" />
-            </div>
-            <div class="sett-field">
-              <label>Mensaje de estado</label>
-              <input type="text" id="settStatusMsg" placeholder="Aquí en mi World…" maxlength="60" />
-            </div>
-            <div class="sett-field">
-              <label>Avatar emoji</label>
-              <div class="emoji-avatar-picker" id="emojiAvatarPicker">
-                <!-- rendered by JS -->
-              </div>
-            </div>
-            <button class="btn btn--primary" id="settSaveProfile">💾 Guardar Perfil</button>
-          </div>
-
-          <!-- Notificaciones -->
-          <div class="sett-section" id="sett-notifications">
-            <h4>Notificaciones</h4>
-            <div class="sett-toggle-row">
-              <div>
-                <strong>Sonido de mensajes</strong>
-                <small class="muted">Reproduce un sonido al recibir mensajes</small>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="settSound" checked />
-                <span class="toggle-track"></span>
-              </label>
-            </div>
-            <div class="sett-toggle-row">
-              <div>
-                <strong>Badge de no leídos</strong>
-                <small class="muted">Muestra el contador de mensajes nuevos</small>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="settBadge" checked />
-                <span class="toggle-track"></span>
-              </label>
-            </div>
-            <div class="sett-toggle-row">
-              <div>
-                <strong>Notificaciones del navegador</strong>
-                <small class="muted">Requiere permiso del navegador</small>
-              </div>
-              <button class="btn btn--secondary btn-sm" id="settRequestNotif">Solicitar permiso</button>
-            </div>
-          </div>
-
-          <!-- Apariencia -->
-          <div class="sett-section" id="sett-appearance">
-            <h4>Apariencia</h4>
-            <div class="sett-field">
-              <label>Tamaño de fuente</label>
-              <div class="radio-group">
-                <label class="radio-opt"><input type="radio" name="fontSize" value="small" /> Pequeño</label>
-                <label class="radio-opt"><input type="radio" name="fontSize" value="normal" checked /> Normal</label>
-                <label class="radio-opt"><input type="radio" name="fontSize" value="large" /> Grande</label>
-              </div>
-            </div>
-            <div class="sett-field">
-              <label>Fondo del chat</label>
-              <div class="wallpaper-picker">
-                <button class="wp-opt active" data-wp="default"><span>🌲 Bosque</span></button>
-                <button class="wp-opt" data-wp="green"><span>💚 Verde</span></button>
-                <button class="wp-opt" data-wp="purple"><span>💜 Púrpura</span></button>
-                <button class="wp-opt" data-wp="blue"><span>💙 Azul</span></button>
-                <button class="wp-opt" data-wp="dark"><span>🖤 Negro</span></button>
-              </div>
-            </div>
-            <div class="sett-toggle-row">
-              <div>
-                <strong>Burbujas compactas</strong>
-                <small class="muted">Mensajes más juntos, más información visible</small>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="settCompact" />
-                <span class="toggle-track"></span>
-              </label>
-            </div>
-            <div class="sett-toggle-row">
-              <div>
-                <strong>Enter para enviar</strong>
-                <small class="muted">Shift+Enter para nueva línea</small>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="settEnterSend" checked />
-                <span class="toggle-track"></span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Privacidad -->
-          <div class="sett-section" id="sett-privacy">
-            <h4>Privacidad</h4>
-            <div class="sett-toggle-row">
-              <div>
-                <strong>Mostrar "última vez"</strong>
-                <small class="muted">Otros amigos verán cuando te conectaste</small>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="settLastSeen" checked />
-                <span class="toggle-track"></span>
-              </label>
-            </div>
-            <div class="sett-toggle-row">
-              <div>
-                <strong>Confirmaciones de lectura</strong>
-                <small class="muted">Tus amigos verán si leíste sus mensajes</small>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="settReadReceipts" checked />
-                <span class="toggle-track"></span>
-              </label>
-            </div>
-            <div class="sett-field">
-              <label>Ver mis estados</label>
-              <select id="settStoryVisibility">
-                <option value="friends">Mis amigos</option>
-                <option value="nobody">Nadie</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Cuenta -->
-          <div class="sett-section" id="sett-account">
-            <h4>Mi Cuenta</h4>
-            <div class="sett-info-block">
-              <span class="sett-info-label">Player ID</span>
-              <div class="player-id-row">
-                <code id="settPlayerId">—</code>
-                <button class="btn btn--secondary btn-sm" id="settCopyPlayerId">📋 Copiar</button>
-              </div>
-              <small class="muted">Comparte tu Player ID con amigos para que puedan encontrarte en Perfiles.</small>
-            </div>
-            <div class="sett-info-block">
-              <span class="sett-info-label">Correo</span>
-              <p id="settEmail" class="muted">—</p>
-            </div>
-            <div class="sett-info-block">
-              <span class="sett-info-label">Versión</span>
-              <p class="muted">Moonveil Contactos v2.0</p>
-            </div>
-          </div>
-
-          <!-- Peligro -->
-          <div class="sett-section" id="sett-danger">
-            <h4>Zona de Peligro</h4>
-            <div class="danger-block">
-              <div>
-                <strong>Limpiar historial de bots</strong>
-                <small class="muted">Borra todos los mensajes con personajes (local)</small>
-              </div>
-              <button class="btn btn--danger" id="settClearBotChats">🗑️ Limpiar</button>
-            </div>
-            <div class="danger-block">
-              <div>
-                <strong>Eliminar mis estados</strong>
-                <small class="muted">Borra todos tus estados publicados</small>
-              </div>
-              <button class="btn btn--danger" id="settDeleteStatuses">🗑️ Eliminar</button>
-            </div>
-            <div class="danger-block">
-              <div>
-                <strong>Cerrar sesión</strong>
-                <small class="muted">Saldrás de tu cuenta Moonveil</small>
-              </div>
-              <button class="btn btn--danger" id="settSignOut">🚪 Cerrar sesión</button>
-            </div>
-          </div>
-
-        </div><!-- /settings-content -->
-      </div><!-- /settings-layout -->
-    </div>
-  </div>
-
-  <!-- ═══ MODAL INFO CONTACTO ═══ -->
+  <!-- Modal info contacto -->
   <div class="modal" id="contactModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal__overlay" id="modalOverlay"></div>
-    <div class="modal__dialog">
+    <div class="modal__dialog" role="document">
       <header class="modal__head">
         <h3 id="modalTitle">Contacto</h3>
-        <button class="icon-btn" id="modalClose" aria-label="Cerrar"><span>✕</span></button>
+        <button class="icon-btn" id="modalClose" aria-label="Cerrar"><span class="i i-close"></span></button>
       </header>
-      <section class="modal__body" id="modalBody"></section>
+      <section class="modal__body" id="modalBody">
+        <!-- Info generada por JS -->
+      </section>
       <footer class="modal__foot">
         <button class="btn btn--primary" id="modalAction">Aceptar</button>
       </footer>
@@ -459,17 +195,15 @@
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Música -->
+  <!-- Botón flotante de música -->
   <button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
+
+  <!-- Música de fondo -->
   <audio id="bg-music" loop>
     <source src="music/november.mp3" type="audio/mpeg" />
   </audio>
 
-  <!-- Notification sound (silent ping) -->
-  <audio id="notifSound" preload="auto">
-    <source src="music/1234.mp3" type="audio/mpeg" />
-  </audio>
-
+  <!-- JS -->
   <script type="module" src="contactos.js"></script>
 </body>
 </html>
