@@ -1,6 +1,6 @@
 /* ================================================================
    Moonveil Portal — Contactos v4
-   FIXED: duplicate msgs · image sending · mobile · groups support
+   UPDATED: group description · save icon btn · kick member · creation date
    ================================================================ */
 import { auth, db, storage } from './firebase.js';
 import {
@@ -44,6 +44,13 @@ const timeAgo = iso => {
 const fmtText = s => esc(String(s)).replace(/\n/g,'<br>').replace(/(https?:\/\/[^\s<&]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
 const chatId = (a,b) => [a,b].sort().join('_');
 const lsGet = k => { try{return JSON.parse(localStorage.getItem(k));}catch{return null;} };
+const fmtDateLong = iso => {
+  if(!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'});
+  } catch { return '—'; }
+};
 
 /* ── Settings ── */
 const S_DEF = {sound:true,badge:true,fontSize:'normal',wallpaper:'default',compact:false,enterSend:true,lastSeen:true,readReceipts:true,storyVisibility:'friends',profileName:'',statusMsg:'Aqui en mi World',emojiAvatar:'🌙'};
@@ -162,8 +169,6 @@ let myStatuses=[], friendStatuses={};
 let pendingFile=null, pendingDataUrl=null;
 const muted=new Set(), pinned=new Set();
 let typingNode=null;
-
-/* KEY FIX: track message IDs we just sent so we don't show them twice */
 const localSentIds = new Set();
 
 /* ── Scroll thread ── */
@@ -282,7 +287,6 @@ async function loadGroups() {
     const q = query(collection(db,'groups'), where('members','array-contains',CU.uid));
     const snap = await getDocs(q);
     groupList = snap.docs.map(d=>mkGroup(d.id,d.data()));
-    // subscribe to each group's messages for unread count
     groupList.forEach(g=>{
       onSnapshot(doc(db,'groups',g.id),snap2=>{
         if(!snap2.exists()) return;
@@ -290,13 +294,28 @@ async function loadGroups() {
         groupList[idx].name=d.name||groupList[idx].name;
         groupList[idx].icon=d.icon||groupList[idx].icon;
         groupList[idx].iconUrl=d.iconUrl||groupList[idx].iconUrl;
+        groupList[idx].description=d.description||groupList[idx].description||'';
         renderGroups();
       });
     });
     renderGroups();
   } catch(e){console.warn('loadGroups',e);}
 }
-function mkGroup(id,d){return{id,type:'group',name:d.name||'Grupo',icon:d.icon||'👥',iconUrl:d.iconUrl||null,members:d.members||[],createdBy:d.createdBy||'',unread:0};}
+
+/* mkGroup now includes description and createdAt */
+function mkGroup(id,d){
+  let createdAt = null;
+  try {
+    if(d.createdAt?.toDate) createdAt = d.createdAt.toDate().toISOString();
+    else if(d.createdAt) createdAt = d.createdAt;
+  } catch {}
+  return {
+    id, type:'group', name:d.name||'Grupo', icon:d.icon||'👥',
+    iconUrl:d.iconUrl||null, description:d.description||'',
+    members:d.members||[], createdBy:d.createdBy||'',
+    createdAt, unread:0
+  };
+}
 
 /* ══════════════════════════════════════
    RENDER ALL
@@ -309,7 +328,7 @@ function renderGroups(){
   const filtered=groupList.filter(c=>!q||c.name.toLowerCase().includes(q));
   if(!groupList.length){if(div)div.style.display='none';if(wrap){wrap.style.maxHeight='0';wrap.style.overflow='hidden';}list.innerHTML='';return;}
   if(div)div.style.display='flex';
-  if(wrap){wrap.style.maxHeight=Math.min(filtered.length*60+10,240)+'px';wrap.style.overflow='auto';}
+  if(wrap){wrap.style.maxHeight=Math.min(filtered.length*68+10,260)+'px';wrap.style.overflow='auto';}
   list.innerHTML=filtered.map(c=>groupItem(c)).join('');
   $$('.contact-item',list).forEach(li=>li.addEventListener('click',()=>selectContact(li.dataset.id)));
 }
@@ -317,10 +336,12 @@ function groupItem(c){
   const active=currentId===c.id;
   const avEl=c.iconUrl?`<img src="${esc(c.iconUrl)}" alt="" />`:`<span style="font-size:1.4rem">${esc(c.icon)}</span>`;
   const unread=c.unread?`<span class="ci-unread gr">${c.unread>99?'99+':c.unread}</span>`:'';
+  const descHtml=c.description?`<div class="ci-desc">${esc(c.description)}</div>`:'';
   return`<li class="contact-item group-t ${active?'active':''}" data-id="${esc(c.id)}">
     <div class="ci-av">${avEl}</div>
     <div class="ci-meta">
       <div class="ci-name"><span class="ci-name-text">${esc(c.name)}</span><span class="ci-badge group">GRUPO</span></div>
+      ${descHtml}
       <div class="ci-sub">${c.members.length} miembros</div>
     </div>
     <div class="ci-extra">${unread}</div>
@@ -409,7 +430,10 @@ function updateChatHd(c){
   const ps=$('#peerStatus');
   if(ps){
     if(c.type==='friend'){if(c.online){ps.textContent='● EN LÍNEA';ps.className='chat-peer-status online';}else{ps.textContent=`Visto ${timeAgo(c.lastSeen)}`;ps.className='chat-peer-status';}}
-    else if(c.type==='group'){ps.textContent=`${c.members.length} miembros`;ps.className='chat-peer-status';}
+    else if(c.type==='group'){
+      const descText=c.description?` · ${c.description}`:'';
+      ps.textContent=`${c.members.length} miembros${descText}`;ps.className='chat-peer-status';
+    }
     else{ps.textContent=c.online?'● EN LÍNEA':'○ DESCONECTADO';ps.className='chat-peer-status'+(c.online?' online':'');}
   }
 }
@@ -431,9 +455,7 @@ function botReply(bot,text){
 }
 
 /* ══════════════════════════════════════
-   FRIEND CHAT — KEY FIX: no duplicate messages
-   We DON'T call pushMe for friend chats.
-   Firebase snapshot handles ALL rendering.
+   FRIEND CHAT
 ══════════════════════════════════════ */
 function openFriendChat(friend){
   currentFriendUid=friend.uid;
@@ -452,7 +474,6 @@ function openFriendChat(friend){
         snap.docChanges().forEach(ch=>{
           if(ch.type==='added'){
             const m={id:ch.doc.id,...ch.doc.data()};
-            // Remove "sending" placeholder if we sent this
             if(m.senderId===CU.uid&&localSentIds.has(m._localId||'X')){localSentIds.delete(m._localId);const p=$(`[data-local-id="${CSS.escape(m._localId)}"]`);if(p)p.remove();}
             $('#thread .chat-empty')?.remove();
             appendMsg(m,friend,'friend');
@@ -478,7 +499,6 @@ function openGroupChat(group){
   th.innerHTML=`<div class="chat-empty"><div class="ce-desc">Cargando grupo...</div></div>`;
   let first=true;
 
-  // Try with orderBy first (requires Firestore index); fall back to unordered if index missing
   const buildQuery = (ordered=true) => ordered
     ? query(collection(db,'groupChats',group.id,'messages'), orderBy('timestamp','asc'), limit(120))
     : query(collection(db,'groupChats',group.id,'messages'), limit(120));
@@ -508,7 +528,6 @@ function openGroupChat(group){
       err=>{
         console.warn('group snap err',err.code, err.message);
         if(ordered && (err.code==='failed-precondition'||err.message?.includes('index'))){
-          // No composite index yet — retry without orderBy
           first=true; startListen(false);
         } else {
           th.innerHTML=`<div class="chat-empty"><div class="ce-desc" style="color:var(--red)">Error cargando mensajes<br><small>${err.code||err.message}</small></div></div>`;
@@ -524,7 +543,7 @@ function openGroupChat(group){
 }
 
 /* ══════════════════════════════════════
-   appendMsg — unified renderer for friend & group messages
+   appendMsg
 ══════════════════════════════════════ */
 function appendMsg(msg, contact, chatType) {
   const s=getS();
@@ -532,7 +551,6 @@ function appendMsg(msg, contact, chatType) {
   const node=document.createElement('div');
   node.className=`msg ${chatType}-msg ${isMine?'me':'peer'} ${s.compact?'compact':''}`;
 
-  // Avatar
   let avHtml='';
   if(isMine){
     const av=s.emojiAvatar||myProfile.avatar||'👤';
@@ -547,25 +565,21 @@ function appendMsg(msg, contact, chatType) {
     }
   }
 
-  // Sender name for groups
   let senderName='';
   if(chatType==='group'&&!isMine){
     const sn=msg.senderName||'Jugador';
     senderName=`<div class="m-sender">${esc(sn.toUpperCase())}</div>`;
   }
 
-  // Content — use raw URL in src (Firebase download URLs are safe; esc() is not needed for src)
   let content='';
   if(msg.type==='image'&&msg.imageUrl){
     const url=msg.imageUrl;
-    // onerror: replace with a "no disponible" card
-    const errHandler=`this.parentElement.innerHTML='<div class=\\"img-error\\"><span>🖼️</span><span>IMAGEN NO DISPONIBLE</span><span style=\\"font-size:.18rem\\">Verifica reglas de Storage</span></div>'`;
+    const errHandler=`this.parentElement.innerHTML='<div class=\\"img-error\\"><span>🖼️</span><span>IMAGEN NO DISPONIBLE</span></div>'`;
     content=`<img src="${url}" alt="imagen" class="chat-image" crossorigin="anonymous" onerror="${errHandler}" onclick="window.open('${url}','_blank')" loading="lazy" />`;
   } else {
     content=`<div class="m-text">${fmtText(msg.text||'')}</div>`;
   }
 
-  // Timestamp
   let ts=timeNow();
   if(msg.timestamp?.toDate){try{ts=new Intl.DateTimeFormat('es-PE',{hour:'2-digit',minute:'2-digit'}).format(msg.timestamp.toDate());}catch{}}
 
@@ -575,7 +589,7 @@ function appendMsg(msg, contact, chatType) {
 }
 
 /* ══════════════════════════════════════
-   SEND TO FIREBASE — optimistic placeholder
+   SEND TO FIREBASE
 ══════════════════════════════════════ */
 async function sendFriendMsg(text,imageUrl,localId){
   const cid=chatId(CU.uid,currentFriendUid);
@@ -597,7 +611,9 @@ async function sendGroupMsg(text,imageUrl,localId){
 }
 
 /* ══════════════════════════════════════
-   IMAGE UPLOAD
+   IMAGE UPLOAD — used for chat, status, and group icons
+   NOTE: Make sure your Firebase Storage rules allow writes:
+   allow write: if request.auth != null;
 ══════════════════════════════════════ */
 async function uploadImg(file,folder='chat_images'){
   const path=`${folder}/${CU.uid}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._]/g,'_')}`;
@@ -625,7 +641,7 @@ $('#imgPreviewRemove')?.addEventListener('click',clearImgPreview);
 function clearImgPreview(){pendingFile=null;pendingDataUrl=null;const b=$('#imgPreviewBar');if(b)b.classList.add('hidden');const i=$('#imgInput');if(i)i.value='';}
 
 /* ══════════════════════════════════════
-   SEND MESSAGE — MAIN
+   SEND MESSAGE
 ══════════════════════════════════════ */
 const composer=$('#composer'), msgInput=$('#msgInput');
 composer?.addEventListener('submit',async e=>{
@@ -647,7 +663,6 @@ async function sendMsg(text){
   clearImgPreview();
 
   if(currentType==='bot'){
-    // Bots: show immediately, then reply
     pushPeer({name:'me',avatar:getS().emojiAvatar||myProfile.avatar||'👤',aT:'emoji'},text,'_me');
     if(!text) return;
     const bot=BOTS.find(c=>c.id===currentId); if(!bot) return;
@@ -656,41 +671,37 @@ async function sendMsg(text){
     return;
   }
 
-  // Friend / Group: optimistic placeholder, then Firebase handles actual display
   const localId=`local_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   localSentIds.add(localId);
-
-  // Show optimistic bubble
   showOptimisticMsg(text, dataUrl, localId);
 
   if(currentType==='friend'){
     if(file){
       try{
-        toast('📤 Subiendo...','info');
+        toast('📤 Subiendo imagen...','info');
         const url=await uploadImg(file);
         removeOptimistic(localId);
         await sendFriendMsg(text||null,url,localId);
         toast('✅ Imagen enviada');
-      } catch(e){toast('❌ Error subiendo imagen','error');removeOptimistic(localId);localSentIds.delete(localId);}
+      } catch(e){toast(`❌ Error: ${e.code||'revisa reglas de Storage'},'error`);removeOptimistic(localId);localSentIds.delete(localId);}
     } else if(text){
       await sendFriendMsg(text,null,localId);
     }
   } else if(currentType==='group'){
     if(file){
       try{
-        toast('📤 Subiendo...','info');
+        toast('📤 Subiendo imagen...','info');
         const url=await uploadImg(file,'group_images');
         removeOptimistic(localId);
         await sendGroupMsg(text||null,url,localId);
         toast('✅ Imagen enviada');
-      } catch(e){toast('❌ Error subiendo imagen','error');removeOptimistic(localId);localSentIds.delete(localId);}
+      } catch(e){toast(`❌ Error: ${e.code||'revisa reglas de Storage'},'error`);removeOptimistic(localId);localSentIds.delete(localId);}
     } else if(text){
       await sendGroupMsg(text,null,localId);
     }
   }
 }
 
-/* optimistic message bubble — shown while waiting for Firebase confirm */
 function showOptimisticMsg(text,dataUrl,localId){
   const s=getS(), av=s.emojiAvatar||myProfile.avatar||'👤';
   const th=$('#thread'); if(!th) return;
@@ -701,7 +712,7 @@ function showOptimisticMsg(text,dataUrl,localId){
   let content='';
   if(dataUrl){content=`<img src="${dataUrl}" class="chat-image" alt="enviando..." />`;}
   if(text){content+=`<div class="m-text">${fmtText(text)}</div>`;}
-  node.innerHTML=`<div class="m-av">${avHTML(av,28)}</div><div class="bubble">${content}<div class="m-meta"><span>${timeNow()}</span><span class="m-ticks" style="font-size:.27rem">⟳</span></div></div>`;
+  node.innerHTML=`<div class="m-av">${avHTML(av,28)}</div><div class="bubble">${content}<div class="m-meta"><span>${timeNow()}</span><span class="m-ticks" style="font-size:.27rem;animation:spin .8s linear infinite">⟳</span></div></div>`;
   th.appendChild(node);
   scrollThread();
 }
@@ -719,7 +730,6 @@ function pushPeer(c,content){
   else if(content?.type==='audio') inner=`<audio controls src="${esc(content.url)}" class="chat-audio"></audio>`;
   else if(content?.type==='video') inner=`<video controls class="chat-video"><source src="${esc(content.url)}" type="video/mp4"></video>`;
   else if(content?.type==='pdf') inner=`<a href="${esc(content.url)}" target="_blank" class="chat-file">📄 VER PDF</a>`;
-  // special: own message for bot chat
   if(c.name==='me'){node.className=`msg me ${s.compact?'compact':''}`;node.innerHTML=`<div class="m-av">${avHTML(c.avatar||'👤',28)}</div><div class="bubble"><div class="m-text">${fmtText(typeof content==='string'?content:'')}</div><div class="m-meta"><span>${timeNow()}</span><span class="m-ticks sent">✓✓</span></div></div>`;th.appendChild(node);scrollThread();return;}
   node.innerHTML=`<div class="m-av">${avHTML(c.avatar,28)}</div><div class="bubble">${inner}<div class="m-meta">${timeNow()}</div></div>`;
   th.appendChild(node); scrollThread();
@@ -752,7 +762,6 @@ $('#btnInfo')?.addEventListener('click',()=>{
 $('#btnPin')?.addEventListener('click',()=>{if(!currentId)return;if(pinned.has(currentId)){pinned.delete(currentId);toast('Desanclado');}else{pinned.add(currentId);toast('📌 Anclado');}renderAll();});
 $('#btnMute')?.addEventListener('click',()=>{if(!currentId)return;if(muted.has(currentId)){muted.delete(currentId);toast('🔔 Sonido activado');}else{muted.add(currentId);toast('🔕 Silenciado');}});
 
-/* Notification */
 function playNotif(){if(!getS().sound||muted.has(currentId))return;try{const a=$('#notifSound');if(a){a.currentTime=0;a.play().catch(()=>{});}}catch{}}
 
 /* ══════════════════════════════════════
@@ -781,19 +790,6 @@ function openFriendInfo(c){
   </div>`;
   openModal('#contactModal');
 }
-function openGroupInfo(g){
-  $('#modalTitle').textContent=g.name.toUpperCase();
-  const memberNames=g.members.map(uid=>{const f=friendList.find(x=>x.uid===uid);return f?esc(f.name):uid===CU.uid?'Tú':'Miembro';}).join(', ');
-  $('#modalBody').innerHTML=`<div class="modal-info-grid">
-    <div class="mig-block"><div class="mig-title">GRUPO</div>
-      <div style="font-size:2rem;text-align:center;margin:8px 0">${g.iconUrl?`<img src="${esc(g.iconUrl)}" style="width:52px;height:52px;object-fit:cover;border:2px solid var(--purple)" />`:`<span style="font-size:2rem">${esc(g.icon)}</span>`}</div>
-      <div class="mig-row"><strong>Nombre:</strong> ${esc(g.name)}</div>
-      <div class="mig-row"><strong>Miembros:</strong> ${g.members.length}</div>
-    </div>
-    <div class="mig-block full"><div class="mig-title">MIEMBROS</div><div class="mig-row">${memberNames}</div></div>
-  </div>`;
-  openModal('#contactModal');
-}
 function openBotInfo(c){
   $('#modalTitle').textContent=c.name.toUpperCase();
   $('#modalBody').innerHTML=`<div class="modal-info-grid"><div class="mig-block"><div class="mig-title">PERFIL</div><div class="mig-row"><strong>Alias:</strong> ${esc(c.alias)}</div></div><div class="mig-block"><div class="mig-title">ESTADO</div><div class="mig-row">${c.online?'🟢 EN LÍNEA':'⚫ DESCONECTADO'}</div></div><div class="mig-block full"><div class="mig-title">DESC.</div><div class="mig-row">${esc(c.desc)}</div></div></div>`;
@@ -801,7 +797,7 @@ function openBotInfo(c){
 }
 
 /* ══════════════════════════════════════
-   GROUP SETTINGS — leave · dissolve · members · edit
+   GROUP SETTINGS — UPDATED with description, kick, creation date, save icon btn
 ══════════════════════════════════════ */
 const GROUP_EMOJIS_SETTINGS=['👥','⚔️','🎮','🌙','🔥','💎','🏆','🌿','🚀','🎯','🎵','⭐','🐺','🦊','🌈','💜'];
 let gsCurrentGroup=null, gsNewIconFile=null, gsNewIconEmoji=null;
@@ -824,16 +820,37 @@ function openGroupSettings(group){
 
   // Name + meta
   const nd=$('#gsGroupNameDisplay');if(nd)nd.textContent=group.name;
-  const gm=$('#gsGroupMeta');if(gm)gm.textContent=`${group.members.length} miembros · creado por ${isCreator?'ti':'otro'}`;
+  const gm=$('#gsGroupMeta');if(gm)gm.textContent=`${group.members.length} miembros · ${isCreator?'eres el creador':'miembro'}`;
+
+  // Creation date
+  const gd=$('#gsCreatedDate');
+  if(gd) gd.textContent = group.createdAt ? fmtDateLong(group.createdAt) : '—';
+
+  // Description
+  const descDisplay=$('#gsGroupDescDisplay');
+  if(descDisplay){
+    descDisplay.textContent = group.description || 'Sin descripción';
+    descDisplay.classList.toggle('empty', !group.description);
+  }
+  const descInput=$('#gsDescInput');
+  if(descInput) descInput.value = group.description||'';
+  $('#gsDescEditRow')?.classList.add('hidden');
+
+  // Show/hide edit buttons based on creator
+  const editDescBtn=$('#gsBtnEditDesc');
+  if(editDescBtn) editDescBtn.style.display=isCreator?'':'none';
 
   // Edit name row visibility
   $('#gsNameEditRow')?.classList.add('hidden');
   const editBtn=$('#gsBtnEditName');
-  if(editBtn){editBtn.style.display=isCreator?'':'none';}
+  if(editBtn) editBtn.style.display=isCreator?'':'none';
 
   // Icon section visibility
   const iconSec=$('#gsIconSection');
-  if(iconSec){iconSec.style.display=isCreator?'':'none';}
+  if(iconSec) iconSec.style.display=isCreator?'':'none';
+
+  // Hide save icon bar initially
+  $('#gsSaveIconBar')?.classList.add('hidden');
 
   // Build emoji grid for settings
   const gg=$('#gsEmojiGrid');
@@ -843,6 +860,8 @@ function openGroupSettings(group){
       gsNewIconEmoji=b.dataset.ge;gsNewIconFile=null;
       $$('.group-em',gg).forEach(x=>x.classList.remove('active'));b.classList.add('active');
       const iw=$('#gsIconWrap');if(iw){iw.innerHTML='';iw.textContent=gsNewIconEmoji;}
+      // Show save icon bar
+      $('#gsSaveIconBar')?.classList.remove('hidden');
     }));
   }
   const gs=$('#gsImgStatus');if(gs)gs.textContent='';
@@ -852,8 +871,8 @@ function openGroupSettings(group){
 
   // Add member section
   const addSec=$('#gsAddSection');
-  if(addSec){addSec.style.display=isCreator?'':'none';}
-  if(isCreator)renderGsAddList(group);
+  if(addSec) addSec.style.display=isCreator?'':'none';
+  if(isCreator) renderGsAddList(group);
 
   // Footer buttons
   const leaveBtn=$('#gsBtnLeave');
@@ -869,10 +888,11 @@ function openGroupSettings(group){
   openModal('#groupSettingsModal');
 }
 
+/* renderGsMembers — with kick button for creator */
 function renderGsMembers(group,isCreator){
   const list=$('#gsMembersList'),cnt=$('#gsMemberCount');
   if(!list) return;
-  if(cnt)cnt.textContent=`(${group.members.length})`;
+  if(cnt) cnt.textContent=`(${group.members.length})`;
   const s=getS();
   list.innerHTML=group.members.map(uid=>{
     const isMe=uid===CU.uid;
@@ -883,6 +903,7 @@ function renderGsMembers(group,isCreator){
     const titleId=isMe?'':(f?f.titleId:'');
     const t=titleId?TM[titleId]:null;
     const isCreatorMember=uid===group.createdBy;
+    const canKick=isCreator&&!isMe&&!isCreatorMember;
     return`<div class="gs-member ${online?'online-m':''}">
       <div class="gs-m-av">${avHTML(avatar,36)}<div class="gs-m-status-dot ${online?'online':''}"></div></div>
       <div class="gs-m-info">
@@ -890,8 +911,41 @@ function renderGsMembers(group,isCreator){
         ${t?`<div class="gs-m-title ci-title tp-${t.r}">✦ ${esc(t.n)} ✦</div>`:''}
         <div class="gs-m-conn ${online?'online':'offline'}">${online?'● EN LÍNEA':'○ DESCONECTADO'}</div>
       </div>
+      ${canKick?`<button class="gs-kick-btn" data-uid="${esc(uid)}">✕ EXPULSAR</button>`:''}
     </div>`;
   }).join('');
+
+  // Kick event listeners
+  list.querySelectorAll('.gs-kick-btn').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      const uid=btn.dataset.uid;
+      const f=friendList.find(x=>x.uid===uid);
+      const name=f?f.name:'este miembro';
+      if(!confirm(`¿Expulsar a ${name} del grupo "${gsCurrentGroup.name}"?`)) return;
+      btn.disabled=true;btn.textContent='⟳';
+      await kickMemberFromGroup(gsCurrentGroup.id, uid);
+      toast(`✅ ${name} expulsado del grupo`);
+    });
+  });
+}
+
+/* ── Kick member ── */
+async function kickMemberFromGroup(groupId, uid){
+  try {
+    await updateDoc(doc(db,'groups',groupId),{members:arrayRemove(uid)});
+    const idx=groupList.findIndex(x=>x.id===groupId);
+    if(idx>=0){
+      groupList[idx].members=groupList[idx].members.filter(m=>m!==uid);
+      if(gsCurrentGroup?.id===groupId) gsCurrentGroup.members=gsCurrentGroup.members.filter(m=>m!==uid);
+      const isCreator=groupList[idx].createdBy===CU.uid;
+      renderGsMembers(groupList[idx],isCreator);
+      const cnt=$('#gsMemberCount');
+      if(cnt) cnt.textContent=`(${groupList[idx].members.length})`;
+      const gm=$('#gsGroupMeta');
+      if(gm) gm.textContent=`${groupList[idx].members.length} miembros · eres el creador`;
+      renderGroups();
+    }
+  } catch(e){toast('❌ Error expulsando','error');console.error(e);}
 }
 
 function renderGsAddList(group){
@@ -900,7 +954,7 @@ function renderGsAddList(group){
   if(!notIn.length){list.innerHTML=`<p class="gs-no-friends">Todos tus amigos ya están en el grupo</p>`;return;}
   list.innerHTML=notIn.map(f=>{
     return`<div class="gs-add-row" data-uid="${esc(f.uid)}">
-      <div class="gs-m-av" style="width:32px;height:32px;font-size:1rem;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${avHTML(f.avatar,32)}</div>
+      <div style="width:32px;height:32px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${avHTML(f.avatar,32)}</div>
       <span style="font-family:var(--fp);font-size:.26rem;color:var(--white);flex:1">${esc(f.name.toUpperCase())}</span>
       <button class="gs-add-btn" data-uid="${esc(f.uid)}">➕ AÑADIR</button>
     </div>`;
@@ -913,7 +967,7 @@ function renderGsAddList(group){
   }));
 }
 
-// Group settings event listeners
+/* Group settings event listeners */
 $('#groupSettingsClose')?.addEventListener('click',()=>closeModal('#groupSettingsModal'));
 $('#groupSettingsOverlay')?.addEventListener('click',()=>closeModal('#groupSettingsModal'));
 
@@ -939,7 +993,31 @@ $('#gsSaveName')?.addEventListener('click',async()=>{
   btn.disabled=false;btn.textContent='✓';
 });
 
-// Group icon image upload
+/* Description edit */
+$('#gsBtnEditDesc')?.addEventListener('click',()=>{
+  const row=$('#gsDescEditRow');row?.classList.remove('hidden');
+  const inp=$('#gsDescInput');if(inp){inp.value=gsCurrentGroup?.description||'';inp.focus();}
+});
+$('#gsCancelDesc')?.addEventListener('click',()=>$('#gsDescEditRow')?.classList.add('hidden'));
+$('#gsSaveDesc')?.addEventListener('click',async()=>{
+  const desc=$('#gsDescInput')?.value.trim()||'';
+  const btn=$('#gsSaveDesc');btn.disabled=true;btn.textContent='⟳';
+  try{
+    await updateDoc(doc(db,'groups',gsCurrentGroup.id),{description:desc});
+    gsCurrentGroup.description=desc;
+    const idx=groupList.findIndex(x=>x.id===gsCurrentGroup.id);
+    if(idx>=0) groupList[idx].description=desc;
+    const display=$('#gsGroupDescDisplay');
+    if(display){display.textContent=desc||'Sin descripción';display.classList.toggle('empty',!desc);}
+    $('#gsDescEditRow')?.classList.add('hidden');
+    updateChatHd(gsCurrentGroup);
+    renderGroups();
+    toast('✅ Descripción actualizada');
+  }catch(e){toast('❌ Error','error');console.error(e);}
+  btn.disabled=false;btn.textContent='✓ GUARDAR';
+});
+
+/* Group icon image upload */
 $('#gsBtnImgIcon')?.addEventListener('click',()=>$('#gsIconImgInput')?.click());
 $('#gsIconImgInput')?.addEventListener('change',e=>{
   const f=e.target.files?.[0]; if(!f) return;
@@ -947,26 +1025,24 @@ $('#gsIconImgInput')?.addEventListener('change',e=>{
   const r=new FileReader(); r.onload=ev=>{
     const iw=$('#gsIconWrap');if(iw)iw.innerHTML=`<img src="${ev.target.result}" alt="" />`;
     const gs=$('#gsImgStatus');if(gs)gs.textContent=f.name.slice(0,20)+'...';
+    // Show save bar
+    $('#gsSaveIconBar')?.classList.remove('hidden');
   }; r.readAsDataURL(f);
 });
 
-// Auto-save icon when emoji/image chosen (save button on icon section)
-// Actually save happens when user explicitly saves - we track gsNewIconEmoji/gsNewIconFile
-// Add a "Guardar icono" button area
-$('#gsIconWrap')?.addEventListener('click',()=>{
-  if(gsCurrentGroup?.createdBy!==CU?.uid) return;
-  if(!gsNewIconEmoji&&!gsNewIconFile){toast('Elige un emoji o imagen primero','info');return;}
-  saveGroupIcon();
-});
+/* EXPLICIT SAVE ICON BUTTON */
+$('#gsBtnSaveIcon')?.addEventListener('click',saveGroupIcon);
+
 async function saveGroupIcon(){
-  const btn=$('#gsBtnImgIcon'); if(btn){btn.disabled=true;}
+  if(!gsNewIconEmoji&&!gsNewIconFile){toast('Elige un emoji o imagen primero','info');return;}
+  const btn=$('#gsBtnSaveIcon');if(btn){btn.disabled=true;btn.textContent='⟳ GUARDANDO...';}
   try{
     let iconUrl=gsCurrentGroup.iconUrl||null;
     let icon=gsCurrentGroup.icon||'👥';
     if(gsNewIconFile){
       toast('📤 Subiendo icono...','info');
       try{iconUrl=await uploadImg(gsNewIconFile,'group_icons');}
-      catch(uploadErr){toast(`❌ Error Storage: ${uploadErr.code||uploadErr.message}`,'error');if(btn)btn.disabled=false;return;}
+      catch(uploadErr){toast(`❌ Error Storage: ${uploadErr.code||uploadErr.message}`,'error');if(btn){btn.disabled=false;btn.textContent='💾 GUARDAR ICONO';}return;}
     }
     if(gsNewIconEmoji){icon=gsNewIconEmoji;iconUrl=null;}
     await updateDoc(doc(db,'groups',gsCurrentGroup.id),{icon,iconUrl:iconUrl||null});
@@ -975,9 +1051,10 @@ async function saveGroupIcon(){
     if(idx>=0){groupList[idx].icon=icon;groupList[idx].iconUrl=iconUrl||null;}
     renderGroups(); updateChatHd(gsCurrentGroup);
     gsNewIconFile=null;gsNewIconEmoji=null;
+    $('#gsSaveIconBar')?.classList.add('hidden');
     toast('✅ Icono actualizado');
   }catch(e){toast('❌ Error','error');console.error(e);}
-  if(btn)btn.disabled=false;
+  if(btn){btn.disabled=false;btn.textContent='💾 GUARDAR ICONO';}
 }
 
 $('#gsBtnLeave')?.addEventListener('click',async()=>{
@@ -1000,11 +1077,10 @@ $('#gsBtnLeave')?.addEventListener('click',async()=>{
 
 $('#gsBtnDissolve')?.addEventListener('click',async()=>{
   if(!gsCurrentGroup) return;
-  if(!confirm(`¿Disolver permanentemente el grupo "${gsCurrentGroup.name}"? Esto eliminará todos los mensajes.`)) return;
+  if(!confirm(`¿Disolver permanentemente el grupo "${gsCurrentGroup.name}"?`)) return;
   const btn=$('#gsBtnDissolve');btn.disabled=true;btn.textContent='⟳';
   try{
     await deleteDoc(doc(db,'groups',gsCurrentGroup.id));
-    // delete messages subcollection is not possible from client; just remove group doc
     groupList=groupList.filter(g=>g.id!==gsCurrentGroup.id);
     if(currentId===gsCurrentGroup.id){
       currentId=null;currentType=null;currentGroupId=null;
@@ -1029,10 +1105,9 @@ async function addMemberToGroup(groupId,uid){
 }
 
 /* ══════════════════════════════════════
-   GROUP CREATION
+   GROUP CREATION — now includes description
 ══════════════════════════════════════ */
 let groupSelectedMembers=new Set(), groupIconEmoji='👥', groupIconFile=null;
-
 const GROUP_EMOJIS=['👥','⚔️','🎮','🌙','🔥','💎','🏆','🌿','🚀','🎯','🎵','⭐'];
 
 function openGroupModal(){
@@ -1040,6 +1115,7 @@ function openGroupModal(){
   groupIconEmoji='👥'; groupIconFile=null;
   const gip=$('#groupIconPreview');if(gip){gip.innerHTML='';gip.textContent='👥';}
   const gni=$('#groupNameInput');if(gni)gni.value='';
+  const gdi=$('#groupDescInput');if(gdi)gdi.value='';
   renderGroupEmojiGrid();
   renderGroupMembersList();
   renderGroupSelectedChips();
@@ -1090,20 +1166,21 @@ $('#btnGroupImgPick')?.addEventListener('click',()=>$('#groupImgInput')?.click()
 $('#groupImgInput')?.addEventListener('change',e=>{
   const f=e.target.files?.[0]; if(!f) return;
   groupIconFile=f;
-  const r=new FileReader(); r.onload=ev=>{const p=$('#groupIconPreview');if(p){p.innerHTML=`<img src="${esc(ev.target.result)}" alt="" />`;}}; r.readAsDataURL(f);
+  const r=new FileReader(); r.onload=ev=>{const p=$('#groupIconPreview');if(p){p.innerHTML=`<img src="${esc(ev.target.result)}" alt="" />`;}};r.readAsDataURL(f);
 });
 
 $('#groupModalCreate')?.addEventListener('click',async()=>{
   const btn=$('#groupModalCreate'); btn.textContent='⟳ CREANDO...'; btn.disabled=true;
   const name=$('#groupNameInput')?.value.trim();
+  const description=$('#groupDescInput')?.value.trim()||'';
   if(!name){toast('Escribe un nombre','error');btn.textContent='CREAR GRUPO ►';btn.disabled=false;return;}
   const members=[...groupSelectedMembers];
   if(members.length<2){toast('Agrega al menos un amigo','error');btn.textContent='CREAR GRUPO ►';btn.disabled=false;return;}
   try{
     let iconUrl=null;
     if(groupIconFile){toast('📤 Subiendo icono...','info');iconUrl=await uploadImg(groupIconFile,'group_icons');}
-    const gRef=await addDoc(collection(db,'groups'),{name,icon:groupIconEmoji,iconUrl,members,createdBy:CU.uid,createdAt:serverTimestamp()});
-    const newGroup={id:gRef.id,type:'group',name,icon:groupIconEmoji,iconUrl,members,unread:0};
+    const gRef=await addDoc(collection(db,'groups'),{name,icon:groupIconEmoji,iconUrl,description,members,createdBy:CU.uid,createdAt:serverTimestamp()});
+    const newGroup={id:gRef.id,type:'group',name,icon:groupIconEmoji,iconUrl,description,members,createdAt:new Date().toISOString(),unread:0};
     groupList.push(newGroup);
     renderGroups();
     closeModal('#groupModal');
@@ -1138,7 +1215,6 @@ function renderStoriesBar(){
   let html=`<div class="story-bubble my-s ${myStatuses.length?'unseen':''}" data-uid="__me" title="MI ESTADO">
     <div class="sb-ring">${avHTML(myAv,52)}</div><div class="sb-label">YO</div>
   </div>`;
-  // Bots
   const bg={};BOT_STORIES.forEach(st=>{if(!bg[st.contact])bg[st.contact]=[];bg[st.contact].push(st);});
   Object.entries(bg).forEach(([cid,stories])=>{
     const bot=BOTS.find(b=>b.id===cid); if(!bot) return;
@@ -1147,7 +1223,6 @@ function renderStoriesBar(){
       <div class="sb-ring"><img src="${esc(bot.avatar)}" alt="" /></div><div class="sb-label">${esc(bot.name.split(' ')[0])}</div>
     </div>`;
   });
-  // Friends
   friendList.forEach(f=>{
     const stories=friendStatuses[f.uid]||[]; if(!stories.length) return;
     const unseen=stories.some(st=>!seenStatuses[st.id]);
@@ -1236,8 +1311,13 @@ $('#statusTextInput')?.addEventListener('input',e=>{const v=e.target.value||'Tu 
 $$('.sc').forEach(btn=>btn.addEventListener('click',()=>{$$('.sc').forEach(b=>b.classList.remove('active'));btn.classList.add('active');scColor=btn.dataset.color;const sp=$('#statusTextPreview');if(sp)sp.style.background=scColor;}));
 $('#statusImgDrop')?.addEventListener('click',()=>$('#statusImgInput')?.click());
 $('#statusImgInput')?.addEventListener('change',e=>{
-  const f=e.target.files?.[0]; if(!f) return; scImg=f;
-  const r=new FileReader(); r.onload=ev=>{const p=$('#statusImgPreview');if(p){p.src=ev.target.result;p.classList.remove('hidden');}const d=$('#statusImgDrop');if(d)d.style.display='none';}; r.readAsDataURL(f);
+  const f=e.target.files?.[0]; if(!f) return;
+  if(f.size>5*1024*1024){toast('Imagen muy grande (máx 5MB)','error');return;}
+  scImg=f;
+  const r=new FileReader(); r.onload=ev=>{
+    const p=$('#statusImgPreview');if(p){p.src=ev.target.result;p.classList.remove('hidden');}
+    const d=$('#statusImgDrop');if(d)d.style.display='none';
+  }; r.readAsDataURL(f);
 });
 $('#statusCreatorPublish')?.addEventListener('click',async()=>{
   const btn=$('#statusCreatorPublish');
@@ -1259,7 +1339,7 @@ $('#statusCreatorPublish')?.addEventListener('click',async()=>{
         url=await uploadImg(scImg,'statuses');
       } catch(uploadErr){
         console.error('upload error',uploadErr);
-        toast(`❌ Error al subir: ${uploadErr.code||uploadErr.message||'revisa las reglas de Storage'}`, 'error');
+        toast(`❌ Error al subir: ${uploadErr.code||uploadErr.message||'revisa reglas de Storage'}`, 'error');
         reset(); return;
       }
       const cap=$('#statusImgCaption')?.value.trim()||'';

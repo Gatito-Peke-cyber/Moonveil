@@ -234,6 +234,11 @@
         <label class="sett-label">NOMBRE DEL GRUPO</label>
         <input type="text" id="groupNameInput" class="sett-input" placeholder="Nombre del grupo..." maxlength="40" />
       </div>
+      <!-- Descripción -->
+      <div class="sett-field" style="margin-top:14px">
+        <label class="sett-label">DESCRIPCIÓN <span style="font-family:var(--fv);font-size:.9rem;color:var(--muted)">(opcional)</span></label>
+        <input type="text" id="groupDescInput" class="sett-input" placeholder="¿De qué trata el grupo?" maxlength="100" />
+      </div>
       <!-- Seleccionar miembros -->
       <div class="sett-field" style="margin-top:14px">
         <label class="sett-label">AGREGAR AMIGOS</label>
@@ -261,45 +266,73 @@
       <span id="groupSettingsTitle">⚙️ AJUSTES DEL GRUPO</span>
       <button class="pix-icon-btn" id="groupSettingsClose">✕</button>
     </div>
-    <!-- Icon + Name -->
-    <div class="pix-modal-body" style="padding:0">
-      <div class="gs-hero">
-        <div class="gs-icon-wrap" id="gsIconWrap">👥</div>
-        <div class="gs-hero-info">
-          <div class="gs-name-row">
-            <span id="gsGroupNameDisplay">Grupo</span>
-            <button class="pix-icon-btn" id="gsBtnEditName" title="Editar nombre" style="width:26px;height:26px;font-size:.65rem">✏️</button>
-          </div>
-          <div class="gs-meta" id="gsGroupMeta">0 miembros</div>
+
+    <!-- Icon + Name + Created date -->
+    <div class="gs-hero">
+      <div class="gs-icon-wrap" id="gsIconWrap">👥</div>
+      <div class="gs-hero-info">
+        <div class="gs-name-row">
+          <span id="gsGroupNameDisplay">Grupo</span>
+          <button class="pix-icon-btn" id="gsBtnEditName" title="Editar nombre" style="width:26px;height:26px;font-size:.65rem">✏️</button>
         </div>
+        <div class="gs-meta" id="gsGroupMeta">0 miembros</div>
+        <div class="gs-created">📅 Creado: <span id="gsCreatedDate">—</span></div>
       </div>
-      <!-- Edit name inline -->
-      <div id="gsNameEditRow" class="gs-name-edit hidden">
-        <input type="text" id="gsNameInput" class="sett-input" placeholder="Nuevo nombre..." maxlength="40" />
-        <button class="pix-btn pix-btn--primary pix-btn--sm" id="gsSaveName">✓</button>
-        <button class="pix-btn pix-btn--sm" id="gsCancelName">✕</button>
+    </div>
+
+    <!-- Edit name inline -->
+    <div id="gsNameEditRow" class="gs-name-edit hidden">
+      <input type="text" id="gsNameInput" class="sett-input" placeholder="Nuevo nombre..." maxlength="40" />
+      <button class="pix-btn pix-btn--primary pix-btn--sm" id="gsSaveName">✓</button>
+      <button class="pix-btn pix-btn--sm" id="gsCancelName">✕</button>
+    </div>
+
+    <div class="pix-modal-body" style="padding:0">
+
+      <!-- Description section -->
+      <div class="gs-section" id="gsDescSection">
+        <div class="gs-section-title">📝 DESCRIPCIÓN</div>
+        <div class="gs-desc-display" id="gsGroupDescDisplay">Sin descripción</div>
+        <div id="gsDescEditRow" class="gs-desc-edit-wrap hidden">
+          <input type="text" id="gsDescInput" class="sett-input" placeholder="Descripción del grupo..." maxlength="100" />
+          <div style="display:flex;gap:6px;margin-top:4px">
+            <button class="pix-btn pix-btn--primary pix-btn--sm" id="gsSaveDesc">✓ GUARDAR</button>
+            <button class="pix-btn pix-btn--sm" id="gsCancelDesc">✕ CANCELAR</button>
+          </div>
+        </div>
+        <button class="pix-icon-btn" id="gsBtnEditDesc" title="Editar descripción" style="width:26px;height:26px;font-size:.65rem;margin-top:8px;display:none">✏️ EDITAR</button>
       </div>
+
       <!-- Edit icon -->
       <div class="gs-section" id="gsIconSection">
         <div class="gs-section-title">🎨 ICONO</div>
         <div class="group-emoji-grid" id="gsEmojiGrid"></div>
-        <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+        <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <button class="pix-btn pix-btn--sm" id="gsBtnImgIcon" type="button">📷 IMAGEN</button>
           <input type="file" id="gsIconImgInput" accept="image/*" style="display:none" />
-          <span class="sett-label" id="gsImgStatus"></span>
+          <span class="sett-label" id="gsImgStatus" style="font-size:.22rem"></span>
+        </div>
+        <!-- Explicit save icon button — shows after a change is selected -->
+        <div class="gs-save-icon-bar hidden" id="gsSaveIconBar">
+          <span class="gs-save-icon-hint">✦ Icono pendiente de guardar</span>
+          <button class="pix-btn pix-btn--primary pix-btn--sm" id="gsBtnSaveIcon">💾 GUARDAR ICONO</button>
         </div>
       </div>
+
       <!-- Members list -->
       <div class="gs-section">
         <div class="gs-section-title">👥 MIEMBROS <span id="gsMemberCount" style="color:var(--muted);font-size:.85em"></span></div>
         <div class="gs-members-list" id="gsMembersList"></div>
       </div>
-      <!-- Add members (creator) -->
+
+      <!-- Add members (creator only) -->
       <div class="gs-section" id="gsAddSection">
         <div class="gs-section-title">➕ AGREGAR MIEMBRO</div>
         <div class="gs-add-list" id="gsAddList"></div>
       </div>
-    </div>
+
+    </div><!-- end pix-modal-body -->
+
     <div class="pix-modal-ft" id="groupSettingsFt">
       <button class="pix-btn pix-btn--danger" id="gsBtnLeave">🚪 SALIR</button>
       <button class="pix-btn pix-btn--danger hidden" id="gsBtnDissolve">💥 DISOLVER</button>
@@ -320,7 +353,7 @@
         <button class="sn-btn active" data-sec="profile">👤 PERFIL</button>
         <button class="sn-btn" data-sec="notifications">🔔 NOTIF.</button>
         <button class="sn-btn" data-sec="appearance">🎨 ESTILO</button>
-        <button class="sn-btn" data-sec="privacy">🔒 PRIVACIDAD</button>
+        <button class="sn-btn" data-sec="privacy">🔒 PRIVAC.</button>
         <button class="sn-btn" data-sec="account">🪪 CUENTA</button>
         <button class="sn-btn sn-danger" data-sec="danger">⚠️ PELIGRO</button>
       </nav>
