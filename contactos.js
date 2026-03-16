@@ -179,6 +179,14 @@ const localSentIds = new Set();
 /* ── Scroll thread ── */
 const scrollThread=()=>requestAnimationFrame(()=>{const t=$('#thread');if(t)t.scrollTop=t.scrollHeight;});
 
+/* ── Click en imágenes del chat para abrir en nueva pestaña ── */
+document.addEventListener('click', e => {
+  const img = e.target.closest('img.chat-image');
+  if (!img) return;
+  const url = img.dataset.fullurl || img.src;
+  if (url && !url.startsWith('data:')) window.open(url, '_blank');
+});
+
 /* ── Avatar HTML ── */
 const avHTML=(av,sz)=>{
   const isImg=av&&(av.startsWith('http')||av.includes('/'));
@@ -579,8 +587,9 @@ function appendMsg(msg, contact, chatType) {
   let content='';
   if(msg.type==='image'&&msg.imageUrl){
     const url=msg.imageUrl;
-    const errHandler=`this.parentElement.innerHTML='<div class=\\"img-error\\"><span>🖼️</span><span>IMAGEN NO DISPONIBLE</span></div>'`;
-    content=`<img src="${url}" alt="imagen" class="chat-image" crossorigin="anonymous" onerror="${errHandler}" onclick="window.open('${url}','_blank')" loading="lazy" />`;
+    content=`<img src="${url}" alt="imagen" class="chat-image" loading="lazy"
+      onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<div class=\"img-error\"><span>🖼️</span><span>IMAGEN NO DISPONIBLE</span></div>')"
+      data-fullurl="${url}" />`;
   } else {
     content=`<div class="m-text">${fmtText(msg.text||'')}</div>`;
   }
