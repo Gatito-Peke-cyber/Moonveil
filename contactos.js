@@ -587,9 +587,7 @@ function appendMsg(msg, contact, chatType) {
   let content='';
   if(msg.type==='image'&&msg.imageUrl){
     const url=msg.imageUrl;
-    content=`<img src="${url}" alt="imagen" class="chat-image" loading="lazy"
-      onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<div class=\"img-error\"><span>🖼️</span><span>IMAGEN NO DISPONIBLE</span></div>')"
-      data-fullurl="${url}" />`;
+    content=`<img src="${url}" alt="imagen" class="chat-image" loading="lazy" data-fullurl="${url}" onerror="this.onerror=null;this.src='';this.alt='🖼️ No disponible'" />`;
   } else {
     content=`<div class="m-text">${fmtText(msg.text||'')}</div>`;
   }
