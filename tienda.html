@@ -29,7 +29,7 @@
       </nav>
       <div class="nav-hud">
         <div class="hud-inventory" id="hudInventory">
-          <div class="hud-inv-slot" title="Tickets Gacha" id="hudTicketsTotal">
+          <div class="hud-inv-slot" title="Tickets" id="hudTicketsTotal">
             <span class="his-ico">🎫</span><span class="his-val">0</span>
           </div>
           <div class="hud-inv-slot" title="Llaves" id="hudKeys">
@@ -55,7 +55,7 @@
           <span class="ht-sm">BIENVENIDO A LA</span>
           <span class="ht-big">TIENDA MOONVEIL</span>
         </h1>
-        <p class="hero-lead">Tickets, llaves, pases y más. Potencia tu aventura en el portal.</p>
+        <p class="hero-lead">Tickets, llaves, pases y más. Potencia tu aventura.</p>
         <div class="hero-stats-row">
           <div class="stat-pill">
             <span class="stat-ico">🎫</span>
@@ -67,7 +67,7 @@
           </div>
           <div class="stat-pill">
             <span class="stat-ico">⭐</span>
-            <div class="stat-body"><div class="stat-val" id="heroSuperKeys">0</div><div class="stat-lbl">SUPER KEYS</div></div>
+            <div class="stat-body"><div class="stat-val" id="heroSuperKeys">0</div><div class="stat-lbl">SUPERESTRELLAS</div></div>
           </div>
         </div>
       </div>
@@ -80,42 +80,44 @@
     <div class="flash-banner reveal" id="flashBanner">
       <div class="fb-left">
         <span class="fb-tag">⚡ FLASH SALE</span>
-        <span class="fb-text" id="flashText">¡OFERTAS POR TIEMPO LIMITADO!</span>
+        <span class="fb-text" id="flashSaleText">¡Ofertas por tiempo limitado!</span>
       </div>
       <div class="fb-right">
-        <span class="fb-discount" id="flashDiscount">-??%</span>
-        <span class="fb-desc">descuento activo</span>
-        <div class="fb-timer" id="flashTimer">00:00:00</div>
+        <span class="fb-discount-badge" id="flashDiscountBadge" style="display:none"></span>
+        <div class="fb-timer-wrap">
+          <span class="fb-timer-lbl">TERMINA EN</span>
+          <span class="fb-timer" id="flashTimer">00:00:00</span>
+        </div>
       </div>
     </div>
 
     <!-- SAND BRILL DEALS -->
-    <div class="sandbrill-banner reveal" id="sandbrilBanner">
+    <div class="sandbrill-section reveal" id="sandbrill-section" style="display:none">
       <div class="sb-header">
-        <div class="sb-title-wrap">
-          <span class="sb-icon">🏜️</span>
+        <div class="sb-title-row">
+          <span class="sb-tag">🦊</span>
           <div>
-            <div class="sb-title">OFERTAS DE SAND BRILL</div>
-            <div class="sb-sub">Artículos al azar con descuento 10–60% · Renueva cada 8h</div>
+            <div class="sb-title">SAND BRILL — REBAJAS ESPECIALES</div>
+            <div class="sb-subtitle">Artículos seleccionados al azar con descuento</div>
+          </div>
+          <div class="sb-countdown">
+            <span class="sb-cd-lbl">↻ CAMBIA EN</span>
+            <span class="sb-cd-val" id="sbTimer">--:--</span>
           </div>
         </div>
-        <div class="sb-timer-wrap">
-          <div class="sb-timer-lbl">PRÓXIMO RESTOCK:</div>
-          <div class="sb-timer" id="sandbrillTimer">00:00:00</div>
-        </div>
       </div>
-      <div class="sb-grid" id="sandbrillGrid"></div>
+      <div class="sb-grid" id="sbDeals"></div>
     </div>
 
     <!-- CUPONES -->
-    <div class="coupons-section reveal">
-      <div class="coupon-bar-header">
-        <div class="coupon-left">
-          <span class="coupon-ico">🎟️</span>
-          <span class="coupon-ttl">CUPONES DE DESCUENTO</span>
-          <span class="coupon-active-badge" id="couponActiveBadge" style="display:none"></span>
+    <div class="coupons-wrap reveal">
+      <div class="coupon-header-row">
+        <span class="coupon-ico">🎟️</span>
+        <span class="coupon-ttl">CUPONES DE DESCUENTO</span>
+        <div class="coupon-header-actions">
+          <span class="coupon-active-lbl" id="couponActiveLbl" style="display:none"></span>
+          <button id="couponClearBtn" class="btn-ghost-coupon">✕ Sin cupón</button>
         </div>
-        <button id="couponClearBtn" class="btn-pixel btn-ghost">SIN CUPÓN</button>
       </div>
       <div id="couponList" class="coupon-list"></div>
     </div>
@@ -127,43 +129,57 @@
       <button class="cat-btn" data-cat="llaves">🗝️ COFRES</button>
       <button class="cat-btn" data-cat="tickets">🎫 TICKETS</button>
       <button class="cat-btn" data-cat="calkeys">🔑 LLAVES CAL</button>
-      <button class="cat-btn" data-cat="superestrellas">⭐ SUPER KEYS</button>
-      <button class="cat-btn" data-cat="materiales">🪙 LOTE MONEDAS</button>
+      <button class="cat-btn" data-cat="superestrellas">⭐ SUPERKEYS</button>
+      <button class="cat-btn" data-cat="materiales">⚙️ MATERIALES</button>
       <button class="cat-btn" data-cat="historia">📚 HISTORIA</button>
-      <button class="cat-btn" data-cat="cosas">⚙️ MATERIALES</button>
+      <button class="cat-btn" data-cat="monedas">🪙 MONEDAS</button>
       <button class="cat-btn" data-cat="eventos">🎪 EVENTOS</button>
-      <button class="cat-btn" data-cat="monedas">💰 PACK COINS</button>
+      <button class="cat-btn" data-cat="packs">📦 PACKS</button>
+      <button class="cat-btn" data-cat="especiales">✨ ESPECIALES</button>
     </div>
 
-    <!-- GRID PRODUCTOS -->
+    <!-- BÚSQUEDA -->
+    <div class="search-row reveal">
+      <div class="search-wrap">
+        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input id="searchInput" type="search" placeholder="Buscar por nombre, tipo o etiqueta..." autocomplete="off"/>
+        <button id="clearSearch" class="clear-btn">✕</button>
+      </div>
+    </div>
+
+    <!-- GRID DE PRODUCTOS -->
     <div class="products-grid" id="productsGrid"></div>
 
-  </div>
+  </div><!-- /main-shop -->
 
-  <!-- NPC ZORRITO -->
-  <div class="npc-wrap" id="npc">
-    <div class="npc-bubble" id="npc-dialog">¡Bienvenido a la tienda!</div>
-    <div class="npc-avatar">
-      <img src="img/fox2.gif" onerror="this.style.display='none';this.parentElement.innerHTML='🦊'" alt="Merchant Fox"/>
-    </div>
-  </div>
-
-  <!-- FAB HISTORIAL -->
-  <button class="history-fab" id="historyFab" title="Ver historial de compras">
-    📜<span class="history-count" id="historyCount" style="display:none">0</span>
+  <!-- BOTÓN HISTORIAL FLOTANTE -->
+  <button class="history-fab" id="historyFabBtn" title="Ver historial de compras">
+    📋 <span class="fab-lbl">HISTORIAL</span>
+    <span class="hist-count" id="histCount" style="display:none">0</span>
   </button>
 
-  <!-- PANEL HISTORIAL -->
+  <!-- PANEL HISTORIAL DESLIZABLE -->
   <div class="history-panel" id="historyPanel" aria-hidden="true">
     <div class="hp-header">
-      <span class="hp-title">📜 HISTORIAL</span>
-      <div style="display:flex;gap:6px;align-items:center">
-        <button class="btn-pixel btn-ghost" style="font-size:0.24rem;padding:5px 8px" id="btnClearHistory">🗑️ LIMPIAR</button>
-        <button class="modal-close" style="position:static;transform:none" id="historyClose">✕</button>
+      <span class="hp-title">📋 HISTORIAL DE COMPRAS</span>
+      <div class="hp-acts">
+        <button class="btn-pixel-sm btn-ghost-sm" id="btnClearHistory">🗑️ Limpiar</button>
+        <button class="hp-close" id="historyClose">✕</button>
       </div>
     </div>
     <div id="purchasesList" class="purchases-list">
       <div class="empty-hist"><span>📭</span><p>SIN COMPRAS AÚN</p></div>
+    </div>
+  </div>
+  <div class="history-overlay" id="historyOverlay"></div>
+
+  <!-- NPC ZORRITO -->
+  <div class="npc-wrap" id="npc">
+    <div class="npc-bubble" id="npc-dialog">¡Bienvenido!</div>
+    <div class="npc-avatar">
+      <img src="img/fox2.gif"
+           onerror="this.src='img/merchant.gif';this.onerror=function(){this.style.display='none';this.parentElement.innerHTML='<span style=font-size:3rem>🦊</span>'}"
+           alt="Fox Merchant"/>
     </div>
   </div>
 
@@ -188,6 +204,6 @@
   </footer>
 
   <script type="module" src="tienda.js"></script>
-  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
 </body>
 </html>
