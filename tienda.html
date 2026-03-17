@@ -1,82 +1,48 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark"/>
   <title>Moonveil — Tienda</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Cinzel:wght@600;900&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-
-  <link rel="icon" type="image/svg+xml"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230d0b08'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23f5a623'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%23c97d0f'/%3E%3C/svg%3E">
-
-  <link rel="stylesheet" href="tienda.css" />
-  <meta name="description" content="Tienda Moonveil: Pases, cofres, materiales, historia y más." />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%2309080f'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23f59e0b'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%23d97706'/%3E%3C/svg%3E"/>
+  <link rel="stylesheet" href="tienda.css"/>
 </head>
-<body>
+<body class="shop-page">
+  <div class="scanlines" aria-hidden="true"></div>
+  <canvas id="bgCoins" class="coins-canvas" aria-hidden="true"></canvas>
 
-  <!-- Fondo global -->
-  <div class="bg" aria-hidden="true">
-    <canvas id="bgParticles"></canvas>
-    <div class="bg-parallax">
-      <div class="layer sky"></div>
-      <div class="layer far"></div>
-      <div class="layer mid"></div>
-      <div class="layer near"></div>
-    </div>
-  </div>
-
-  <!-- Capas festividades -->
-  <div id="newyear-fireworks"   class="festivity-layer-top"></div>
-  <div id="newyear-ambient"     class="festivity-layer-mid"></div>
-  <div id="newyear-sparkles"    class="festivity-layer-base"></div>
-  <div id="valentine-petals"    class="festivity-layer-base"></div>
-  <div id="valentine-hearts"    class="festivity-layer-top"></div>
-  <div id="valentine-ambient"   class="festivity-layer-mid"></div>
-  <div id="catday-ground"       class="festivity-layer-top"></div>
-  <div id="stpatrick-clovers"   class="festivity-layer-top"></div>
-  <div id="stpatrick-magic"     class="festivity-layer-base"></div>
-  <div id="easter-elements"     class="festivity-layer-top"></div>
-  <div id="mothersday-flowers"  class="festivity-layer-top"></div>
-  <div id="mothersday-glow"     class="festivity-layer-base"></div>
-  <div id="fathersday-elements" class="festivity-layer-top"></div>
-  <div id="halloween-spooky"    class="festivity-layer-top"></div>
-  <div id="halloween-fog"       class="festivity-layer-base"></div>
-  <div id="dayofdead-marigolds" class="festivity-layer-top"></div>
-  <div id="christmas-snowfall"  class="festivity-layer-top"></div>
-  <div id="christmas-ambience"  class="festivity-layer-base"></div>
-  <div id="carnival-confetti"   class="festivity-layer-top"></div>
-  <div id="carnival-fireworks"  class="festivity-layer-mid"></div>
-  <div id="spring-blossoms"     class="festivity-layer-top"></div>
-  <div id="summer-vibes"        class="festivity-layer-top"></div>
-  <div id="autumn-leaves"       class="festivity-layer-top"></div>
-
-  <!-- HEADER / HUD -->
+  <!-- HEADER -->
   <header class="top-hud" role="banner">
-    <nav class="navbar" aria-label="Navegación principal">
-      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
-        <span class="cube" aria-hidden="true"></span>
-        <span class="brand__title">Moonveil <b>Portal</b></span>
-      </a>
-      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="inicio.html">Inicio</a></li>
-        <li><a href="tienda.html" class="active">Tienda</a></li>
-        <li><a href="index.html">Salir</a></li>
-      </ul>
-    </nav>
-
-    <div class="hud-stats" aria-label="Indicadores">
-      <div class="hud__bars">
-        <div class="hud-bar hp" data-val="96" aria-label="Vida 96%"></div>
-        <div class="hud-bar xp" data-val="67" aria-label="XP 67%"></div>
+    <div class="container nav-wrap">
+      <div class="nav-brand">
+        <div class="brand-cube"></div>
+        <span class="logo">Moon<span>veil</span></span>
       </div>
-      <div class="hud__inv" aria-label="Inventario rápido">
-        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
-        <button class="slot" title="Mapa"><span class="i i-map" aria-hidden="true"></span></button>
-        <button class="slot" title="Pluma"><span class="i i-feather" aria-hidden="true"></span></button>
+      <nav class="navbar" id="main-nav">
+        <a href="inicio.html"  class="nav-pill np-home">HOME</a>
+        <a href="premios.html" class="nav-pill np-gacha">RULETAS</a>
+        <a href="tienda.html"  class="nav-pill np-shop active">TIENDA</a>
+        <a href="perfil.html"  class="nav-pill np-profile">PERFIL</a>
+        <a href="index.html"   class="nav-pill np-exit">SALIR</a>
+      </nav>
+      <div class="nav-hud">
+        <div class="hud-inventory" id="hudInventory">
+          <div class="hud-inv-slot" title="Tickets" id="hudTicketsTotal">
+            <span class="his-ico">🎫</span><span class="his-val">0</span>
+          </div>
+          <div class="hud-inv-slot" title="Llaves" id="hudKeys">
+            <span class="his-ico">🗝️</span><span class="his-val">0</span>
+          </div>
+          <div class="hud-inv-slot" title="Llaves Superestrellas" id="hudSuperKeys">
+            <span class="his-ico">⭐</span><span class="his-val">0</span>
+          </div>
+        </div>
       </div>
+      <button class="hamburger" id="hamburger" aria-label="menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </header>
 
@@ -84,329 +50,96 @@
   <section class="hero">
     <div class="container">
       <div class="hero-inner reveal">
-
-        <div class="hero-eyebrow">
-          <span class="amber-dot"></span>
-          Tienda oficial del reino
-        </div>
-
+        <div class="hero-eyebrow"><span class="coin-blink">🪙</span>TIENDA OFICIAL</div>
         <h1 class="hero-title">
-          <span class="ht-sm">BIENVENIDO A</span>
-          <span class="ht-big">LA TIENDA</span>
+          <span class="ht-sm">BIENVENIDO A LA</span>
+          <span class="ht-big">TIENDA MOONVEIL</span>
         </h1>
-
-        <p class="hero-lead">Pases, tickets, materiales y más. Primera compra con <strong>100% de descuento</strong>. <span class="muted">(No incluye Historia / Monedas)</span></p>
-
-        <!-- Cupones -->
-        <div class="coupon-wrap reveal">
-          <div class="coupon-header">
-            <span class="coupon-ico">🎟️</span>
-            <span class="coupon-ttl">Cupones de descuento</span>
-            <button id="couponClearBtn" class="btn-ghost-sm">Sin cupón</button>
+        <p class="hero-lead">Tickets, llaves y pases exclusivos. Potencia tu aventura con los mejores artículos.</p>
+        <div class="hero-stats-row">
+          <div class="stat-pill">
+            <span class="stat-ico">🎫</span>
+            <div class="stat-body"><div class="stat-val" id="heroTickets">0</div><div class="stat-lbl">TICKETS</div></div>
           </div>
-          <div id="couponList" class="coupon-list" aria-live="polite"></div>
-        </div>
-
-        <!-- Filtros de sección -->
-        <div class="filter-wrap reveal">
-          <span class="filter-lbl">Sección</span>
-          <div class="chip-group" id="chipSections" role="group" aria-label="Filtrar por sección">
-            <button class="chip is-on" data-section="all">✦ Todo</button>
-            <button class="chip" data-section="pases">🏆 Pases</button>
-            <button class="chip" data-section="llaves">🗝️ Cofres</button>
-            <button class="chip" data-section="cosas">⚙️ Materiales</button>
-            <button class="chip" data-section="historia">📚 Historia</button>
-            <button class="chip" data-section="materiales">🪙 Monedas</button>
-            <button class="chip" data-section="eventos">🎪 Eventos</button>
-            <button class="chip" data-section="monedas">💰 Pack coins</button>
-            <button class="chip" data-section="tickets">🎫 Tickets</button>
-            <button class="chip" data-section="calkeys">🔑 Llaves Cal</button>
-            <button class="chip chip-star" data-section="superestrellas">⭐ Superestrellas</button>
+          <div class="stat-pill">
+            <span class="stat-ico">🗝️</span>
+            <div class="stat-body"><div class="stat-val" id="heroKeys">0</div><div class="stat-lbl">LLAVES</div></div>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-ico">⭐</span>
+            <div class="stat-body"><div class="stat-val" id="heroSuperKeys">0</div><div class="stat-lbl">SUPERESTRELLAS</div></div>
           </div>
         </div>
-
-        <!-- Búsqueda -->
-        <div class="search-wrap reveal">
-          <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input id="searchInput" type="search" placeholder="Buscar por nombre, calidad o etiqueta…" autocomplete="off"/>
-          <button id="clearSearch" class="clear-btn">✕</button>
-        </div>
-
-        <!-- Leyenda -->
-        <div class="legend-row reveal">
-          <span><span class="ldot gold"></span> Destacado</span>
-          <span><span class="ldot red"></span> Agotado / Caducado</span>
-          <span><span class="ldot blue"></span> Próximamente</span>
-        </div>
-
       </div>
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════
-       SECCIONES DE PRODUCTOS
-       ════════════════════════════════════════ -->
+  <div class="container main-shop">
 
-  <!-- PASES DE TEMPORADA -->
-  <section class="shop-sec" id="secPases" data-sec="pases"
-           style="--sec-bg: url('https://wallpapercave.com/wp/wp14831793.webp')">
-    <div class="sec-bg-layer" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head reveal">
-        <span class="sec-icon">🏆</span>
-        <div>
-          <h2>Pases de temporada</h2>
-          <p class="sec-sub">Acceso a retos y recompensas exclusivas de cada temporada.</p>
-        </div>
-      </header>
-      <div class="products-grid" id="gridSeason"></div>
+    <!-- BARRA DE CATEGORÍAS -->
+    <div class="cat-bar reveal">
+      <button class="cat-btn active" data-cat="all">TODO</button>
+      <button class="cat-btn" data-cat="tickets">🎟️ TICKETS GACHA</button>
+      <button class="cat-btn" data-cat="keys">🗝️ LLAVES</button>
+      <button class="cat-btn" data-cat="packs">📦 PACKS</button>
+      <button class="cat-btn" data-cat="special">⭐ ESPECIALES</button>
+      <button class="cat-btn" data-cat="event">🔥 EVENTO</button>
     </div>
-  </section>
 
-  <!-- COFRES -->
-  <section class="shop-sec" id="secLlaves" data-sec="llaves">
-    <div class="sec-bg-layer" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head reveal">
-        <span class="sec-icon">🗝️</span>
-        <div>
-          <h2>Cofres</h2>
-          <p class="sec-sub">Ábrelos y que la suerte te acompañe. Sand Brill no fue generoso.</p>
-        </div>
-      </header>
-      <div class="products-grid" id="gridKeys"></div>
-    </div>
-  </section>
-
-  <!-- MATERIALES -->
-  <section class="shop-sec" id="secCosas" data-sec="cosas">
-    <div class="sec-bg-layer" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head reveal">
-        <span class="sec-icon">⚙️</span>
-        <div>
-          <h2>Materiales</h2>
-          <p class="sec-sub">Algunos materiales que capaz te sirvan… o ¿quién sabe?</p>
-        </div>
-      </header>
-      <div class="products-grid" id="gridFun"></div>
-    </div>
-  </section>
-
-  <!-- HISTORIA -->
-  <section class="shop-sec" id="secHistoria" data-sec="historia">
-    <div class="sec-bg-layer" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head reveal">
-        <span class="sec-icon">📚</span>
-        <div>
-          <h2>Historia</h2>
-          <p class="sec-sub">Libros de lo que pasa en el mundo de Moonveil. ¿Espero que sí…?</p>
-        </div>
-      </header>
-      <div class="products-grid" id="gridLore"></div>
-    </div>
-  </section>
-
-  <!-- LOTE DE MONEDAS -->
-  <section class="shop-sec" id="secMateriales" data-sec="materiales">
-    <div class="sec-bg-layer" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head reveal">
-        <span class="sec-icon">🪙</span>
-        <div>
-          <h2>Lote de Monedas</h2>
-          <p class="sec-sub">Rebajado un 50% en los packs.</p>
-        </div>
-      </header>
-      <div class="products-grid" id="gridMats"></div>
-    </div>
-  </section>
-
-  <!-- PASES DE EVENTO -->
-  <section class="shop-sec" id="secEventos" data-sec="eventos"
-           style="--sec-bg: url('https://wallpapercave.com/wp/wp14014986.webp')">
-    <div class="sec-bg-layer" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head reveal">
-        <span class="sec-icon">🎪</span>
-        <div>
-          <h2>Pases de evento</h2>
-          <p class="sec-sub">Eventos temporales con misiones y recompensas únicas.</p>
-        </div>
-      </header>
-      <div class="products-grid" id="gridEvents"></div>
-    </div>
-  </section>
-
-  <!-- PACK DE MONEDAS -->
-  <section class="shop-sec" id="secMonedas" data-sec="monedas">
-    <div class="sec-bg-layer" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head reveal">
-        <span class="sec-icon">💰</span>
-        <div>
-          <h2>Pack de monedas</h2>
-          <p class="sec-sub">Packs para comerciar. No se restablece, ¿y por qué? Ni idea…</p>
-        </div>
-      </header>
-      <div class="products-grid" id="gridCoins"></div>
-    </div>
-  </section>
-
-  <!-- TICKETS -->
-  <section class="shop-sec" id="secTickets" data-sec="tickets">
-    <div class="sec-bg-layer" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head reveal">
-        <span class="sec-icon">🎫</span>
-        <div>
-          <h2>Tickets</h2>
-          <p class="sec-sub">Tickets especiales para la ruleta. ¿Y giramos algunas?</p>
-        </div>
-      </header>
-      <div class="products-grid" id="gridTickets"></div>
-    </div>
-  </section>
-
-  <!-- LLAVES DEL CALENDARIO -->
-  <section class="shop-sec calkeys-sec" id="secCalKeys" data-sec="calkeys"
-           style="--sec-bg: url('img-pass/chrismine.jpg')">
-    <div class="sec-bg-layer" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head reveal">
-        <span class="sec-icon">🔑</span>
-        <div>
-          <h2>Llaves del Calendario</h2>
-          <p class="sec-sub">Recupera días perdidos o reclama el futuro. Las llaves se suman directamente al Calendario de Recompensas.</p>
-        </div>
-      </header>
-
-      <!-- Leyenda de tipos de llave -->
-      <div class="calkey-legend reveal">
-        <div class="ckl-item"><span class="ckl-ico">🔵</span><span>Normal — recupera días perdidos</span></div>
-        <div class="ckl-item"><span class="ckl-ico">💗</span><span>Rosa</span></div>
-        <div class="ckl-item"><span class="ckl-ico">🟢</span><span>Verde</span></div>
-        <div class="ckl-item"><span class="ckl-ico">🎃</span><span>Naranja</span></div>
-        <div class="ckl-item"><span class="ckl-ico">😺</span><span>Gato</span></div>
-        <div class="ckl-item"><span class="ckl-ico">💜</span><span>Especial — días únicos</span></div>
-        <div class="ckl-item ckl-rare"><span class="ckl-ico">⏩</span><span>Futuro — reclama días adelantados ✦ Rara</span></div>
+    <!-- BANNER FLASH SALE -->
+    <div class="flash-banner reveal" id="flashBanner">
+      <div class="fb-left">
+        <span class="fb-tag">⚡ FLASH SALE</span>
+        <span class="fb-text">¡OFERTAS POR TIEMPO LIMITADO! Descuentos hasta el 40%</span>
       </div>
-
-      <div class="products-grid" id="gridCalKeys"></div>
+      <div class="fb-timer" id="flashTimer">00:00:00</div>
     </div>
-  </section>
 
-  <!-- ★ LLAVES SUPERESTRELLA ★ -->
-  <section class="shop-sec superkeys-sec" id="secSuperKeys" data-sec="superestrellas"
-           style="--sec-bg: url('img-pass/chrismine.jpg')">
-    <div class="sec-bg-layer" aria-hidden="true"></div>
-    <div class="container">
-      <header class="sec-head reveal">
-        <span class="sec-icon">⭐</span>
-        <div>
-          <h2>Llaves Superestrella</h2>
-          <p class="sec-sub">Llaves para abrir los cofres del sistema de aventuras. Las llaves se suman directamente al inventario de cofres.</p>
-        </div>
-      </header>
-
-      <!-- Leyenda tipos de llave superestrella -->
-      <div class="superkey-legend reveal">
-        <div class="skl-item"><span class="skl-ico" style="color:#94A3B8">⭐</span><span>Común — Cofre Común</span></div>
-        <div class="skl-item"><span class="skl-ico" style="color:#38BDF8">💫</span><span>Brillante — Cofre Raro</span></div>
-        <div class="skl-item"><span class="skl-ico" style="color:#22C55E">✨</span><span>Especial — Cofre Especial</span></div>
-        <div class="skl-item"><span class="skl-ico" style="color:#A855F7">🔮</span><span>Épica — Cofre Épico</span></div>
-        <div class="skl-item skl-rare"><span class="skl-ico" style="color:#FBBF24">👑</span><span>Legendaria — Cofre Legendario ✦ Rara</span></div>
-        <div class="skl-item skl-event"><span class="skl-ico">🎆</span><span>Evento — Cofres exclusivos de temporada</span></div>
-      </div>
-
-      <div class="products-grid" id="gridSuperKeys"></div>
+    <!-- GRID DE PRODUCTOS -->
+    <div class="products-grid" id="productsGrid">
+      <!-- Generado por JS -->
     </div>
-  </section>
 
-  <!-- FOOTER -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="footer-logo">
-            <span class="cube"></span>
-            <span>Moonveil <b>Portal</b></span>
-          </div>
-          <p class="footer-tagline">La tienda oficial del reino. Pases, cofres, materiales y más, con descuentos y restock automático.</p>
-          <div class="footer-live">
-            <span class="amber-dot small"></span>
-            Tienda activa · Stock en tiempo real
-          </div>
-        </div>
-        <div class="footer-col">
-          <h4>Navegar</h4>
-          <ul>
-            <li><a href="inicio.html">🏠 Inicio</a></li>
-            <li><a href="eventos.html">🎉 Eventos</a></li>
-            <li><a href="premios.html">🎰 Ruleta</a></li>
-            <li><a href="banco.html">🏦 Bank</a></li>
-            <li><a href="tradeos.html">🔀 Tradeos</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Secciones</h4>
-          <ul>
-            <li><a href="#secPases">🏆 Pases</a></li>
-            <li><a href="#secLlaves">🗝️ Cofres</a></li>
-            <li><a href="#secHistoria">📚 Historia</a></li>
-            <li><a href="#secTickets">🎫 Tickets</a></li>
-            <li><a href="#secCalKeys">🔑 Llaves Cal</a></li>
-            <li><a href="#secSuperKeys">⭐ Superestrellas</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Info</h4>
-          <ul>
-            <li><a href="#">📩 Soporte</a></li>
-            <li><a href="#">📜 Términos</a></li>
-            <li><a href="#">🔒 Privacidad</a></li>
-            <li><a href="index.html">🚪 Salir</a></li>
-          </ul>
-        </div>
+    <!-- HISTORIAL DE COMPRAS -->
+    <section class="purchases-section reveal" id="purchasesSection">
+      <div class="sec-header">
+        <h3 class="sec-title">HISTORIAL DE COMPRAS</h3>
+        <button class="btn-pixel btn-ghost" id="btnClearHistory">🗑️ LIMPIAR</button>
       </div>
-      <div class="footer-bottom">
-        <span>© <span id="y"></span> Moonveil Portal — Hecho con ☕ + bloques de diamante</span>
-        <span class="footer-live-txt">⚡ Restock automático activo</span>
+      <div id="purchasesList" class="purchases-list">
+        <div class="empty-hist"><span>📭</span><p>NO HAY COMPRAS AÚN</p></div>
       </div>
-    </div>
-  </footer>
+    </section>
 
-  <!-- Modal Producto -->
-  <div class="modal" id="productModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-overlay" id="modalOverlay"></div>
-    <div class="modal-dialog">
-      <header class="modal-head">
-        <div class="modal-head-l">
-          <span class="modal-emoji" id="modalEmoji">🛒</span>
-          <h2 class="modal-title" id="modalTitle">—</h2>
-        </div>
-        <button class="modal-close-x" id="modalClose" aria-label="Cerrar">✕</button>
-      </header>
-      <div class="modal-body" id="modalBody"></div>
-      <footer class="modal-foot">
-        <button class="modal-buy-btn" id="modalBuy">🛒 Comprar</button>
-        <button class="modal-sec-btn" id="modalCloseBtn">Cerrar</button>
-      </footer>
+  </div>
+
+  <!-- NPC MERCADER -->
+  <div class="npc-wrap" id="npc">
+    <div class="npc-bubble" id="npc-dialog">¡Bienvenido!</div>
+    <div class="npc-avatar"><img src="img/merchant.gif" onerror="this.style.display='none';this.parentElement.innerHTML='🦊'" alt="Merchant"/></div>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box">
+      <button id="modalClose" class="modal-close">✕</button>
+      <div id="modalContent" class="modal-content"></div>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
 
-  <!-- Botón música flotante -->
-  <button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand"><div class="brand-cube small"></div><span>Moonveil Portal</span></div>
+      <div class="footer-copy">© <span id="year"></span> Moonveil. Todos los derechos reservados.</div>
+    </div>
+  </footer>
 
-  <!-- Música de fondo -->
-  <audio id="bg-music" loop>
-    <source src="music/8.mp3" type="audio/mpeg" />
-  </audio>
-
-  <script src="tienda.js"></script>
+  <script type="module" src="tienda.js"></script>
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
 </body>
 </html>
