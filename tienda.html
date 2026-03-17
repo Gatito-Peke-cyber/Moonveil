@@ -81,19 +81,32 @@
       </div>
     </div>
 
-    <!-- SAND BRILL -->
-    <div class="sandbrill-section reveal" id="sandbrillSection">
-      <div class="sb-header">
-        <div class="sb-title-row">
-          <span class="sb-fox">🦊</span>
-          <div>
-            <div class="sb-tag">SAND BRILL · OFERTAS RELÁMPAGO</div>
-            <div class="sb-desc">Artículos al azar con descuentos de 10% a 60% — ¡Solo hoy!</div>
+    <!-- RUSTY DAILY DEALS -->
+    <div class="rusty-section reveal" id="rustySection">
+      <div class="rusty-layout">
+        <!-- Personaje Rusty -->
+        <div class="rusty-char">
+          <div class="rusty-bubble" id="rustyBubble">¡Hola! Soy Rusty 🦊</div>
+          <div class="rusty-avatar-wrap">
+            <img src="img/fox2.gif" class="rusty-img" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=rusty-fallback>🦊</span>'" alt="Rusty"/>
+            <div class="rusty-name-tag">RUSTY</div>
           </div>
         </div>
-        <button class="btn-pixel btn-ghost" id="btnRefreshSB">↻ RENOVAR</button>
+        <!-- Ofertas del día -->
+        <div class="rusty-deals-wrap">
+          <div class="rusty-deals-header">
+            <div>
+              <div class="rusty-title">OFERTAS DE RUSTY</div>
+              <div class="rusty-subtitle" id="rustySubtitle">Cargando ofertas del día…</div>
+            </div>
+            <div class="rusty-refresh-info" id="rustyRefreshInfo">
+              <span class="rusty-cd-label">CAMBIAN EN:</span>
+              <span class="rusty-cd" id="rustyCountdown">--:--:--</span>
+            </div>
+          </div>
+          <div class="sb-grid" id="sbGrid"></div>
+        </div>
       </div>
-      <div class="sb-grid" id="sbGrid"></div>
     </div>
 
     <!-- CATEGORÍAS -->
@@ -266,17 +279,22 @@
   </div>
 
   <!-- HISTORIAL (drawer) -->
-  <button class="hist-toggle-btn" id="histToggle" title="Ver historial de compras">📋 HISTORIAL</button>
+  <button class="hist-toggle-btn" id="histToggle" title="Ver historial de compras">
+    📋 HISTORIAL <span class="hist-badge" id="histBadge"></span>
+  </button>
   <div class="hist-drawer" id="histDrawer" aria-hidden="true">
     <div class="hist-drawer-head">
-      <span class="hist-title">📋 HISTORIAL DE COMPRAS</span>
+      <div class="hist-title-wrap">
+        <span class="hist-title">📋 HISTORIAL</span>
+        <span class="hist-count"> </span>
+      </div>
       <div class="hist-actions">
-        <button class="btn-pixel btn-ghost btn-sm" id="btnClearHistory">🗑️</button>
+        <button class="btn-pixel btn-ghost btn-sm" id="btnClearHistory">🗑️ LIMPIAR</button>
         <button class="btn-pixel btn-ghost btn-sm" id="histClose">✕</button>
       </div>
     </div>
     <div id="purchasesList" class="purchases-list">
-      <div class="empty-hist"><span>📭</span><p>SIN COMPRAS AÚN</p></div>
+      <div class="empty-hist"><span>📭</span><p>SIN COMPRAS AÚN</p><div class="empty-hist-sub">Tus compras aparecerán aquí</div></div>
     </div>
   </div>
   <div class="hist-backdrop" id="histBackdrop"></div>

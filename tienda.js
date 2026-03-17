@@ -485,7 +485,8 @@ function buildCard(p,idx){
 
   // Stock
   const stockClass=st===0?'no-stock':st<=3?'low-stock':'';
-  const stockLabel=st===0?'AGOTADO':st===999?'∞ Ilimitado':`STOCK: ${st}`;
+  const stockLabel=st===0?'AGOTADO':st===999?'∞':'';
+  const stockNum=st===0?'':st===999?'∞':String(st);
   const restockStr=p.restock?`↻ ${p.restock}`:p.stock>1?'Sin restock':'—';
 
   // Countdown expiración
@@ -539,7 +540,7 @@ function buildCard(p,idx){
     </div>
     <div class="pc-footer">
       <div class="pc-stock-row">
-        <span class="pc-stock ${stockClass}">${stockLabel}</span>
+        <span class="pc-stock ${stockClass}">📦 ${st===0?'AGOTADO':st===999?'∞ ILIMITADO':'STOCK'} <span class="pc-stock-num">${stockNum}</span></span>
         <span class="pc-restock">${restockStr}</span>
       </div>
       <div class="pc-price-row">${priceHTML}</div>
@@ -553,42 +554,103 @@ function buildCard(p,idx){
   return{html,cds};
 }
 
-/* ══ SAND BRILL ══ */
+/* ══ RUSTY — OFERTAS DIARIAS ══ */
+// Los diálogos de Rusty rotan automáticamente
+const RUSTY_DIALOGUES=[
+  '¡Mira estas ofertas, solo por hoy!',
+  '¡Las mejores rebajas del portal!',
+  '¡Corre, el stock es limitado!',
+  '¿A que precio tan justo, verdad?',
+  '¡Estas ofertas las elegí yo mismo!',
+  '¡Hoy es tu día de suerte, viajero!',
+  '¡Compra ahora o lo perderás!',
+  'Mi nariz nunca falla con las gangas 🦊',
+  '¡Exclusivo de Rusty, solo aquí!',
+  '¡Los precios vuelven mañana! ¡Apúrate!',
+];
+let rustyDialogIdx=0;
+function startRustyDialogues(){
+  const el=$('#rustyBubble');if(!el)return;
+  el.textContent=RUSTY_DIALOGUES[0];
+  setInterval(()=>{
+    rustyDialogIdx=(rustyDialogIdx+1)%RUSTY_DIALOGUES.length;
+    el.style.opacity='0';
+    setTimeout(()=>{el.textContent=RUSTY_DIALOGUES[rustyDialogIdx];el.style.opacity='1';},300);
+  },7000);
+}
+
+// Semilla diaria: garantiza mismas ofertas todo el día, cambian a medianoche
+function getDailySeed(){
+  const d=new Date();
+  return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
+}
+function seededRand(seed){
+  let s=seed;
+  return function(){s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/0xffffffff;};
+}
+
 let sbProducts=[];
 function pickSBProducts(){
+  // Excluir pases de temporada y de evento
   const eligible=products.filter(p=>{
-    const now=Date.now();
+    if(p.sec==='pases'||p.sec==='eventos')return false;
+    const nowT=Date.now();
     const startMs=parseDateStart(p.startsAt);
     const expMs=parseDate(p.expiresAt);
     const st=getStock(p);
-    return p.price>0&&st>0&&!(startMs&&startMs>now)&&!(expMs&&expMs<now);
+    return p.price>0&&st>0&&!(startMs&&startMs>nowT)&&!(expMs&&expMs<nowT);
   });
-  // Mezclar y elegir 4
-  const shuffled=[...eligible].sort(()=>Math.random()-0.5);
-  sbProducts=shuffled.slice(0,4).map(p=>({
-    ...p,
-    sbDiscount:Math.floor(Math.random()*51)+10,// 10-60%
-  }));
+  const seed=getDailySeed();
+  const rand=seededRand(seed);
+  // Shuffle con semilla
+  const shuffled=[...eligible];
+  for(let i=shuffled.length-1;i>0;i--){
+    const j=Math.floor(rand()*(i+1));
+    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  }
+  // Descuentos con semilla (10-60%)
+  sbProducts=shuffled.slice(0,4).map((p,i)=>{
+    const r=seededRand(seed+i+1);
+    const disc=Math.floor(r()*51)+10;
+    return{...p,sbDiscount:disc};
+  });
 }
+
 function renderSBGrid(){
   const grid=$('#sbGrid');if(!grid)return;
-  if(!sbProducts.length){grid.innerHTML='<div style="font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted);padding:20px">No hay ofertas disponibles ahora.</div>';return;}
+  // Subtítulo
+  const sub=$('#rustySubtitle');
+  if(sub){
+    const dayNames=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const d=new Date();
+    sub.textContent=`Ofertas del ${dayNames[d.getDay()]} ${d.getDate()} — ¡Cambian mañana!`;
+  }
+  if(!sbProducts.length){
+    grid.innerHTML='<div style="font-family:var(--font-pixel);font-size:0.26rem;color:var(--muted);padding:20px;grid-column:1/-1">No hay ofertas hoy. Vuelve mañana!</div>';
+    return;
+  }
   grid.innerHTML=sbProducts.map(p=>{
     const disc=p.sbDiscount;
     const finalP=Math.max(1,Math.round(p.price*(1-disc/100)));
     const st=getStock(p);
     return`<div class="sb-card">
       <div class="sb-discount-badge">-${disc}%</div>
-      <div class="sb-card-header">
-        <span class="sb-card-icon">${p.emoji||'📦'}</span>
-        <span class="sb-card-name">${esc(p.name)}</span>
+      <div class="sb-card-img">
+        <img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy">
       </div>
-      <div class="sb-prices">
-        <span class="sb-price-old">⟡${p.price}</span>
-        <span class="sb-price-new">⟡${finalP}</span>
+      <div class="sb-card-body">
+        <div class="sb-card-header">
+          <span class="sb-card-icon">${p.emoji||'📦'}</span>
+          <span class="sb-card-name">${esc(p.name)}</span>
+        </div>
+        <div class="sb-prices">
+          <span class="sb-price-old">⟡${p.price}</span>
+          <span class="sb-price-new">⟡${finalP}</span>
+        </div>
+        <div class="sb-stock-mini">📦 Stock: ${st===999?'∞':st}</div>
       </div>
       ${st>0
-        ?`<button class="sb-btn" data-id="${p.id}" data-disc="${disc}" data-final="${finalP}">¡COMPRAR OFERTA!</button>`
+        ?`<button class="sb-btn" data-id="${p.id}" data-disc="${disc}" data-final="${finalP}">¡COMPRAR! ⚡</button>`
         :`<div class="sb-out-label">AGOTADO</div>`
       }
     </div>`;
@@ -601,6 +663,20 @@ function renderSBGrid(){
     });
   });
 }
+
+function startRustyCountdown(){
+  function tick(){
+    const now=new Date();
+    const midnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,0);
+    const diff=Math.max(0,Math.floor((midnight-now)/1000));
+    const h=String(Math.floor(diff/3600)).padStart(2,'0');
+    const m=String(Math.floor((diff%3600)/60)).padStart(2,'0');
+    const s=String(diff%60).padStart(2,'0');
+    const el=$('#rustyCountdown');if(el)el.textContent=`${h}:${m}:${s}`;
+  }
+  tick();setInterval(tick,1000);
+}
+
 function buySBProduct(p,finalPrice,disc){
   const st=getStock(p);
   if(st<=0){toast('¡Agotado!','error');return;}
@@ -610,8 +686,8 @@ function buySBProduct(p,finalPrice,disc){
     if(days)setNextRestock(p,nextMidnight(days));
   }
   deliverProduct(p);
-  addPurchase(p,`Sand Brill -${disc}% → ⟡${finalPrice}`);
-  toast(`🦊 ¡Oferta de Sand Brill! ${p.name} (${-disc}%)`, 'success');
+  addPurchase(p,`Rusty -${disc}% → ⟡${finalPrice}`,finalPrice,disc);
+  toast(`🦊 Rusty: ¡${p.name} por ⟡${finalPrice}!`,'success');
   renderSBGrid();renderAll();
 }
 
@@ -698,47 +774,146 @@ function openConfirmModal(id){
 
 function openDetailModal(id){
   const p=products.find(x=>x.id===id);if(!p)return;
-  const now=Date.now();
+  const nowT=Date.now();
   const st=getStock(p);
   const startMs=parseDateStart(p.startsAt),expMs=parseDate(p.expiresAt);
-  const isDisabled=st<=0||(startMs&&startMs>now)||(expMs&&expMs<now);
+  const isUpcoming=!!(startMs&&startMs>nowT);
+  const isExpired=!!(expMs&&expMs<nowT);
+  const isDisabled=st<=0||isUpcoming||isExpired;
 
-  const ql={legendary:{bg:'rgba(245,158,11,0.2)',border:'rgba(245,158,11,0.5)',color:'#fde68a'},epic:{bg:'rgba(168,85,247,0.18)',border:'rgba(168,85,247,0.4)',color:'#d8b4fe'},rare:{bg:'rgba(56,189,248,0.18)',border:'rgba(56,189,248,0.3)',color:'#7dd3fc'},common:{bg:'rgba(156,163,175,0.12)',border:'rgba(156,163,175,0.2)',color:'#d1d5db'}}[p.quality||'common']||{};
+  const qualityColors={
+    legendary:{bg:'rgba(245,158,11,0.18)',border:'rgba(245,158,11,0.5)',color:'#fde68a',label:'LEGENDARIO'},
+    epic:     {bg:'rgba(168,85,247,0.18)',border:'rgba(168,85,247,0.4)',color:'#d8b4fe',label:'ÉPICO'},
+    rare:     {bg:'rgba(56,189,248,0.18)',border:'rgba(56,189,248,0.3)',color:'#7dd3fc',label:'RARO'},
+    common:   {bg:'rgba(156,163,175,0.12)',border:'rgba(156,163,175,0.2)',color:'#d1d5db',label:'COMÚN'},
+  };
+  const qc=qualityColors[p.quality||'common']||qualityColors.common;
 
-  let calKeyBlock='',superKeyBlock='';
+  // Llaves cal
+  let calKeyBlock='';
   if(p.calKey){
     const entries=p.calKey.pack&&p.calKey.keys?Object.entries(p.calKey.keys):[[p.calKey.type,p.calKey.amount]];
     const owned=lsGet(CAL_KEYS_LS,{});
-    calKeyBlock=`<h3 style="font-family:var(--font-pixel);font-size:0.34rem;color:var(--gold);margin:14px 0 8px">🔑 LLAVES A RECIBIR</h3>${entries.map(([t,a])=>{const info=CAL_KEY_INFO[t]||{emoji:'🗝️',name:t};return`<div class="bmr-row" style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.12);padding:8px 10px;margin-bottom:4px"><span class="bmr-ico">${info.emoji}</span><span class="bmr-txt">${info.name}</span><span class="bmr-val">+${a} <small style="font-size:0.22rem;color:var(--muted)">(tienes ${owned[t]||0})</small></span></div>`;}).join('')}`;
+    calKeyBlock=`
+      <div class="mdl-section-title">🔑 LLAVES A RECIBIR</div>
+      ${entries.map(([t,a])=>{
+        const info=CAL_KEY_INFO[t]||{emoji:'🗝️',name:t};
+        return`<div class="mdl-reward-row">
+          <span class="mdl-reward-ico">${info.emoji}</span>
+          <div style="flex:1"><div class="mdl-reward-name">${info.name}</div><div class="mdl-reward-owned">Tienes: ${owned[t]||0}</div></div>
+          <span class="mdl-reward-count">+${a}</span>
+        </div>`;
+      }).join('')}`;
   }
+
+  // Llaves super
+  let superKeyBlock='';
   if(p.superKey){
     const entries=p.superKey.pack&&p.superKey.keys?Object.entries(p.superKey.keys):[[p.superKey.keyId,p.superKey.amount]];
     const owned=lsGet(CHEST_KEYS_LS,{});
-    superKeyBlock=`<h3 style="font-family:var(--font-pixel);font-size:0.34rem;color:var(--gold);margin:14px 0 8px">⭐ LLAVES A RECIBIR</h3>${entries.map(([k,a])=>{const info=SUPER_KEY_INFO[k]||{emoji:'⭐',name:k,color:'#fbbf24'};return`<div class="bmr-row" style="background:${info.color}0d;border:1px solid ${info.color}22;padding:8px 10px;margin-bottom:4px"><span class="bmr-ico">${info.emoji}</span><span class="bmr-txt" style="color:${info.color}">${info.name}</span><span class="bmr-val">+${a} <small style="font-size:0.22rem;color:var(--muted)">(tienes ${owned[k]||0})</small></span></div>`;}).join('')}`;
+    superKeyBlock=`
+      <div class="mdl-section-title">⭐ LLAVES DE COFRE A RECIBIR</div>
+      ${entries.map(([k,a])=>{
+        const info=SUPER_KEY_INFO[k]||{emoji:'⭐',name:k,color:'#fbbf24'};
+        return`<div class="mdl-reward-row" style="border-color:${info.color}22;background:${info.color}0d">
+          <span class="mdl-reward-ico">${info.emoji}</span>
+          <div style="flex:1"><div class="mdl-reward-name" style="color:${info.color}">${info.name}</div><div class="mdl-reward-owned">Tienes: ${owned[k]||0}</div></div>
+          <span class="mdl-reward-count" style="color:${info.color}">+${a}</span>
+        </div>`;
+      }).join('')}`;
   }
 
+  // Tickets block
+  let ticketBlock='';
+  if(p.wheelId&&p.amount){
+    const curT=getGachaT(p.wheelId);
+    ticketBlock=`
+      <div class="mdl-section-title">🎟️ TICKETS A RECIBIR</div>
+      <div class="mdl-reward-row">
+        <span class="mdl-reward-ico">🎟️</span>
+        <div style="flex:1"><div class="mdl-reward-name">Tickets — Ruleta ${p.wheelId}</div><div class="mdl-reward-owned">Tienes: ${curT}</div></div>
+        <span class="mdl-reward-count">+${p.amount}</span>
+      </div>`;
+  }
+
+  // Pase block
+  let paseBlock='';
+  if(p.sec==='pases'){
+    const passId=`pass_s${p.id.replace('s','')}`;
+    let passTier='Piedra';
+    try{const raw=localStorage.getItem(`mv_pass_${p.id}`);if(raw){const s=JSON.parse(raw);passTier=({stone:'Piedra',iron:'Hierro',gold:'Oro',emerald:'Esmeralda',diamond:'Diamante'}[s.tier||'stone']||'Piedra');}}catch{}
+    paseBlock=`
+      <div class="mdl-section-title">🏆 ESTADO DEL PASE</div>
+      <div class="mdl-reward-row">
+        <span class="mdl-reward-ico">🏆</span>
+        <div style="flex:1"><div class="mdl-reward-name">Tier actual: ${passTier}</div><div class="mdl-reward-owned">Al comprar → Tier Hierro activado</div></div>
+      </div>`;
+  }
+
+  // Precio
   const finalPrice=getEffectivePrice(p);
-  const rstLabel=p.restock?({
-    '24h':'Cada día a medianoche','7d':'Cada 7 días','30d':'Cada 30 días',
-  }[p.restock]||p.restock):'Sin restock';
+  const discPct=p.price>0?Math.round((p.price-finalPrice)/p.price*100):0;
+
+  // Información de stock
+  const stockColorClass=st===0?'val-red':st<=3?'val-red':st===999?'val-green':'val-gold';
+  const stockDisplay=st===0?'AGOTADO':st===999?'∞ Ilimitado':`${st} unidades`;
+  const rstLabel=p.restock?({'24h':'Cada 24h','7d':'Cada 7 días','30d':'Cada 30 días'}[p.restock]||p.restock):'Sin restock automático';
+
+  // Estado
+  let stateNote='';
+  if(isExpired)stateNote=`<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);padding:10px 14px;font-family:var(--font-pixel);font-size:0.26rem;color:#ef4444;text-align:center">⌛ OFERTA CADUCADA EL ${p.expiresAt}</div>`;
+  else if(isUpcoming)stateNote=`<div style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.25);padding:10px 14px;font-family:var(--font-pixel);font-size:0.26rem;color:#60a5fa;text-align:center">⏳ DISPONIBLE A PARTIR DEL ${p.startsAt}</div>`;
+  else if(st<=0)stateNote=`<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);padding:10px 14px;font-family:var(--font-pixel);font-size:0.26rem;color:#ef4444;text-align:center">❌ SIN STOCK DISPONIBLE</div>`;
 
   openModal(`
-    <h2>${esc(p.name)}</h2>
-    <div class="mdl-img"><img src="${esc(p.img)}" alt="${esc(p.name)}"></div>
-    <span class="mdl-quality" style="background:${ql.bg};border-color:${ql.border};color:${ql.color}">${(p.quality||'common').toUpperCase()}${p.gold?' · ★ DESTACADO':''}</span>
-    <div class="mdl-desc">${esc(p.desc)}</div>
-    <div class="mdl-meta">
-      <div class="mdl-meta-item">💰 Precio: <strong>⟡${p.price===0?'GRATIS':p.price}</strong></div>
-      <div class="mdl-meta-item">📦 Stock: <strong>${st===999?'Ilimitado':st}</strong></div>
-      <div class="mdl-meta-item">↻ Restock: <strong>${rstLabel}</strong></div>
-      <div class="mdl-meta-item">🏷️ Sección: <strong>${p.sec}</strong></div>
-      ${p.startsAt?`<div class="mdl-meta-item">📅 Desde: <strong>${p.startsAt}</strong></div>`:''}
-      ${p.expiresAt?`<div class="mdl-meta-item">⏰ Caduca: <strong>${p.expiresAt}</strong></div>`:''}
+    <div class="mdl-img">
+      <img src="${esc(p.img)}" alt="${esc(p.name)}">
+      <div class="mdl-img-overlay">
+        <span class="mdl-quality-inline" style="background:${qc.bg};border-color:${qc.border};color:${qc.color};font-family:var(--font-pixel);font-size:0.22rem;padding:4px 10px;border-width:1px;border-style:solid">
+          ${p.emoji||''} ${qc.label}${p.gold?' · ★ DESTACADO':''}
+        </span>
+      </div>
     </div>
-    ${calKeyBlock}${superKeyBlock}
-    <div class="buy-modal-actions">
-      <button class="btn-pixel btn-ghost" onclick="document.getElementById('modal').setAttribute('aria-hidden','true')">CERRAR</button>
-      <button class="btn-pixel btn-gold" id="mdlBtnBuy" ${isDisabled?'disabled':''}>⟡${finalPrice===0?'GRATIS':finalPrice} · COMPRAR</button>
+    <div class="mdl-body">
+      <div>
+        <div class="mdl-name-big">${esc(p.name)}</div>
+        <div class="mdl-desc">${esc(p.desc)}</div>
+      </div>
+      ${stateNote}
+      <div class="mdl-divider"></div>
+      <div class="mdl-meta">
+        <div class="mdl-meta-item">
+          <span class="mdl-meta-label">💰 Precio base</span>
+          <span class="mdl-meta-value val-gold">${p.price===0?'GRATIS':'⟡'+p.price}</span>
+        </div>
+        <div class="mdl-meta-item">
+          <span class="mdl-meta-label">📦 Stock</span>
+          <span class="mdl-meta-value ${stockColorClass}">${stockDisplay}</span>
+        </div>
+        <div class="mdl-meta-item">
+          <span class="mdl-meta-label">↻ Restock</span>
+          <span class="mdl-meta-value" style="font-size:0.26rem">${rstLabel}</span>
+        </div>
+        <div class="mdl-meta-item">
+          <span class="mdl-meta-label">🏷️ Sección</span>
+          <span class="mdl-meta-value" style="font-size:0.26rem;text-transform:capitalize">${p.sec}</span>
+        </div>
+        ${p.startsAt?`<div class="mdl-meta-item"><span class="mdl-meta-label">📅 Desde</span><span class="mdl-meta-value val-blue" style="font-size:0.26rem">${p.startsAt}</span></div>`:''}
+        ${p.expiresAt?`<div class="mdl-meta-item"><span class="mdl-meta-label">⏰ Caduca</span><span class="mdl-meta-value val-red" style="font-size:0.26rem">${p.expiresAt}</span></div>`:''}
+      </div>
+      ${calKeyBlock||superKeyBlock||ticketBlock||paseBlock?`<div class="mdl-divider"></div>`:''}
+      ${calKeyBlock}${superKeyBlock}${ticketBlock}${paseBlock}
+      ${(p.tags||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">${(p.tags||[]).map(t=>`<span class="pc-tag">#${esc(t)}</span>`).join('')}</div>`:''}
+      <div class="mdl-divider"></div>
+      <div style="text-align:center">
+        ${discPct>0?`<div class="mdl-price-orig">Precio original: ⟡${p.price}</div>`:'' }
+        <div class="mdl-price-final">${p.price===0?'GRATIS':'⟡'+finalPrice}</div>
+        ${discPct>0?`<div class="mdl-price-disc">-${discPct}% DE DESCUENTO</div>`:''}
+      </div>
+      <div class="mdl-footer">
+        <button class="btn-pixel btn-ghost" onclick="document.getElementById('modal').setAttribute('aria-hidden','true')">CERRAR</button>
+        <button class="btn-pixel btn-gold" id="mdlBtnBuy" ${isDisabled?'disabled':''}>${isDisabled?'NO DISPONIBLE':'🛒 COMPRAR AHORA'}</button>
+      </div>
     </div>
   `);
   setTimeout(()=>{
@@ -756,7 +931,7 @@ function executeBuy(p,finalPrice,discPct){
     if(days)setNextRestock(p,nextMidnight(days));
   }
   deliverProduct(p);
-  addPurchase(p,discPct>0?`-${discPct}% → ⟡${finalPrice}`:'');
+  addPurchase(p,discPct>0?`-${discPct}% → ⟡${finalPrice}`:'',finalPrice,discPct);
   // Gastar cupón
   if(currentCoupon){
     if(currentScId){
@@ -803,9 +978,16 @@ function getRewardLines(p){
 
 /* ══ HISTORIAL ══ */
 function getPurchases(){return lsGet(LS.hist,[]);}
-function addPurchase(p,note=''){
+function addPurchase(p,note='',finalPrice=null,discPct=0){
   const hist=getPurchases();
-  hist.unshift({id:p.id,name:p.name,icon:p.emoji||'📦',note,date:new Date().toISOString()});
+  hist.unshift({
+    id:p.id,name:p.name,icon:p.emoji||'📦',
+    note,date:new Date().toISOString(),
+    price:finalPrice!=null?finalPrice:(p.price||0),
+    origPrice:p.price||0,
+    disc:discPct,
+    sec:p.sec,
+  });
   if(hist.length>60)hist.pop();
   lsSet(LS.hist,hist);
   renderHistory();
@@ -814,16 +996,41 @@ function addPurchase(p,note=''){
 function renderHistory(){
   const list=$('#purchasesList');if(!list)return;
   const hist=getPurchases();
-  if(!hist.length){list.innerHTML='<div class="empty-hist"><span>📭</span><p>SIN COMPRAS AÚN</p></div>';return;}
-  list.innerHTML=hist.map(h=>`
-    <div class="purchase-item">
-      <span class="pi-icon">${h.icon||'📦'}</span>
+  // Actualizar contador en botón
+  const toggleBtn=$('#histToggle');
+  if(toggleBtn){
+    const badge=toggleBtn.querySelector('.hist-badge');
+    if(badge)badge.textContent=hist.length>0?hist.length:'';
+  }
+  // Actualizar count en drawer
+  const countEl=$('.hist-count');
+  if(countEl)countEl.textContent=hist.length>0?`${hist.length} compra${hist.length!==1?'s':''}`:' ';
+  if(!hist.length){
+    list.innerHTML=`<div class="empty-hist">
+      <span>📭</span>
+      <p>SIN COMPRAS AÚN</p>
+      <div class="empty-hist-sub">Tus compras aparecerán aquí</div>
+    </div>`;
+    return;
+  }
+  list.innerHTML=hist.map(h=>{
+    const isFree=h.origPrice===0||h.price===0;
+    const hasDisc=h.disc>0;
+    return`<div class="purchase-item">
+      <div class="pi-icon-wrap">${h.icon||'📦'}</div>
       <div class="pi-info">
         <div class="pi-name">${esc(h.name)}</div>
-        <div class="pi-detail">${esc(h.note||'')}</div>
+        <div class="pi-detail">${esc(h.note||h.sec||'')}</div>
+        <div class="pi-time-row">
+          <span class="pi-time">${timeAgo(h.date)}</span>
+        </div>
       </div>
-      <div class="pi-time">${timeAgo(h.date)}</div>
-    </div>`).join('');
+      <div class="pi-right">
+        <span class="pi-price${isFree?' free':''}">${isFree?'GRATIS':'⟡'+h.price}</span>
+        ${hasDisc?`<span class="pi-disc">-${h.disc}%</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 /* ══ CUPONES RENDER ══ */
@@ -964,7 +1171,7 @@ const _revealObs=new MutationObserver(()=>{
 
 /* ══ BOOT ══ */
 function boot(){
-  console.log('🛒 Moonveil Shop v3.0');
+  console.log('🛒 Moonveil Shop v3.0 — Rusty Edition');
   initReveal();initCoins();initNPC();
   initFlashSale();
   syncStocks();
@@ -972,6 +1179,8 @@ function boot(){
   renderCoupons();
   pickSBProducts();
   renderSBGrid();
+  startRustyDialogues();
+  startRustyCountdown();
   renderAll();
   renderHistory();
 
@@ -1021,9 +1230,6 @@ function boot(){
     if(!confirm('¿Limpiar historial?'))return;
     lsSet(LS.hist,[]);renderHistory();toast('Historial limpiado','info');
   });
-
-  // Sand Brill refresh
-  $('#btnRefreshSB')?.addEventListener('click',()=>{pickSBProducts();renderSBGrid();toast('🦊 Nuevas ofertas de Sand Brill','success');});
 
   // Hamburger
   const ham=$('#hamburger'),nav=$('#main-nav');
