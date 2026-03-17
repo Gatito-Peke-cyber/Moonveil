@@ -7,7 +7,332 @@
   <title>Moonveil — Tienda</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%2309080f'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23f59e0b'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%23d97706'/%3E%3C/svg%3E"/>
-  <link rel="stylesheet" href="tienda.css"/>
+  <style>
+/* ════════════════════════════════════════════════════
+   Moonveil — Tienda Pixel Art v3.0 (FUSION)
+   Diseño pixel + Secciones completas de v2
+════════════════════════════════════════════════════ */
+:root {
+  --bg:    #0a0800; --bg2: #120e00; --card: #171100; --border: #2a1f00;
+  --text:  #fef3c7; --muted: #92700a; --dim: #3d2a00;
+  --a:     #f59e0b; --a2: #d97706; --a3: #78350f;
+  --gold:  #fbbf24; --gold2: #fde68a;
+  --purple:#8b5cf6; --cyan: #00e5ff; --green: #30d158; --red: #ef4444;
+  --common:#9ca3af; --rare: #60a5fa; --epic: #c084fc; --legend: #fbbf24;
+  --shadow: 4px 4px 0 #000;
+  --shadow-gold: 4px 4px 0 #000, 0 0 18px rgba(245,158,11,0.4);
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-vt:    'VT323', monospace;
+  --font-orb:   'Orbitron', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow-x:hidden}
+html{scroll-behavior:smooth;image-rendering:pixelated}
+body{font-family:var(--font-vt);line-height:1.5;color:var(--text);background:var(--bg);font-size:18px}
+img,svg,canvas{display:block;max-width:100%}
+button,input,select{font:inherit;color:inherit;border:none;background:none;cursor:pointer}
+a{color:var(--a);text-decoration:none}
+a:hover{color:var(--gold2)}
+:focus-visible{outline:3px solid var(--a);outline-offset:2px}
+
+/* ── SCANLINES ── */
+.scanlines{position:fixed;inset:0;z-index:9000;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px)}
+.coins-canvas{position:fixed;inset:0;pointer-events:none;z-index:0}
+
+/* ── KEYFRAMES ── */
+@keyframes cubeRotate  {to{transform:rotate(360deg)}}
+@keyframes shimmerGold {0%{background-position:0% 0}to{background-position:-200% 0}}
+@keyframes pulse       {0%,100%{box-shadow:var(--shadow-gold)}50%{box-shadow:4px 4px 0 #000,0 0 36px rgba(245,158,11,0.9)}}
+@keyframes fadeUp      {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes blinkDot    {0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(1.6)}}
+@keyframes npcFloat    {0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes blink       {0%,100%{opacity:1}50%{opacity:0}}
+@keyframes epicGlow    {0%,100%{box-shadow:var(--shadow),0 0 12px rgba(192,132,252,0.4)}50%{box-shadow:var(--shadow),0 0 28px rgba(192,132,252,1)}}
+@keyframes legendGlow  {0%,100%{box-shadow:var(--shadow),0 0 14px rgba(251,191,36,0.4)}50%{box-shadow:var(--shadow),0 0 36px rgba(251,191,36,1)}}
+@keyframes scanLine    {0%{top:-100%}100%{top:200%}}
+@keyframes toastIn     {from{transform:translateX(-50%) translateY(80px)}to{transform:translateX(-50%) translateY(0)}}
+@keyframes flashSale   {0%,100%{background:rgba(245,158,11,0.1)}50%{background:rgba(245,158,11,0.2)}}
+@keyframes revealIn    {from{opacity:0;transform:translateY(20px) scale(0.97)}to{opacity:1;transform:none}}
+
+.reveal{opacity:0;transform:translateY(14px);transition:opacity 0.5s,transform 0.5s}
+.reveal.visible{opacity:1;transform:none}
+.container{width:min(1280px,94%);margin:0 auto}
+
+/* ─────────────────────────── HEADER ─── */
+.top-hud{position:sticky;top:0;z-index:100;background:rgba(10,8,0,0.97);border-bottom:3px solid var(--a2);box-shadow:0 4px 0 #000,0 0 24px rgba(245,158,11,0.18)}
+.nav-wrap{display:flex;align-items:center;justify-content:space-between;padding:10px 0;gap:10px;flex-wrap:wrap}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.brand-cube{width:28px;height:28px;flex-shrink:0;background:conic-gradient(from 0deg,var(--a2),var(--gold),#fde68a 40%,var(--a2));animation:cubeRotate 8s linear infinite;box-shadow:0 0 14px var(--a)}
+.logo{font-family:var(--font-orb);font-weight:900;font-size:1.2rem;color:var(--text)}
+.logo span{color:var(--a)}
+.navbar{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.nav-pill{font-family:var(--font-pixel);font-size:0.32rem;padding:6px 9px;border:2px solid var(--border);background:var(--card);box-shadow:2px 2px 0 #000;transition:0.1s;letter-spacing:0.5px}
+.nav-pill:hover{border-color:var(--a);color:var(--a);transform:translate(-1px,-1px);box-shadow:3px 3px 0 #000}
+.nav-pill.active{border-color:var(--a);color:var(--a);background:rgba(245,158,11,0.12);box-shadow:2px 2px 0 #000,0 0 12px rgba(245,158,11,0.3)}
+.np-home{color:#30d158;border-color:#1a4a2a}.np-gacha{color:#8b5cf6;border-color:#3b1a7a}.np-shop{color:var(--gold);border-color:var(--a2)}.np-profile{color:#00e5ff;border-color:#004a5a}.np-exit{color:#ef4444;border-color:#4a1010}
+.nav-hud{display:flex;align-items:center;gap:6px}
+.hud-inventory{display:flex;gap:5px}
+.hud-inv-slot{display:flex;align-items:center;gap:4px;font-family:var(--font-pixel);font-size:0.3rem;background:var(--card);border:2px solid var(--border);padding:4px 8px;box-shadow:2px 2px 0 #000;color:var(--gold2)}
+.his-ico{font-size:0.95rem}
+.hamburger{display:none;background:transparent;border:2px solid var(--a);padding:6px;cursor:pointer}
+.hamburger span{display:block;width:18px;height:2px;background:var(--a);margin:3px 0}
+
+/* ─────────────────────────── HERO ─── */
+.hero{padding:clamp(30px,6vh,70px) 0 28px;position:relative;overflow:hidden;border-bottom:3px solid var(--border)}
+.hero::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(245,158,11,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,0.04) 1px,transparent 1px);background-size:24px 24px}
+.hero-inner{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;position:relative;z-index:1}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-pixel);font-size:0.34rem;padding:6px 14px;background:var(--card);border:2px solid var(--a2);box-shadow:var(--shadow);letter-spacing:1px;color:var(--a)}
+.coin-blink{animation:blinkDot 1.2s ease-in-out infinite;display:inline-block}
+.hero-title{display:flex;flex-direction:column;gap:6px}
+.ht-sm{font-family:var(--font-pixel);font-size:clamp(0.28rem,1.4vw,0.4rem);color:var(--muted);letter-spacing:6px}
+.ht-big{font-family:var(--font-pixel);font-size:clamp(0.7rem,3vw,1.3rem);color:var(--gold);text-shadow:0 0 24px var(--a),4px 4px 0 #000;letter-spacing:2px}
+.hero-lead{font-family:var(--font-vt);font-size:clamp(1rem,2vw,1.2rem);color:var(--muted);max-width:60ch}
+.hero-stats-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.stat-pill{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border:2px solid var(--border);box-shadow:var(--shadow);min-width:120px;transition:0.1s}
+.stat-pill:hover{border-color:var(--a);transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000}
+.stat-ico{font-size:1.3rem}
+.stat-body{display:flex;flex-direction:column}
+.stat-val{font-family:var(--font-pixel);font-size:0.65rem;color:var(--gold);text-shadow:0 0 10px var(--a);line-height:1}
+.stat-lbl{font-family:var(--font-pixel);font-size:0.22rem;color:var(--muted);margin-top:3px}
+
+/* ─────────────────────────── BUTTONS ─── */
+.btn-pixel{font-family:var(--font-pixel);font-size:0.34rem;padding:9px 16px;border:2px solid;cursor:pointer;box-shadow:var(--shadow);letter-spacing:1px;transition:0.1s;display:inline-flex;align-items:center;gap:6px;position:relative;z-index:10;user-select:none}
+.btn-pixel:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000}
+.btn-pixel:active:not(:disabled){transform:translate(1px,1px);box-shadow:2px 2px 0 #000}
+.btn-pixel:disabled{opacity:0.4;cursor:not-allowed;pointer-events:none}
+.btn-gold{background:var(--a2);color:#000;border-color:var(--gold)}
+.btn-gold:hover:not(:disabled){background:var(--gold);box-shadow:6px 6px 0 #000,0 0 24px rgba(245,158,11,0.6)}
+.btn-ghost{background:transparent;color:var(--muted);border-color:var(--border)}
+.btn-ghost:hover:not(:disabled){border-color:var(--a);color:var(--a)}
+.btn-red{background:#7f1d1d;color:#fff;border-color:#ef4444}
+.btn-pixel.large{padding:12px 24px;font-size:0.38rem}
+.btn-pixel.pulse{animation:pulse 2s ease-in-out infinite}
+
+/* ─────────────────────────── MAIN SHOP ─── */
+.main-shop{padding:20px 0 60px;position:relative;z-index:1}
+
+/* ── CUPONES ── */
+.coupon-section{background:var(--card);border:3px solid var(--border);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px}
+.coupon-section-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.coupon-icon{font-size:1.4rem}
+.coupon-title{font-family:var(--font-pixel);font-size:0.38rem;color:var(--gold)}
+.coupon-clear-btn{font-family:var(--font-pixel);font-size:0.24rem;padding:4px 10px;border:2px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;box-shadow:2px 2px 0 #000;transition:0.1s;margin-left:auto}
+.coupon-clear-btn:hover{border-color:var(--a);color:var(--a)}
+.coupon-grid{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.coupon-chip{font-family:var(--font-pixel);font-size:0.26rem;padding:5px 10px;border:2px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;box-shadow:2px 2px 0 #000;transition:0.1s;position:relative}
+.coupon-chip:hover{border-color:var(--a);color:var(--a);transform:translate(-1px,-1px)}
+.coupon-chip.active{background:var(--a2);color:#000;border-color:var(--gold);box-shadow:3px 3px 0 #000,0 0 10px rgba(245,158,11,0.4)}
+.coupon-chip.disabled{opacity:0.35;pointer-events:none;cursor:not-allowed}
+.coupon-chip .chip-cd{display:block;font-size:0.22rem;margin-top:2px;color:inherit;opacity:0.75}
+/* Cupones de temporada */
+.sc-chip{position:relative;overflow:hidden}
+.sc-chip.sc-valentine{background:rgba(244,114,182,0.09);border-color:rgba(244,114,182,0.35);color:#f9a8d4}
+.sc-chip.sc-valentine.active{background:rgba(244,114,182,0.25);border-color:rgba(244,114,182,0.7);color:#fce7f3;box-shadow:3px 3px 0 #000,0 0 14px rgba(244,114,182,0.45)}
+.sc-chip.sc-newyear{background:rgba(255,215,0,0.07);border-color:rgba(255,215,0,0.3);color:#fde68a}
+.sc-chip.sc-newyear.active{background:rgba(255,215,0,0.22);border-color:rgba(255,215,0,0.65);color:#fef9c3;box-shadow:3px 3px 0 #000,0 0 14px rgba(255,215,0,0.4)}
+.sc-chip.sc-halloween{background:rgba(249,115,22,0.09);border-color:rgba(249,115,22,0.3);color:#fed7aa}
+.sc-chip.sc-halloween.active{background:rgba(249,115,22,0.22);border-color:rgba(249,115,22,0.65);color:#ffedd5;box-shadow:3px 3px 0 #000,0 0 14px rgba(249,115,22,0.45)}
+.sc-chip.sc-christmas{background:rgba(15,139,62,0.08);border-color:rgba(15,139,62,0.32);color:#bbf7d0}
+.sc-chip.sc-christmas.active{background:rgba(15,139,62,0.22);border-color:rgba(15,139,62,0.65);color:#dcfce7;box-shadow:3px 3px 0 #000,0 0 14px rgba(15,139,62,0.4)}
+.sc-chip.sc-blackfriday{background:rgba(5,5,5,0.9);border-color:rgba(251,191,36,0.4);color:#fbbf24}
+.sc-chip.sc-blackfriday.active{background:rgba(10,8,5,0.98);border-color:rgba(251,191,36,0.8);color:#fde68a;box-shadow:3px 3px 0 #000,0 0 18px rgba(251,191,36,0.5)}
+.coupon-sep{width:100%;font-family:var(--font-pixel);font-size:0.22rem;color:var(--dim);text-align:center;border-top:1px solid var(--border);padding-top:8px;margin-top:4px}
+
+/* ── FLASH SALE BANNER ── */
+.flash-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;margin-bottom:16px;background:rgba(245,158,11,0.07);border:3px solid var(--a2);box-shadow:var(--shadow),0 0 24px rgba(245,158,11,0.1);flex-wrap:wrap;animation:flashSale 3s ease-in-out infinite}
+.fb-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fb-tag{font-family:var(--font-pixel);font-size:0.28rem;background:var(--a2);color:#000;padding:4px 10px;box-shadow:2px 2px 0 #000;animation:pulse 2s ease-in-out infinite}
+.fb-text{font-family:var(--font-vt);font-size:1.05rem;color:var(--gold2)}
+.fb-timer{font-family:var(--font-pixel);font-size:0.5rem;color:var(--gold);text-shadow:0 0 12px var(--a);letter-spacing:2px;min-width:90px;text-align:right}
+.flash-banner.flash-active{border-color:var(--gold);box-shadow:var(--shadow),0 0 40px rgba(245,158,11,0.3),0 0 0 2px var(--a2)}
+.flash-banner.flash-active .fb-tag{background:var(--red);animation:blink 0.8s step-end infinite}
+
+/* ── SEARCH ── */
+.search-bar{display:flex;gap:8px;margin-bottom:16px;background:var(--card);border:3px solid var(--border);padding:10px 12px;box-shadow:var(--shadow)}
+.search-icon{font-family:var(--font-pixel);font-size:0.32rem;color:var(--muted);align-self:center}
+.search-input{flex:1;background:transparent;border:none;outline:none;font-family:var(--font-vt);font-size:1.1rem;color:var(--text)}
+.search-input::placeholder{color:var(--dim)}
+.search-clear{font-family:var(--font-pixel);font-size:0.3rem;color:var(--dim);padding:2px 6px;transition:0.1s}
+.search-clear:hover{color:var(--red)}
+
+/* ── CATEGORY BAR ── */
+.cat-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px;padding:12px;background:var(--card);border:3px solid var(--border);box-shadow:var(--shadow)}
+.cat-btn{font-family:var(--font-pixel);font-size:0.26rem;padding:6px 10px;background:var(--bg2);color:var(--muted);border:2px solid var(--border);cursor:pointer;box-shadow:2px 2px 0 #000;transition:0.1s;letter-spacing:0.5px}
+.cat-btn:hover{border-color:var(--a);color:var(--a);transform:translate(-1px,-1px)}
+.cat-btn.active{background:var(--a2);color:#000;border-color:var(--gold);box-shadow:3px 3px 0 #000,0 0 12px rgba(245,158,11,0.3)}
+
+/* ── SECTION HEADER ── */
+.shop-section{margin-bottom:32px}
+.sec-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.sec-icon-big{font-size:1.8rem;filter:drop-shadow(0 0 8px rgba(245,158,11,0.4))}
+.sec-title-wrap h2{font-family:var(--font-pixel);font-size:clamp(0.34rem,2vw,0.5rem);color:var(--gold);text-shadow:2px 2px 0 #000}
+.sec-title-wrap p{font-family:var(--font-vt);font-size:1rem;color:var(--muted);margin-top:3px}
+.sec-bg-strip{height:3px;background:linear-gradient(90deg,var(--a2),var(--gold),transparent);margin-bottom:14px}
+
+/* ── PRODUCTS GRID ── */
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-bottom:8px}
+
+/* ── PRODUCT CARD ── */
+.product-card{background:var(--card);border:3px solid var(--border);box-shadow:var(--shadow);position:relative;overflow:hidden;transition:0.15s;display:flex;flex-direction:column}
+.product-card:hover{transform:translate(-3px,-3px);box-shadow:7px 7px 0 #000}
+.product-card[data-rarity="epic"]{border-color:rgba(192,132,252,0.5)}
+.product-card[data-rarity="epic"]:hover{box-shadow:7px 7px 0 #000,0 0 20px rgba(192,132,252,0.4)}
+.product-card[data-rarity="legend"]{border-color:rgba(251,191,36,0.6)}
+.product-card[data-rarity="legend"]:hover{box-shadow:7px 7px 0 #000,0 0 24px rgba(251,191,36,0.5)}
+.product-card[data-rarity="rare"]{border-color:rgba(96,165,250,0.4)}
+.product-card.is-out{opacity:0.65}
+.product-card.is-upcoming{opacity:0.75}
+.product-card.is-expired{opacity:0.6}
+.product-card.gold-featured{border-color:rgba(251,191,36,0.55);box-shadow:var(--shadow),0 0 0 1px rgba(251,191,36,0.1) inset}
+/* Banda superior rareza */
+.pc-band{height:5px;width:100%;background:linear-gradient(90deg,var(--a2),var(--gold),var(--a2));background-size:200%;animation:shimmerGold 2.5s linear infinite}
+.product-card[data-rarity="epic"]  .pc-band{background:linear-gradient(90deg,#7b00cc,var(--epic),#7b00cc);animation:epicGlow 2s linear infinite}
+.product-card[data-rarity="legend"].pc-band,.product-card[data-rarity="legend"] .pc-band{background:linear-gradient(90deg,#8a5000,var(--gold),#8a5000);animation:legendGlow 2s linear infinite}
+.product-card[data-rarity="common"] .pc-band{background:var(--border);animation:none}
+.product-card[data-rarity="rare"] .pc-band{background:linear-gradient(90deg,#1a3a7a,var(--rare),#1a3a7a);animation:none}
+/* Badge */
+.pc-badge{position:absolute;top:10px;right:10px;font-family:var(--font-pixel);font-size:0.18rem;padding:3px 7px;box-shadow:2px 2px 0 #000;letter-spacing:0.5px;z-index:5}
+.pc-badge.new{background:var(--green);color:#000}
+.pc-badge.sale{background:var(--red);color:#fff;animation:blink 1.5s step-end infinite}
+.pc-badge.hot{background:var(--a2);color:#000}
+.pc-badge.limited{background:var(--purple);color:#fff}
+.pc-badge.featured{background:var(--gold);color:#000}
+/* Estado overlay */
+.pc-state-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.65);display:grid;place-items:center;z-index:6;backdrop-filter:blur(2px)}
+.pc-state-badge{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 16px;background:rgba(10,8,0,0.95);border:2px solid var(--border)}
+.pc-state-badge strong{font-family:var(--font-pixel);font-size:0.3rem;color:#f87171;letter-spacing:1px}
+.pc-state-badge span{font-family:var(--font-pixel);font-size:0.22rem;color:#93c5fd}
+/* Imagen producto */
+.pc-img{position:relative;height:150px;overflow:hidden;flex-shrink:0;background:var(--bg2)}
+.pc-img img{width:100%;height:100%;object-fit:cover;transition:transform 0.6s;filter:brightness(0.8) saturate(0.9)}
+.product-card:hover .pc-img img{transform:scale(1.06);filter:brightness(0.95) saturate(1.1)}
+.pc-img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,0,0.02) 0%,rgba(10,8,0,0.5) 70%,rgba(10,8,0,0.95) 100%)}
+/* Sin imagen fallback */
+.pc-img-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3.5rem;background:linear-gradient(135deg,var(--bg2),var(--card))}
+/* Chips en imagen */
+.pc-chips-top{position:absolute;top:8px;left:8px;right:40px;display:flex;gap:4px;flex-wrap:wrap;z-index:5}
+.pc-chip{font-family:var(--font-pixel);font-size:0.18rem;padding:2px 7px;display:inline-flex;align-items:center}
+.pc-chip.q-legend{background:rgba(28,17,4,0.88);color:#fde68a;border:1px solid rgba(245,166,35,0.4)}
+.pc-chip.q-epic   {background:rgba(20,8,30,0.88);color:#d8b4fe;border:1px solid rgba(168,85,247,0.35)}
+.pc-chip.q-rare   {background:rgba(5,18,28,0.88);color:#7dd3fc;border:1px solid rgba(56,189,248,0.3)}
+.pc-chip.q-common {background:rgba(20,20,20,0.88);color:#d1d5db;border:1px solid rgba(156,163,175,0.2)}
+.pc-chip.activated{background:rgba(48,209,88,0.12);color:#30d158;border:1px solid rgba(48,209,88,0.35)}
+/* Body */
+.pc-body{padding:14px 14px 10px;flex:1;display:flex;flex-direction:column;gap:8px}
+.pc-icon-row{display:flex;align-items:center;gap:10px}
+.pc-icon{font-size:1.6rem;filter:drop-shadow(0 0 6px rgba(245,158,11,0.3))}
+.pc-name{font-family:var(--font-pixel);font-size:0.3rem;color:var(--text);line-height:1.8}
+.pc-desc{font-family:var(--font-vt);font-size:1rem;color:var(--muted);line-height:1.4}
+/* Tags */
+.pc-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
+.pc-tag{font-family:var(--font-pixel);font-size:0.18rem;padding:2px 6px;border:1px solid;letter-spacing:0.4px}
+.pc-tag.tickets{color:#c4b5fd;border-color:rgba(196,181,253,0.4);background:rgba(196,181,253,0.07)}
+.pc-tag.keys   {color:var(--gold);border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.07)}
+.pc-tag.bonus  {color:var(--green);border-color:rgba(48,209,88,0.4);background:rgba(48,209,88,0.07)}
+.pc-tag.super  {color:#00e5ff;border-color:rgba(0,229,255,0.4);background:rgba(0,229,255,0.07)}
+.pc-tag.free   {color:var(--a);border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.07)}
+.pc-tag.event  {color:#f9a8d4;border-color:rgba(244,114,182,0.4);background:rgba(244,114,182,0.07)}
+.pc-tag.coins  {color:#fcd34d;border-color:rgba(252,211,77,0.4);background:rgba(252,211,77,0.07)}
+.pc-tag.pass   {color:var(--legend);border-color:rgba(251,191,36,0.5);background:rgba(251,191,36,0.09)}
+/* Countdown en tarjeta */
+.pc-countdown{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.pc-cd-block{display:flex;flex-direction:column;align-items:center;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.18);padding:4px 5px;min-width:36px}
+.pc-cd-val{font-family:var(--font-pixel);font-size:0.4rem;color:var(--a);line-height:1}
+.pc-cd-lbl{font-family:var(--font-pixel);font-size:0.18rem;color:var(--dim);margin-top:2px}
+/* Footer */
+.pc-footer{padding:0 14px 14px;margin-top:auto}
+.pc-price-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px}
+.pc-price{font-family:var(--font-pixel);font-size:0.46rem;color:var(--gold);text-shadow:0 0 10px rgba(245,158,11,0.5)}
+.pc-price.free-price{color:var(--green)}
+.pc-price.event-price{color:#c4b5fd}
+.pc-price.code-price{color:#93c5fd}
+.pc-price-old{font-family:var(--font-pixel);font-size:0.24rem;color:var(--muted);text-decoration:line-through}
+.pc-price-new{font-family:var(--font-pixel);font-size:0.46rem;color:var(--green);text-shadow:0 0 8px rgba(48,209,88,0.4)}
+.pc-stock{font-family:var(--font-pixel);font-size:0.22rem;color:var(--dim)}
+.pc-btn{width:100%;font-family:var(--font-pixel);font-size:0.28rem;padding:9px 0;cursor:pointer;border:2px solid var(--gold);background:var(--a2);color:#000;box-shadow:var(--shadow);transition:0.1s;letter-spacing:0.8px}
+.pc-btn:hover:not(:disabled){background:var(--gold);transform:translate(-1px,-1px);box-shadow:5px 5px 0 #000}
+.pc-btn:active:not(:disabled){transform:translate(1px,1px);box-shadow:2px 2px 0 #000}
+.pc-btn:disabled{opacity:0.4;cursor:not-allowed}
+.pc-btn.btn-claimed{background:var(--border);border-color:var(--dim);color:var(--muted);cursor:not-allowed;pointer-events:none}
+/* Scan overlay */
+.product-card::after{content:'';position:absolute;left:0;right:0;height:30%;background:linear-gradient(transparent,rgba(245,158,11,0.03),transparent);animation:scanLine 6s linear infinite;pointer-events:none;z-index:1}
+
+/* ── HISTORIAL ── */
+.purchases-section{margin-top:16px}
+.sec-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px}
+.sec-title-pix{font-family:var(--font-pixel);font-size:0.44rem;color:var(--gold);letter-spacing:1px}
+.purchases-list{display:flex;flex-direction:column;gap:7px}
+.empty-hist{display:flex;flex-direction:column;align-items:center;gap:10px;padding:32px;background:var(--card);border:2px solid var(--border);box-shadow:var(--shadow);opacity:0.5}
+.empty-hist span{font-size:2rem}
+.empty-hist p{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted)}
+.purchase-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:2px solid var(--border);box-shadow:2px 2px 0 #000;transition:0.1s}
+.purchase-item:hover{border-color:rgba(245,158,11,0.3);transform:translateX(3px)}
+.pi-icon{font-size:1.4rem;flex-shrink:0}
+.pi-info{flex:1}
+.pi-name{font-family:var(--font-pixel);font-size:0.26rem;color:var(--text);margin-bottom:2px;line-height:1.8}
+.pi-detail{font-family:var(--font-vt);font-size:0.9rem;color:var(--muted)}
+.pi-time{font-family:var(--font-pixel);font-size:0.2rem;color:var(--dim);white-space:nowrap}
+
+/* ── NPC ── */
+.npc-wrap{position:fixed;bottom:70px;left:14px;z-index:500;pointer-events:none;animation:npcFloat 3s ease-in-out infinite}
+.npc-bubble{margin-bottom:8px;padding:8px 12px;max-width:200px;background:rgba(10,8,0,0.98);border:3px solid var(--a);box-shadow:4px 4px 0 #000,0 0 14px rgba(245,158,11,0.3);font-family:var(--font-pixel);font-size:0.28rem;color:var(--gold2);line-height:2.0}
+.npc-avatar img{width:72px;height:72px;border:3px solid var(--a);background:#000;image-rendering:pixelated;box-shadow:4px 4px 0 #000,0 0 10px var(--a)}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;opacity:0;pointer-events:none;transition:opacity 0.25s ease}
+.modal-overlay[aria-hidden="false"]{opacity:1;pointer-events:auto}
+.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(4px)}
+.modal-box{position:relative;width:min(700px,95vw);max-height:88vh;background:var(--card);border:3px solid var(--a);box-shadow:8px 8px 0 #000,0 0 36px rgba(245,158,11,0.25);overflow-y:auto;padding:26px;z-index:1;animation:revealIn 0.3s ease}
+.modal-close{position:absolute;top:10px;right:10px;width:32px;height:32px;display:grid;place-items:center;font-family:var(--font-pixel);font-size:0.4rem;background:var(--bg2);border:2px solid var(--border);color:var(--red);box-shadow:2px 2px 0 #000;transition:0.1s}
+.modal-close:hover{background:var(--red);color:#fff;border-color:var(--red);transform:translate(-1px,-1px)}
+.modal-content h2{font-family:var(--font-pixel);font-size:0.55rem;color:var(--gold);margin-bottom:14px;text-shadow:2px 2px 0 #000,0 0 12px var(--a);line-height:1.8}
+/* Buy modal */
+.buy-modal-icon{font-size:4rem;display:block;text-align:center;margin-bottom:12px;filter:drop-shadow(0 0 14px rgba(245,158,11,0.5))}
+.buy-modal-name{font-family:var(--font-pixel);font-size:0.44rem;color:var(--text);text-align:center;margin-bottom:6px;line-height:1.8}
+.buy-modal-desc{font-family:var(--font-vt);font-size:1.05rem;color:var(--muted);text-align:center;margin-bottom:14px}
+.buy-modal-rewards{display:flex;flex-direction:column;gap:5px;background:var(--bg2);border:2px solid var(--border);padding:12px;margin-bottom:14px}
+.bmr-row{display:flex;align-items:center;gap:8px}
+.bmr-ico{font-size:1.1rem}
+.bmr-txt{font-family:var(--font-pixel);font-size:0.26rem;color:var(--text);line-height:1.8}
+.bmr-val{font-family:var(--font-pixel);font-size:0.32rem;color:var(--gold);margin-left:auto}
+.buy-modal-note{font-family:var(--font-vt);font-size:1rem;color:var(--muted);text-align:center;margin-bottom:14px;padding:7px;border:1px solid var(--border)}
+.buy-modal-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+/* Pass state */
+.pass-state-box{background:rgba(245,158,11,0.05);border:2px solid var(--border);padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.pass-state-label{font-family:var(--font-pixel);font-size:0.26rem;color:var(--muted)}
+.pass-state-tier{font-family:var(--font-pixel);font-size:0.28rem;color:var(--green)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);font-family:var(--font-pixel);font-size:0.28rem;background:var(--card);border:2px solid var(--a);color:var(--text);padding:9px 16px;box-shadow:4px 4px 0 #000,0 0 16px rgba(245,158,11,0.3);z-index:3000;opacity:0;visibility:hidden;transition:all 0.3s ease;white-space:nowrap;letter-spacing:0.5px}
+.toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+.toast.error{border-color:var(--red);color:var(--red)}
+.toast.info{border-color:#60a5fa;color:#60a5fa}
+.toast.success{border-color:var(--green);color:var(--green)}
+
+/* ── FOOTER ── */
+.footer{padding:22px 0;background:rgba(10,8,0,0.95);border-top:3px solid var(--border)}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.footer-brand{display:flex;align-items:center;gap:8px;font-family:var(--font-pixel);font-size:0.28rem}
+.footer-copy{font-family:var(--font-pixel);font-size:0.22rem;color:var(--dim)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  .navbar{display:none;position:absolute;top:60px;left:0;right:0;flex-direction:column;background:rgba(10,8,0,0.99);border-bottom:3px solid var(--a);padding:10px;z-index:200;gap:3px}
+  .navbar.open{display:flex}
+  .hamburger{display:block}
+  .nav-pill{width:100%;justify-content:center}
+  .hero-stats-row{flex-direction:column;align-items:center}
+  .products-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .flash-banner{flex-direction:column;gap:6px;text-align:center}
+}
+@media(max-width:640px){
+  .products-grid{grid-template-columns:1fr 1fr}
+  .cat-bar{gap:3px}
+  .cat-btn{font-size:0.2rem;padding:4px 6px}
+  .hud-inventory .hud-inv-slot:nth-child(3){display:none}
+}
+@media(max-width:420px){.products-grid{grid-template-columns:1fr}}
+  </style>
 </head>
 <body class="shop-page">
   <div class="scanlines" aria-hidden="true"></div>
@@ -29,20 +354,12 @@
       </nav>
       <div class="nav-hud">
         <div class="hud-inventory" id="hudInventory">
-          <div class="hud-inv-slot" title="Tickets" id="hudTicketsTotal">
-            <span class="his-ico">🎫</span><span class="his-val">0</span>
-          </div>
-          <div class="hud-inv-slot" title="Llaves" id="hudKeys">
-            <span class="his-ico">🗝️</span><span class="his-val">0</span>
-          </div>
-          <div class="hud-inv-slot" title="Llaves Superestrellas" id="hudSuperKeys">
-            <span class="his-ico">⭐</span><span class="his-val">0</span>
-          </div>
+          <div class="hud-inv-slot" title="Tickets" id="hudTicketsTotal"><span class="his-ico">🎫</span><span class="his-val">0</span></div>
+          <div class="hud-inv-slot" title="Llaves"  id="hudKeys">         <span class="his-ico">🗝️</span><span class="his-val">0</span></div>
+          <div class="hud-inv-slot" title="Super"   id="hudSuperKeys">    <span class="his-ico">⭐</span><span class="his-val">0</span></div>
         </div>
       </div>
-      <button class="hamburger" id="hamburger" aria-label="menu">
-        <span></span><span></span><span></span>
-      </button>
+      <button class="hamburger" id="hamburger" aria-label="menu"><span></span><span></span><span></span></button>
     </div>
   </header>
 
@@ -55,20 +372,11 @@
           <span class="ht-sm">BIENVENIDO A LA</span>
           <span class="ht-big">TIENDA MOONVEIL</span>
         </h1>
-        <p class="hero-lead">Tickets, llaves y pases exclusivos. Potencia tu aventura con los mejores artículos.</p>
+        <p class="hero-lead">Pases de temporada, tickets gacha, llaves, cofres y más. ¡Potencia tu aventura!</p>
         <div class="hero-stats-row">
-          <div class="stat-pill">
-            <span class="stat-ico">🎫</span>
-            <div class="stat-body"><div class="stat-val" id="heroTickets">0</div><div class="stat-lbl">TICKETS</div></div>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-ico">🗝️</span>
-            <div class="stat-body"><div class="stat-val" id="heroKeys">0</div><div class="stat-lbl">LLAVES</div></div>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-ico">⭐</span>
-            <div class="stat-body"><div class="stat-val" id="heroSuperKeys">0</div><div class="stat-lbl">SUPERESTRELLAS</div></div>
-          </div>
+          <div class="stat-pill"><span class="stat-ico">🎫</span><div class="stat-body"><div class="stat-val" id="heroTickets">0</div><div class="stat-lbl">TICKETS</div></div></div>
+          <div class="stat-pill"><span class="stat-ico">🗝️</span><div class="stat-body"><div class="stat-val" id="heroKeys">0</div><div class="stat-lbl">LLAVES</div></div></div>
+          <div class="stat-pill"><span class="stat-ico">⭐</span><div class="stat-body"><div class="stat-val" id="heroSuperKeys">0</div><div class="stat-lbl">SUPERESTRELLAS</div></div></div>
         </div>
       </div>
     </div>
@@ -76,35 +384,57 @@
 
   <div class="container main-shop">
 
-    <!-- BARRA DE CATEGORÍAS -->
-    <div class="cat-bar reveal">
-      <button class="cat-btn active" data-cat="all">TODO</button>
-      <button class="cat-btn" data-cat="tickets">🎟️ TICKETS GACHA</button>
-      <button class="cat-btn" data-cat="keys">🗝️ LLAVES</button>
-      <button class="cat-btn" data-cat="packs">📦 PACKS</button>
-      <button class="cat-btn" data-cat="special">⭐ ESPECIALES</button>
-      <button class="cat-btn" data-cat="event">🔥 EVENTO</button>
+    <!-- CUPONES -->
+    <div class="coupon-section reveal" id="couponSection">
+      <div class="coupon-section-header">
+        <span class="coupon-icon">🎟️</span>
+        <span class="coupon-title">CUPONES</span>
+        <button class="coupon-clear-btn" id="couponClearBtn">✕ SIN CUPÓN</button>
+      </div>
+      <div class="coupon-grid" id="couponGrid"></div>
     </div>
 
-    <!-- BANNER FLASH SALE -->
+    <!-- FLASH SALE BANNER -->
     <div class="flash-banner reveal" id="flashBanner">
       <div class="fb-left">
-        <span class="fb-tag">⚡ FLASH SALE</span>
-        <span class="fb-text">¡OFERTAS POR TIEMPO LIMITADO! Descuentos hasta el 40%</span>
+        <span class="fb-tag" id="flashTag">⚡ FLASH SALE</span>
+        <span class="fb-text" id="flashText">Ofertas activas en toda la tienda</span>
       </div>
       <div class="fb-timer" id="flashTimer">00:00:00</div>
     </div>
 
-    <!-- GRID DE PRODUCTOS -->
-    <div class="products-grid" id="productsGrid">
-      <!-- Generado por JS -->
+    <!-- SEARCH -->
+    <div class="search-bar reveal">
+      <span class="search-icon">🔍</span>
+      <input id="searchInput" class="search-input" type="search" placeholder="Buscar por nombre, categoría o etiqueta…" autocomplete="off"/>
+      <button class="search-clear" id="searchClear">✕</button>
     </div>
 
-    <!-- HISTORIAL DE COMPRAS -->
+    <!-- CATEGORÍAS -->
+    <div class="cat-bar reveal" id="catBar">
+      <button class="cat-btn active" data-cat="all">TODO</button>
+      <button class="cat-btn" data-cat="pases">🏆 PASES</button>
+      <button class="cat-btn" data-cat="tickets">🎫 TICKETS</button>
+      <button class="cat-btn" data-cat="keys">🗝️ LLAVES</button>
+      <button class="cat-btn" data-cat="calkeys">🔑 LLAVES CAL.</button>
+      <button class="cat-btn" data-cat="superestrellas">⭐ SUPERESTRELLAS</button>
+      <button class="cat-btn" data-cat="cofres">📦 COFRES</button>
+      <button class="cat-btn" data-cat="materiales">⚙️ MATERIALES</button>
+      <button class="cat-btn" data-cat="historia">📚 HISTORIA</button>
+      <button class="cat-btn" data-cat="monedas">🪙 MONEDAS</button>
+      <button class="cat-btn" data-cat="packs">🎒 PACKS</button>
+      <button class="cat-btn" data-cat="eventos">🎪 EVENTOS</button>
+      <button class="cat-btn" data-cat="especiales">✨ ESPECIALES</button>
+    </div>
+
+    <!-- GRID PRODUCTOS (generado por JS) -->
+    <div id="shopSections"></div>
+
+    <!-- HISTORIAL -->
     <section class="purchases-section reveal" id="purchasesSection">
-      <div class="sec-header">
-        <h3 class="sec-title">HISTORIAL DE COMPRAS</h3>
-        <button class="btn-pixel btn-ghost" id="btnClearHistory">🗑️ LIMPIAR</button>
+      <div class="sec-header-row">
+        <span class="sec-title-pix">📜 HISTORIAL</span>
+        <button class="btn-pixel btn-ghost" id="btnClearHistory" style="font-size:0.26rem">🗑️ LIMPIAR</button>
       </div>
       <div id="purchasesList" class="purchases-list">
         <div class="empty-hist"><span>📭</span><p>NO HAY COMPRAS AÚN</p></div>
@@ -113,7 +443,7 @@
 
   </div>
 
-  <!-- NPC MERCADER -->
+  <!-- NPC -->
   <div class="npc-wrap" id="npc">
     <div class="npc-bubble" id="npc-dialog">¡Bienvenido!</div>
     <div class="npc-avatar"><img src="img/merchant.gif" onerror="this.style.display='none';this.parentElement.innerHTML='🦊'" alt="Merchant"/></div>
@@ -134,12 +464,1033 @@
   <!-- FOOTER -->
   <footer class="footer">
     <div class="container footer-inner">
-      <div class="footer-brand"><div class="brand-cube small"></div><span>Moonveil Portal</span></div>
+      <div class="footer-brand"><div class="brand-cube" style="width:18px;height:18px;animation:none"></div><span>Moonveil Portal</span></div>
       <div class="footer-copy">© <span id="year"></span> Moonveil. Todos los derechos reservados.</div>
     </div>
   </footer>
 
-  <script type="module" src="tienda.js"></script>
-  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script type="module">
+import { db }          from './firebase.js';
+import { onAuthChange } from './auth.js';
+import {
+  doc, getDoc, updateDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { saveInventory } from './database.js';
+
+'use strict';
+
+/* ════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════ */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const esc  = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+const LS = {
+  inventory: 'mv_inventory', purchases: 'mv_shop_purchases',
+  onetime:   'mv_shop_onetime', coupons: 'mv_shop_coupons',
+  scActive:  'mv_sc_active',   currentCoupon: 'mv_current_coupon',
+};
+function lsGet(k, fb=null){ try{ const v=localStorage.getItem(k); return v!==null?JSON.parse(v):fb; }catch{ return fb; } }
+function lsSet(k, v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} }
+
+/* ════════════════════════════════════════════════
+   FIREBASE
+════════════════════════════════════════════════ */
+let currentUID=null, syncTimeout=null;
+function scheduleSync(){ if(!currentUID)return; clearTimeout(syncTimeout); syncTimeout=setTimeout(doSync,2500); }
+async function doSync(){
+  if(!currentUID)return;
+  try{
+    const inv=lsGet(LS.inventory,{tickets:0,keys:0,superstar_keys:0});
+    const hist=lsGet(LS.purchases,[]);
+    const gachaTickets={};
+    const wheelIds=['classic','dark_moon','spring','storm','cyber','abyss','event','elemental'];
+    wheelIds.forEach(id=>{ gachaTickets[id]=parseInt(localStorage.getItem(`mv_tickets_${id}`)||'0',10); });
+    // Llaves calendario y superestrellas
+    let calKeys={}, chestKeys={};
+    try{ calKeys=JSON.parse(localStorage.getItem('mv_cal_keys')||'{}'); }catch{}
+    try{ chestKeys=JSON.parse(localStorage.getItem('mv_chest_keys_v1')||'{}'); }catch{}
+    await updateDoc(doc(db,'users',currentUID),{
+      inventory:inv, shop_purchases:hist,
+      gacha_tickets:gachaTickets,
+      cal_keys:calKeys, chest_keys:chestKeys,
+      updatedAt:serverTimestamp()
+    });
+  }catch(e){ console.warn('[Shop] sync:',e); }
+}
+
+async function loadFromFirebase(uid){
+  try{
+    const snap=await getDoc(doc(db,'users',uid)); if(!snap.exists())return;
+    const d=snap.data();
+    if(d.inventory){
+      const cur=lsGet(LS.inventory,{tickets:0,keys:0,superstar_keys:0});
+      const merged={
+        tickets:Math.max(cur.tickets||0,d.inventory.tickets||0),
+        keys:Math.max(cur.keys||0,d.inventory.keys||0),
+        superstar_keys:Math.max(cur.superstar_keys||0,d.inventory.superstar_keys||0)
+      };
+      lsSet(LS.inventory,merged);
+    }
+    if(d.gacha_tickets){
+      Object.entries(d.gacha_tickets).forEach(([rid,count])=>{
+        const lsKey=`mv_tickets_${rid}`;
+        const local=parseInt(localStorage.getItem(lsKey)||'-1',10);
+        localStorage.setItem(lsKey,String(Math.max(local<0?0:local,count||0)));
+      });
+    }
+    if(d.shop_purchases&&Array.isArray(d.shop_purchases)){
+      const local=lsGet(LS.purchases,[]);
+      if(d.shop_purchases.length>local.length)lsSet(LS.purchases,d.shop_purchases);
+    }
+    if(d.cal_keys){ const cur=lsGet('mv_cal_keys',{}); const merged={...cur}; Object.entries(d.cal_keys).forEach(([k,v])=>{ merged[k]=Math.max(cur[k]||0,v||0); }); lsSet('mv_cal_keys',merged); }
+    if(d.chest_keys){ const cur=lsGet('mv_chest_keys_v1',{}); const merged={...cur}; Object.entries(d.chest_keys).forEach(([k,v])=>{ merged[k]=Math.max(cur[k]||0,v||0); }); lsSet('mv_chest_keys_v1',merged); }
+  }catch(e){ console.warn('[Shop] load:',e); }
+}
+
+/* ════════════════════════════════════════════════
+   CATÁLOGO DE PRODUCTOS
+   · stock: nro unidades (-1 = ilimitado para no-onetime)
+   · restock: '24h'|'7d'|'30d'|null
+   · onetime: se puede reclamar solo una vez por usuario
+   · daily: una vez por día
+   · startsAt / expiresAt: YYYY-MM-DD
+   · calKey / superKey: entrega llaves especiales
+════════════════════════════════════════════════ */
+const PRODUCTS=[
+
+  /* ═══════════ PASES DE TEMPORADA ═══════════ */
+  {id:'s1',  cat:'pases', emoji:'🏆', name:'Pase Reino del Hielo Eterno — T.I',   img:'img-pass/banwar.jpg',      quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-01-01',expiresAt:'2026-01-31', badge:'limited',gold:true,  onetime:false,
+   desc:'Desbloquea recompensas de la temporada de Enero.',  tags:['pase','cosmetico','temporada'],
+   give:{type:'pass',passId:'pass_s1'}},
+  {id:'s2',  cat:'pases', emoji:'🏆', name:'Pase Corazones de Redstone — T.II',    img:'img-pass/banhall.jpg',     quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-02-01',expiresAt:'2026-02-28', badge:'new',  gold:true,  onetime:false,
+   desc:'Desbloquea recompensas de la temporada de Febrero.',tags:['pase','temporada'],
+   give:{type:'pass',passId:'pass_s2'}},
+  {id:'s3',  cat:'pases', emoji:'🏆', name:'Pase Despertar Naturaleza — T.III',    img:'img-pass/partymine.jpg',   quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-03-01',expiresAt:'2026-03-31', badge:null,   gold:true,  onetime:false,
+   desc:'Desbloquea recompensas de la temporada de Marzo.',  tags:['pase','temporada'],
+   give:{type:'pass',passId:'pass_s3'}},
+  {id:'s4',  cat:'pases', emoji:'🏆', name:'Pase Lluvia Plateada — T.IV',          img:'img-pass/chrismine.jpg',   quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-04-01',expiresAt:'2026-04-30', badge:null,   gold:true,  onetime:false,
+   desc:'Desbloquea recompensas de la temporada de Abril.',  tags:['pase','temporada'],
+   give:{type:'pass',passId:'pass_s4'}},
+  {id:'s5',  cat:'pases', emoji:'🏆', name:'Pase Esencia de la Aurora — T.V',      img:'img-pass/añomine.jpg',     quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-05-01',expiresAt:'2026-05-31', badge:null,   gold:true,  onetime:false,
+   desc:'Desbloquea recompensas de la temporada de Mayo.',   tags:['pase','temporada'],
+   give:{type:'pass',passId:'pass_s5'}},
+  {id:'s6',  cat:'pases', emoji:'🏆', name:'Pase Imperio Océano — T.VI',           img:'img-pass/banair.jpg',      quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-06-01',expiresAt:'2026-06-30', badge:null,   gold:true,  onetime:false,
+   desc:'Desbloquea recompensas de la temporada de Junio.',  tags:['pase','temporada'],
+   give:{type:'pass',passId:'pass_s6'}},
+  {id:'s7',  cat:'pases', emoji:'🏆', name:'Pase Reinos Dorados — T.VII',          img:'img-pass/dancingmine.jpg', quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-07-01',expiresAt:'2026-07-31', badge:null,   gold:true,  onetime:false,
+   desc:'Desbloquea recompensas de la temporada de Julio.',  tags:['pase','temporada'],
+   give:{type:'pass',passId:'pass_s7'}},
+  {id:'s8',  cat:'pases', emoji:'🏆', name:'Pase Sombras de la Noche — T.VIII',    img:'img-pass/squemine.jpg',    quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-08-01',expiresAt:'2026-08-31', badge:null,   gold:true,  onetime:false,
+   desc:'Desbloquea recompensas de la temporada de Agosto.', tags:['pase','temporada'],
+   give:{type:'pass',passId:'pass_s8'}},
+  {id:'s9',  cat:'pases', emoji:'🏆', name:'Pase Mundo Encantado — T.IX',          img:'img-pass/squemine.jpg',    quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-09-01',expiresAt:'2026-09-30', badge:null,   gold:true,  onetime:false,
+   desc:'Temporada de Septiembre.',                          tags:['pase','temporada'],
+   give:{type:'pass',passId:'pass_s9'}},
+  {id:'s10', cat:'pases', emoji:'🏆', name:'Pase Pesadilla del Nether — T.X',      img:'img-pass/squemine.jpg',    quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-10-01',expiresAt:'2026-10-31', badge:null,   gold:true,  onetime:false,
+   desc:'Temporada de Octubre.',                             tags:['pase','halloween','temporada'],
+   give:{type:'pass',passId:'pass_s10'}},
+  {id:'s11', cat:'pases', emoji:'🏆', name:'Pase Guardianes del Invierno — T.XI',  img:'img-pass/squemine.jpg',    quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-11-01',expiresAt:'2026-11-30', badge:null,   gold:true,  onetime:false,
+   desc:'Temporada de Noviembre.',                           tags:['pase','temporada'],
+   give:{type:'pass',passId:'pass_s11'}},
+  {id:'s12', cat:'pases', emoji:'🏆', name:'Pase Estrella de Ender — T.XII',       img:'img-pass/squemine.jpg',    quality:'legend', price:'⟡128', stock:1, restock:null, startsAt:'2026-12-01',expiresAt:'2026-12-31', badge:'new',  gold:true,  onetime:false,
+   desc:'Temporada de Diciembre.',                           tags:['pase','navidad','temporada'],
+   give:{type:'pass',passId:'pass_s12'}},
+  /* Pases de evento */
+  {id:'e1', cat:'eventos', emoji:'🎪', name:'Pase en la Oscuridad',  img:'img-pass/banhall.jpg',   quality:'legend', price:'⟡256', stock:1, restock:'30d', startsAt:'2026-10-20',expiresAt:'2026-11-01', badge:'sale', gold:true,  onetime:false,
+   desc:'Algo se acerca… Misiones dobles y drops de terror.',tags:['evento','halloween'],
+   give:{type:'event_pass'}},
+  {id:'e2', cat:'eventos', emoji:'🐱', name:'Pase Gatos 😺✨',        img:'img-pass/catsparty.jpg', quality:'legend', price:'⟡256', stock:1, restock:'30d', startsAt:'2026-08-01',expiresAt:'2026-08-30', badge:'new',  gold:false, onetime:false,
+   desc:'Gatos y más gatos… Misiones felinas especiales.',   tags:['evento','gatos'],
+   give:{type:'event_pass'}},
+
+  /* ═══════════ TICKETS GACHA ═══════════ */
+  {id:'t_classic_1',   cat:'tickets', emoji:'💎', name:'Ticket Clásico',        img:'imagen/ticket5.jpg', quality:'epic', price:'⟡10',  stock:10, restock:'24h', badge:'hot',  onetime:false, give:{type:'gacha_tickets',wheel:'classic',count:1},    tags:['ticket','clasico']},
+  {id:'t_classic_5',   cat:'tickets', emoji:'💎', name:'Pack Clásico x5',       img:'imagen/ticket5.jpg', quality:'epic', price:'⟡30',  stock:10, restock:'24h', badge:null,   onetime:false, give:{type:'gacha_tickets',wheel:'classic',count:5},    tags:['ticket','clasico']},
+  {id:'t_classic_10',  cat:'tickets', emoji:'💎', name:'Pack Clásico x10',      img:'imagen/ticket5.jpg', quality:'epic', price:'⟡0',   stock:1,  restock:null,  badge:'hot',  onetime:true,  give:{type:'gacha_tickets',wheel:'classic',count:10},   tags:['ticket','clasico','bienvenida'],
+   desc:'¡Bienvenida a los tickets! Solo una vez.'},
+  {id:'t_classic_free',cat:'tickets', emoji:'🎰', name:'Tiros Gratis x10',      img:'imagen/ticket5.jpg', quality:'epic', price:'GRATIS',stock:1,  restock:'30d', badge:'sale', onetime:false, give:{type:'gacha_tickets',wheel:'classic',count:10},   tags:['ticket','clasico','gratis']},
+  {id:'t_elemental_1', cat:'tickets', emoji:'🎫', name:'Ticket Elemental',      img:'imagen/ticket5.jpg', quality:'epic', price:'⟡10',  stock:10, restock:'24h', badge:null,   onetime:false, give:{type:'gacha_tickets',wheel:'elemental',count:1},  tags:['ticket','elemental']},
+  {id:'t_elemental_5', cat:'tickets', emoji:'🎫', name:'Ticket Elemental x5',   img:'imagen/ticket5.jpg', quality:'epic', price:'⟡30',  stock:10, restock:'24h', badge:null,   onetime:false, give:{type:'gacha_tickets',wheel:'elemental',count:5},  tags:['ticket','elemental']},
+  {id:'t_event_1',     cat:'tickets', emoji:'🎫', name:'Ticket Evento',         img:'imagen/ticket5.jpg', quality:'epic', price:'⟡10',  stock:10, restock:'24h', badge:null,   onetime:false, give:{type:'gacha_tickets',wheel:'event',count:1},      tags:['ticket','evento']},
+  {id:'t_event_5',     cat:'tickets', emoji:'🎫', name:'Ticket Evento x5',      img:'imagen/ticket5.jpg', quality:'epic', price:'⟡30',  stock:10, restock:'24h', badge:null,   onetime:false, give:{type:'gacha_tickets',wheel:'event',count:5},      tags:['ticket','evento']},
+  {id:'t_darkmoon_5',  cat:'tickets', emoji:'🌑', name:'Pack Luna Oscura x5',   img:'imagen/ticket5.jpg', quality:'epic', price:'EVENTO',stock:5, restock:'7d',  badge:'new',  onetime:false, give:{type:'gacha_tickets',wheel:'dark_moon',count:5},  tags:['ticket','luna']},
+  {id:'t_spring_5',    cat:'tickets', emoji:'🌸', name:'Pack Primavera x5',     img:'imagen/ticket5.jpg', quality:'epic', price:'GRATIS',stock:5, restock:'7d',  badge:'new',  onetime:false, give:{type:'gacha_tickets',wheel:'spring',count:5},     tags:['ticket','primavera']},
+  {id:'t_storm_5',     cat:'tickets', emoji:'⚡', name:'Pack Tormenta x5',      img:'imagen/ticket5.jpg', quality:'epic', price:'GRATIS',stock:5, restock:'7d',  badge:'sale', onetime:false, give:{type:'gacha_tickets',wheel:'storm',count:5},      tags:['ticket','tormenta']},
+  {id:'t_cyber_5',     cat:'tickets', emoji:'🤖', name:'Pack Cyber x5',         img:'imagen/ticket5.jpg', quality:'epic', price:'GRATIS',stock:5, restock:'7d',  badge:'new',  onetime:false, give:{type:'gacha_tickets',wheel:'cyber',count:5},      tags:['ticket','cyber']},
+  {id:'t_abyss_5',     cat:'tickets', emoji:'🕳️',name:'Pack Abismo x5',        img:'imagen/ticket5.jpg', quality:'epic', price:'GRATIS',stock:5, restock:'7d',  badge:'new',  onetime:false, give:{type:'gacha_tickets',wheel:'abyss',count:5},      tags:['ticket','abismo']},
+
+  /* ═══════════ LLAVES (cofre base) ═══════════ */
+  {id:'k_basic_3',  cat:'keys', emoji:'🗝️', name:'Pack Llaves x3',      img:'img/keys1.jpg', quality:'common', price:'GRATIS', stock:10, restock:'7d',  badge:'hot',  onetime:false, give:{type:'inventory',item:'keys',count:3},   tags:['llaves','cofre']},
+  {id:'k_basic_10', cat:'keys', emoji:'🗝️', name:'Pack Llaves x10',     img:'img/keys1.jpg', quality:'epic',   price:'EVENTO', stock:3,  restock:'30d', badge:'limited',onetime:false,give:{type:'inventory_multi',items:[{item:'keys',count:10},{item:'superstar_keys',count:1}]},tags:['llaves','super','cofre']},
+  {id:'k_super_1',  cat:'keys', emoji:'⭐', name:'Llave Superestrella',  img:'img/keys1.jpg', quality:'epic',   price:'CÓDIGO', stock:5,  restock:'30d', badge:'limited',onetime:false,give:{type:'inventory',item:'superstar_keys',count:1}, tags:['super','premium']},
+  {id:'k_super_3',  cat:'keys', emoji:'⭐', name:'Pack Super x3',        img:'img/keys1.jpg', quality:'legend', price:'EVENTO', stock:2,  restock:null,  badge:null,   onetime:false, give:{type:'inventory',item:'superstar_keys',count:3}, tags:['super','premium']},
+
+  /* ═══════════ LLAVES DEL CALENDARIO ═══════════ */
+  {id:'ck_normal',        cat:'calkeys', emoji:'🔵', name:'Llave Normal',                     img:'img/keys1.jpg', quality:'rare',   price:'⟡30',  stock:10, restock:'7d',  badge:null,    onetime:false, calKey:{type:'normal',amount:1},   tags:['llave','calendario','recuperar'], desc:'Recupera un día perdido en el Calendario de Recompensas.'},
+  {id:'ck_pink',          cat:'calkeys', emoji:'💗', name:'Llave Rosa',                       img:'img/keys1.jpg', quality:'epic',   price:'⟡50',  stock:5,  restock:'30d', badge:null,    onetime:false, calKey:{type:'pink',amount:1},     tags:['llave','calendario','festival'], desc:'Especial para San Valentín, Día de la Madre y Día del Padre.'},
+  {id:'ck_green',         cat:'calkeys', emoji:'🟢', name:'Llave Verde',                      img:'img/keys1.jpg', quality:'epic',   price:'⟡50',  stock:5,  restock:'30d', badge:null,    onetime:false, calKey:{type:'green',amount:1},    tags:['llave','calendario','navidad'], desc:'Especial para Navidad y Año Nuevo.'},
+  {id:'ck_orange',        cat:'calkeys', emoji:'🎃', name:'Llave Naranja',                    img:'img/keys1.jpg', quality:'epic',   price:'⟡50',  stock:5,  restock:'30d', badge:null,    onetime:false, calKey:{type:'orange',amount:1},   tags:['llave','calendario','halloween'], desc:'Especial para Halloween y Black Friday.'},
+  {id:'ck_cat',           cat:'calkeys', emoji:'😺', name:'Llave Gato',                       img:'img/keys1.jpg', quality:'epic',   price:'⟡60',  stock:3,  restock:'30d', badge:'limited',onetime:false, calKey:{type:'cat',amount:1},      tags:['llave','calendario','gato'], desc:'Exclusiva del Día del Gato y del Perro.'},
+  {id:'ck_special',       cat:'calkeys', emoji:'💜', name:'Llave Especial',                   img:'img/keys1.jpg', quality:'epic',   price:'⟡60',  stock:3,  restock:'30d', badge:null,    onetime:false, calKey:{type:'special',amount:1},  tags:['llave','calendario','especial'], desc:'Para días únicos: Día de la Tierra, del Niño y más.'},
+  {id:'ck_future',        cat:'calkeys', emoji:'⏩', name:'Llave Futuro',                     img:'img/keys1.jpg', quality:'legend', price:'⟡100', stock:2,  restock:'30d', badge:'limited',onetime:false, calKey:{type:'future',amount:1},   tags:['llave','calendario','rara','futuro'], desc:'¡Rarísima! Permite reclamar días que aún no llegaron.'},
+  {id:'ck_pack_all',      cat:'calkeys', emoji:'🎁', name:'Pack Definitivo — 1 de Cada',      img:'img/keys1.jpg', quality:'legend', price:'⟡280', stock:1,  restock:'30d', badge:'hot',   onetime:false, calKey:{pack:true,keys:{normal:1,pink:1,green:1,orange:1,cat:1,special:1,future:1}}, tags:['pack','llave','calendario'], desc:'¡El pack supremo! Incluye 1 llave de cada tipo.'},
+  {id:'ck_pack_3normal',  cat:'calkeys', emoji:'🔵', name:'Pack: 3 Llaves Normales',          img:'img/keys1.jpg', quality:'rare',   price:'⟡75',  stock:5,  restock:'7d',  badge:null,    onetime:false, calKey:{pack:true,keys:{normal:3}}, tags:['pack','llave','normal']},
+  {id:'ck_pack_festival', cat:'calkeys', emoji:'🌟', name:'Pack Festival — Rosa+Verde+Naranja',img:'img/keys1.jpg', quality:'epic',   price:'⟡120', stock:3,  restock:'30d', badge:null,    onetime:false, calKey:{pack:true,keys:{pink:1,green:1,orange:1}}, tags:['pack','llave','festival']},
+
+  /* ═══════════ LLAVES SUPERESTRELLA ═══════════ */
+  {id:'sk_common',    cat:'superestrellas', emoji:'⭐', name:'Llave Superestrella',            img:'img/keys1.jpg', quality:'common', price:'⟡20',  stock:20, restock:'24h', badge:null,    onetime:false, superKey:{keyId:'key_common',amount:1},    tags:['llave','superestrella','cofre','comun']},
+  {id:'sk_rare',      cat:'superestrellas', emoji:'💫', name:'Llave Sup. Brillante',           img:'img/keys1.jpg', quality:'rare',   price:'⟡40',  stock:15, restock:'24h', badge:null,    onetime:false, superKey:{keyId:'key_rare',amount:1},      tags:['llave','superestrella','cofre','raro']},
+  {id:'sk_special',   cat:'superestrellas', emoji:'✨', name:'Llave Sup. Especial',            img:'img/keys1.jpg', quality:'epic',   price:'⟡80',  stock:10, restock:'7d',  badge:null,    onetime:false, superKey:{keyId:'key_special',amount:1},   tags:['llave','superestrella','cofre','especial']},
+  {id:'sk_epic',      cat:'superestrellas', emoji:'🔮', name:'Llave Sup. Épica',               img:'img/keys1.jpg', quality:'epic',   price:'⟡160', stock:5,  restock:'7d',  badge:null,    onetime:false, superKey:{keyId:'key_epic',amount:1},      tags:['llave','superestrella','cofre','epico']},
+  {id:'sk_legendary', cat:'superestrellas', emoji:'👑', name:'Llave Sup. Legendaria',          img:'img/keys1.jpg', quality:'legend', price:'⟡320', stock:3,  restock:'7d',  badge:'limited',onetime:false, superKey:{keyId:'key_legendary',amount:1}, tags:['llave','superestrella','cofre','legendario']},
+  {id:'sk_halloween', cat:'superestrellas', emoji:'🎃', name:'Llave Sup. Calabaza',            img:'img/keys1.jpg', quality:'legend', price:'⟡70',  stock:3,  restock:'24h', badge:'limited',onetime:false, startsAt:'2026-10-25',expiresAt:'2026-11-01', superKey:{keyId:'key_halloween',amount:1}, tags:['llave','superestrella','halloween','evento']},
+  {id:'sk_christmas', cat:'superestrellas', emoji:'🎄', name:'Llave Sup. Navideña',            img:'img/keys1.jpg', quality:'legend', price:'⟡70',  stock:3,  restock:'24h', badge:'new',   onetime:false, startsAt:'2026-12-01',expiresAt:'2026-12-30', superKey:{keyId:'key_christmas',amount:1}, tags:['llave','superestrella','navidad','evento']},
+  {id:'sk_newyear',   cat:'superestrellas', emoji:'🎆', name:'Llave Sup. Año Nuevo',           img:'img/keys1.jpg', quality:'legend', price:'⟡64',  stock:3,  restock:'24h', badge:'new',   onetime:false, startsAt:'2026-12-31',expiresAt:'2027-01-06', superKey:{keyId:'key_newyear',amount:1}, tags:['llave','superestrella','año nuevo','evento']},
+  {id:'sk_pack_starter',cat:'superestrellas',emoji:'📦',name:'Pack Inicio — Común×3+Brillante×1',img:'img/keys1.jpg',quality:'rare',price:'⟡55',stock:10,restock:'7d', badge:null,onetime:false, superKey:{pack:true,keys:{key_common:3,key_rare:1}}, tags:['pack','llave','superestrella']},
+  {id:'sk_pack_top',  cat:'superestrellas', emoji:'👑', name:'Pack Élite — Épica×2+Legendaria×1',img:'img/keys1.jpg',quality:'legend',price:'⟡256',stock:3,restock:'30d',badge:'limited',onetime:false, superKey:{pack:true,keys:{key_epic:2,key_legendary:1}}, tags:['pack','llave','superestrella','elite']},
+
+  /* ═══════════ COFRES ═══════════ */
+  {id:'k1', cat:'cofres', emoji:'🗝️', name:'Cofre de Ámbar',       img:'img/chest2.gif', quality:'epic',   price:'⟡30',  stock:10, restock:'7d',  badge:null,   onetime:false, give:{type:'lore'},        tags:['cofre','epico']},
+  {id:'k2', cat:'cofres', emoji:'🗝️', name:'Cofre de Sueños',      img:'img/chest2.gif', quality:'epic',   price:'⟡30',  stock:10, restock:'7d',  badge:null,   onetime:false, give:{type:'lore'},        tags:['cofre','sueños']},
+  {id:'k3', cat:'cofres', emoji:'🗝️', name:'Cofre de Moonveil',    img:'img/chest2.gif', quality:'legend', price:'⟡10',  stock:10, restock:'7d',  badge:'hot',  onetime:false, give:{type:'lore'},        tags:['cofre','legendario'],gold:true},
+  {id:'k4', cat:'cofres', emoji:'🗝️', name:'Cofre de Moonveil II', img:'img/chest2.gif', quality:'legend', price:'⟡30',  stock:5,  restock:'7d',  badge:null,   onetime:false, give:{type:'lore'},        tags:['cofre','legendario'],gold:true},
+
+  /* ═══════════ MATERIALES ═══════════ */
+  {id:'f1', cat:'materiales', emoji:'⚙️', name:'Rieles (×64)',                img:'imagen/phantom.gif', quality:'epic',   price:'⟡64',  stock:10, restock:'24h', badge:null,   onetime:false, give:{type:'material'}, tags:['rieles','construccion']},
+  {id:'f2', cat:'materiales', emoji:'⚙️', name:'Rieles Activadores (×64)',    img:'imagen/phantom.gif', quality:'epic',   price:'⟡128', stock:10, restock:'24h', badge:null,   onetime:false, give:{type:'material'}, tags:['rieles','activadores']},
+  {id:'f3', cat:'materiales', emoji:'⚙️', name:'Rieles (×64) ×2',            img:'imagen/phantom.gif', quality:'epic',   price:'⟡64',  stock:2,  restock:'7d',  badge:'sale', onetime:false, give:{type:'material'}, tags:['rieles'],gold:true},
+  {id:'f4', cat:'materiales', emoji:'🧱', name:'Concreto (×64)',              img:'imagen/phantom.gif', quality:'epic',   price:'⟡64',  stock:20, restock:'24h', badge:null,   onetime:false, give:{type:'material'}, tags:['concreto','construccion']},
+  {id:'f5', cat:'materiales', emoji:'🔩', name:'Bloques de Hierro (×64)',     img:'imagen/phantom.gif', quality:'epic',   price:'⟡128', stock:10, restock:'7d',  badge:null,   onetime:false, give:{type:'material'}, tags:['bloques','hierro']},
+  {id:'f6', cat:'materiales', emoji:'🔩', name:'Bloques de Hierro (×64) ×4', img:'imagen/phantom.gif', quality:'legend', price:'⟡128', stock:1,  restock:null,  badge:'sale', onetime:false, give:{type:'material'}, tags:['bloques','oferta'],gold:true},
+  {id:'f7', cat:'materiales', emoji:'💎', name:'Bloques de Diamante (×64) ×4',img:'imagen/phantom.gif',quality:'legend', price:'⟡128', stock:1,  restock:null,  badge:'limited',onetime:false,give:{type:'material'}, tags:['diamante','oferta'],gold:true},
+  {id:'f8', cat:'materiales', emoji:'💚', name:'Esmeralda ×1',               img:'imagen/phantom.gif', quality:'legend', price:'⟡1',   stock:1,  restock:null,  badge:'hot',  onetime:false, give:{type:'material'}, tags:['esmeralda','sand'],gold:true,
+   desc:'Sand Brill desea una ¡Gran Navidad! Pero es tan tacaño que no da más de 1…'},
+
+  /* ═══════════ HISTORIA ═══════════ */
+  {id:'l1', cat:'historia', emoji:'📚', name:'Libro: "Bosque de Jade"',           img:'img/bookmine.jpg', quality:'rare',   price:'⟡256', stock:1, restock:null, badge:null,    onetime:false, give:{type:'lore'}, tags:['libro','bioma','lore']},
+  {id:'l2', cat:'historia', emoji:'📚', name:'Libro: "La Negra Noche"',           img:'img/bookmine.jpg', quality:'epic',   price:'⟡256', stock:1, restock:null, badge:null,    onetime:false, give:{type:'lore'}, tags:['libro','runas','lore']},
+  {id:'l3', cat:'historia', emoji:'📚', name:'Libro: "El lado ███ de S██ B███"',  img:'img/bookcat.gif',  quality:'legend', price:'⟡384', stock:1, restock:null, badge:'limited',onetime:false, give:{type:'lore'}, tags:['libro','secreto','lore'],gold:true},
+  {id:'l4', cat:'historia', emoji:'📖', name:'Libro A1',img:'img/book.jpg',quality:'epic',price:'⟡128',stock:1,restock:null,badge:null,onetime:false,give:{type:'lore'},tags:['libro']},
+  {id:'l5', cat:'historia', emoji:'📖', name:'Libro B2',img:'img/book.jpg',quality:'epic',price:'⟡128',stock:1,restock:null,badge:null,onetime:false,give:{type:'lore'},tags:['libro']},
+  {id:'l6', cat:'historia', emoji:'📖', name:'Libro A2',img:'img/book.jpg',quality:'epic',price:'⟡128',stock:1,restock:null,badge:null,onetime:false,give:{type:'lore'},tags:['libro']},
+  {id:'l7', cat:'historia', emoji:'📖', name:'Libro C3',img:'img/book.jpg',quality:'epic',price:'⟡128',stock:1,restock:null,badge:null,onetime:false,give:{type:'lore'},tags:['libro']},
+
+  /* ═══════════ MONEDAS ═══════════ */
+  {id:'m1', cat:'monedas', emoji:'🪙', name:'Pegatina de 1c.',  img:'img/coin.jpg',      quality:'common', price:'GRATIS', stock:1,   restock:'24h', badge:null,   onetime:false, give:{type:'coins',amount:1},   tags:['monedas','gratis']},
+  {id:'m2', cat:'monedas', emoji:'🪙', name:'Bolsita de 30c.',  img:'img/coin.jpg',      quality:'rare',   price:'⟡15',   stock:10,  restock:'7d',  badge:null,   onetime:false, give:{type:'coins',amount:30},  tags:['monedas','pack']},
+  {id:'m3', cat:'monedas', emoji:'🪙', name:'Pack de 90c.',     img:'img/packcoin.jpg',  quality:'epic',   price:'⟡30',   stock:10,  restock:'7d',  badge:null,   onetime:false, give:{type:'coins',amount:90},  tags:['monedas','pack']},
+  {id:'m4', cat:'monedas', emoji:'🪙', name:'Lote de 120c.',    img:'img/stackcoin.jpg', quality:'legend', price:'⟡60',   stock:10,  restock:'30d', badge:'hot',  onetime:false, give:{type:'coins',amount:120}, tags:['monedas','lote'],gold:true},
+  {id:'c1', cat:'monedas', emoji:'💰', name:'Pack de 128r.',    img:'img/coin.jpg',      quality:'common', price:'⟡64',   stock:999, restock:null,  badge:null,   onetime:false, give:{type:'coins',amount:128}, tags:['monedas','pack']},
+  {id:'c2', cat:'monedas', emoji:'💰', name:'Pack de 256r.',    img:'img/packcoin.jpg',  quality:'rare',   price:'⟡128',  stock:999, restock:null,  badge:null,   onetime:false, give:{type:'coins',amount:256}, tags:['monedas','pack']},
+  {id:'c3', cat:'monedas', emoji:'💰', name:'Pack de 384r.',    img:'img/stackcoin.jpg', quality:'epic',   price:'⟡256',  stock:999, restock:null,  badge:null,   onetime:false, give:{type:'coins',amount:384}, tags:['monedas','pack'],gold:true},
+
+  /* ═══════════ PACKS COMBINADOS ═══════════ */
+  {id:'pack_starter', cat:'packs', emoji:'📦', name:'Pack Iniciante', img:'imagen/ticket5.jpg', quality:'common', price:'GRATIS', stock:1, restock:null, badge:'hot',     onetime:true,
+   desc:'Todo lo que necesitas para empezar: tickets + llaves.',tags:['pack','gratis','inicio'],
+   give:{type:'multi',actions:[{type:'gacha_tickets',wheel:'classic',count:10},{type:'inventory',item:'keys',count:3}]}},
+  {id:'pack_explorer',cat:'packs', emoji:'🎒', name:'Pack Explorador',img:'imagen/ticket5.jpg', quality:'epic',   price:'EVENTO', stock:5, restock:'30d',badge:'new',     onetime:false,
+   desc:'Pack equilibrado para jugadores activos.',             tags:['pack','explorador'],
+   give:{type:'multi',actions:[{type:'gacha_tickets',wheel:'classic',count:15},{type:'inventory',item:'keys',count:5}]}},
+  {id:'pack_legend',  cat:'packs', emoji:'🏆', name:'Pack Leyenda',   img:'imagen/ticket5.jpg', quality:'legend', price:'CÓDIGO', stock:3, restock:null, badge:'limited', onetime:false,
+   desc:'El pack definitivo para coleccionistas.',              tags:['pack','legendario'],
+   give:{type:'multi',actions:[{type:'gacha_tickets',wheel:'classic',count:30},{type:'inventory',item:'superstar_keys',count:2}]}},
+  {id:'pack_allwheels',cat:'packs',emoji:'🔓', name:'All Access Pass', img:'imagen/ticket5.jpg',quality:'legend', price:'CÓDIGO', stock:2, restock:null, badge:'limited', onetime:false,
+   desc:'Tickets para TODAS las ruletas activas.',              tags:['pack','all','ruletas'],
+   give:{type:'multi',actions:[
+     {type:'gacha_tickets',wheel:'classic',count:5},{type:'gacha_tickets',wheel:'dark_moon',count:5},
+     {type:'gacha_tickets',wheel:'spring',count:5},{type:'gacha_tickets',wheel:'storm',count:5},
+     {type:'gacha_tickets',wheel:'cyber',count:5},{type:'gacha_tickets',wheel:'abyss',count:5},
+   ]}},
+
+  /* ═══════════ ESPECIALES ═══════════ */
+  {id:'sp_vip_day',   cat:'especiales', emoji:'👑', name:'Pase VIP Diario',   img:'imagen/ticket5.jpg', quality:'epic',   price:'GRATIS', stock:-1, restock:null, badge:'new',     daily:true,   onetime:false,
+   desc:'Tickets de bonificación diaria. ¡Reclámalo cada día!',tags:['vip','diario','gratis'],
+   give:{type:'gacha_tickets',wheel:'classic',count:3}},
+  {id:'sp_welcome',   cat:'especiales', emoji:'🌙', name:'Pack Bienvenida',   img:'imagen/ticket5.jpg', quality:'common', price:'GRATIS', stock:1,  restock:null, badge:'new',     onetime:true,
+   desc:'Regalo de bienvenida para nuevos jugadores. ¡Solo una vez!',tags:['bienvenida','gratis'],
+   give:{type:'multi',actions:[{type:'gacha_tickets',wheel:'classic',count:5},{type:'inventory',item:'keys',count:2}]}},
+  {id:'sp_bf_pack',   cat:'especiales', emoji:'🖤', name:'Pack Black Friday', img:'imagen/ticket5.jpg', quality:'legend', price:'CÓDIGO', stock:1,  restock:null, badge:'limited', onetime:true,
+   couponRequired:'BLACK2026', desc:'Solo disponible con cupón BLACK2026.',tags:['blackfriday','codigo','limitado'],
+   give:{type:'multi',actions:[{type:'gacha_tickets',wheel:'classic',count:25},{type:'inventory',item:'superstar_keys',count:1},{type:'inventory',item:'keys',count:5}]}},
+];
+
+/* ════════════════════════════════════════════════
+   CUPONES DE TEMPORADA
+════════════════════════════════════════════════ */
+const SEASONAL_COUPONS=[
+  {id:'sv_2026',     name:'💗 San Valentín', emoji:'💗', style:'valentine', discount:30,  startDate:'2026-02-10',endDate:'2026-02-15',maxUses:5,  resetDate:'2026-02-13'},
+  {id:'newyear_2026',name:'🎆 Año Nuevo',    emoji:'🎆', style:'newyear',   discount:25,  startDate:'2025-12-31',endDate:'2026-01-06',maxUses:3,  resetDate:'2026-01-01'},
+  {id:'halloween_2026',name:'🎃 Halloween',  emoji:'🎃', style:'halloween', discount:40,  startDate:'2026-10-25',endDate:'2026-11-01',maxUses:3,  resetDate:'2026-10-31'},
+  {id:'navidad_2026',name:'🎄 Navidad',      emoji:'🎄', style:'christmas', discount:35,  startDate:'2026-12-01',endDate:'2026-12-30',maxUses:5,  resetDate:'2026-12-25'},
+];
+const BLACK_FRIDAY={
+  id:'blackfriday',name:'🖤 BLACK FRIDAY',emoji:'🖤',style:'blackfriday',discount:'random',unlimited:true,
+  periods:[{startDate:'2026-03-02',endDate:'2026-03-03'},{startDate:'2026-11-27',endDate:'2026-11-30'}],
+};
+const ALL_REGULAR_COUPONS=[10,15,20,25,30,40,50,60,70,80,90,100];
+
+/* ════════════════════════════════════════════════
+   FLASH SALE (fines de semana o viernes)
+════════════════════════════════════════════════ */
+function getFlashSaleState(){
+  const day=new Date().getDay(); // 0=dom,5=vie,6=sab
+  const isWeekend=(day===5||day===6||day===0);
+  // También mirar si hay override manual
+  const override=lsGet('mv_flash_override',null);
+  if(override&&override.until>Date.now())return{active:true,discount:override.discount,label:`⚡ FLASH SALE FIN DE SEMANA — ${override.discount}% OFF`,isWeekend};
+  if(isWeekend){
+    const discountMap={5:20,6:25,0:15};
+    return{active:true,discount:discountMap[day]||20,label:`⚡ FLASH WEEKEND — ${discountMap[day]||20}% OFF`,isWeekend:true};
+  }
+  return{active:false,discount:0,label:'Ofertas activas en toda la tienda',isWeekend:false};
+}
+
+/* ════════════════════════════════════════════════
+   INVENTARIO / STOCK
+════════════════════════════════════════════════ */
+const RESTOCK_DAYS={'24h':1,'7d':7,'30d':30};
+function nextMidnight(days){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+days);return d.getTime();}
+function stockKey(id){return`mv_stock_${id}`;}
+function restockKey(id){return`mv_restock_${id}`;}
+
+function getStock(p){
+  if(p.stock<0) return 999; // ilimitado
+  const v=localStorage.getItem(stockKey(p.id));
+  if(v===null){localStorage.setItem(stockKey(p.id),String(Math.max(0,p.stock)));return p.stock;}
+  const s=parseInt(v,10)||0;
+  const nextTs=parseInt(localStorage.getItem(restockKey(p.id))||'0',10);
+  if(nextTs&&Date.now()>=nextTs){
+    localStorage.setItem(stockKey(p.id),String(p.stock));
+    if(p.restock){const days=RESTOCK_DAYS[p.restock];localStorage.setItem(restockKey(p.id),String(nextMidnight(days)));}
+    else localStorage.removeItem(restockKey(p.id));
+    return p.stock;
+  }
+  return Math.max(0,s);
+}
+function setStock(p,v){
+  localStorage.setItem(stockKey(p.id),String(Math.max(0,v)));
+  if(p.stock>=0&&v<=0&&p.restock){
+    const days=RESTOCK_DAYS[p.restock];
+    localStorage.setItem(restockKey(p.id),String(nextMidnight(days)));
+  }
+}
+function initStocks(){
+  PRODUCTS.forEach(p=>{
+    if(localStorage.getItem(stockKey(p.id))===null&&p.stock>=0)localStorage.setItem(stockKey(p.id),String(p.stock));
+    if(localStorage.getItem(restockKey(p.id))===null&&p.restock){
+      const days=RESTOCK_DAYS[p.restock];localStorage.setItem(restockKey(p.id),String(nextMidnight(days)));
+    }
+  });
+}
+
+/* ════════════════════════════════════════════════
+   ONE-TIME / DAILY
+════════════════════════════════════════════════ */
+function getOneTime(){return lsGet(LS.onetime,{});}
+function isClaimed(p){
+  const ot=getOneTime();
+  if(p.onetime&&ot[p.id])return true;
+  if(p.daily){const today=new Date().toDateString();return ot[`daily_${p.id}`]===today;}
+  return false;
+}
+function markClaimed(p){
+  const ot=getOneTime();
+  if(p.onetime)ot[p.id]=Date.now();
+  if(p.daily)ot[`daily_${p.id}`]=new Date().toDateString();
+  lsSet(LS.onetime,ot);
+}
+
+/* ════════════════════════════════════════════════
+   INVENTARIO LOCAL
+════════════════════════════════════════════════ */
+function getInventory(){return lsGet(LS.inventory,{tickets:0,keys:0,superstar_keys:0});}
+function setInventory(inv){
+  lsSet(LS.inventory,inv);renderHUD();
+  if(currentUID)saveInventory(currentUID,inv).catch(()=>{});
+  scheduleSync();
+}
+function getGachaTickets(id){return Math.max(0,parseInt(localStorage.getItem(`mv_tickets_${id}`)||'0',10));}
+function addGachaTickets(id,count){
+  const cur=getGachaTickets(id);
+  localStorage.setItem(`mv_tickets_${id}`,String(cur+count));
+  renderHUD();scheduleSync();
+  if(window.addTickets)window.addTickets(id,0);
+}
+function getCalKeys(){return lsGet('mv_cal_keys',{normal:0,pink:0,green:0,orange:0,cat:0,special:0,future:0});}
+function addCalKeys(calKey){
+  const keys=getCalKeys();
+  const entries=calKey.pack&&calKey.keys?Object.entries(calKey.keys):[[calKey.type,calKey.amount]];
+  entries.forEach(([t,a])=>{keys[t]=(keys[t]||0)+a;});
+  lsSet('mv_cal_keys',keys);scheduleSync();
+}
+function getChestKeys(){return lsGet('mv_chest_keys_v1',{});}
+function addChestKeys(superKey){
+  const keys=getChestKeys();
+  const entries=superKey.pack&&superKey.keys?Object.entries(superKey.keys):[[superKey.keyId,superKey.amount]];
+  entries.forEach(([k,a])=>{keys[k]=(keys[k]||0)+a;});
+  lsSet('mv_chest_keys_v1',keys);scheduleSync();
+}
+
+/* ════════════════════════════════════════════════
+   HUD
+════════════════════════════════════════════════ */
+function renderHUD(){
+  const inv=getInventory();
+  const totalTkts=['classic','dark_moon','spring','storm','cyber','abyss','event','elemental']
+    .reduce((s,id)=>s+getGachaTickets(id),inv.tickets||0);
+  const set=(sel,v)=>{const el=$(sel);if(el)el.textContent=v;};
+  const hs=$('#hudTicketsTotal .his-val');if(hs)hs.textContent=totalTkts;
+  const hk=$('#hudKeys .his-val');if(hk)hk.textContent=inv.keys||0;
+  const hsk=$('#hudSuperKeys .his-val');if(hsk)hsk.textContent=inv.superstar_keys||0;
+  set('#heroTickets',totalTkts);set('#heroKeys',inv.keys||0);set('#heroSuperKeys',inv.superstar_keys||0);
+}
+
+/* ════════════════════════════════════════════════
+   HISTORIAL
+════════════════════════════════════════════════ */
+function getPurchases(){return lsGet(LS.purchases,[]);}
+function addPurchase(p,note=''){
+  const hist=getPurchases();
+  hist.unshift({id:p.id,name:p.name,icon:p.emoji||'📦',note,date:new Date().toISOString()});
+  if(hist.length>50)hist.pop();lsSet(LS.purchases,hist);renderHistory();
+}
+function renderHistory(){
+  const list=$('#purchasesList');if(!list)return;
+  const hist=getPurchases();
+  if(!hist.length){list.innerHTML='<div class="empty-hist"><span>📭</span><p>NO HAY COMPRAS AÚN</p></div>';return;}
+  list.innerHTML=hist.map(p=>`<div class="purchase-item">
+    <span class="pi-icon">${p.icon||'📦'}</span>
+    <div class="pi-info"><div class="pi-name">${esc(p.name)}</div><div class="pi-detail">${esc(p.note||'')}</div></div>
+    <div class="pi-time">${timeAgo(p.date)}</div>
+  </div>`).join('');
+}
+function timeAgo(iso){
+  const s=Math.floor((Date.now()-new Date(iso))/1000);
+  if(s<60)return'ahora mismo';if(s<3600)return`hace ${Math.floor(s/60)}m`;
+  if(s<86400)return`hace ${Math.floor(s/3600)}h`;return`hace ${Math.floor(s/86400)}d`;
+}
+
+/* ════════════════════════════════════════════════
+   EJECUTAR RECOMPENSA
+════════════════════════════════════════════════ */
+function executeGive(give){
+  if(!give)return '';
+  if(give.type==='gacha_tickets'){addGachaTickets(give.wheel,give.count);return`+${give.count} tickets ${give.wheel.replace(/_/g,' ')}`;}
+  if(give.type==='inventory'){const inv=getInventory();inv[give.item]=(inv[give.item]||0)+give.count;setInventory(inv);return`+${give.count} ${give.item.replace(/_/g,' ')}`;}
+  if(give.type==='inventory_multi'){const inv=getInventory();give.items.forEach(({item,count})=>{inv[item]=(inv[item]||0)+count;});setInventory(inv);return give.items.map(i=>`+${i.count} ${i.item.replace(/_/g,' ')}`).join(' · ');}
+  if(give.type==='multi'){return give.actions.map(a=>executeGive(a)).join(' · ');}
+  if(give.type==='pass'){activatePassFromShop(give.passId);return'Pase activado ✅';}
+  if(give.type==='lore') return 'Ítem de historia/lore obtenido';
+  if(give.type==='material') return 'Material obtenido';
+  if(give.type==='coins') return `+${give.amount} monedas`;
+  if(give.type==='event_pass') return 'Pase de evento activado';
+  return'';
+}
+
+/* Pass integration */
+function activatePassFromShop(passId){
+  try{
+    const key=`mv_pass_${passId}`;
+    const raw=localStorage.getItem(key);
+    const st=raw?JSON.parse(raw):{};
+    const tierOrder=['stone','iron','gold','emerald','diamond'];
+    const currIdx=tierOrder.indexOf(st.tier||'stone');
+    if(currIdx<1){st.tier='iron';st.shopBought=true;localStorage.setItem(key,JSON.stringify(st));}
+    if(typeof window.onPassPurchasedFromShop==='function')window.onPassPurchasedFromShop(passId);
+  }catch(e){console.warn('[Shop] activatePass:',e);}
+}
+function isPassActivated(shopItemId){
+  try{
+    const PASS_MAP={s1:'pass_s1',s2:'pass_s2',s3:'pass_s3',s4:'pass_s4',s5:'pass_s5',s6:'pass_s6',s7:'pass_s7',s8:'pass_s8',s9:'pass_s9',s10:'pass_s10',s11:'pass_s11',s12:'pass_s12'};
+    const passId=PASS_MAP[shopItemId];if(!passId)return false;
+    const raw=localStorage.getItem(`mv_pass_${passId}`);
+    const st=raw?JSON.parse(raw):{};
+    const order=['stone','iron','gold','emerald','diamond'];
+    return order.indexOf(st.tier||'stone')>=1;
+  }catch{return false;}
+}
+
+/* ════════════════════════════════════════════════
+   CUPONES
+════════════════════════════════════════════════ */
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function inRange(s,e){const t=todayStr();return t>=s&&t<=e;}
+function isScActive(sc){
+  if(sc.periods)return sc.periods.some(p=>inRange(p.startDate,p.endDate));
+  return inRange(sc.startDate,sc.endDate);
+}
+function getScState(sc){return lsGet(`mv_sc_${sc.id}`,{usesLeft:sc.maxUses,lastReset:todayStr()});}
+function setScState(sc,st){lsSet(`mv_sc_${sc.id}`,st);}
+function syncScState(sc){
+  const today=todayStr();
+  let st=getScState(sc);
+  if(sc.resetDate&&today>=sc.resetDate&&(st.lastReset||'')<sc.resetDate){
+    st.usesLeft=sc.maxUses;st.lastReset=today;setScState(sc,st);
+  }
+  return st;
+}
+function getScUsesLeft(sc){return syncScState(sc).usesLeft;}
+function decrementSc(sc){const st=syncScState(sc);if(st.usesLeft>0){st.usesLeft--;setScState(sc,st);}}
+
+let currentSeasonalId=localStorage.getItem(LS.scActive)||null;
+let currentCoupon=Number(lsGet(LS.currentCoupon,0));
+let bfDiscount=null;
+
+function saveCurrentCoupon(){lsSet(LS.currentCoupon,currentCoupon);}
+function saveSCId(id){currentSeasonalId=id;if(id)localStorage.setItem(LS.scActive,id);else localStorage.removeItem(LS.scActive);}
+
+function getActiveCouponDiscount(){
+  const flash=getFlashSaleState();
+  let total=currentCoupon||0;
+  if(flash.active&&total<flash.discount)total=flash.discount; // no se acumulan, toma el mayor
+  return total;
+}
+function applyDiscount(priceStr){
+  const num=extractPriceNum(priceStr);
+  if(num===null)return priceStr;
+  const disc=getActiveCouponDiscount();
+  if(!disc)return`<span class="pc-price">${priceStr}</span>`;
+  const final=Math.max(0,Math.round(num-num*disc/100));
+  return`<span class="pc-price-old">${priceStr}</span><span class="pc-price-new">⟡${final}</span>`;
+}
+function extractPriceNum(ps){
+  if(typeof ps!=='string')return null;
+  const m=ps.replace('⟡','').trim();
+  const n=parseInt(m,10);return isNaN(n)?null:n;
+}
+
+const COUPON_LS='mv_coupon_state';
+function loadCouponState(){
+  const r=lsGet(COUPON_LS,{});const now=Date.now();
+  ALL_REGULAR_COUPONS.forEach(c=>{if(r[c]&&r[c]<=now)r[c]=0;});return r;
+}
+function saveCouponState(s){lsSet(COUPON_LS,s);}
+function getCouponCooldown(pct){return Number(loadCouponState()[String(pct)]||0);}
+function setCouponCooldown(pct,ts){const s=loadCouponState();s[String(pct)]=ts||0;saveCouponState(s);}
+
+function renderCoupons(){
+  const box=$('#couponGrid');if(!box)return;
+  const now=Date.now();
+  const allSCs=[...SEASONAL_COUPONS,BLACK_FRIDAY];
+  const activeSCs=allSCs.filter(sc=>isScActive(sc));
+
+  // Validar SC guardado
+  if(currentSeasonalId){
+    const still=activeSCs.find(sc=>sc.id===currentSeasonalId);
+    if(!still){saveSCId(null);bfDiscount=null;currentCoupon=0;saveCurrentCoupon();}
+  }
+
+  let html='';
+  if(activeSCs.length){
+    activeSCs.forEach(sc=>{
+      const sel=currentSeasonalId===sc.id;
+      if(sc.id===BLACK_FRIDAY.id){
+        const disc=sel&&bfDiscount?`🎲 ${bfDiscount}% OFF`:'% Aleatorio';
+        html+=`<button class="coupon-chip sc-chip sc-blackfriday${sel?' active':''}" data-sc="${sc.id}">🖤 BLACK FRIDAY<span class="chip-cd">${disc}</span></button>`;
+      }else{
+        const uses=getScUsesLeft(sc),exhaust=uses<=0;
+        html+=`<button class="coupon-chip sc-chip sc-${sc.style}${sel?' active':''}${exhaust?' disabled':''}" data-sc="${sc.id}" ${exhaust?'disabled':''}>
+          ${sc.name}<span class="chip-cd">${sc.discount}% OFF · ${uses}/${sc.maxUses}</span>
+        </button>`;
+      }
+    });
+    html+=`<div class="coupon-sep">── REGULARES ──</div>`;
+  }
+  const state=loadCouponState();
+  ALL_REGULAR_COUPONS.forEach(c=>{
+    const cd=Number(state[c]||0);const active=cd>now;const sel=currentCoupon===c&&!currentSeasonalId;
+    if(active){html+=`<button class="coupon-chip disabled" disabled>${c}%<span class="chip-cd">↻ ${timeLeftStr(cd)}</span></button>`;}
+    else{html+=`<button class="coupon-chip${sel?' active':''}" data-pct="${c}">${c}%</button>`;}
+  });
+  box.innerHTML=html;
+  box.querySelectorAll('.sc-chip:not(.disabled)').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const scId=btn.dataset.sc;
+      if(currentSeasonalId===scId){saveSCId(null);bfDiscount=null;currentCoupon=0;saveCurrentCoupon();toast('Cupón desactivado','info');}
+      else{
+        const sc=allSCs.find(s=>s.id===scId);if(!sc)return;
+        saveSCId(scId);
+        if(sc.id===BLACK_FRIDAY.id){bfDiscount=Math.floor(Math.random()*21)+10;currentCoupon=bfDiscount;toast(`🖤 BLACK FRIDAY — ${bfDiscount}% OFF!`,'success');}
+        else{currentCoupon=sc.discount;toast(`${sc.emoji} ${sc.name} — ${sc.discount}% OFF!`,'success');}
+        saveCurrentCoupon();
+      }
+      renderCoupons();renderAllProducts();
+    });
+  });
+  box.querySelectorAll('[data-pct]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const pct=Number(btn.dataset.pct);
+      if(currentSeasonalId){saveSCId(null);bfDiscount=null;}
+      currentCoupon=(currentCoupon===pct&&!currentSeasonalId)?0:pct;
+      saveCurrentCoupon();renderCoupons();renderAllProducts();
+    });
+  });
+}
+setInterval(renderCoupons,5000);
+
+function timeLeftStr(ts){
+  const diff=Math.max(0,ts-Date.now());
+  const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
+  if(h>0)return`${h}h ${m}m`;return`${m}m`;
+}
+
+/* ════════════════════════════════════════════════
+   FLASH SALE COUNTDOWN
+════════════════════════════════════════════════ */
+function updateFlash(){
+  const flash=getFlashSaleState();
+  const banner=$('#flashBanner');const tag=$('#flashTag');const text=$('#flashText');const timer=$('#flashTimer');
+  if(flash.active){
+    banner?.classList.add('flash-active');
+    if(tag)tag.textContent=`⚡ FLASH ${flash.discount}% OFF`;
+    if(text)text.textContent=flash.label;
+  }else{
+    banner?.classList.remove('flash-active');
+    if(tag)tag.textContent='⚡ FLASH SALE';
+    if(text)text.textContent='Ofertas activas en toda la tienda';
+  }
+  // Countdown hasta medianoche
+  const now2=new Date(),midnight=new Date(now2.getFullYear(),now2.getMonth(),now2.getDate()+1);
+  const diff=Math.max(0,Math.floor((midnight-now2)/1000));
+  const h=String(Math.floor(diff/3600)).padStart(2,'0');
+  const m=String(Math.floor((diff%3600)/60)).padStart(2,'0');
+  const s=String(diff%60).padStart(2,'0');
+  if(timer)timer.textContent=`${h}:${m}:${s}`;
+}
+
+/* ════════════════════════════════════════════════
+   FECHA HELPERS
+════════════════════════════════════════════════ */
+function parseDate(s,end=false){
+  if(!s)return null;
+  const d=new Date(s.includes('T')?s:(end?s+'T23:59:59':s+'T00:00:00'));
+  return isNaN(d)?null:d.getTime();
+}
+function isUpcoming(p){const s=parseDate(p.startsAt,false);return!!(s&&s>Date.now());}
+function isExpired(p){const e=parseDate(p.expiresAt,true);return!!(e&&e<Date.now());}
+function isOut(p){return p.stock>=0&&getStock(p)<=0;}
+
+/* ════════════════════════════════════════════════
+   RENDER PRODUCTOS
+════════════════════════════════════════════════ */
+const SECTION_CONFIG=[
+  {cat:'pases',        icon:'🏆', title:'Pases de Temporada',    sub:'Acceso a retos y recompensas exclusivas de cada temporada.'},
+  {cat:'tickets',      icon:'🎫', title:'Tickets Gacha',          sub:'Tickets para las ruletas de premios.'},
+  {cat:'keys',         icon:'🗝️', title:'Llaves de Cofre',        sub:'Abre cofres y contenido bloqueado.'},
+  {cat:'calkeys',      icon:'🔑', title:'Llaves del Calendario',  sub:'Recupera días perdidos o reclama el futuro.'},
+  {cat:'superestrellas',icon:'⭐',title:'Llaves Superestrella',   sub:'Llaves para los cofres del sistema de aventuras.'},
+  {cat:'cofres',       icon:'📦', title:'Cofres',                  sub:'Ábrelos y que la suerte te acompañe.'},
+  {cat:'materiales',   icon:'⚙️', title:'Materiales',             sub:'Recursos para construcción y crafteo.'},
+  {cat:'historia',     icon:'📚', title:'Historia y Lore',         sub:'Libros y tomos del mundo de Moonveil.'},
+  {cat:'monedas',      icon:'🪙', title:'Monedas y Packs',         sub:'Monedas para comerciar y comprar.'},
+  {cat:'packs',        icon:'🎒', title:'Packs Combinados',        sub:'Bundles con todo lo que necesitas.'},
+  {cat:'eventos',      icon:'🎪', title:'Pases de Evento',         sub:'Eventos temporales con recompensas únicas.'},
+  {cat:'especiales',   icon:'✨', title:'Especiales',              sub:'Ítems únicos, diarios y de bienvenida.'},
+];
+
+let currentCategory='all';
+let searchText='';
+
+function qualityClass(q){return{legend:'q-legend',epic:'q-epic',rare:'q-rare',common:'q-common'}[q]||'q-common';}
+function qualityLabel(q){return{legend:'LEGENDARIO',epic:'ÉPICO',rare:'RARO',common:'COMÚN'}[q]||q.toUpperCase();}
+
+function buildCardHTML(p,animIdx=0){
+  const st=getStock(p);
+  const up=isUpcoming(p),exp=isExpired(p),out=isOut(p)&&!isClaimed(p);
+  const claimed=isClaimed(p);
+  const disabled=out||up||exp;
+
+  let stateOverlay='';
+  if(out||claimed&&p.onetime){
+    stateOverlay=`<div class="pc-state-overlay"><div class="pc-state-badge"><strong>${claimed&&p.onetime?'✓ YA RECLAMADO':'AGOTADO'}</strong>${p.restock?`<span>↻ Restock pronto</span>`:''}</div></div>`;
+  }else if(exp){
+    stateOverlay=`<div class="pc-state-overlay"><div class="pc-state-badge"><strong style="color:#f87171">⌛ CADUCADO</strong><span>Oferta finalizada</span></div></div>`;
+  }else if(up){
+    stateOverlay=`<div class="pc-state-overlay"><div class="pc-state-badge"><strong style="color:#93c5fd">⏳ PRÓXIMO</strong><span>Desde: ${p.startsAt}</span></div></div>`;
+  }
+
+  // Imagen
+  const imgHTML=p.img
+    ?`<img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'pc-img-fallback\\'>${esc(p.emoji||'📦')}</div>'">`
+    :`<div class="pc-img-fallback">${esc(p.emoji||'📦')}</div>`;
+
+  // Precio con descuento
+  let priceHTML='';
+  const priceStr=String(p.price||'');
+  if(priceStr==='GRATIS'){priceHTML=`<span class="pc-price free-price">GRATIS</span>`;}
+  else if(priceStr==='EVENTO'){priceHTML=`<span class="pc-price event-price">EVENTO</span>`;}
+  else if(priceStr==='CÓDIGO'){priceHTML=`<span class="pc-price code-price">CÓDIGO</span>`;}
+  else{priceHTML=applyDiscount(priceStr);}
+
+  // Tags
+  const tagTypeMap={pase:'pass',ticket:'tickets',llave:'keys',super:'super',gratis:'free',evento:'event',monedas:'coins',pack:'bonus'};
+  const tagsHTML=(p.tags||[]).slice(0,3).map(t=>{
+    const type=tagTypeMap[Object.keys(tagTypeMap).find(k=>t.toLowerCase().includes(k))||'']||'bonus';
+    return`<span class="pc-tag ${type}">#${esc(t)}</span>`;
+  }).join('');
+
+  // Desc
+  const desc=p.desc||(p.give?buildGiveDesc(p.give):'');
+
+  // Stock label
+  const stockLabel=p.stock<0?'∞':st===0?'AGOTADO':`${st} disponibles`;
+
+  // Pass activo badge
+  const passActive=p.cat==='pases'&&isPassActivated(p.id);
+
+  // Btn text
+  let btnText=claimed&&p.daily?'✓ HOY':claimed&&p.onetime?'✓ RECLAMADO':up?'⏳ PRONTO':exp?'⌛':'OBTENER';
+  if(p.couponRequired)btnText='🔑 '+btnText;
+
+  return`<div class="product-card ${p.gold?'gold-featured':''}" data-rarity="${p.quality}" data-id="${p.id}" style="animation:revealIn 0.4s ease ${animIdx*0.04}s both">
+    <div class="pc-band"></div>
+    ${p.badge?`<div class="pc-badge ${p.badge}">${p.badge.toUpperCase()}</div>`:''}
+    <div class="pc-img">
+      ${imgHTML}
+      ${stateOverlay}
+      <div class="pc-chips-top">
+        <span class="pc-chip ${qualityClass(p.quality)}">${qualityLabel(p.quality)}</span>
+        ${p.gold?'<span class="pc-chip" style="background:rgba(251,191,36,0.15);color:#fde68a;border:1px solid rgba(251,191,36,0.4)">★</span>':''}
+        ${passActive?'<span class="pc-chip activated">✅ ACTIVO</span>':''}
+      </div>
+    </div>
+    <div class="pc-body">
+      <div class="pc-icon-row">
+        <span class="pc-icon">${esc(p.emoji||'📦')}</span>
+        <div class="pc-name">${esc(p.name)}</div>
+      </div>
+      ${desc?`<div class="pc-desc">${esc(desc)}</div>`:''}
+      <div class="pc-tags">${tagsHTML}</div>
+    </div>
+    <div class="pc-footer">
+      <div class="pc-price-row">
+        <div style="display:flex;align-items:center;gap:6px">${priceHTML}</div>
+        <span class="pc-stock">📦 ${stockLabel}</span>
+      </div>
+      <button class="pc-btn${claimed&&(p.onetime||p.daily)?' btn-claimed':''}"
+        data-id="${p.id}"
+        ${disabled||claimed&&p.onetime?'disabled':''}
+      >${btnText}</button>
+    </div>
+  </div>`;
+}
+
+function buildGiveDesc(give){
+  if(!give)return'';
+  if(give.type==='gacha_tickets')return`${give.count} tickets para la ruleta ${give.wheel.replace(/_/g,' ')}`;
+  if(give.type==='inventory')return`${give.count} ${give.item.replace(/_/g,' ')}`;
+  if(give.type==='multi')return give.actions.map(a=>buildGiveDesc(a)).join(', ');
+  return'';
+}
+
+function renderAllProducts(){
+  const container=$('#shopSections');if(!container)return;
+  const searchLow=searchText.toLowerCase();
+
+  const catFilter = currentCategory==='all'?null:currentCategory;
+  const sectionsToShow=catFilter?SECTION_CONFIG.filter(s=>s.cat===catFilter):SECTION_CONFIG;
+
+  container.innerHTML=sectionsToShow.map(sec=>{
+    const items=PRODUCTS.filter(p=>{
+      if(p.cat!==sec.cat)return false;
+      if(!searchLow)return true;
+      return`${p.name} ${p.desc||''} ${(p.tags||[]).join(' ')}`.toLowerCase().includes(searchLow);
+    });
+    if(!items.length)return'';
+    return`<div class="shop-section" id="sec-${sec.cat}">
+      <div class="sec-bg-strip"></div>
+      <div class="sec-header">
+        <span class="sec-icon-big">${sec.icon}</span>
+        <div class="sec-title-wrap">
+          <h2>${sec.title}</h2>
+          <p>${sec.sub}</p>
+        </div>
+      </div>
+      <div class="products-grid">
+        ${items.map((p,i)=>buildCardHTML(p,i)).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Listeners botones
+  container.querySelectorAll('.pc-btn:not([disabled])').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const p=PRODUCTS.find(x=>x.id===btn.dataset.id);
+      if(p)showConfirmModal(p);
+    });
+  });
+}
+
+/* ════════════════════════════════════════════════
+   MODALES
+════════════════════════════════════════════════ */
+function openModal(html){
+  const m=$('#modal'),c=$('#modalContent');
+  if(!m||!c)return;
+  c.innerHTML=html;
+  m.setAttribute('aria-hidden','false');
+}
+function closeModal(){$('#modal')?.setAttribute('aria-hidden','true');}
+
+function getRewardLines(give){
+  const lines=[];if(!give)return lines;
+  if(give.type==='gacha_tickets') lines.push({icon:'🎟️',txt:`Tickets ${give.wheel.replace(/_/g,' ')}`,val:give.count});
+  else if(give.type==='inventory') lines.push({icon:give.item==='keys'?'🗝️':'⭐',txt:give.item.replace(/_/g,' '),val:give.count});
+  else if(give.type==='inventory_multi') give.items.forEach(i=>lines.push({icon:'🗝️',txt:i.item.replace(/_/g,' '),val:i.count}));
+  else if(give.type==='multi') give.actions.forEach(a=>lines.push(...getRewardLines(a)));
+  else if(give.type==='pass') lines.push({icon:'🏆',txt:'Tier Hierro activado',val:'✅'});
+  return lines;
+}
+
+function showConfirmModal(p){
+  const claimed=isClaimed(p);
+  if(claimed&&!p.daily){toast(`Ya reclamaste "${p.name}"`,  'error');return;}
+  const lines=getRewardLines(p.give);
+  const rewardHTML=lines.map(l=>`<div class="bmr-row"><span class="bmr-ico">${l.icon}</span><span class="bmr-txt">${l.txt}</span><span class="bmr-val">+${l.val}</span></div>`).join('');
+  const noteHTML=p.couponRequired?`<p class="buy-modal-note">🔑 Requiere cupón <b>${p.couponRequired}</b></p>`
+    :p.onetime?`<p class="buy-modal-note">⚠️ Solo puedes reclamar esto <b>UNA VEZ</b></p>`
+    :p.daily?`<p class="buy-modal-note">📅 Disponible una vez al día</p>`:'';
+  // Precio con descuento aplicado
+  const origNum=extractPriceNum(String(p.price));
+  const disc=getActiveCouponDiscount();
+  const priceLineHTML=origNum!==null&&disc>0
+    ?`<div style="text-align:center;font-family:var(--font-pixel);font-size:0.3rem;margin-bottom:10px">
+        <span style="text-decoration:line-through;color:var(--muted)">${p.price}</span>
+        <span style="color:var(--green);margin-left:8px">⟡${Math.max(0,Math.round(origNum-origNum*disc/100))}</span>
+        <span style="color:var(--a);font-size:0.24rem;margin-left:4px">(-${disc}%)</span>
+      </div>`:'';
+  openModal(`
+    <span class="buy-modal-icon">${p.emoji||'📦'}</span>
+    <div class="buy-modal-name">${esc(p.name)}</div>
+    <div class="buy-modal-desc">${esc(p.desc||buildGiveDesc(p.give)||'')}</div>
+    ${priceLineHTML}
+    <div class="buy-modal-rewards">${rewardHTML}</div>
+    ${noteHTML}
+    <div class="buy-modal-actions">
+      <button class="btn-pixel btn-ghost" onclick="document.getElementById('modal').setAttribute('aria-hidden','true')">CANCELAR</button>
+      <button class="btn-pixel btn-gold pulse" id="btnConfirmBuy">✓ CONFIRMAR</button>
+    </div>`);
+  setTimeout(()=>{
+    $('#btnConfirmBuy')?.addEventListener('click',()=>{
+      closeModal();
+      giveReward(p);
+    });
+  },50);
+}
+
+function showSuccessModal(p){
+  const lines=getRewardLines(p.give);
+  const rewardHTML=lines.map(l=>`<div class="bmr-row"><span class="bmr-ico">${l.icon}</span><span class="bmr-txt">${l.txt}</span><span class="bmr-val">+${l.val}</span></div>`).join('');
+  openModal(`<div style="text-align:center;padding:8px 0">
+    <span style="font-size:3.5rem;display:block;margin-bottom:12px;filter:drop-shadow(0 0 18px var(--a))">${p.emoji||'📦'}</span>
+    <h2>¡RECOMPENSA OBTENIDA!</h2>
+    <div style="font-family:var(--font-pixel);font-size:0.36rem;color:var(--text);margin-bottom:14px;line-height:1.8">${esc(p.name)}</div>
+    <div class="buy-modal-rewards">${rewardHTML}</div>
+    <button class="btn-pixel btn-gold large" onclick="document.getElementById('modal').setAttribute('aria-hidden','true')" style="margin-top:10px">¡GENIAL!</button>
+  </div>`);
+  beep(880,0.08,0.06);setTimeout(()=>beep(1100,0.06,0.05),150);
+}
+
+/* ════════════════════════════════════════════════
+   COMPRA / RECOMPENSA
+════════════════════════════════════════════════ */
+function giveReward(p){
+  // Verificar cupón
+  if(p.couponRequired){
+    const code=prompt(`Este producto requiere un cupón. Ingresa: ${p.couponRequired}`);
+    if(!code||code.trim().toUpperCase()!==p.couponRequired.trim().toUpperCase()){
+      toast('Cupón inválido','error');return;
+    }
+  }
+  if(isClaimed(p)&&!p.daily){toast('Ya reclamaste este ítem','error');return;}
+
+  // Stock
+  const st=getStock(p);
+  if(p.stock>=0&&st<=0){toast('Sin stock disponible','error');return;}
+
+  // Ejecutar
+  executeGive(p.give);
+  if(p.stock>=0)setStock(p,st-1);
+  markClaimed(p);
+  const note=buildGiveDesc(p.give);
+  addPurchase(p,note);
+
+  // Consumir cupón después de compra exitosa
+  if(currentSeasonalId){
+    const allSCs=[...SEASONAL_COUPONS,BLACK_FRIDAY];
+    const sc=allSCs.find(s=>s.id===currentSeasonalId);
+    if(sc&&sc.id!==BLACK_FRIDAY.id){
+      decrementSc(sc);
+      if(getScUsesLeft(sc)<=0){saveSCId(null);currentCoupon=0;bfDiscount=null;saveCurrentCoupon();toast('Usos del cupón agotados','info');}
+    }else if(sc&&sc.id===BLACK_FRIDAY.id){
+      // Re-roll para próxima compra
+      bfDiscount=Math.floor(Math.random()*21)+10;currentCoupon=bfDiscount;saveCurrentCoupon();
+    }
+  }else if(currentCoupon){
+    // Cupón regular: cooldown hasta medianoche
+    const cd=new Date();cd.setHours(0,0,0,0);cd.setDate(cd.getDate()+1);
+    setCouponCooldown(currentCoupon,cd.getTime());
+    currentCoupon=0;saveCurrentCoupon();
+  }
+
+  unlockShopTitles(p.id);
+  renderCoupons();
+  renderAllProducts();
+  renderHUD();
+  showSuccessModal(p);
+  scheduleSync();
+}
+
+/* ── Desbloquear títulos de tienda ── */
+function unlockShopTitles(productId){
+  try{
+    const earned=lsGet('mv_titles_earned',['tl_novato']);
+    const toAdd=[];
+    const triggers={_any:'tl_first_buy',sp_bf_pack:'tl_black_friday',pack_allwheels:'tl_all_access'};
+    if(triggers._any&&!earned.includes(triggers._any))toAdd.push(triggers._any);
+    if(triggers[productId]&&!earned.includes(triggers[productId]))toAdd.push(triggers[productId]);
+    if(toAdd.length)lsSet('mv_titles_earned',[...new Set([...earned,...toAdd])]);
+  }catch{}
+}
+
+/* ════════════════════════════════════════════════
+   PARTÍCULAS / MONEDAS
+════════════════════════════════════════════════ */
+function initCoins(){
+  const canvas=$('#bgCoins');if(!canvas)return;
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const ctx=canvas.getContext('2d');
+  const SYMS=['🪙','💰','✨','💛','⭐'];
+  const coins=Array.from({length:25},()=>({
+    x:Math.random()*canvas.width,y:Math.random()*canvas.height,
+    size:Math.random()*10+8,speed:Math.random()*0.4+0.1,
+    sym:SYMS[Math.floor(Math.random()*SYMS.length)],o:Math.random()*0.25+0.05
+  }));
+  (function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    coins.forEach(c=>{ctx.globalAlpha=c.o;ctx.font=`${c.size}px serif`;ctx.fillText(c.sym,c.x,c.y);c.y-=c.speed;if(c.y<-20){c.y=canvas.height+10;c.x=Math.random()*canvas.width;}});
+    requestAnimationFrame(draw);
+  })();
+  window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+}
+
+/* ════════════════════════════════════════════════
+   NPC
+════════════════════════════════════════════════ */
+const NPC_MSGS=['¡Tengo los mejores tickets del portal!','Pack Iniciante disponible GRATIS','¡BLACK2026 para el Black Friday!','Los legendarios son rarísimos...','¿Tickets o llaves? Yo tengo todo','¡Los fines de semana hay descuentos!','Revisa los cupones activos 🎟️','¡El All Access Pack vale la pena!'];
+function initNPC(){
+  const d=$('#npc-dialog');if(!d)return;
+  let i=0;function upd(){d.textContent=NPC_MSGS[i%NPC_MSGS.length];i++;}
+  upd();setInterval(upd,7000);
+}
+
+/* ════════════════════════════════════════════════
+   NAV / NAV HAMBURGER
+════════════════════════════════════════════════ */
+function initNav(){
+  const btn=$('#hamburger'),nav=$('#main-nav');
+  if(btn&&nav)btn.addEventListener('click',()=>nav.classList.toggle('open'));
+}
+
+/* ════════════════════════════════════════════════
+   TOAST / BEEP
+════════════════════════════════════════════════ */
+function toast(msg,type='success'){
+  const t=$('#toast');if(!t)return;
+  t.textContent=`${type==='success'?'✓':type==='error'?'❌':'ℹ'} ${msg}`;
+  t.className=`toast show ${type}`;
+  clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),3200);
+}
+let _actx=null;
+function beep(freq=440,dur=0.05,vol=0.04){
+  if(!_actx&&(window.AudioContext||window.webkitAudioContext))_actx=new(window.AudioContext||window.webkitAudioContext)();
+  if(!_actx)return;
+  const o=_actx.createOscillator(),g=_actx.createGain();
+  o.type='sine';o.frequency.value=freq;g.gain.value=vol;
+  o.connect(g);g.connect(_actx.destination);o.start();
+  setTimeout(()=>o.stop(),dur*1000);
+}
+
+/* ════════════════════════════════════════════════
+   REVEAL INTERSECTION
+════════════════════════════════════════════════ */
+function initReveal(){
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+  },{threshold:0.08});
+  $$('.reveal').forEach(el=>obs.observe(el));
+}
+
+/* ════════════════════════════════════════════════
+   BOOT
+════════════════════════════════════════════════ */
+function boot(){
+  document.getElementById('year').textContent=new Date().getFullYear();
+  initStocks();
+  initReveal();
+  initNav();
+  initCoins();
+  initNPC();
+  renderHUD();
+  renderAllProducts();
+  renderHistory();
+  renderCoupons();
+  setInterval(updateFlash,1000);updateFlash();
+
+  // Categorías
+  $$('.cat-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      $$('.cat-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCategory=btn.dataset.cat||'all';
+      renderAllProducts();
+    });
+  });
+
+  // Búsqueda
+  $('#searchInput')?.addEventListener('input',e=>{searchText=e.target.value||'';renderAllProducts();});
+  $('#searchClear')?.addEventListener('click',()=>{const s=$('#searchInput');if(s)s.value='';searchText='';renderAllProducts();});
+
+  // Modal
+  $('#modalClose')?.addEventListener('click',closeModal);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+  $('#modal')?.querySelector('.modal-backdrop')?.addEventListener('click',closeModal);
+
+  // Historial
+  $('#btnClearHistory')?.addEventListener('click',()=>{
+    if(!confirm('¿Limpiar todo el historial?'))return;
+    lsSet(LS.purchases,[]);renderHistory();toast('Historial limpiado','info');
+  });
+
+  // Cupón clear
+  $('#couponClearBtn')?.addEventListener('click',()=>{
+    currentCoupon=0;saveCurrentCoupon();saveSCId(null);bfDiscount=null;
+    renderCoupons();renderAllProducts();toast('Cupón eliminado','info');
+  });
+
+  // Firebase auth
+  onAuthChange(async user=>{
+    if(!user)return;
+    currentUID=user.uid;
+    await loadFromFirebase(user.uid);
+    renderHUD();renderHistory();
+    // Validar cupón SC activo
+    if(currentSeasonalId){
+      const allSCs=[...SEASONAL_COUPONS,BLACK_FRIDAY];
+      const sc=allSCs.find(s=>s.id===currentSeasonalId);
+      if(!sc||!isScActive(sc)){saveSCId(null);bfDiscount=null;currentCoupon=0;saveCurrentCoupon();}
+      else if(sc.id===BLACK_FRIDAY.id){bfDiscount=Math.floor(Math.random()*21)+10;currentCoupon=bfDiscount;saveCurrentCoupon();}
+    }
+    renderCoupons();
+    console.log('✅ Tienda Firebase OK:',user.uid);
+  });
+}
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+else boot();
+  </script>
 </body>
 </html>
