@@ -1,8 +1,9 @@
 /* =====================================================
-   Moonveil Portal — perfil.js  v2.3
+   Moonveil Portal — perfil.js  v2.3 + patch gacha v2.0
    + Títulos rediseñados con rareza visual
    + Social con rareza en tarjetas de amigos
    + Sistema de amistad MUTUA
+   + Inventario con tickets de ruletas gacha
    ===================================================== */
 'use strict';
 
@@ -105,11 +106,29 @@ const TITLES_DEF = [
   { id:'tl_pionero_mar2026',name:'PIONERO DE LUNA',       color:'#30d158', req:'registro',     desc:'Estuvo aquí el 14 de Marzo de 2026', cat:'especial', rarity:'especial', timeLimit:{ from:'2026-03-14', to:'2026-03-14' } },
 ];
 
-/* ── INVENTARIO ── */
+/* ══════════════════════════════════════════════════
+   INVENTARIO — patch gacha v2.0
+   Para añadir nuevo ticket de ruleta en el futuro:
+   Copia una línea con type:'gacha_ticket' y pon el
+   id igual al wheelId de la ruleta (mv_tickets_<id>)
+══════════════════════════════════════════════════ */
 const INVENTORY_ITEMS_DEF = [
-  { id:'tickets',        icon:'🎫', name:'TICKETS',              desc:'Moneda general de eventos y torneos',  color:'#30d158', rarity:'comun'     },
-  { id:'keys',           icon:'🗝️', name:'LLAVES',               desc:'Abre cofres y contenido bloqueado',    color:'#f5c518', rarity:'raro'      },
-  { id:'superstar_keys', icon:'⭐', name:'LLAVES SUPERESTRELLAS', desc:'Acceso a contenido premium exclusivo', color:'#00e5ff', rarity:'legendario'},
+  // ── Ítems base del portal ──
+  { id:'tickets',        icon:'🎫', name:'TICKETS',              desc:'Moneda general de eventos y torneos',  color:'#30d158', rarity:'comun',      type:'base'         },
+  { id:'keys',           icon:'🗝️', name:'LLAVES',               desc:'Abre cofres y contenido bloqueado',    color:'#f5c518', rarity:'raro',       type:'base'         },
+  { id:'superstar_keys', icon:'⭐', name:'LLAVES SUPERESTRELLAS', desc:'Acceso a contenido premium exclusivo', color:'#00e5ff', rarity:'legendario', type:'base'         },
+
+  // ── Tickets de cada ruleta gacha ──
+  // Lee mv_tickets_<id> (clave compartida con premios.js)
+  // Para añadir nuevo ticket de evento: copia una línea, cambia id/icon/name/desc
+  { id:'classic',   icon:'💎', name:'TICKETS CLÁSICA',          desc:'Para la Ruleta Clásica (permanente)',   color:'#8b5cf6', rarity:'raro',       type:'gacha_ticket' },
+  { id:'dark_moon', icon:'🌑', name:'TICKETS LUNA OSCURA',      desc:'Para la Ruleta Luna Oscura',            color:'#7c3aed', rarity:'epico',      type:'gacha_ticket' },
+  { id:'spring',    icon:'🌸', name:'TICKETS PRIMAVERA MÁGICA', desc:'Para la Ruleta Primavera Mágica',       color:'#ec4899', rarity:'raro',       type:'gacha_ticket' },
+  { id:'storm',     icon:'⚡', name:'TICKETS TORMENTA',         desc:'Para la Ruleta Tormenta Eléctrica',     color:'#eab308', rarity:'raro',       type:'gacha_ticket' },
+  { id:'cyber',     icon:'🤖', name:'TICKETS CYBER GACHA',      desc:'Para la Ruleta Cyber Gacha',            color:'#06b6d4', rarity:'epico',      type:'gacha_ticket' },
+  { id:'abyss',     icon:'🕳️', name:'TICKETS ABISMO ETERNO',    desc:'Para la Ruleta Abismo Eterno',          color:'#6366f1', rarity:'epico',      type:'gacha_ticket' },
+  // Plantilla para nueva ruleta:
+  // { id:'nueva_ruleta', icon:'🎭', name:'TICKETS NUEVA', desc:'Para la nueva ruleta', color:'#ff9500', rarity:'raro', type:'gacha_ticket' },
 ];
 
 /* ── MISIONES ── */
@@ -529,14 +548,60 @@ function renderTimeline(){
   tl.innerHTML=events.map((e,i)=>`<div class="tl-event"><div class="tl-icon-wrap"><div class="tl-icon">${e.icon||'📌'}</div>${i<events.length-1?'<div class="tl-line"></div>':''}</div><div class="tl-body"><div class="tl-title">${e.title}</div>${e.detail?`<div class="tl-detail">${e.detail}</div>`:''}<div class="tl-time">${timeAgo(e.fecha)}</div></div></div>`).join('');
 }
 
-/* ── RENDER INVENTARIO ── */
-function renderInventory(){
-  const inv=getInventory(),grid=$('#inventory-grid');if(!grid)return;
-  const RL={comun:'COMÚN',raro:'RARO',legendario:'LEGENDARIO'};
-  const RC={comun:'var(--primary)',raro:'var(--yellow)',legendario:'var(--cyan)'};
-  grid.innerHTML=INVENTORY_ITEMS_DEF.map(item=>{const count=inv[item.id]||0,col=RC[item.rarity]||item.color,rLabel=RL[item.rarity]||item.rarity;return`<div class="inv-card ${item.rarity}" style="--item-color:${col}"><div class="inv-rarity-badge">${rLabel}</div><div class="inv-icon">${item.icon}</div><div class="inv-name">${item.name}</div><div class="inv-desc">${item.desc}</div><div class="inv-count-row"><span class="inv-label">CANTIDAD</span><span class="inv-count" style="color:${col}">${count}</span></div></div>`;}).join('');
-  const total=Object.values(inv).reduce((a,b)=>(a||0)+(b||0),0);
-  const t=$('#inv-total');if(t)t.textContent=total;
+/* ══════════════════════════════════════════════════
+   RENDER INVENTARIO — patch gacha v2.0
+   Lee ítems base de mv_inventory y tickets gacha
+   de mv_tickets_<id> (compartido con premios.js)
+══════════════════════════════════════════════════ */
+function renderInventory() {
+  const inv  = getInventory();   // mv_inventory: { tickets, keys, superstar_keys }
+  const grid = $('#inventory-grid');
+  if (!grid) return;
+
+  const RL = { comun:'COMÚN', raro:'RARO', epico:'ÉPICO', legendario:'LEGENDARIO' };
+  const RC = {
+    comun:      'var(--primary)',
+    raro:       'var(--yellow)',
+    epico:      'var(--purple)',
+    legendario: 'var(--cyan)',
+  };
+
+  const cards = INVENTORY_ITEMS_DEF.map(item => {
+    let count = 0;
+
+    if (item.type === 'gacha_ticket') {
+      // Lee del localStorage compartido con premios.js
+      count = Math.max(0, parseInt(localStorage.getItem(`mv_tickets_${item.id}`) || '0', 10));
+    } else {
+      // Ítem base del perfil
+      count = inv[item.id] || 0;
+    }
+
+    const col    = RC[item.rarity] || item.color;
+    const rLabel = RL[item.rarity] || item.rarity.toUpperCase();
+
+    return `<div class="inv-card ${item.rarity}" style="--item-color:${col}">
+      <div class="inv-rarity-badge">${rLabel}</div>
+      <div class="inv-icon">${item.icon}</div>
+      <div class="inv-name">${item.name}</div>
+      <div class="inv-desc">${item.desc}</div>
+      <div class="inv-count-row">
+        <span class="inv-label">CANTIDAD</span>
+        <span class="inv-count" style="color:${col}">${count}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = cards;
+
+  // Total combinado (base + todos los tickets de ruletas)
+  const baseTotal  = Object.values(inv).reduce((a, b) => (a || 0) + (b || 0), 0);
+  const gachaTotal = INVENTORY_ITEMS_DEF
+    .filter(i => i.type === 'gacha_ticket')
+    .reduce((sum, i) => sum + Math.max(0, parseInt(localStorage.getItem(`mv_tickets_${i.id}`) || '0', 10)), 0);
+
+  const t = $('#inv-total');
+  if (t) t.textContent = baseTotal + gachaTotal;
 }
 
 /* ══════════════════════════════════════════
