@@ -122,11 +122,11 @@ const INVENTORY_ITEMS_DEF = [
   // Lee mv_tickets_<id> (clave compartida con premios.js)
   // Para añadir nuevo ticket de evento: copia una línea, cambia id/icon/name/desc
   { id:'classic',   icon:'💎', name:'TICKETS CLÁSICA',          desc:'Para la Ruleta Clásica (permanente)',   color:'#8b5cf6', rarity:'raro',       type:'gacha_ticket' },
-  { id:'dark_moon', icon:'🌑', name:'TICKETS LUNA OSCURA',      desc:'Para la Ruleta Luna Oscura',            color:'#7c3aed', rarity:'epico',      type:'gacha_ticket' },
-  { id:'spring',    icon:'🌸', name:'TICKETS PRIMAVERA MÁGICA', desc:'Para la Ruleta Primavera Mágica',       color:'#ec4899', rarity:'raro',       type:'gacha_ticket' },
-  { id:'storm',     icon:'⚡', name:'TICKETS TORMENTA',         desc:'Para la Ruleta Tormenta Eléctrica',     color:'#eab308', rarity:'raro',       type:'gacha_ticket' },
-  { id:'cyber',     icon:'🤖', name:'TICKETS CYBER GACHA',      desc:'Para la Ruleta Cyber Gacha',            color:'#06b6d4', rarity:'epico',      type:'gacha_ticket' },
-  { id:'abyss',     icon:'🕳️', name:'TICKETS ABISMO ETERNO',    desc:'Para la Ruleta Abismo Eterno',          color:'#6366f1', rarity:'epico',      type:'gacha_ticket' },
+  { id:'dark_moon', icon:'🎫', name:'TICKETS LUNA OSCURA',      desc:'Para la Ruleta Luna Oscura',            color:'#7c3aed', rarity:'epico',      type:'gacha_ticket' },
+  { id:'spring',    icon:'🎫', name:'TICKETS PRIMAVERA MÁGICA', desc:'Para la Ruleta Primavera Mágica',       color:'#ec4899', rarity:'raro',       type:'gacha_ticket' },
+  { id:'storm',     icon:'🎫', name:'TICKETS TORMENTA',         desc:'Para la Ruleta Tormenta Eléctrica',     color:'#eab308', rarity:'raro',       type:'gacha_ticket' },
+  { id:'cyber',     icon:'🎫', name:'TICKETS CYBER GACHA',      desc:'Para la Ruleta Cyber Gacha',            color:'#06b6d4', rarity:'epico',      type:'gacha_ticket' },
+  { id:'abyss',     icon:'🎫', name:'TICKETS ABISMO ETERNO',    desc:'Para la Ruleta Abismo Eterno',          color:'#6366f1', rarity:'epico',      type:'gacha_ticket' },
   // Plantilla para nueva ruleta:
   // { id:'nueva_ruleta', icon:'🎭', name:'TICKETS NUEVA', desc:'Para la nueva ruleta', color:'#ff9500', rarity:'raro', type:'gacha_ticket' },
 ];
