@@ -1,21 +1,23 @@
-'use strict';
 /**
  * tienda.js — Moonveil Portal Shop v3.0
- * ✅ Firebase Firestore sync
- * ✅ Todas las secciones de la tienda v2 (pases, cofres, materiales, historia, monedas, eventos, pack coins, tickets, llaves cal, superestrellas)
- * ✅ Cupones de temporada + Black Friday + regulares
- * ✅ Flash Sale con countdown a medianoche
- * ✅ Sand Brill sale (fines de semana + ofertas al azar)
- * ✅ Historial en drawer lateral
- * ✅ Sistema de stock + restock por medianoche
- * ✅ Productos one-time y diarios
+ * ════════════════════════════════════════════
+ * ✅ Todas las secciones de la tienda anterior (pases, cofres, tickets, calkeys, superestrellas, materiales, historia, eventos, monedas, pack coins)
+ * ✅ Stock real + restock por tiempo
+ * ✅ Flash Sale: fines de semana con descuento aleatorio
+ * ✅ Ofertas Sand Brill: artículos al azar con descuento 10-60%, renueva cada 8h
+ * ✅ Sistema de cupones mejorado (regulares + temporada + Black Friday)
  * ✅ Precios grandes y visibles
- * ✅ Integración con perfil (inventario, tickets gacha, llaves calendario, llaves superestrella)
+ * ✅ Historial como panel desplegable (FAB)
  * ✅ NPC zorrito con mensajes dinámicos
+ * ✅ Firebase Firestore sync
+ * ✅ Integración con perfil (títulos, inventario)
+ * ✅ startsAt / expiresAt para items con fecha
  */
 
-import { db }           from './firebase.js';
-import { onAuthChange }  from './auth.js';
+'use strict';
+
+import { db }          from './firebase.js';
+import { onAuthChange } from './auth.js';
 import {
   doc, getDoc, updateDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
@@ -24,1035 +26,1098 @@ import { saveInventory } from './database.js';
 /* ══════════════════════════════════════
    HELPERS
 ══════════════════════════════════════ */
-const $  = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
-const esc = s => String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const $ = s => document.querySelector(s);
 const wait = ms => new Promise(r => setTimeout(r, ms));
-const clamp = (v,mn,mx) => Math.min(mx, Math.max(mn, v));
+const now = () => Date.now();
+const H1  = 3600000;
+const H8  = 28800000;
+const H24 = 86400000;
+const DAY_MS = 86400000;
 
+function parseDate(str) {
+  if (!str) return null;
+  const d = new Date(str.includes('T') ? str : str + 'T23:59:59');
+  return isNaN(d) ? null : d.getTime();
+}
+function parseDateStart(str) {
+  if (!str) return null;
+  const d = new Date(str.includes('T') ? str : str + 'T00:00:00');
+  return isNaN(d) ? null : d.getTime();
+}
+function nextMidnightLocal(days = 1) {
+  const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + days);
+  return d.getTime();
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+function timeAgo(iso) {
+  const s = Math.floor((Date.now()-new Date(iso))/1000);
+  if (s<60) return 'hace un momento';
+  if (s<3600) return `hace ${Math.floor(s/60)}m`;
+  if (s<86400) return `hace ${Math.floor(s/3600)}h`;
+  return `hace ${Math.floor(s/86400)}d`;
+}
+function isWeekend() {
+  const d = new Date().getDay();
+  return d === 0 || d === 6;
+}
+function randInt(min, max) { return Math.floor(Math.random()*(max-min+1))+min; }
+
+/* ══════════════════════════════════════
+   LOCALSTORAGE
+══════════════════════════════════════ */
 const LS = {
   inventory:  'mv_inventory',
   purchases:  'mv_shop_purchases',
   onetime:    'mv_shop_onetime',
-  stock:      id => `mv_stock_${id}`,
-  restock:    id => `mv_restock_${id}`,
+  coupon:     'mv_current_coupon',
   couponState:'mv_coupon_state',
-  curCoupon:  'mv_current_coupon',
   scActive:   'mv_sc_active',
-  sbState:    'mv_sb_state',
+  flash:      'mv_flash_sale',
+  sandbrill:  'mv_sandbrill_state',
 };
-function lsGet(k,fb=null){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):fb;}catch{return fb;}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function lsGet(k, fb=null) { try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):fb;}catch{return fb;} }
+function lsSet(k, v)       { try{localStorage.setItem(k,JSON.stringify(v));}catch{} }
 
 /* ══════════════════════════════════════
    FIREBASE
 ══════════════════════════════════════ */
-let currentUID=null, syncTimeout=null;
-function scheduleSync(){if(!currentUID)return;clearTimeout(syncTimeout);syncTimeout=setTimeout(doSync,2500);}
-async function doSync(){
-  if(!currentUID)return;
-  try{
-    const inv=lsGet(LS.inventory,{tickets:0,keys:0,superstar_keys:0});
-    const hist=lsGet(LS.purchases,[]);
-    const gachaTickets={};
-    ['classic','dark_moon','spring','storm','cyber','abyss'].forEach(id=>{
-      gachaTickets[id]=parseInt(localStorage.getItem(`mv_tickets_${id}`)||'0',10);
+let currentUID = null, syncTimeout = null;
+function scheduleSync() { if (!currentUID) return; clearTimeout(syncTimeout); syncTimeout = setTimeout(doSync, 2500); }
+async function doSync() {
+  if (!currentUID) return;
+  try {
+    const inv = lsGet(LS.inventory, {tickets:0,keys:0,superstar_keys:0});
+    const hist = lsGet(LS.purchases, []);
+    const gachaTickets = {};
+    ['classic','dark_moon','spring','storm','cyber','abyss','event','elemental'].forEach(id => {
+      gachaTickets[id] = parseInt(localStorage.getItem(`mv_tickets_${id}`)||'0',10);
     });
-    await updateDoc(doc(db,'users',currentUID),{
-      inventory:inv,shop_purchases:hist,gacha_tickets:gachaTickets,updatedAt:serverTimestamp()
+    await updateDoc(doc(db,'users',currentUID), {
+      inventory: inv, shop_purchases: hist, gacha_tickets: gachaTickets,
+      updatedAt: serverTimestamp()
     });
-  }catch(e){console.warn('[Shop] sync:',e);}
+  } catch(e) { console.warn('[Shop] sync:', e); }
 }
-async function loadFromFirebase(uid){
-  try{
-    const snap=await getDoc(doc(db,'users',uid));if(!snap.exists())return;
-    const d=snap.data();
-    if(d.inventory){
-      const cur=lsGet(LS.inventory,{tickets:0,keys:0,superstar_keys:0});
-      const merged={
-        tickets:Math.max(cur.tickets||0,d.inventory.tickets||0),
-        keys:Math.max(cur.keys||0,d.inventory.keys||0),
-        superstar_keys:Math.max(cur.superstar_keys||0,d.inventory.superstar_keys||0)
+async function loadFromFirebase(uid) {
+  try {
+    const snap = await getDoc(doc(db,'users',uid)); if (!snap.exists()) return;
+    const d = snap.data();
+    if (d.inventory) {
+      const cur = lsGet(LS.inventory, {tickets:0,keys:0,superstar_keys:0});
+      const merged = {
+        tickets:      Math.max(cur.tickets||0,      d.inventory.tickets||0),
+        keys:         Math.max(cur.keys||0,          d.inventory.keys||0),
+        superstar_keys:Math.max(cur.superstar_keys||0,d.inventory.superstar_keys||0),
       };
-      lsSet(LS.inventory,merged);
+      lsSet(LS.inventory, merged);
     }
-    if(d.gacha_tickets){
-      Object.entries(d.gacha_tickets).forEach(([rid,count])=>{
-        const lsKey=`mv_tickets_${rid}`;
-        const local=parseInt(localStorage.getItem(lsKey)||'-1',10);
-        localStorage.setItem(lsKey,String(Math.max(local<0?0:local,count||0)));
+    if (d.gacha_tickets) {
+      Object.entries(d.gacha_tickets).forEach(([rid,count]) => {
+        const lsKey = `mv_tickets_${rid}`;
+        const local = parseInt(localStorage.getItem(lsKey)||'-1',10);
+        localStorage.setItem(lsKey, String(Math.max(local<0?0:local, count||0)));
       });
     }
-    if(d.shop_purchases&&Array.isArray(d.shop_purchases)){
-      const local=lsGet(LS.purchases,[]);
-      if(d.shop_purchases.length>local.length)lsSet(LS.purchases,d.shop_purchases);
+    if (d.shop_purchases && Array.isArray(d.shop_purchases)) {
+      const local = lsGet(LS.purchases, []);
+      if (d.shop_purchases.length > local.length) lsSet(LS.purchases, d.shop_purchases);
     }
-  }catch(e){console.warn('[Shop] load:',e);}
-}
-
-/* ══════════════════════════════════════
-   STOCK SYSTEM
-══════════════════════════════════════ */
-const RESTOCK_DAYS={'24h':1,'7d':7,'30d':30};
-function nextMidnightLocal(days=1){
-  const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+days);return d.getTime();
-}
-function getStock(p){
-  const v=localStorage.getItem(LS.stock(p.id));
-  return v==null?p.stock:Math.max(0,parseInt(v,10)||0);
-}
-function setStock(p,v){localStorage.setItem(LS.stock(p.id),String(Math.max(0,v|0)));}
-function getNextRestock(p){
-  const v=localStorage.getItem(LS.restock(p.id));
-  return v==null?calcNextRestock(p):(v==='null'?null:Number(v));
-}
-function setNextRestock(p,ts){localStorage.setItem(LS.restock(p.id),ts==null?'null':String(ts));}
-function calcNextRestock(p){
-  if(!p.restock)return null;
-  const days=RESTOCK_DAYS[p.restock];if(!days)return null;
-  return nextMidnightLocal(days);
-}
-function syncStocks(){
-  products.forEach(p=>{
-    if(localStorage.getItem(LS.stock(p.id))==null)setStock(p,p.stock);
-    if(localStorage.getItem(LS.restock(p.id))==null){setNextRestock(p,null);}
-    else{
-      const ts=getNextRestock(p);
-      if(ts&&ts<=Date.now()){setStock(p,p.stock);setNextRestock(p,calcNextRestock(p));}
-    }
-  });
+  } catch(e) { console.warn('[Shop] load:', e); }
 }
 
 /* ══════════════════════════════════════
    INVENTARIO
 ══════════════════════════════════════ */
-function getInventory(){return lsGet(LS.inventory,{tickets:0,keys:0,superstar_keys:0});}
-function setInventory(inv){
-  lsSet(LS.inventory,inv);renderHUD();
-  if(currentUID)saveInventory(currentUID,inv).catch(()=>{});
+function getInventory()  { return lsGet(LS.inventory, {tickets:0,keys:0,superstar_keys:0}); }
+function setInventory(inv) {
+  lsSet(LS.inventory, inv); renderHUD();
+  if (currentUID) saveInventory(currentUID, inv).catch(()=>{});
   scheduleSync();
 }
-function getGachaTickets(id){return Math.max(0,parseInt(localStorage.getItem(`mv_tickets_${id}`)||'0',10));}
-function addGachaTickets(id,count){
-  const cur=getGachaTickets(id);
-  localStorage.setItem(`mv_tickets_${id}`,String(cur+count));
-  renderHUD();scheduleSync();
+function getGachaTickets(id) { return Math.max(0, parseInt(localStorage.getItem(`mv_tickets_${id}`)||'0',10)); }
+function addGachaTickets(id, count) {
+  const cur = getGachaTickets(id);
+  localStorage.setItem(`mv_tickets_${id}`, String(cur+count));
+  renderHUD(); scheduleSync();
 }
-// Cal keys
-const CAL_KEYS_LS='mv_cal_keys';
-const CAL_DEFAULT={normal:0,pink:0,green:0,orange:0,cat:0,special:0,future:0};
-function getCalKeys(){try{const r=localStorage.getItem(CAL_KEYS_LS);const k=r?JSON.parse(r):{...CAL_DEFAULT};Object.keys(CAL_DEFAULT).forEach(kk=>{if(k[kk]==null)k[kk]=0;});return k;}catch{return{...CAL_DEFAULT};}}
-function addCalKeys(calKey){
-  const keys=getCalKeys();
-  if(calKey.pack&&calKey.keys){Object.entries(calKey.keys).forEach(([t,a])=>{if(keys[t]!=null)keys[t]+=a;});}
-  else if(calKey.type){keys[calKey.type]=(keys[calKey.type]||0)+calKey.amount;}
-  localStorage.setItem(CAL_KEYS_LS,JSON.stringify(keys));
-}
-// Super keys
-const CHEST_KEYS_LS='mv_chest_keys_v1';
-function getSuperKeys(){try{const r=localStorage.getItem(CHEST_KEYS_LS);return r?JSON.parse(r):{};}catch{return{};}}
-function addSuperKeys(sk){
-  const keys=getSuperKeys();
-  if(sk.pack&&sk.keys){Object.entries(sk.keys).forEach(([id,a])=>{keys[id]=(keys[id]||0)+a;});}
-  else if(sk.keyId){keys[sk.keyId]=(keys[sk.keyId]||0)+sk.amount;}
-  localStorage.setItem(CHEST_KEYS_LS,JSON.stringify(keys));
-}
-
-function renderHUD(){
-  const inv=getInventory();
-  const gachaWheels=['classic','dark_moon','spring','storm','cyber','abyss'];
-  const totalTkts=gachaWheels.reduce((s,id)=>s+getGachaTickets(id),inv.tickets||0);
-  const s=($('#hudTicketsVal'),$('#hudKeysVal'),$('#hudSuperVal'));
-  const setEl=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
-  setEl('#hudTicketsVal',totalTkts);
-  setEl('#hudKeysVal',inv.keys||0);
-  setEl('#hudSuperVal',inv.superstar_keys||0);
-  setEl('#heroTickets',totalTkts);
-  setEl('#heroKeys',inv.keys||0);
-  setEl('#heroSuperKeys',inv.superstar_keys||0);
+function renderHUD() {
+  const inv = getInventory();
+  const allWheels = ['classic','dark_moon','spring','storm','cyber','abyss','event','elemental'];
+  const gachaTotal = allWheels.reduce((s,id)=>s+getGachaTickets(id), 0);
+  const totalTkts  = (inv.tickets||0) + gachaTotal;
+  const set = (id,v) => { const el=$(id); if(el) el.textContent = v; };
+  const s1=$('#hudTicketsTotal .his-val'); if(s1) s1.textContent = totalTkts;
+  const s2=$('#hudKeys .his-val');         if(s2) s2.textContent = inv.keys||0;
+  const s3=$('#hudSuperKeys .his-val');    if(s3) s3.textContent = inv.superstar_keys||0;
+  set('#heroTickets',  totalTkts);
+  set('#heroKeys',     inv.keys||0);
+  set('#heroSuperKeys',inv.superstar_keys||0);
 }
 
 /* ══════════════════════════════════════
-   FECHAS
+   STOCK MANAGEMENT
 ══════════════════════════════════════ */
-function parseDate(str){if(!str)return null;const d=new Date(str.includes('T')?str:str+'T23:59:59');return isNaN(d)?null:d.getTime();}
-function parseDateStart(str){if(!str)return null;const d=new Date(str.includes('T')?str:str+'T00:00:00');return isNaN(d)?null:d.getTime();}
-function todayStr(){return new Date().toISOString().slice(0,10);}
-function isDateInRange(start,end){const t=todayStr();return t>=start&&t<=end;}
-function timeLeft(ts){
-  const diff=Math.max(0,ts-Date.now());
-  const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000);
-  const m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
-  if(d>=1)return`${d}d ${h}h`;if(h>=1)return`${h}h ${m}m`;return`${m}m ${s}s`;
+const RESTOCK_DAYS = { '24h':1, '7d':7, '30d':30 };
+const StockLS = {
+  get(id, def)  { const v=localStorage.getItem(`mv_stock_${id}`); return v==null?def:Math.max(0,parseInt(v,10)||0); },
+  set(id, v)    { localStorage.setItem(`mv_stock_${id}`, String(Math.max(0,v|0))); },
+  getNext(id)   { const v=localStorage.getItem(`mv_restock_${id}`); return v==null?null:(v==='null'?null:Number(v)); },
+  setNext(id,ts){ localStorage.setItem(`mv_restock_${id}`, ts==null?'null':String(ts)); },
+};
+function initStock(p) {
+  if (localStorage.getItem(`mv_stock_${p.id}`) == null) StockLS.set(p.id, p.stock);
+  const ts = StockLS.getNext(p.id);
+  if (ts && ts <= now()) {
+    StockLS.set(p.id, p.stock);
+    const days = p.restock ? RESTOCK_DAYS[p.restock] : null;
+    StockLS.setNext(p.id, days ? nextMidnightLocal(days) : null);
+  }
 }
-function timeAgo(iso){
-  const s=Math.floor((Date.now()-new Date(iso))/1000);
-  if(s<60)return'hace un momento';
-  if(s<3600)return`hace ${Math.floor(s/60)}m`;
-  if(s<86400)return`hace ${Math.floor(s/3600)}h`;
-  return`hace ${Math.floor(s/86400)}d`;
+function buyStock(p) {
+  const s = StockLS.get(p.id, p.stock);
+  if (s <= 0) return false;
+  StockLS.set(p.id, s-1);
+  if ((s-1) <= 0 && p.restock) {
+    const days = RESTOCK_DAYS[p.restock];
+    if (days) StockLS.setNext(p.id, nextMidnightLocal(days));
+  }
+  return true;
 }
 
 /* ══════════════════════════════════════
    ONE-TIME / DAILY
 ══════════════════════════════════════ */
-function getOneTime(){return lsGet(LS.onetime,{});}
-function isProductClaimed(product){
-  const ot=getOneTime();
-  if(product.onetime&&ot[product.id])return true;
-  if(product.daily){const today=new Date().toDateString();return ot[`daily_${product.id}`]===today;}
+function getOneTime()  { return lsGet(LS.onetime, {}); }
+function isProductClaimed(p) {
+  const ot = getOneTime();
+  if (p.onetime && ot[p.id]) return true;
+  if (p.daily) return ot[`daily_${p.id}`] === new Date().toDateString();
   return false;
 }
-function markClaimed(product){
-  const ot=getOneTime();
-  if(product.onetime)ot[product.id]=Date.now();
-  if(product.daily)ot[`daily_${product.id}`]=new Date().toDateString();
-  lsSet(LS.onetime,ot);
+function markClaimed(p) {
+  const ot = getOneTime();
+  if (p.onetime) ot[p.id] = Date.now();
+  if (p.daily)   ot[`daily_${p.id}`] = new Date().toDateString();
+  lsSet(LS.onetime, ot);
+}
+
+/* ══════════════════════════════════════
+   FLASH SALE SYSTEM
+   Activo siempre, pero con descuento extra los fines de semana
+══════════════════════════════════════ */
+let flashDiscount = 0;
+let flashUntil    = 0;
+const FLASH_KEY   = 'mv_flash_sale_v2';
+
+function initFlashSale() {
+  const saved = lsGet(FLASH_KEY, null);
+  const weekend = isWeekend();
+
+  if (saved && saved.until > now() && saved.weekend === weekend) {
+    flashDiscount = saved.discount;
+    flashUntil    = saved.until;
+  } else {
+    // Generar nuevo flash sale
+    if (weekend) {
+      flashDiscount = randInt(15, 40);  // fines de semana: más generoso
+    } else {
+      flashDiscount = randInt(5, 20);   // días normales: menor
+    }
+    // Expira a la próxima medianoche
+    flashUntil = nextMidnightLocal(1);
+    lsSet(FLASH_KEY, { discount: flashDiscount, until: flashUntil, weekend });
+  }
+
+  renderFlashBanner();
+}
+
+function renderFlashBanner() {
+  const fbEl    = $('#flashDiscount');
+  const timerEl = $('#flashTimer');
+  const textEl  = $('#flashText');
+  const banner  = $('#flashBanner');
+  if (!fbEl) return;
+
+  const weekend = isWeekend();
+  fbEl.textContent = `-${flashDiscount}%`;
+  if (textEl) {
+    textEl.textContent = weekend
+      ? `¡FLASH SALE DE FIN DE SEMANA! Descuento activo en toda la tienda`
+      : `¡OFERTA DIARIA! Descuento en toda la tienda`;
+  }
+  if (banner) {
+    banner.style.borderColor = weekend ? 'rgba(239,68,68,0.7)' : 'var(--a2)';
+  }
+}
+
+function updateFlashTimer() {
+  const el = $('#flashTimer');
+  if (!el) return;
+  const remaining = Math.max(0, flashUntil - now());
+  el.textContent = fmtTime(remaining);
+  if (remaining === 0) { initFlashSale(); renderProducts(); }
+}
+
+/* ══════════════════════════════════════
+   SAND BRILL DEALS
+   8 artículos al azar con descuento 10-60%, cada 8h
+══════════════════════════════════════ */
+let sandbrillDeals = [];
+let sandbrillUntil = 0;
+const SB_KEY = 'mv_sandbrill_v2';
+
+function initSandBrill() {
+  const saved = lsGet(SB_KEY, null);
+  if (saved && saved.until > now()) {
+    sandbrillDeals = saved.deals;
+    sandbrillUntil = saved.until;
+  } else {
+    rollSandBrill();
+  }
+  renderSandBrill();
+}
+
+function rollSandBrill() {
+  // Elegir 5-6 productos al azar que tengan precio > 0
+  const eligible = PRODUCTS.filter(p => p.price > 0 && p.stock !== 0);
+  const shuffled = [...eligible].sort(() => Math.random()-0.5);
+  const picks    = shuffled.slice(0, Math.min(6, shuffled.length));
+  sandbrillDeals = picks.map(p => ({
+    id:       p.id,
+    discount: randInt(10, 60),
+  }));
+  sandbrillUntil = now() + H8;
+  lsSet(SB_KEY, { deals: sandbrillDeals, until: sandbrillUntil });
+}
+
+function updateSandbrillTimer() {
+  const el = $('#sandbrillTimer');
+  if (!el) return;
+  const remaining = Math.max(0, sandbrillUntil - now());
+  el.textContent = fmtTime(remaining);
+  if (remaining === 0) { rollSandBrill(); renderSandBrill(); }
+}
+
+function renderSandBrill() {
+  const grid = $('#sandbrillGrid');
+  if (!grid) return;
+  if (!sandbrillDeals.length) { grid.innerHTML='<p style="font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted);padding:12px">Sin ofertas disponibles ahora.</p>'; return; }
+
+  const couponPct = getCurrentCouponPct();
+
+  grid.innerHTML = sandbrillDeals.map(deal => {
+    const p = PRODUCTS.find(x => x.id === deal.id);
+    if (!p) return '';
+    const st     = StockLS.get(p.id, p.stock);
+    const isOut  = st <= 0;
+    const baseDisc = deal.discount;
+    const extraDisc = couponPct;
+    const totalDisc = Math.min(90, baseDisc + extraDisc);
+    const final  = Math.max(1, Math.round(p.price - p.price * totalDisc / 100));
+    const isDisabled = isOut || isProductClaimed(p);
+
+    return `<div class="sb-card">
+      <div class="sb-card-badge">-${totalDisc}% SAND BRILL</div>
+      <div class="sb-card-icon">${p.icon}</div>
+      <div class="sb-card-name">${p.name}</div>
+      <div class="sb-price-row">
+        <span class="sb-price-old">⟡${p.price}</span>
+        <span class="sb-price-new">⟡${final}</span>
+      </div>
+      <div style="font-family:var(--font-pixel);font-size:0.2rem;color:var(--muted);margin-top:4px">📦 Stock: ${st}</div>
+      <button class="sb-btn" data-id="${p.id}" data-sbdisc="${totalDisc}" ${isDisabled?'disabled':''}>
+        ${isOut?'AGOTADO':isProductClaimed(p)?'RECLAMADO':'COMPRAR'}
+      </button>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.sb-btn:not(:disabled)').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = PRODUCTS.find(x => x.id === btn.dataset.id);
+      if (p) showConfirmModal(p, parseInt(btn.dataset.sbdisc||'0', 10));
+    });
+  });
 }
 
 /* ══════════════════════════════════════
    CUPONES
 ══════════════════════════════════════ */
-const ALL_COUPONS=[10,15,20,25,30,40,50];
-const SEASONAL_COUPONS=[
-  {id:'sv_2026',name:'💗 San Valentín',emoji:'💗',style:'sc-valentine',discount:30,
-   startDate:'2026-02-10',endDate:'2026-02-15',maxUses:5,resetDate:'2026-02-13'},
-  {id:'newyear_2026',name:'🎆 Año Nuevo',emoji:'🎆',style:'sc-newyear',discount:25,
-   startDate:'2025-12-31',endDate:'2026-01-06',maxUses:3,resetDate:'2026-01-01'},
-  {id:'halloween_2026',name:'🎃 Halloween',emoji:'🎃',style:'sc-halloween',discount:40,
-   startDate:'2026-10-25',endDate:'2026-11-01',maxUses:3,resetDate:'2026-10-31'},
-  {id:'navidad_2026',name:'🎄 Navidad',emoji:'🎄',style:'sc-christmas',discount:35,
-   startDate:'2026-12-01',endDate:'2026-12-30',maxUses:5,resetDate:'2026-12-25'},
+const ALL_COUPONS = [10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100];
+
+const SEASONAL_COUPONS = [
+  { id:'sv_2026',      name:'💗 San Valentín',style:'valentine', discount:30, startDate:'2026-02-10', endDate:'2026-02-15', maxUses:5, resetDate:'2026-02-13' },
+  { id:'newyear_2026', name:'🎆 Año Nuevo',   style:'newyear',   discount:25, startDate:'2025-12-31', endDate:'2026-01-06', maxUses:3, resetDate:'2026-01-01' },
+  { id:'halloween_2026',name:'🎃 Halloween',  style:'halloween', discount:40, startDate:'2026-10-25', endDate:'2026-11-01', maxUses:3, resetDate:'2026-10-31' },
+  { id:'navidad_2026', name:'🎄 Navidad',     style:'christmas', discount:35, startDate:'2026-12-01', endDate:'2026-12-30', maxUses:5, resetDate:'2026-12-25' },
 ];
-const BLACK_FRIDAY_COUPON={
-  id:'blackfriday',name:'BLACK FRIDAY',emoji:'🖤',style:'sc-blackfriday',discount:'random',unlimited:true,
+
+const BLACK_FRIDAY = {
+  id:'blackfriday', name:'BLACK FRIDAY', style:'blackfriday', discount:'random', unlimited:true,
   periods:[
-    {startDate:'2026-03-02',endDate:'2026-03-03'},
-    {startDate:'2026-04-01',endDate:'2026-04-02'},
-    {startDate:'2026-11-27',endDate:'2026-11-30'},
+    { startDate:'2026-03-02', endDate:'2026-03-03' },
+    { startDate:'2026-04-01', endDate:'2026-04-02' },
+    { startDate:'2026-11-27', endDate:'2026-11-30' },
   ],
 };
 
-function isSeasonalCouponActive(sc){
-  if(sc.periods)return sc.periods.some(p=>isDateInRange(p.startDate,p.endDate));
-  return isDateInRange(sc.startDate,sc.endDate);
+let currentCoupon    = Number(localStorage.getItem(LS.coupon)||'0');
+let currentScId      = localStorage.getItem(LS.scActive)||null;
+let bfCurrentDiscount = null;
+
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function isDateInRange(s, e) { const t=todayStr(); return t>=s&&t<=e; }
+function isScActive(sc) {
+  if (sc.periods) return sc.periods.some(p=>isDateInRange(p.startDate,p.endDate));
+  return isDateInRange(sc.startDate, sc.endDate);
 }
-function getScState(sc){try{const r=localStorage.getItem(`mv_sc_${sc.id}`);return r?JSON.parse(r):null;}catch{return null;}}
-function setScState(sc,s){localStorage.setItem(`mv_sc_${sc.id}`,JSON.stringify(s));}
-function syncScState(sc){
-  const today=todayStr();let s=getScState(sc);
-  if(!s){s={usesLeft:sc.maxUses,lastReset:today};setScState(sc,s);return s;}
-  if(sc.resetDate&&today>=sc.resetDate&&(s.lastReset||'')<sc.resetDate){
-    s.usesLeft=sc.maxUses;s.lastReset=today;setScState(sc,s);
+
+function getCouponCooldown(pct) { const s=lsGet(LS.couponState,{}); return Number(s[String(pct)]||0); }
+function setCouponCooldown(pct,ts){ const s=lsGet(LS.couponState,{}); s[String(pct)]=ts||0; lsSet(LS.couponState,s); }
+
+function getScUsesLeft(sc) {
+  const raw = lsGet(`mv_sc_${sc.id}`,null);
+  if (!raw) return sc.maxUses;
+  const today = todayStr(), state = raw;
+  if (sc.resetDate && today>=sc.resetDate && (state.lastReset||'')<sc.resetDate) {
+    state.usesLeft = sc.maxUses; state.lastReset = today;
+    lsSet(`mv_sc_${sc.id}`, state);
   }
-  return s;
+  return state.usesLeft ?? sc.maxUses;
 }
-function getScUses(sc){return syncScState(sc).usesLeft;}
-function decrementSc(sc){const s=syncScState(sc);if(s.usesLeft>0){s.usesLeft--;setScState(sc,s);}}
-
-let bfDiscount=null;
-function rollBF(){bfDiscount=Math.floor(Math.random()*41)+10;return bfDiscount;}
-let currentSeasonalId=localStorage.getItem(LS.scActive)||null;
-function saveSeasonalId(id){currentSeasonalId=id;id?localStorage.setItem(LS.scActive,id):localStorage.removeItem(LS.scActive);}
-
-let currentCoupon=Number(localStorage.getItem(LS.curCoupon)||0);
-function saveCoupon(){localStorage.setItem(LS.curCoupon,String(currentCoupon));}
-
-function getCouponState(){
-  try{const r=localStorage.getItem(LS.couponState);if(!r){const s={};ALL_COUPONS.forEach(c=>s[c]=0);localStorage.setItem(LS.couponState,JSON.stringify(s));return s;}return JSON.parse(r);}
-  catch{const s={};ALL_COUPONS.forEach(c=>s[c]=0);return s;}
-}
-function setCouponCooldown(pct,ts){const s=getCouponState();s[String(pct)]=ts||0;localStorage.setItem(LS.couponState,JSON.stringify(s));}
-function getCouponCooldown(pct){return Number(getCouponState()[String(pct)]||0);}
-
-function getActiveCouponPct(){
-  if(currentSeasonalId){
-    if(currentSeasonalId===BLACK_FRIDAY_COUPON.id)return bfDiscount||0;
-    const sc=SEASONAL_COUPONS.find(s=>s.id===currentSeasonalId);
-    if(sc)return sc.discount;
-  }
-  return currentCoupon||0;
+function decrementScUses(sc) {
+  const raw = lsGet(`mv_sc_${sc.id}`, { usesLeft: sc.maxUses, lastReset: todayStr() });
+  raw.usesLeft = Math.max(0, (raw.usesLeft ?? sc.maxUses)-1);
+  lsSet(`mv_sc_${sc.id}`, raw);
 }
 
-function applyDiscount(price){
-  const pct=getActiveCouponPct();
-  if(!pct||price<=0)return{final:price,pct:0};
-  return{final:Math.max(0,Math.round(price-price*pct/100)),pct};
+function getCurrentCouponPct() { return currentCoupon || 0; }
+
+function computeFinalPrice(basePrice, extraDiscount = 0) {
+  const couponPct = getCurrentCouponPct();
+  const totalDisc = Math.min(100, couponPct + extraDiscount);
+  if (totalDisc <= 0) return basePrice;
+  return Math.max(0, Math.round(basePrice - basePrice * totalDisc / 100));
 }
 
-function renderCouponUI(){
-  const box=$('#couponList');if(!box)return;
-  const nowTs=Date.now();
-  const st=getCouponState();let dirty=false;
-  ALL_COUPONS.forEach(c=>{const cd=Number(st[c]||0);if(cd>0&&cd<=nowTs){st[c]=0;dirty=true;}});
-  if(dirty)localStorage.setItem(LS.couponState,JSON.stringify(st));
+function renderCouponUI() {
+  const box = $('#couponList'); if (!box) return;
+  const n = now();
 
-  // Validate seasonal
-  const allSCs=[...SEASONAL_COUPONS,BLACK_FRIDAY_COUPON];
-  const activeSCs=allSCs.filter(sc=>isSeasonalCouponActive(sc));
-  if(currentSeasonalId){
-    const still=activeSCs.find(sc=>sc.id===currentSeasonalId);
-    if(!still){saveSeasonalId(null);bfDiscount=null;currentCoupon=0;saveCoupon();}
-  }
-
-  let html='';
-  if(activeSCs.length){
-    activeSCs.forEach(sc=>{
-      const isSelected=currentSeasonalId===sc.id;
-      if(sc.id===BLACK_FRIDAY_COUPON.id){
-        const dl=isSelected&&bfDiscount?`🎲 ${bfDiscount}% OFF`:'% ALEATORIO';
-        html+=`<button class="coupon-card ${sc.style}" data-sc-id="${sc.id}" data-active="${isSelected}">
-          <span class="sc-bf-title">${sc.name}</span>
-          <span class="cd">${dl}</span><span class="cd">∞ Sin límite</span>
-        </button>`;
-      }else{
-        const uses=getScUses(sc);const ex=uses<=0;
-        html+=`<button class="coupon-card ${sc.style}${ex?' ':''}" data-sc-id="${sc.id}" data-active="${isSelected}" ${ex?'aria-disabled="true"':''}>
-          <span>${sc.name}</span>
-          <span class="cd">${sc.discount}% OFF</span>
-          <span class="cd" style="font-size:0.18rem">${uses}/${sc.maxUses} usos</span>
-        </button>`;
-      }
-    });
-    html+=`<div class="coupon-sep">─── CUPONES REGULARES ───</div>`;
-  }
-  html+=ALL_COUPONS.map(c=>{
-    const cd=getCouponCooldown(c);const active=cd>nowTs;
-    const selected=currentCoupon===c&&!currentSeasonalId;
-    if(active)return`<button class="coupon-card coupon-std" aria-disabled="true" data-percent="${c}"><span>${c}%</span><span class="cd">↻ ${timeLeft(cd)}</span></button>`;
-    return`<button class="coupon-card coupon-std" data-percent="${c}" data-active="${selected}"><span>${c}% OFF</span>${selected?'<span class="cd">✓ ACTIVO</span>':''}</button>`;
-  }).join('');
-  box.innerHTML=html;
-
-  // Seasonal listeners
-  box.querySelectorAll('.coupon-card[data-sc-id]:not([aria-disabled])').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const scId=btn.dataset.scId;
-      if(currentSeasonalId===scId){saveSeasonalId(null);bfDiscount=null;currentCoupon=0;saveCoupon();toast('🎟️ Cupón desactivado','info');}
-      else{
-        const sc=allSCs.find(s=>s.id===scId);if(!sc)return;
-        saveSeasonalId(scId);
-        if(sc.id===BLACK_FRIDAY_COUPON.id){const d=rollBF();currentCoupon=d;toast(`🖤 BLACK FRIDAY activado — ${d}% OFF`,'success');}
-        else{currentCoupon=sc.discount;toast(`${sc.emoji} Cupón ${sc.name} — ${sc.discount}% OFF`,'success');}
-        saveCoupon();
-      }
-      renderCouponUI();renderProducts();
-    });
-  });
-  // Regular listeners
-  box.querySelectorAll('.coupon-card[data-percent]:not([aria-disabled])').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const pct=Number(btn.dataset.percent);
-      if(currentSeasonalId){saveSeasonalId(null);bfDiscount=null;}
-      currentCoupon=(currentCoupon===pct&&!currentSeasonalId)?0:pct;
-      saveCoupon();renderCouponUI();renderProducts();
-    });
-  });
-}
-
-function useCoupon(price){
-  const d=applyDiscount(price);
-  if(d.pct>0){
-    if(currentSeasonalId===BLACK_FRIDAY_COUPON.id){
-      rollBF();currentCoupon=bfDiscount;saveCoupon();
-    }else if(currentSeasonalId){
-      const sc=SEASONAL_COUPONS.find(s=>s.id===currentSeasonalId);
-      if(sc){decrementSc(sc);if(getScUses(sc)<=0){saveSeasonalId(null);currentCoupon=0;bfDiscount=null;saveCoupon();toast('🎟️ Usos del cupón agotados!');}}
-    }else if(currentCoupon){
-      setCouponCooldown(currentCoupon,nextMidnightLocal(1));
-      currentCoupon=0;saveCoupon();
+  // Validar SC guardado
+  const allSCs = [...SEASONAL_COUPONS, BLACK_FRIDAY];
+  if (currentScId) {
+    const sc = allSCs.find(s=>s.id===currentScId);
+    if (!sc || !isScActive(sc)) {
+      currentScId = null; bfCurrentDiscount = null; currentCoupon = 0;
+      localStorage.removeItem(LS.scActive); localStorage.setItem(LS.coupon,'0');
     }
-    renderCouponUI();
   }
-  return d;
-}
 
-/* ══════════════════════════════════════
-   FLASH SALE COUNTDOWN
-══════════════════════════════════════ */
-function updateFlashTimer(){
-  const now=new Date(),midnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,0,0);
-  const diff=Math.max(0,Math.floor((midnight-now)/1000));
-  const h=String(Math.floor(diff/3600)).padStart(2,'0');
-  const m=String(Math.floor((diff%3600)/60)).padStart(2,'0');
-  const s=String(diff%60).padStart(2,'0');
-  const el=$('#flashTimer');if(el)el.textContent=`${h}:${m}:${s}`;
-}
+  const activeSCs = allSCs.filter(sc => isScActive(sc));
+  let html = '';
 
-/* ══════════════════════════════════════
-   FLASH SALE WEEKEND DISCOUNT
-   Los fines de semana hay descuento global
-══════════════════════════════════════ */
-function getFlashSaleDiscount(){
-  const day=new Date().getDay();// 0=Sun, 6=Sat
-  if(day===0||day===6){
-    // 10-40% al azar pero consistente por día
-    const seed=new Date().toDateString();
-    let hash=0;for(let i=0;i<seed.length;i++)hash=(hash*31+seed.charCodeAt(i))&0xFFFFFF;
-    return 10+((hash%4)*10);// 10, 20, 30 o 40
+  if (activeSCs.length > 0) {
+    activeSCs.forEach(sc => {
+      const isSelected = currentScId === sc.id;
+      if (sc.id === BLACK_FRIDAY.id) {
+        const discLabel = (isSelected && bfCurrentDiscount) ? `🎲 ${bfCurrentDiscount}% OFF` : '% Aleatorio';
+        html += `<button class="coupon-card sc-coupon sc-blackfriday" data-sc-id="${sc.id}" data-active="${isSelected}">
+          <span class="coupon-pct" style="color:#fbbf24;font-size:0.42rem">🖤 BLACK FRIDAY</span>
+          <span class="coupon-lbl">${discLabel}</span>
+          <span class="coupon-cd">∞ Sin límite</span>
+        </button>`;
+      } else {
+        const usesLeft = getScUsesLeft(sc), exhausted = usesLeft<=0;
+        html += `<button class="coupon-card sc-coupon sc-${sc.style}${exhausted?' sc-exhausted':''}" data-sc-id="${sc.id}" data-active="${isSelected}" ${exhausted?'aria-disabled="true"':''}>
+          <span class="coupon-pct">${sc.discount}%</span>
+          <span class="coupon-lbl">${sc.name}</span>
+          <span class="coupon-cd">${usesLeft}/${sc.maxUses} usos</span>
+        </button>`;
+      }
+    });
+    html += `<div class="coupon-sep">── Cupones regulares ──</div>`;
   }
-  return 0;
-}
 
-function getEffectiveDiscount(price){
-  const couponDiscount=getActiveCouponPct();
-  const flashDiscount=getFlashSaleDiscount();
-  const total=Math.min(90,couponDiscount+flashDiscount);// cap 90%
-  if(!total||price<=0)return{final:price,pct:0,flash:flashDiscount,coupon:couponDiscount};
-  return{final:Math.max(0,Math.round(price-price*total/100)),pct:total,flash:flashDiscount,coupon:couponDiscount};
-}
+  // Limpiar cooldowns expirados
+  const state = lsGet(LS.couponState, {});
+  let dirty = false;
+  ALL_COUPONS.forEach(c => { if (Number(state[c]||0) > 0 && Number(state[c]) <= n) { state[c]=0; dirty=true; } });
+  if (dirty) lsSet(LS.couponState, state);
 
-function updateFlashBanner(){
-  const flash=$('#flashBanner');if(!flash)return;
-  const disc=getFlashSaleDiscount();
-  const descEl=flash.querySelector('.fb-desc');
-  if(disc>0&&descEl)descEl.textContent=`🔥 DESCUENTO DE FIN DE SEMANA: ${disc}% EN TODO`;
-  else if(descEl)descEl.textContent='Ofertas activas hasta medianoche';
-}
-
-/* ══════════════════════════════════════
-   SAND BRILL SALE
-   Fines de semana + puede aparecer en días
-   especiales, con artículos al azar
-══════════════════════════════════════ */
-const SB_REFRESH_H=4;// refresca cada 4h
-function isSandBrillActive(){
-  const day=new Date().getDay();return day===0||day===6;
-}
-function getSBState(){return lsGet(LS.sbState,{items:[],nextRefresh:0});}
-function pickSBItems(){
-  // Elegir 4 artículos al azar de las secciones no-pases
-  const pool=products.filter(p=>p.section!=='pases'&&p.price>0&&p.stock!==0);
-  const shuffled=[...pool].sort(()=>Math.random()-0.5).slice(0,4);
-  return shuffled.map(p=>{
-    const disc=10+Math.floor(Math.random()*5)*10;// 10,20,30,40,50%
-    return{id:p.id,discount:disc};
+  ALL_COUPONS.forEach(c => {
+    const cd       = getCouponCooldown(c);
+    const onCD     = cd > n;
+    const selected = currentCoupon === c && !currentScId;
+    if (onCD) {
+      html += `<button class="coupon-card" aria-disabled="true" data-percent="${c}">
+        <span class="coupon-pct">${c}%</span>
+        <span class="coupon-cd">↻ ${fmtTime(cd-n)}</span>
+      </button>`;
+    } else {
+      html += `<button class="coupon-card" data-percent="${c}" data-active="${selected}">
+        <span class="coupon-pct">${c}%</span>
+        ${selected?'<span class="coupon-lbl" style="color:#4ade80">✓ ACTIVO</span>':''}
+      </button>`;
+    }
   });
-}
-function refreshSBIfNeeded(){
-  if(!isSandBrillActive())return;
-  let state=getSBState();
-  if(!state.items.length||state.nextRefresh<=Date.now()){
-    state.items=pickSBItems();
-    state.nextRefresh=Date.now()+SB_REFRESH_H*3600000;
-    lsSet(LS.sbState,state);
+
+  box.innerHTML = html;
+
+  // Badge cupón activo
+  const badge = $('#couponActiveBadge');
+  if (badge) {
+    if (currentCoupon > 0) {
+      badge.textContent = `-${currentCoupon}% ACTIVO`;
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
   }
-}
 
-function renderSandBrill(){
-  const panel=$('#sandbrill');if(!panel)return;
-  if(!isSandBrillActive()){panel.style.display='none';return;}
-  panel.style.display='';
-  refreshSBIfNeeded();
-  const state=getSBState();
-  // Timer
-  const timerEl=$('#sbTimer');
-  if(timerEl&&state.nextRefresh>Date.now())timerEl.textContent=timeLeft(state.nextRefresh);
+  // Listeners SC
+  box.querySelectorAll('.sc-coupon:not([aria-disabled="true"])').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const scId = btn.dataset.scId;
+      if (currentScId === scId) {
+        currentScId = null; bfCurrentDiscount = null; currentCoupon = 0;
+        localStorage.removeItem(LS.scActive); localStorage.setItem(LS.coupon,'0');
+        toast('🎟️ Cupón desactivado','info');
+      } else {
+        const sc = allSCs.find(s=>s.id===scId); if (!sc) return;
+        currentScId = scId;
+        localStorage.setItem(LS.scActive, scId);
+        if (sc.id === BLACK_FRIDAY.id) {
+          bfCurrentDiscount = randInt(10,50);
+          currentCoupon = bfCurrentDiscount;
+          toast(`🖤 BLACK FRIDAY activado — ${bfCurrentDiscount}% OFF`,'success');
+        } else {
+          currentCoupon = sc.discount;
+          toast(`${sc.name} activado — ${sc.discount}% OFF`,'success');
+        }
+        localStorage.setItem(LS.coupon, String(currentCoupon));
+      }
+      renderCouponUI(); renderProducts(); renderSandBrill();
+    });
+  });
 
-  const grid=$('#sbGrid');if(!grid)return;
-  grid.innerHTML=state.items.map(item=>{
-    const p=products.find(x=>x.id===item.id);if(!p)return'';
-    const st=getStock(p);
-    const disc=item.discount;
-    const base=p.price||0;
-    const final=Math.max(0,Math.round(base-base*disc/100));
-    const claimed=p.onetime&&isProductClaimed(p);
-    return`<div class="sb-card">
-      <div class="sb-card-header">
-        <div>
-          <div class="sb-card-name">${esc(p.name)}</div>
-          <div style="font-family:var(--font-vt);font-size:0.85rem;color:var(--muted);margin-top:2px">${esc(p.desc)}</div>
-        </div>
-        <span class="sb-card-icon">${p.emoji||'📦'}</span>
-      </div>
-      <div class="sb-price-row">
-        <span class="sb-old">⟡${base}</span>
-        <span class="sb-new">⟡${final}</span>
-        <span class="sb-discount-badge">-${disc}%</span>
-      </div>
-      <div style="font-family:var(--font-pixel);font-size:0.2rem;color:var(--muted);margin-bottom:6px">📦 Stock: ${st}</div>
-      <button class="sb-buy" data-id="${p.id}" data-sbdisc="${disc}" ${(st<=0||claimed)?'disabled':''}>
-        ${claimed?'YA RECLAMADO':st<=0?'AGOTADO':'✓ COMPRAR'}
-      </button>
-    </div>`;
-  }).join('');
-  grid.querySelectorAll('.sb-buy:not([disabled])').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const p=products.find(x=>x.id===btn.dataset.id);if(!p)return;
-      const disc=Number(btn.dataset.sbdisc);
-      const base=p.price||0;
-      const final=Math.max(0,Math.round(base-base*disc/100));
-      purchaseProduct(p,{forceFinal:final,forceDisc:disc,skipModal:false});
+  // Listeners regulares
+  box.querySelectorAll('.coupon-card:not([aria-disabled="true"]):not(.sc-coupon)').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pct = Number(btn.dataset.percent);
+      if (currentScId) { currentScId = null; bfCurrentDiscount = null; localStorage.removeItem(LS.scActive); }
+      currentCoupon = (currentCoupon === pct && !currentScId) ? 0 : pct;
+      localStorage.setItem(LS.coupon, String(currentCoupon));
+      renderCouponUI(); renderProducts(); renderSandBrill();
     });
   });
 }
 
 /* ══════════════════════════════════════
-   CATÁLOGO DE PRODUCTOS
+   PRODUCTS CATALOG
 ══════════════════════════════════════ */
-const products=[
+const PRODUCTS = [
+
   /* ── PASES DE TEMPORADA ── */
-  {id:'s1', emoji:'🏆', name:'Pase Reino del Hielo Eterno — Temporada I',    img:'img-pass/banwar.jpg',      quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-01-01', expiresAt:'2026-01-31', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Enero.',     tags:['pase','temporada'], badge:'new'},
-  {id:'s2', emoji:'🏆', name:'Pase Corazones de Redstone — Temporada II',    img:'img-pass/banhall.jpg',     quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-02-01', expiresAt:'2026-02-28', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Febrero.',   tags:['pase','temporada'], badge:null},
-  {id:'s3', emoji:'🏆', name:'Pase Despertar de la Naturaleza — Temporada III',img:'img-pass/partymine.jpg', quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-03-01', expiresAt:'2026-03-31', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Marzo.',     tags:['pase','temporada'], badge:'hot'},
-  {id:'s4', emoji:'🏆', name:'Pase Cántico de la Lluvia Plateada — Temp. IV',img:'img-pass/chrismine.jpg',  quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-04-01', expiresAt:'2026-04-30', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Abril.',     tags:['pase','temporada'], badge:null},
-  {id:'s5', emoji:'🏆', name:'Pase Esencia de la Aurora — Temporada V',      img:'img-pass/añomine.jpg',    quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-05-01', expiresAt:'2026-05-31', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Mayo.',     tags:['pase','temporada'], badge:null},
-  {id:'s6', emoji:'🏆', name:'Pase Imperio del Océano Profundo — Temp. VI',  img:'img-pass/banair.jpg',     quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-06-01', expiresAt:'2026-06-30', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Junio.',    tags:['pase','temporada'], badge:null},
-  {id:'s7', emoji:'🏆', name:'Pase Reinos Dorados — Temporada VII',          img:'img-pass/dancingmine.jpg',quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-07-01', expiresAt:'2026-07-31', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Julio.',    tags:['pase','temporada'], badge:null},
-  {id:'s8', emoji:'🏆', name:'Pase Sombras de la Noche — Temporada VIII',    img:'img-pass/squemine.jpg',   quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-08-01', expiresAt:'2026-08-31', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Agosto.',   tags:['pase','temporada'], badge:null},
-  {id:'s9', emoji:'🏆', name:'Pase Mundo Encantado — Temporada IX',          img:'img-pass/squemine.jpg',   quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-09-01', expiresAt:'2026-09-30', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Septiembre.',tags:['pase','temporada'], badge:null},
-  {id:'s10',emoji:'🏆', name:'Pase Pesadilla del Nether — Temporada X',      img:'img-pass/squemine.jpg',   quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-10-01', expiresAt:'2026-10-31', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Octubre.',  tags:['pase','temporada'], badge:null},
-  {id:'s11',emoji:'🏆', name:'Pase Guardianes del Invierno — Temporada XI',  img:'img-pass/squemine.jpg',   quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-11-01', expiresAt:'2026-11-30', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Noviembre.',tags:['pase','temporada'], badge:null},
-  {id:'s12',emoji:'🏆', name:'Pase Estrella de Ender — Temporada XII',       img:'img-pass/squemine.jpg',   quality:'legendary', price:128, stock:1, restock:null, startsAt:'2026-12-01', expiresAt:'2026-12-31', section:'pases', gold:true, desc:'Desbloquea recompensas de la temporada de Diciembre.',tags:['pase','temporada'], badge:null},
+  { id:'s1',  cat:'pases', icon:'🏆', name:'Pase Reino del Hielo Eterno — T.I',    img:'img-pass/banwar.jpg',      rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-01-01', expiresAt:'2026-01-31', badge:'limited', desc:'Desbloquea recompensas de Enero. Tier Hierro activado al comprar.',    tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s1'}  },
+  { id:'s2',  cat:'pases', icon:'🏆', name:'Pase Corazones de Redstone — T.II',    img:'img-pass/banhall.jpg',     rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-02-01', expiresAt:'2026-02-28', badge:'new',     desc:'Desbloquea recompensas de Febrero.',    tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s2'}  },
+  { id:'s3',  cat:'pases', icon:'🏆', name:'Pase Despertar de la Naturaleza — T.III',img:'img-pass/partymine.jpg', rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-03-01', expiresAt:'2026-03-31', badge:null,      desc:'Desbloquea recompensas de Marzo.',      tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s3'}  },
+  { id:'s4',  cat:'pases', icon:'🏆', name:'Pase Cántico de la Lluvia — T.IV',     img:'img-pass/chrismine.jpg',  rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-04-01', expiresAt:'2026-04-30', badge:null,      desc:'Desbloquea recompensas de Abril.',      tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s4'}  },
+  { id:'s5',  cat:'pases', icon:'🏆', name:'Pase Esencia de la Aurora — T.V',      img:'img-pass/añomine.jpg',    rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-05-01', expiresAt:'2026-05-31', badge:null,      desc:'Desbloquea recompensas de Mayo.',       tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s5'}  },
+  { id:'s6',  cat:'pases', icon:'🏆', name:'Pase Imperio del Océano — T.VI',       img:'img-pass/banair.jpg',     rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-06-01', expiresAt:'2026-06-30', badge:null,      desc:'Desbloquea recompensas de Junio.',      tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s6'}  },
+  { id:'s7',  cat:'pases', icon:'🏆', name:'Pase Reinos Dorados — T.VII',          img:'img-pass/dancingmine.jpg',rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-07-01', expiresAt:'2026-07-31', badge:null,      desc:'Desbloquea recompensas de Julio.',      tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s7'}  },
+  { id:'s8',  cat:'pases', icon:'🏆', name:'Pase Sombras de la Noche — T.VIII',    img:'img-pass/squemine.jpg',   rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-08-01', expiresAt:'2026-08-31', badge:null,      desc:'Desbloquea recompensas de Agosto.',     tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s8'}  },
+  { id:'s9',  cat:'pases', icon:'🏆', name:'Pase Mundo Encantado — T.IX',          img:'img-pass/squemine.jpg',   rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-09-01', expiresAt:'2026-09-30', badge:null,      desc:'Desbloquea recompensas de Septiembre.', tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s9'}  },
+  { id:'s10', cat:'pases', icon:'🏆', name:'Pase Pesadilla del Nether — T.X',      img:'img-pass/squemine.jpg',   rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-10-01', expiresAt:'2026-10-31', badge:null,      desc:'Desbloquea recompensas de Octubre.',    tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s10'} },
+  { id:'s11', cat:'pases', icon:'🏆', name:'Pase Guardianes del Invierno — T.XI',  img:'img-pass/squemine.jpg',   rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-11-01', expiresAt:'2026-11-30', badge:null,      desc:'Desbloquea recompensas de Noviembre.',  tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s11'} },
+  { id:'s12', cat:'pases', icon:'🏆', name:'Pase Estrella de Ender — T.XII',       img:'img-pass/squemine.jpg',   rarity:'legend', price:128, stock:1, restock:null, startsAt:'2026-12-01', expiresAt:'2026-12-31', badge:null,      desc:'Desbloquea recompensas de Diciembre.',  tags:[{t:'pase',l:'PASE TEMP'}],  give:{type:'pass',passId:'pass_s12'} },
 
   /* ── COFRES ── */
-  {id:'k1',emoji:'🗝️',name:'Cofre de Ámbar',      img:'img/chest2.gif', quality:'epic',      price:30,  stock:10, restock:'7d',  section:'llaves', desc:'Abre este cofre de Ámbar.',                          tags:['cofre','epico']},
-  {id:'k2',emoji:'🗝️',name:'Cofre de Sueños',     img:'img/chest2.gif', quality:'epic',      price:30,  stock:10, restock:'7d',  section:'llaves', desc:'Abre este cofre de los Sueños.',                    tags:['cofre','epico']},
-  {id:'k3',emoji:'🗝️',name:'Cofre de Moonveil',   img:'img/chest2.gif', quality:'legendary', price:10,  stock:10, restock:'7d',  section:'llaves', desc:'Abre este cofre Moon-Veil.',                         tags:['cofre','legendario'],badge:'hot'},
-  {id:'k4',emoji:'🗝️',name:'Cofre de Moonveil II',img:'img/chest2.gif', quality:'legendary', price:30,  stock:5,  restock:'7d',  section:'llaves', desc:'Abre este cofre Moon por ████.',                    tags:['cofre','████'],badge:'limited'},
-
-  /* ── MATERIALES ── */
-  {id:'f1',emoji:'⚙️',name:'Rieles (x64)',               img:'imagen/phantom.gif', quality:'epic', price:64,  stock:10, restock:'24h', section:'cosas', desc:'Unos rieles que siempre vienen bien.',         tags:['rieles']},
-  {id:'f2',emoji:'⚙️',name:'Rieles Activadores (x64)',   img:'imagen/phantom.gif', quality:'epic', price:128, stock:10, restock:'24h', section:'cosas', desc:'Activemos estos rieles...',                     tags:['rieles','activados']},
-  {id:'f3',emoji:'⚙️',name:'Rieles x2 Pack',             img:'imagen/phantom.gif', quality:'epic', price:64,  stock:2,  restock:'7d',  section:'cosas', desc:'Un x2 en rieles con descuento.',               tags:['rieles'],badge:'sale'},
-  {id:'f4',emoji:'🧱',name:'Concreto (x64)',              img:'imagen/phantom.gif', quality:'epic', price:64,  stock:20, restock:'24h', section:'cosas', desc:'Para construir.',                              tags:['concreto']},
-  {id:'f5',emoji:'🔩',name:'Bloques de Hierro (x64)',     img:'imagen/phantom.gif', quality:'epic', price:128, stock:10, restock:'7d',  section:'cosas', desc:'Algunos bloques de hierro.',                   tags:['bloques']},
-  {id:'f6',emoji:'🔩',name:'Bloques de Hierro (x64) x4', img:'imagen/phantom.gif', quality:'legendary', price:128, stock:1, restock:null, section:'cosas', desc:'Oferta y demanda.',                        tags:['bloques','oferta'],badge:'limited'},
-  {id:'f7',emoji:'💎',name:'Bloques de Diamante (x64) x4',img:'imagen/phantom.gif',quality:'legendary', price:128, stock:1, restock:null, section:'cosas', desc:'Bueno brillemos...',                       tags:['bloques','diamante'],badge:'limited'},
-  {id:'f8',emoji:'💚',name:'Esmeralda x1',                img:'imagen/phantom.gif', quality:'legendary', price:1,  stock:1,  restock:null,  section:'cosas', desc:'Sand Brill te desea lo mejor, pero es tan tacaño que solo da 1 esmeralda.',tags:['sand','brill'],badge:'hot'},
-
-  /* ── HISTORIA ── */
-  {id:'l1',emoji:'📚',name:'Libro: "Bosque de Jade"',          img:'img/bookmine.jpg',quality:'rare',      price:256,stock:1,restock:null,section:'historia',desc:'Leyendas del bioma.',            tags:['lore','bioma']},
-  {id:'l2',emoji:'📚',name:'Libro: "La Negra Noche"',          img:'img/bookmine.jpg',quality:'epic',      price:256,stock:1,restock:null,section:'historia',desc:'Símbolos y runas.',              tags:['runas','forja']},
-  {id:'l3',emoji:'📚',name:'Libro: "El lado ███ de S██ B███"', img:'img/bookcat.gif', quality:'legendary', price:384,stock:1,restock:null,section:'historia',desc:'█████████.',                      tags:['reliquia'],badge:'limited'},
-  {id:'l4',emoji:'📖',name:'Libro A1',img:'img/book.jpg',quality:'epic',price:128,stock:1,restock:null,section:'historia',desc:'Un libro.',tags:['libro']},
-  {id:'l5',emoji:'📖',name:'Libro B2',img:'img/book.jpg',quality:'epic',price:128,stock:1,restock:null,section:'historia',desc:'Un libro.',tags:['libro']},
-  {id:'l6',emoji:'📖',name:'Libro A2',img:'img/book.jpg',quality:'epic',price:128,stock:1,restock:null,section:'historia',desc:'Un libro.',tags:['libro']},
-  {id:'l7',emoji:'📖',name:'Libro C3',img:'img/book.jpg',quality:'epic',price:128,stock:1,restock:null,section:'historia',desc:'Un libro.',tags:['libro']},
-
-  /* ── LOTE MONEDAS ── */
-  {id:'m1',emoji:'🪙',name:'Pegatina de 1 moneda',img:'img/coin.jpg',quality:'common',   price:0,  stock:1,  restock:'24h',section:'materiales',desc:'Gratis.',                            tags:['moneda'],onetime:false,daily:true},
-  {id:'m2',emoji:'🪙',name:'Bolsita de 30 monedas',img:'img/coin.jpg',quality:'rare',    price:15, stock:10, restock:'7d', section:'materiales',desc:'Para trueques básicos.',             tags:['moneda']},
-  {id:'m3',emoji:'🪙',name:'Pack de 90 monedas',   img:'img/packcoin.jpg',quality:'epic',price:30, stock:10, restock:'7d', section:'materiales',desc:'Relación costo/beneficio equilibrada.',tags:['moneda','pack']},
-  {id:'m4',emoji:'🪙',name:'Lote de 120 monedas',  img:'img/stackcoin.jpg',quality:'legendary',price:60,stock:10,restock:'30d',section:'materiales',desc:'Ideal para temporadas.',         tags:['moneda','lote'],badge:'hot'},
-
-  /* ── PASES DE EVENTO ── */
-  {id:'e1',emoji:'🎪',name:'Pase en la Oscuridad',img:'img-pass/banhall.jpg',  quality:'legendary',price:256,stock:1,restock:'30d',startsAt:'2026-10-20',expiresAt:'2026-11-01',section:'eventos',desc:'Algo se acerca...',    tags:['evento'],badge:'limited'},
-  {id:'e2',emoji:'🐱',name:'Pase Gatos 😺✨',      img:'img-pass/catsparty.jpg',quality:'legendary',price:256,stock:1,restock:'30d',startsAt:'2026-08-01',expiresAt:'2026-08-30',section:'eventos',desc:'Gatos y más gatos...', tags:['evento','gatos'],badge:'new'},
-
-  /* ── PACK DE MONEDAS ── */
-  {id:'c1',emoji:'💰',name:'Pack de 128 roubles',img:'img/coin.jpg',     quality:'common',price:64, stock:999,restock:null,section:'monedas',desc:'Para trueques (2 stacks).',           tags:['monedas','pack']},
-  {id:'c2',emoji:'💰',name:'Pack de 256 roubles',img:'img/packcoin.jpg', quality:'rare',  price:128,stock:999,restock:null,section:'monedas',desc:'Relación equilibrada (4 stacks).',    tags:['monedas','pack']},
-  {id:'c3',emoji:'💰',name:'Pack de 384 roubles',img:'img/stackcoin.jpg',quality:'epic',  price:256,stock:999,restock:null,section:'monedas',desc:'Para temporadas completas (6 stacks).',tags:['monedas','pack'],badge:'hot'},
+  { id:'k1', cat:'llaves', icon:'🗝️', name:'Cofre de Ámbar',       img:'img/chest2.gif', rarity:'epic',   price:30,  stock:10, restock:'7d',  badge:'hot',     desc:'Abre este cofre de Ámbar.',                tags:[{t:'keys',l:'COFRE ÉPICO'}],  give:{type:'chest',chestId:'amber'},     onetime:false },
+  { id:'k2', cat:'llaves', icon:'🗝️', name:'Cofre de Sueños',      img:'img/chest2.gif', rarity:'epic',   price:30,  stock:10, restock:'7d',  badge:null,      desc:'Abre este cofre de los Sueños.',           tags:[{t:'keys',l:'COFRE ÉPICO'}],  give:{type:'chest',chestId:'dreams'},    onetime:false },
+  { id:'k3', cat:'llaves', icon:'🗝️', name:'Cofre de Moonveil',    img:'img/chest2.gif', rarity:'legend', price:10,  stock:10, restock:'7d',  badge:'hot',     desc:'Abre este cofre Moon-Veil.',               tags:[{t:'keys',l:'COFRE LEGEND'}], give:{type:'chest',chestId:'moonveil'},  onetime:false },
+  { id:'k4', cat:'llaves', icon:'🗝️', name:'Cofre de Moonveil II', img:'img/chest2.gif', rarity:'legend', price:30,  stock:5,  restock:'7d',  badge:'limited', desc:'Abre este cofre Moon por ████.',           tags:[{t:'keys',l:'COFRE LEGEND'}], give:{type:'chest',chestId:'moonveil2'}, onetime:false },
 
   /* ── TICKETS ── */
-  {id:'t_classic_1', emoji:'🎫',name:'Ticket Clásico',            img:'imagen/ticket5.jpg',quality:'epic',price:10,stock:10,restock:'24h',section:'tickets',desc:'Ticket para la ruleta clásica.',  tags:['ticket','clasico'],         give:{type:'gacha_tickets',wheel:'classic',  count:1}},
-  {id:'t_elemental_1',emoji:'🎫',name:'Ticket Elemental (Cobre)',  img:'imagen/ticket5.jpg',quality:'epic',price:10,stock:10,restock:'24h',section:'tickets',desc:'Ticket para la ruleta elemental.',tags:['ticket','elemental'],        give:{type:'gacha_tickets',wheel:'elemental',count:1}},
-  {id:'t_event_1',   emoji:'🎫',name:'Ticket de Evento',          img:'imagen/ticket5.jpg',quality:'epic',price:10,stock:10,restock:'24h',section:'tickets',desc:'Ticket para ruletas de eventos.',  tags:['ticket','evento'],           give:{type:'gacha_tickets',wheel:'event',    count:1}},
-  {id:'t_classic_5', emoji:'🎫',name:'Ticket Clásico x5',         img:'imagen/ticket5.jpg',quality:'epic',price:30,stock:10,restock:'24h',section:'tickets',desc:'Pack de 5 tickets clásicos.',      tags:['ticket','clasico'],badge:'sale', give:{type:'gacha_tickets',wheel:'classic',  count:5}},
-  {id:'t_elemental_5',emoji:'🎫',name:'Ticket Elemental x5',      img:'imagen/ticket5.jpg',quality:'epic',price:30,stock:10,restock:'24h',section:'tickets',desc:'Pack de 5 tickets elementales.',   tags:['ticket','elemental'],        give:{type:'gacha_tickets',wheel:'elemental',count:5}},
-  {id:'t_event_5',   emoji:'🎫',name:'Ticket Evento x5',          img:'imagen/ticket5.jpg',quality:'epic',price:30,stock:10,restock:'24h',section:'tickets',desc:'Pack de 5 tickets de evento.',     tags:['ticket','evento'],           give:{type:'gacha_tickets',wheel:'event',    count:5}},
-  {id:'t_welcome',   emoji:'🎉',name:'¡Bienvenida! Tickets x10',  img:'imagen/ticket5.jpg',quality:'epic',price:0, stock:1, restock:null,  section:'tickets',desc:'Pack de bienvenida: 10 tickets clásicos.',tags:['ticket','gratis'],badge:'new',give:{type:'gacha_tickets',wheel:'classic',count:10},onetime:true},
-  {id:'t_free10',    emoji:'🎰',name:'Tiros Gratis x10',          img:'imagen/ticket5.jpg',quality:'epic',price:0, stock:1, restock:'30d', section:'tickets',desc:'10 tickets gratuitos cada mes.', tags:['ticket','gratis'],badge:'hot',give:{type:'gacha_tickets',wheel:'classic',count:10}},
+  { id:'t_classic_1',   cat:'tickets', icon:'🎫', name:'Ticket Clásico',            img:'imagen/ticket5.jpg', rarity:'epic',   price:10,  stock:10, restock:'24h', badge:'hot',  desc:'Ticket para la Ruleta Clásica.',      tags:[{t:'tickets',l:'x1 CLÁSICA'}],   give:{type:'gacha_tickets',wheel:'classic',count:1},   onetime:false },
+  { id:'t_classic_5',   cat:'tickets', icon:'💎', name:'Ticket Clásico x5',         img:'imagen/ticket5.jpg', rarity:'epic',   price:30,  stock:10, restock:'24h', badge:null,   desc:'5 tickets para la Ruleta Clásica.',   tags:[{t:'tickets',l:'x5 CLÁSICA'}],   give:{type:'gacha_tickets',wheel:'classic',count:5},   onetime:false },
+  { id:'t_classic_10',  cat:'tickets', icon:'💎', name:'Pack Clásico x10',          img:'imagen/ticket5.jpg', rarity:'epic',   price:50,  stock:10, restock:'24h', badge:'sale', desc:'10 tickets clásicos. Valor ideal.',   tags:[{t:'tickets',l:'x10 CLÁSICA'}],  give:{type:'gacha_tickets',wheel:'classic',count:10},  onetime:false },
+  { id:'t_classic_bienvenida',cat:'tickets',icon:'🎉',name:'¡Bienvenida a los tickets!',img:'imagen/ticket5.jpg',rarity:'epic',price:0,stock:1,restock:null,badge:'hot',desc:'Regalo de bienvenida: 10 tickets clásicos.',tags:[{t:'tickets',l:'x10 CLÁSICA'},{t:'free',l:'GRATIS'}],give:{type:'gacha_tickets',wheel:'classic',count:10},onetime:true },
+  { id:'t_classic_free', cat:'tickets', icon:'🎰', name:'Tiros Gratis (mensual)',    img:'imagen/ticket5.jpg', rarity:'epic',   price:0,   stock:1,  restock:'30d', badge:'new',  desc:'10 tickets clásicos gratis, ¡reclámalos!',tags:[{t:'tickets',l:'x10 CLÁSICA'},{t:'free',l:'MENSUAL'}],give:{type:'gacha_tickets',wheel:'classic',count:10},onetime:false,daily:false },
+  { id:'t_elemental_1', cat:'tickets', icon:'🎫', name:'Ticket Elemental',          img:'imagen/ticket5.jpg', rarity:'epic',   price:10,  stock:10, restock:'24h', badge:null,   desc:'Ticket para la Ruleta Elemental.',    tags:[{t:'tickets',l:'x1 ELEMENTAL'}], give:{type:'gacha_tickets',wheel:'elemental',count:1}, onetime:false },
+  { id:'t_elemental_5', cat:'tickets', icon:'🎫', name:'Pack Elemental x5',         img:'imagen/ticket5.jpg', rarity:'epic',   price:40,  stock:5,  restock:'7d',  badge:null,   desc:'5 tickets elementales.',              tags:[{t:'tickets',l:'x5 ELEMENTAL'}], give:{type:'gacha_tickets',wheel:'elemental',count:5}, onetime:false },
+  { id:'t_event_1',     cat:'tickets', icon:'🎫', name:'Ticket de Evento',          img:'imagen/ticket5.jpg', rarity:'epic',   price:10,  stock:10, restock:'24h', badge:null,   desc:'Ticket para la Ruleta de Eventos.',   tags:[{t:'tickets',l:'x1 EVENTO'}],    give:{type:'gacha_tickets',wheel:'event',count:1},    onetime:false },
+  { id:'t_event_5',     cat:'tickets', icon:'🎫', name:'Pack Evento x5',            img:'imagen/ticket5.jpg', rarity:'epic',   price:40,  stock:5,  restock:'7d',  badge:'new',  desc:'5 tickets de eventos.',               tags:[{t:'tickets',l:'x5 EVENTO'}],    give:{type:'gacha_tickets',wheel:'event',count:5},    onetime:false },
 
   /* ── LLAVES DEL CALENDARIO ── */
-  {id:'ck_normal', emoji:'🔵',name:'Llave Normal',               img:'img/keys1.jpg',quality:'rare',      price:30, stock:10,restock:'7d',  section:'calkeys',desc:'Recupera un día perdido en el Calendario.',  tags:['llave','calendario'],calKey:{type:'normal', amount:1}},
-  {id:'ck_pink',   emoji:'💗',name:'Llave Rosa',                 img:'img/keys1.jpg',quality:'epic',      price:50, stock:5, restock:'30d', section:'calkeys',desc:'Para San Valentín, Día de la Madre y Padre.',tags:['llave','festival'],  calKey:{type:'pink',   amount:1}},
-  {id:'ck_green',  emoji:'🟢',name:'Llave Verde',                img:'img/keys1.jpg',quality:'epic',      price:50, stock:5, restock:'30d', section:'calkeys',desc:'Para Navidad y Año Nuevo.',                  tags:['llave','navidad'],   calKey:{type:'green',  amount:1}},
-  {id:'ck_orange', emoji:'🎃',name:'Llave Naranja',              img:'img/keys1.jpg',quality:'epic',      price:50, stock:5, restock:'30d', section:'calkeys',desc:'Para Halloween y Black Friday.',             tags:['llave','halloween'], calKey:{type:'orange', amount:1}},
-  {id:'ck_cat',    emoji:'😺',name:'Llave Gato',                 img:'img/keys1.jpg',quality:'epic',      price:60, stock:3, restock:'30d', section:'calkeys',desc:'Para el Día del Gato y del Perro. ¡Meow!', tags:['llave','gato'],      calKey:{type:'cat',    amount:1},badge:'limited'},
-  {id:'ck_special',emoji:'💜',name:'Llave Especial',             img:'img/keys1.jpg',quality:'epic',      price:60, stock:3, restock:'30d', section:'calkeys',desc:'Para días únicos y especiales.',             tags:['llave','especial'],  calKey:{type:'special',amount:1}},
-  {id:'ck_future', emoji:'⏩',name:'Llave Futuro',               img:'img/keys1.jpg',quality:'legendary', price:100,stock:2, restock:'30d', section:'calkeys',desc:'¡Rara! Reclama días futuros del Calendario.',tags:['llave','futuro','rara'],calKey:{type:'future',amount:1},badge:'limited'},
-  {id:'ck_pack_all',emoji:'🎁',name:'Pack Definitivo — 1 de Cada',img:'img/keys1.jpg',quality:'legendary',price:280,stock:1, restock:'30d', section:'calkeys',desc:'El pack supremo con 1 llave de cada tipo.', tags:['llave','pack'],      calKey:{pack:true,keys:{normal:1,pink:1,green:1,orange:1,cat:1,special:1,future:1}},badge:'limited'},
+  { id:'ck_normal',   cat:'calkeys', icon:'🔵', name:'Llave Normal',                    img:'img/keys1.jpg', rarity:'rare',   price:30,  stock:10, restock:'7d',  badge:'hot', desc:'Recupera un día perdido en el Calendario de Recompensas.',  tags:[{t:'keys',l:'LLAVE NORMAL'}],    give:{type:'calkey',keyType:'normal',amount:1},  onetime:false },
+  { id:'ck_pink',     cat:'calkeys', icon:'💗', name:'Llave Rosa',                      img:'img/keys1.jpg', rarity:'epic',   price:50,  stock:5,  restock:'30d', badge:null,  desc:'Llave de San Valentín y Día de la Madre. Da ×2 en XP.',    tags:[{t:'keys',l:'LLAVE ROSA'}],      give:{type:'calkey',keyType:'pink',amount:1},    onetime:false },
+  { id:'ck_green',    cat:'calkeys', icon:'🟢', name:'Llave Verde',                     img:'img/keys1.jpg', rarity:'epic',   price:50,  stock:5,  restock:'30d', badge:null,  desc:'Llave de Navidad y Año Nuevo. Da ×2 en XP.',               tags:[{t:'keys',l:'LLAVE VERDE'}],     give:{type:'calkey',keyType:'green',amount:1},   onetime:false },
+  { id:'ck_orange',   cat:'calkeys', icon:'🎃', name:'Llave Naranja',                   img:'img/keys1.jpg', rarity:'epic',   price:50,  stock:5,  restock:'30d', badge:null,  desc:'Llave de Halloween y Black Friday.',                       tags:[{t:'keys',l:'LLAVE NARANJA'}],   give:{type:'calkey',keyType:'orange',amount:1},  onetime:false },
+  { id:'ck_cat',      cat:'calkeys', icon:'😺', name:'Llave Gato',                      img:'img/keys1.jpg', rarity:'epic',   price:60,  stock:3,  restock:'30d', badge:null,  desc:'Llave del Día del Gato. Da ×3 en la barra. ¡Meow!',       tags:[{t:'keys',l:'LLAVE GATO'}],      give:{type:'calkey',keyType:'cat',amount:1},     onetime:false },
+  { id:'ck_special',  cat:'calkeys', icon:'💜', name:'Llave Especial',                  img:'img/keys1.jpg', rarity:'epic',   price:60,  stock:3,  restock:'30d', badge:null,  desc:'Para días únicos: Día de la Tierra, del Agua, del Niño.',  tags:[{t:'keys',l:'LLAVE ESPECIAL'}],  give:{type:'calkey',keyType:'special',amount:1}, onetime:false },
+  { id:'ck_future',   cat:'calkeys', icon:'⏩', name:'Llave Futuro',                    img:'img/keys1.jpg', rarity:'legend', price:100, stock:2,  restock:'30d', badge:'limited',desc:'¡Rarísima! Permite reclamar días futuros.',             tags:[{t:'keys',l:'LLAVE FUTURO'},{t:'bonus',l:'RARA'}],give:{type:'calkey',keyType:'future',amount:1},onetime:false },
+  { id:'ck_pack_all', cat:'calkeys', icon:'🎁', name:'Pack Definitivo — 1 de Cada',     img:'img/keys1.jpg', rarity:'legend', price:280, stock:1,  restock:'30d', badge:'limited',desc:'¡Pack supremo! 1 llave de cada tipo.',                  tags:[{t:'keys',l:'PACK COMPLETO'}],   give:{type:'calkey_multi',keys:{normal:1,pink:1,green:1,orange:1,cat:1,special:1,future:1}}, onetime:false },
 
-  /* ── LLAVES SUPERESTRELLA ── */
-  {id:'sk_common',   emoji:'⭐',name:'Llave Superestrella',             img:'img/keys1.jpg',quality:'common',   price:20, stock:20,restock:'24h',section:'superestrellas',desc:'Abre el Cofre Común.',              tags:['llave','superestrella','cofre'],superKey:{keyId:'key_common',   amount:1}},
-  {id:'sk_rare',     emoji:'💫',name:'Llave Sup. Brillante',           img:'img/keys1.jpg',quality:'rare',     price:40, stock:15,restock:'24h',section:'superestrellas',desc:'Abre el Cofre Raro.',               tags:['llave','superestrella','raro'], superKey:{keyId:'key_rare',     amount:1}},
-  {id:'sk_special',  emoji:'✨',name:'Llave Sup. Especial',            img:'img/keys1.jpg',quality:'epic',     price:80, stock:10,restock:'7d', section:'superestrellas',desc:'Abre el Cofre Especial.',           tags:['llave','superestrella','especial'],superKey:{keyId:'key_special',  amount:1}},
-  {id:'sk_epic',     emoji:'🔮',name:'Llave Sup. Épica',               img:'img/keys1.jpg',quality:'epic',     price:160,stock:5, restock:'7d', section:'superestrellas',desc:'Abre el Cofre Épico.',              tags:['llave','superestrella','epico'], superKey:{keyId:'key_epic',     amount:1}},
-  {id:'sk_legendary',emoji:'👑',name:'Llave Sup. Legendaria',          img:'img/keys1.jpg',quality:'legendary',price:320,stock:3, restock:'7d', section:'superestrellas',desc:'Solo los valientes merecen el oro.',tags:['llave','superestrella','legend'],superKey:{keyId:'key_legendary', amount:1},badge:'limited'},
-  {id:'sk_halloween',emoji:'🎃',name:'Llave Sup. Calabaza',            img:'img/keys1.jpg',quality:'legendary',price:70, stock:3, restock:'24h',startsAt:'2026-10-25',expiresAt:'2026-11-01',section:'superestrellas',desc:'Llave de Halloween.',tags:['llave','evento','halloween'],superKey:{keyId:'key_halloween',amount:1}},
-  {id:'sk_christmas',emoji:'🎄',name:'Llave Sup. Navideña',            img:'img/keys1.jpg',quality:'legendary',price:70, stock:3, restock:'24h',startsAt:'2026-12-01',expiresAt:'2026-12-30',section:'superestrellas',desc:'Llave de Navidad.',tags:['llave','evento','navidad'],superKey:{keyId:'key_christmas',amount:1}},
-  {id:'sk_pack_starter',emoji:'📦',name:'Pack Inicio — Común ×3 + Brillante ×1',img:'img/keys1.jpg',quality:'rare',price:55,stock:10,restock:'7d',section:'superestrellas',desc:'El pack para comenzar.',tags:['pack','superestrella'],superKey:{pack:true,keys:{key_common:3,key_rare:1}}},
-  {id:'sk_pack_top', emoji:'👑',name:'Pack Élite — Épica ×2 + Legendaria ×1',  img:'img/keys1.jpg',quality:'legendary',price:256,stock:3,restock:'30d',section:'superestrellas',desc:'El pack de los elegidos.',tags:['pack','superestrella','legend'],superKey:{pack:true,keys:{key_epic:2,key_legendary:1}},badge:'limited'},
+  /* ── SUPERESTRELLAS ── */
+  { id:'sk_common',    cat:'superestrellas', icon:'⭐', name:'Llave Superestrella',             img:'img/keys1.jpg', rarity:'common', price:20,  stock:20, restock:'24h', badge:null,      desc:'Llave para abrir el Cofre Común.',               tags:[{t:'super',l:'COFRE COMÚN'}],    give:{type:'superkey',keyId:'key_common',amount:1},   onetime:false },
+  { id:'sk_rare',      cat:'superestrellas', icon:'💫', name:'Llave Superestrella Brillante',   img:'img/keys1.jpg', rarity:'rare',   price:40,  stock:15, restock:'24h', badge:null,      desc:'Llave para abrir el Cofre Raro.',                tags:[{t:'super',l:'COFRE RARO'}],     give:{type:'superkey',keyId:'key_rare',amount:1},     onetime:false },
+  { id:'sk_special',   cat:'superestrellas', icon:'✨', name:'Llave Superestrella Especial',    img:'img/keys1.jpg', rarity:'epic',   price:80,  stock:10, restock:'7d',  badge:null,      desc:'Llave para abrir el Cofre Especial.',            tags:[{t:'super',l:'COFRE ESPECIAL'}], give:{type:'superkey',keyId:'key_special',amount:1},  onetime:false },
+  { id:'sk_epic',      cat:'superestrellas', icon:'🔮', name:'Llave Superestrella Épica',       img:'img/keys1.jpg', rarity:'epic',   price:160, stock:5,  restock:'7d',  badge:null,      desc:'Llave para abrir el Cofre Épico.',               tags:[{t:'super',l:'COFRE ÉPICO'}],    give:{type:'superkey',keyId:'key_epic',amount:1},     onetime:false },
+  { id:'sk_legendary', cat:'superestrellas', icon:'👑', name:'Llave Superestrella Legendaria',  img:'img/keys1.jpg', rarity:'legend', price:320, stock:3,  restock:'7d',  badge:'limited', desc:'Llave para abrir el Cofre Legendario.',          tags:[{t:'super',l:'COFRE LEGEND'}],   give:{type:'superkey',keyId:'key_legendary',amount:1},onetime:false },
+  { id:'sk_pack_starter',cat:'superestrellas',icon:'📦',name:'Pack Inicio — Común ×3 + Brillante ×1',img:'img/keys1.jpg',rarity:'rare',price:55,stock:10,restock:'7d',badge:null,desc:'Pack perfecto para comenzar en los cofres.',tags:[{t:'super',l:'PACK INICIO'}],give:{type:'superkey_multi',keys:{key_common:3,key_rare:1}},onetime:false },
+  { id:'sk_pack_top',  cat:'superestrellas', icon:'👑', name:'Pack Élite — Épica ×2 + Legend ×1',img:'img/keys1.jpg', rarity:'legend', price:256, stock:3,  restock:'30d', badge:'limited', desc:'El pack de los elegidos.',                       tags:[{t:'super',l:'PACK ÉLITE'}],     give:{type:'superkey_multi',keys:{key_epic:2,key_legendary:1}},onetime:false },
+
+  /* ── LOTE DE MONEDAS ── */
+  { id:'m1', cat:'materiales', icon:'🪙', name:'Pegatina de 1c.',  img:'img/coin.jpg',     rarity:'common', price:0,   stock:1,  restock:'24h', badge:null,  desc:'Gratis. Solo una al día.',                      tags:[{t:'free',l:'GRATIS'},{t:'keys',l:'MONEDA'}], give:{type:'coins',amount:1},   onetime:false, daily:true },
+  { id:'m2', cat:'materiales', icon:'🪙', name:'Bolsita de 30c.',  img:'img/coin.jpg',     rarity:'rare',   price:15,  stock:10, restock:'7d',  badge:null,  desc:'Para trueques y consumibles básicos.',          tags:[{t:'keys',l:'30 MONEDAS'}],                   give:{type:'coins',amount:30},  onetime:false },
+  { id:'m3', cat:'materiales', icon:'🪙', name:'Pack de 90c.',     img:'img/packcoin.jpg', rarity:'epic',   price:30,  stock:10, restock:'7d',  badge:'hot', desc:'Relación costo/beneficio equilibrada.',         tags:[{t:'keys',l:'90 MONEDAS'}],                   give:{type:'coins',amount:90},  onetime:false },
+  { id:'m4', cat:'materiales', icon:'🪙', name:'Lote de 120c.',    img:'img/stackcoin.jpg',rarity:'legend', price:60,  stock:10, restock:'30d', badge:null,  desc:'Ideal para temporadas.',                        tags:[{t:'keys',l:'120 MONEDAS'}],                  give:{type:'coins',amount:120}, onetime:false },
+
+  /* ── HISTORIA ── */
+  { id:'l1', cat:'historia', icon:'📚', name:'Libro: "Bosque de Jade"',          img:'img/bookmine.jpg', rarity:'rare',   price:256, stock:1, restock:null, badge:null,      desc:'Leyendas del bioma del bosque antiguo.',     tags:[{t:'historia',l:'LORE BIOMA'}],  give:{type:'lore',bookId:'bosque_jade'},    onetime:true },
+  { id:'l2', cat:'historia', icon:'📚', name:'Libro: "La Negra Noche"',          img:'img/bookmine.jpg', rarity:'epic',   price:256, stock:1, restock:null, badge:null,      desc:'Símbolos y runas del mundo oscuro.',         tags:[{t:'historia',l:'LORE RUNAS'}],  give:{type:'lore',bookId:'negra_noche'},   onetime:true },
+  { id:'l3', cat:'historia', icon:'📚', name:'Libro: "El lado ███ de S██ B███"', img:'img/bookcat.gif',  rarity:'legend', price:384, stock:1, restock:null, badge:'limited', desc:'██████ ████ de Sand Brill. ¿Qué oculta?',    tags:[{t:'historia',l:'LORE SECRETO'}], give:{type:'lore',bookId:'secreto_sb'},    onetime:true },
+  { id:'l4', cat:'historia', icon:'📖', name:'Libro A1',                          img:'img/book.jpg',     rarity:'epic',   price:128, stock:1, restock:null, badge:null,      desc:'Un libro del portal.',                       tags:[{t:'historia',l:'LIBRO'}],       give:{type:'lore',bookId:'libro_a1'},      onetime:true },
+  { id:'l5', cat:'historia', icon:'📖', name:'Libro B2',                          img:'img/book.jpg',     rarity:'epic',   price:128, stock:1, restock:null, badge:null,      desc:'Un libro del portal.',                       tags:[{t:'historia',l:'LIBRO'}],       give:{type:'lore',bookId:'libro_b2'},      onetime:true },
+  { id:'l6', cat:'historia', icon:'📖', name:'Libro A2',                          img:'img/book.jpg',     rarity:'epic',   price:128, stock:1, restock:null, badge:null,      desc:'Un libro del portal.',                       tags:[{t:'historia',l:'LIBRO'}],       give:{type:'lore',bookId:'libro_a2'},      onetime:true },
+  { id:'l7', cat:'historia', icon:'📖', name:'Libro C3',                          img:'img/book.jpg',     rarity:'epic',   price:128, stock:1, restock:null, badge:null,      desc:'Un libro del portal.',                       tags:[{t:'historia',l:'LIBRO'}],       give:{type:'lore',bookId:'libro_c3'},      onetime:true },
+
+  /* ── MATERIALES (cosas) ── */
+  { id:'f1', cat:'cosas', icon:'⚙️', name:'Rieles (x64)',                img:'imagen/phantom.gif', rarity:'epic',   price:64,  stock:10, restock:'24h', badge:null,  desc:'Unos rieles que siempre vienen bien.',         tags:[{t:'keys',l:'RIELES x64'}],    give:{type:'material',mat:'rails',amount:64},   onetime:false },
+  { id:'f2', cat:'cosas', icon:'⚙️', name:'Rieles Activadores (x64)',    img:'imagen/phantom.gif', rarity:'epic',   price:128, stock:10, restock:'24h', badge:null,  desc:'Activemos estos rieles…',                      tags:[{t:'keys',l:'RIELES ACT'}],    give:{type:'material',mat:'rails_act',amount:64},onetime:false },
+  { id:'f3', cat:'cosas', icon:'⚙️', name:'Rieles (x64) x2',             img:'imagen/phantom.gif', rarity:'epic',   price:64,  stock:2,  restock:'7d',  badge:'hot', desc:'Un x2 en rieles. ¡Con descuento!',             tags:[{t:'keys',l:'RIELES x128'}],   give:{type:'material',mat:'rails',amount:128},  onetime:false },
+  { id:'f4', cat:'cosas', icon:'🧱', name:'Concreto (x64)',               img:'imagen/phantom.gif', rarity:'epic',   price:64,  stock:20, restock:'24h', badge:null,  desc:'Para construir.',                              tags:[{t:'keys',l:'CONCRETO x64'}],  give:{type:'material',mat:'concrete',amount:64},onetime:false },
+  { id:'f5', cat:'cosas', icon:'🔩', name:'Bloques de Hierro (x64)',      img:'imagen/phantom.gif', rarity:'epic',   price:128, stock:10, restock:'7d',  badge:null,  desc:'Algunos bloques de hierro.',                   tags:[{t:'keys',l:'HIERRO x64'}],    give:{type:'material',mat:'iron',amount:64},    onetime:false },
+  { id:'f6', cat:'cosas', icon:'🔩', name:'Bloques de Hierro (x64) x4',  img:'imagen/phantom.gif', rarity:'legend', price:128, stock:1,  restock:null,  badge:'hot', desc:'Pack oferta de hierro. ¡Aprovéchalo!',         tags:[{t:'keys',l:'HIERRO x256'},{t:'bonus',l:'OFERTA'}],give:{type:'material',mat:'iron',amount:256},onetime:false },
+  { id:'f7', cat:'cosas', icon:'💎', name:'Bloques de Diamante (x64) x4',img:'imagen/phantom.gif', rarity:'legend', price:128, stock:1,  restock:null,  badge:'limited',desc:'Bueno brillemos…',                          tags:[{t:'keys',l:'DIAMANTE x256'},{t:'bonus',l:'OFERTA'}],give:{type:'material',mat:'diamond',amount:256},onetime:false },
+  { id:'f8', cat:'cosas', icon:'💚', name:'Esmeralda x1',                 img:'imagen/phantom.gif', rarity:'legend', price:1,   stock:1,  restock:null,  badge:'sale', desc:'Sand Brill te desea Feliz Navidad… y da solo 1 esmeralda 😅',tags:[{t:'keys',l:'ESMERALDA'}],give:{type:'material',mat:'emerald',amount:1},onetime:false },
+
+  /* ── PASES DE EVENTO ── */
+  { id:'e1', cat:'eventos', icon:'🎪', name:'Pase en la Oscuridad', img:'img-pass/banhall.jpg',   rarity:'legend', price:256, stock:1, restock:'30d', startsAt:'2026-10-20', expiresAt:'2026-11-01', badge:'limited', desc:'Algo que tal vez... se acerca. Acceso a misiones de la oscuridad.', tags:[{t:'pase',l:'EVENTO ESPECIAL'}], give:{type:'event_pass',eventId:'darkness'}, onetime:false },
+  { id:'e2', cat:'eventos', icon:'🐱', name:'Pase Gatos 😺✨',       img:'img-pass/catsparty.jpg', rarity:'legend', price:256, stock:1, restock:'30d', startsAt:'2026-08-01', expiresAt:'2026-08-30', badge:'new',     desc:'Gatos y más gatos… ¿Gatos?',                                       tags:[{t:'pase',l:'EVENTO GATOS'}],   give:{type:'event_pass',eventId:'cats'},     onetime:false },
+
+  /* ── PACK DE MONEDAS (coins) ── */
+  { id:'c1', cat:'monedas', icon:'💰', name:'Pack de 128r.', img:'img/coin.jpg',      rarity:'common', price:64,  stock:999, restock:null, badge:null, desc:'Para trueques y consumibles básicos. (2 stacks)',  tags:[{t:'keys',l:'128 COINS'}],  give:{type:'coins_raw',amount:128}, onetime:false },
+  { id:'c2', cat:'monedas', icon:'💰', name:'Pack de 256r.', img:'img/packcoin.jpg',  rarity:'rare',   price:128, stock:999, restock:null, badge:null, desc:'Relación costo/beneficio equilibrada. (4 stacks)',  tags:[{t:'keys',l:'256 COINS'}], give:{type:'coins_raw',amount:256}, onetime:false },
+  { id:'c3', cat:'monedas', icon:'💰', name:'Pack de 384r.', img:'img/stackcoin.jpg', rarity:'epic',   price:256, stock:999, restock:null, badge:null, desc:'Ideal para temporadas completas. (6 stacks)',       tags:[{t:'keys',l:'384 COINS'}],  give:{type:'coins_raw',amount:384}, onetime:false },
 ];
 
 /* ══════════════════════════════════════
-   RENDER DE PRECIO
+   NPC MESSAGES
 ══════════════════════════════════════ */
-function renderPriceHTML(p,forceFinal=null,forceDisc=null){
-  const base=p.price||0;
-  let final=base,pct=0;
-  if(forceFinal!=null){final=forceFinal;pct=forceDisc||0;}
-  else{const d=getEffectiveDiscount(base);final=d.final;pct=d.pct;}
-  if(base===0){
-    return`<div class="pc-price-row"><span class="pc-price free-price">GRATIS</span></div>`;
+const NPC_MSGS = [
+  '¡Tengo los mejores artículos del portal!',
+  '¿Sand Brill tiene ofertas hoy!',
+  '¡Cupón BLACK FRIDAY disponible!',
+  'Los legendarios son rarísimos…',
+  '¿Tickets o llaves? ¡Yo tengo todo!',
+  '¡El Flash Sale termina pronto!',
+  'Los pases de temporada valen la pena',
+  '¡No dejes que el stock se agote!',
+  'Una llave futuro… ¡muy poderosa!',
+  '¡Los fines de semana hay más descuento!',
+];
+
+/* ══════════════════════════════════════
+   HISTORIAL
+══════════════════════════════════════ */
+function getPurchases()  { return lsGet(LS.purchases, []); }
+function addPurchase(p, note='') {
+  const hist = getPurchases();
+  hist.unshift({ id:p.id, name:p.name, icon:p.icon, note, date:new Date().toISOString() });
+  if (hist.length > 50) hist.pop();
+  lsSet(LS.purchases, hist);
+  renderHistory();
+  updateHistoryBadge();
+}
+function renderHistory() {
+  const list = $('#purchasesList'); if (!list) return;
+  const hist = getPurchases();
+  if (!hist.length) {
+    list.innerHTML='<div class="empty-hist"><span>📭</span><p>SIN COMPRAS AÚN</p></div>';
+    return;
   }
-  if(pct>0){
-    return`<div class="pc-price-row">
-      <span class="pc-price-old">⟡${base}</span>
-      <span class="pc-price">⟡${final}</span>
-      <span class="pc-discount">-${pct}%</span>
-    </div>`;
+  list.innerHTML = hist.map(p=>`
+    <div class="purchase-item">
+      <span class="pi-icon">${p.icon||'📦'}</span>
+      <div class="pi-info">
+        <div class="pi-name">${p.name}</div>
+        <div class="pi-detail">${p.note||''}</div>
+      </div>
+      <div class="pi-time">${timeAgo(p.date)}</div>
+    </div>`).join('');
+}
+function updateHistoryBadge() {
+  const cnt = getPurchases().length;
+  const badge = $('#historyCount');
+  if (!badge) return;
+  if (cnt > 0) { badge.textContent = cnt; badge.style.display=''; }
+  else          { badge.style.display='none'; }
+}
+
+/* ══════════════════════════════════════
+   REWARD EXECUTION
+══════════════════════════════════════ */
+function executeGive(give) {
+  if (!give) return;
+  const { type } = give;
+
+  if (type === 'gacha_tickets') {
+    addGachaTickets(give.wheel, give.count);
+    if (window.addTickets) window.addTickets(give.wheel, 0);
+
+  } else if (type === 'pass') {
+    try {
+      const raw   = localStorage.getItem(`mv_pass_${give.passId}`);
+      const state = raw ? JSON.parse(raw) : {};
+      const tiers = ['stone','iron','gold','emerald','diamond'];
+      if (tiers.indexOf(state.tier||'stone') < 1) {
+        state.tier = 'iron'; state.shopBought = true;
+        localStorage.setItem(`mv_pass_${give.passId}`, JSON.stringify(state));
+      }
+      if (window.activatePassFromShop) window.activatePassFromShop(give.passId);
+    } catch(e) { console.warn('[Shop] pass error:', e); }
+
+  } else if (type === 'superkey') {
+    const ckls = 'mv_chest_keys_v1';
+    const raw  = localStorage.getItem(ckls);
+    const keys = raw ? JSON.parse(raw) : {};
+    keys[give.keyId] = (keys[give.keyId]||0) + give.amount;
+    localStorage.setItem(ckls, JSON.stringify(keys));
+    if (window.onChestKeyPurchasedFromShop) window.onChestKeyPurchasedFromShop(give);
+
+  } else if (type === 'superkey_multi') {
+    const ckls = 'mv_chest_keys_v1';
+    const raw  = localStorage.getItem(ckls);
+    const keys = raw ? JSON.parse(raw) : {};
+    Object.entries(give.keys).forEach(([k,a]) => { keys[k]=(keys[k]||0)+a; });
+    localStorage.setItem(ckls, JSON.stringify(keys));
+
+  } else if (type === 'calkey') {
+    const cals = 'mv_cal_keys';
+    const raw  = localStorage.getItem(cals);
+    const keys = raw ? JSON.parse(raw) : {};
+    keys[give.keyType] = (keys[give.keyType]||0) + give.amount;
+    localStorage.setItem(cals, JSON.stringify(keys));
+
+  } else if (type === 'calkey_multi') {
+    const cals = 'mv_cal_keys';
+    const raw  = localStorage.getItem(cals);
+    const keys = raw ? JSON.parse(raw) : {};
+    Object.entries(give.keys).forEach(([k,a]) => { keys[k]=(keys[k]||0)+a; });
+    localStorage.setItem(cals, JSON.stringify(keys));
+
+  } else if (type === 'chest') {
+    const inv = getInventory(); inv.keys=(inv.keys||0)+1; setInventory(inv);
+
+  } else if (type === 'coins' || type === 'coins_raw' || type === 'material' || type === 'lore' || type === 'event_pass') {
+    // These are fulfilled externally; we just record the purchase
+    console.log('[Shop] External fulfillment:', type, give);
   }
-  const cssClass=p.price==='CÓDIGO'?'code-price':p.price==='EVENTO'?'event-price':'';
-  return`<div class="pc-price-row">
-    <span class="pc-price ${cssClass}">⟡${base}</span>
-  </div>`;
+}
+
+function buildNoteStr(give) {
+  if (!give) return '';
+  const { type } = give;
+  if (type==='gacha_tickets')   return `+${give.count} tickets ${give.wheel}`;
+  if (type==='pass')             return `Pase ${give.passId} — Tier Hierro`;
+  if (type==='superkey')        { const SKINFO={key_common:'Común',key_rare:'Brillante',key_special:'Especial',key_epic:'Épica',key_legendary:'Legendaria'}; return `+${give.amount} Llave ${SKINFO[give.keyId]||give.keyId}`; }
+  if (type==='superkey_multi')  return Object.entries(give.keys).map(([k,a])=>`+${a} ${k}`).join(' · ');
+  if (type==='calkey')          return `+${give.amount} Llave Cal ${give.keyType}`;
+  if (type==='calkey_multi')    return Object.entries(give.keys).map(([k,a])=>`+${a} ${k}`).join(' · ');
+  if (type==='chest')           return `+1 llave de cofre`;
+  if (type==='coins')           return `+${give.amount} monedas`;
+  if (type==='coins_raw')       return `+${give.amount} monedas raw`;
+  if (type==='material')        return `+${give.amount} ${give.mat}`;
+  if (type==='lore')            return `Libro: ${give.bookId}`;
+  if (type==='event_pass')      return `Pase evento: ${give.eventId}`;
+  return '';
 }
 
 /* ══════════════════════════════════════
-   ESTADO GLOBAL UI
+   BUY FLOW
 ══════════════════════════════════════ */
-let currentCategory='all';
-let searchText='';
-let foxInterval=null;
-
-/* ══════════════════════════════════════
-   RENDER PRODUCTS
-══════════════════════════════════════ */
-function renderProducts(){
-  const grid=$('#productsGrid');if(!grid)return;
-  const nowTs=Date.now();
-
-  const filtered=products.filter(p=>{
-    const secOk=currentCategory==='all'||p.section===currentCategory;
-    const q=(searchText||'').trim().toLowerCase();
-    const txt=`${p.name} ${p.quality} ${p.desc||''} ${(p.tags||[]).join(' ')}`.toLowerCase();
-    return secOk&&(!q||txt.includes(q));
-  });
-
-  if(!filtered.length){grid.innerHTML='<div class="p-empty">No se encontraron artículos</div>';return;}
-
-  grid.innerHTML=filtered.map((p,i)=>{
-    const st=getStock(p);
-    const next=getNextRestock(p);
-    const startMs=parseDateStart(p.startsAt);
-    const expMs=parseDate(p.expiresAt);
-    const isOut=st<=0;
-    const isUpcoming=!!(startMs&&startMs>nowTs);
-    const isExpired=!!(expMs&&expMs<nowTs);
-    const isDisabled=isOut||isUpcoming||isExpired;
-    const claimed=isProductClaimed(p);
-
-    const rarity=p.quality==='legendary'?'legend':p.quality==='epic'?'epic':p.quality==='rare'?'rare':'common';
-
-    // Overlay
-    let overlay='';
-    if(isOut)overlay=`<div class="pc-overlay"><div class="pc-overlay-box out"><span class="pco-label">AGOTADO</span><span class="pco-sub">${next?`Restock en: ${timeLeft(next)}`:'Sin restock'}</span></div></div>`;
-    else if(isExpired)overlay=`<div class="pc-overlay"><div class="pc-overlay-box expired"><span class="pco-label">⌛ CADUCADO</span><span class="pco-sub">Oferta finalizada</span></div></div>`;
-    else if(isUpcoming)overlay=`<div class="pc-overlay"><div class="pc-overlay-box soon"><span class="pco-label">⏳ PRÓXIMAMENTE</span><span class="pco-sub">Desde: ${p.startsAt}</span></div></div>`;
-
-    const badgeHTML=p.badge?`<div class="pc-badge ${p.badge}">${p.badge.toUpperCase()}</div>`:'';
-
-    // Tags
-    const tagCls={pase:'pase',ticket:'tickets',llave:'keys',cofre:'keys',moneda:'monedas',lore:'lore',pack:'free',super:'super',bonus:'bonus'};
-    const tagsHTML=(p.tags||[]).slice(0,3).map(t=>{
-      const match=Object.entries(tagCls).find(([k])=>t.toLowerCase().includes(k));
-      const cls=match?match[1]:'free';
-      return`<span class="pc-tag ${cls}">${t.toUpperCase()}</span>`;
-    }).join('');
-
-    // Stock row
-    const stockHTML=p.stock<999?`<div class="pc-stock ${st<=2?'low':''}">📦 Stock: ${st} ${p.restock?`· ↻ ${p.restock}`:''}</div>`:'';
-
-    // Img (try to load, fallback)
-    const imgHTML=p.img?`<div class="pc-img"><img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">${overlay}</div>`:'';
-
-    // Btn label
-    let btnLabel=claimed&&p.daily?'✓ RECLAMADO HOY':claimed?'✓ RECLAMADO':p.onetime&&claimed?'✓ RECLAMADO':'OBTENER';
-    if(isExpired)btnLabel='⌛ CADUCADO';
-    if(isUpcoming)btnLabel='⏳ PRONTO';
-
-    const priceHTML=renderPriceHTML(p);
-
-    return`<div class="product-card reveal" data-id="${p.id}" data-rarity="${rarity}" style="animation-delay:${i*0.04}s">
-      <div class="pc-band"></div>
-      ${imgHTML}
-      ${badgeHTML}
-      <div class="pc-body">
-        <span class="pc-icon">${p.emoji||'📦'}</span>
-        <div class="pc-name">${esc(p.name)}</div>
-        <div class="pc-desc">${esc(p.desc||'')}</div>
-        <div class="pc-tags">${tagsHTML}</div>
-      </div>
-      <div class="pc-footer">
-        ${stockHTML}
-        ${priceHTML}
-        <div class="pc-btn-row">
-          <button class="pc-btn-detail" data-id="${p.id}">INFO</button>
-          <button class="pc-btn ${(claimed&&!p.daily)||isDisabled?'claimed':''}" data-id="${p.id}"
-            ${(claimed&&!p.daily)||isDisabled?'disabled':''}>${btnLabel}</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-
-  requestAnimationFrame(()=>{
-    grid.querySelectorAll('.reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),i*35));
-  });
-
-  // Listeners
-  grid.querySelectorAll('.pc-btn:not([disabled])').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const p=products.find(x=>x.id===btn.dataset.id);if(p)showConfirmModal(p);
-    });
-  });
-  grid.querySelectorAll('.pc-btn-detail').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const p=products.find(x=>x.id===btn.dataset.id);if(p)showDetailModal(p);
-    });
-  });
+function canBuy(p) {
+  const startMs  = parseDateStart(p.startsAt);
+  const expMs    = parseDate(p.expiresAt);
+  if (startMs && startMs > now()) return { ok:false, reason:'PRÓXIMAMENTE' };
+  if (expMs   && expMs   < now()) return { ok:false, reason:'CADUCADO'     };
+  const st = StockLS.get(p.id, p.stock);
+  if (st <= 0) return { ok:false, reason:'AGOTADO' };
+  if (isProductClaimed(p)) return { ok:false, reason: p.daily?'RECLAMADO HOY':'YA RECLAMADO' };
+  return { ok:true };
 }
 
-/* ══════════════════════════════════════
-   MODALES
-══════════════════════════════════════ */
-function openModal(html){
-  const m=$('#modal'),c=$('#modalContent');if(!m||!c)return;
-  c.innerHTML=html;m.setAttribute('aria-hidden','false');
-}
-function closeModal(){$('#modal')?.setAttribute('aria-hidden','true');}
+function showConfirmModal(p, extraDisc = 0) {
+  const check = canBuy(p);
+  if (!check.ok) { toast(check.reason, 'error'); return; }
 
-function showConfirmModal(product){
-  const claimed=isProductClaimed(product);
-  if(claimed&&!product.daily){toast('Ya reclamaste este ítem','⚠️','error');return;}
-  const {final,pct}=getEffectiveDiscount(product.price||0);
-  const base=product.price||0;
+  const couponPct  = getCurrentCouponPct();
+  const totalDisc  = Math.min(100, couponPct + extraDisc + (flashDiscount || 0));
+  const base       = Number(p.price)||0;
+  const final      = Math.max(0, Math.round(base - base * totalDisc / 100));
+  const isFree     = base === 0;
+  const priceHTML  = isFree
+    ? `<div class="buy-modal-price free">GRATIS</div>`
+    : totalDisc > 0
+      ? `<div class="buy-modal-price"><span style="text-decoration:line-through;color:var(--muted);font-size:0.5rem">⟡${base}</span> → ⟡${final} <span style="font-size:0.38rem;color:#4ade80">(-${totalDisc}%)</span></div>`
+      : `<div class="buy-modal-price">⟡${base}</div>`;
 
-  let priceRowHTML='';
-  if(base===0)priceRowHTML=`<div class="buy-modal-price-row"><span class="bmp-final" style="color:var(--green)">GRATIS</span></div>`;
-  else if(pct>0)priceRowHTML=`<div class="buy-modal-price-row"><span class="bmp-original">⟡${base}</span><span class="bmp-final">⟡${final}</span><span class="bmp-discount">-${pct}%</span></div>`;
-  else priceRowHTML=`<div class="buy-modal-price-row"><span class="bmp-final">⟡${base}</span></div>`;
-
-  const noteText=product.onetime?`<p class="buy-modal-note">⚠️ Solo puedes reclamar esto <b>UNA VEZ</b></p>`:
-    product.daily?`<p class="buy-modal-note">📅 Disponible una vez al día</p>`:'';
+  const noteText = p.onetime
+    ? `<p class="buy-modal-note">⚠️ Solo puedes reclamar esto <b>UNA VEZ</b></p>`
+    : p.daily
+      ? `<p class="buy-modal-note">📅 Disponible una vez al día</p>`
+      : '';
 
   openModal(`
-    <span class="buy-modal-icon">${product.emoji||'📦'}</span>
-    <div class="buy-modal-name">${esc(product.name)}</div>
-    <div class="buy-modal-desc">${esc(product.desc||'')}</div>
-    ${priceRowHTML}
+    <span class="buy-modal-icon">${p.icon}</span>
+    <div class="buy-modal-name">${p.name}</div>
+    <div class="buy-modal-desc">${p.desc}</div>
+    ${priceHTML}
     ${noteText}
     <div class="buy-modal-actions">
       <button class="btn-pixel btn-ghost" onclick="document.getElementById('modal').setAttribute('aria-hidden','true')">CANCELAR</button>
       <button class="btn-pixel btn-gold pulse" id="btnConfirmBuy">✓ CONFIRMAR</button>
     </div>`);
-  setTimeout(()=>{
-    $('#btnConfirmBuy')?.addEventListener('click',()=>{closeModal();purchaseProduct(product);});
-  },50);
+
+  setTimeout(() => {
+    $('#btnConfirmBuy')?.addEventListener('click', () => {
+      closeModal();
+      doBuy(p, totalDisc);
+    });
+  }, 50);
 }
 
-function showDetailModal(product){
-  const st=getStock(product);
-  const next=getNextRestock(product);
-  const priceHTML=renderPriceHTML(product);
-  openModal(`
-    <h2>${product.emoji||'📦'} ${esc(product.name)}</h2>
-    ${product.img?`<img class="detail-modal-img" src="${esc(product.img)}" alt="${esc(product.name)}" onerror="this.style.display='none'">` :''}
-    <p style="font-family:var(--font-vt);font-size:1rem;color:var(--muted);margin-bottom:14px">${esc(product.desc||'')}</p>
-    <div class="detail-meta-grid">
-      <div class="detail-meta-item"><strong>PRECIO</strong>${priceHTML}</div>
-      <div class="detail-meta-item"><strong>STOCK</strong>${st} unidades</div>
-      <div class="detail-meta-item"><strong>CALIDAD</strong>${product.quality?.toUpperCase()||'—'}</div>
-      <div class="detail-meta-item"><strong>SECCIÓN</strong>${product.section?.toUpperCase()||'—'}</div>
-      ${product.restock?`<div class="detail-meta-item"><strong>RESTOCK</strong>${product.restock}${next?` (${timeLeft(next)})`:''}` :''}
-      ${product.startsAt?`<div class="detail-meta-item"><strong>DISPONIBLE</strong>${product.startsAt}</div>`:''}
-      ${product.expiresAt?`<div class="detail-meta-item"><strong>CADUCA</strong>${product.expiresAt}</div>`:''}
-    </div>
-    <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-      <button class="btn-pixel btn-ghost" onclick="document.getElementById('modal').setAttribute('aria-hidden','true')">CERRAR</button>
-      <button class="btn-pixel btn-gold" id="btnDetailBuy">OBTENER</button>
-    </div>`);
-  setTimeout(()=>{
-    $('#btnDetailBuy')?.addEventListener('click',()=>{closeModal();showConfirmModal(product);});
-  },50);
-}
+function doBuy(p, appliedDisc = 0) {
+  const check = canBuy(p);
+  if (!check.ok) { toast(check.reason, 'error'); return; }
 
-function showSuccessModal(product,finalPrice,pct){
-  openModal(`
-    <div style="text-align:center;padding:10px 0">
-      <span style="font-size:4rem;display:block;margin-bottom:14px;filter:drop-shadow(0 0 18px var(--a))">${product.emoji||'📦'}</span>
-      <h2>¡RECOMPENSA OBTENIDA!</h2>
-      <div style="font-family:var(--font-pixel);font-size:0.36rem;color:var(--text);margin-bottom:8px;line-height:1.8">${esc(product.name)}</div>
-      ${pct>0?`<div style="font-family:var(--font-pixel);font-size:0.28rem;color:var(--green);margin-bottom:8px">✓ ${pct}% DE DESCUENTO APLICADO — ⟡${finalPrice}</div>`:''}
-      <button class="btn-pixel btn-gold" onclick="document.getElementById('modal').setAttribute('aria-hidden','true')" style="margin-top:8px">¡GENIAL!</button>
-    </div>`);
-}
+  if (!buyStock(p)) { toast('Stock agotado ❌', 'error'); return; }
 
-/* ══════════════════════════════════════
-   PURCHASE
-══════════════════════════════════════ */
-function purchaseProduct(product,opts={}){
-  const nowTs=Date.now();
-  const startMs=parseDateStart(product.startsAt);
-  if(startMs&&startMs>nowTs){toast('⏳ Esta oferta aún no está disponible','','error');return;}
-  const expMs=parseDate(product.expiresAt);
-  if(expMs&&expMs<nowTs){toast('⌛ Esta oferta ya ha caducado','','error');return;}
-  const st=getStock(product);
-  if(st<=0){toast('Artículo agotado ❌','','error');return;}
-  if(isProductClaimed(product)&&!product.daily){toast('Ya reclamaste este ítem','','error');return;}
+  executeGive(p.give);
+  markClaimed(p);
+  addPurchase(p, buildNoteStr(p.give));
+  unlockShopTitle(p.id);
 
-  // Stock
-  setStock(product,st-1);
-  if((st-1)<=0&&product.restock)setNextRestock(product,calcNextRestock(product));
-
-  // Descuento
-  let {final:finalPrice,pct}=opts.forceFinal!=null
-    ?{final:opts.forceFinal,pct:opts.forceDisc||0}
-    :getEffectiveDiscount(product.price||0);
-  if(!opts.forceFinal)useCoupon(product.price||0);
-
-  // Ejecutar give
-  executeGive(product);
-  markClaimed(product);
-
-  // Historial
-  addPurchase(product,buildNoteStr(product));
-
-  // Pases
-  if(product.section==='pases'&&typeof window.activatePassFromShop==='function'){
-    window.activatePassFromShop(product.id);
+  // Manejar cupón tras compra
+  if (currentScId) {
+    const sc = [...SEASONAL_COUPONS, BLACK_FRIDAY].find(s=>s.id===currentScId);
+    if (sc) {
+      if (sc.id === BLACK_FRIDAY.id) {
+        // BF: re-roll
+        bfCurrentDiscount = randInt(10,50);
+        currentCoupon = bfCurrentDiscount;
+        localStorage.setItem(LS.coupon, String(currentCoupon));
+      } else {
+        decrementScUses(sc);
+        if (getScUsesLeft(sc) <= 0) {
+          currentScId = null; currentCoupon = 0; bfCurrentDiscount = null;
+          localStorage.removeItem(LS.scActive); localStorage.setItem(LS.coupon,'0');
+          toast('🎟️ Usos del cupón agotados','info');
+        }
+      }
+    }
+  } else if (currentCoupon > 0) {
+    setCouponCooldown(currentCoupon, nextMidnightLocal(1));
+    currentCoupon = 0;
+    localStorage.setItem(LS.coupon,'0');
   }
 
+  showSuccessModal(p);
   renderProducts();
+  renderCouponUI();
   renderSandBrill();
   scheduleSync();
-
-  if(!opts.skipModal)showSuccessModal(product,finalPrice,pct);
-  toast(`✓ ${product.name}`,'','success');
 }
 
-function executeGive(product){
-  if(product.give){
-    const g=product.give;
-    if(g.type==='gacha_tickets')addGachaTickets(g.wheel,g.count);
-    else if(g.type==='inventory'){const inv=getInventory();inv[g.item]=(inv[g.item]||0)+g.count;setInventory(inv);}
-  }
-  if(product.calKey)addCalKeys(product.calKey);
-  if(product.superKey)addSuperKeys(product.superKey);
-  renderHUD();
-}
-
-function buildNoteStr(product){
-  if(product.give){
-    const g=product.give;
-    if(g.type==='gacha_tickets')return`+${g.count} tickets ${g.wheel}`;
-    if(g.type==='inventory')return`+${g.count} ${g.item}`;
-  }
-  if(product.calKey){
-    const ck=product.calKey;
-    if(ck.pack)return`Llaves calendario pack`;
-    return`+${ck.amount} llave ${ck.type}`;
-  }
-  if(product.superKey){
-    const sk=product.superKey;
-    if(sk.pack)return`Super llaves pack`;
-    return`+${sk.amount} super llave`;
-  }
-  return`⟡${product.price||0}`;
+function showSuccessModal(p) {
+  openModal(`
+    <div style="text-align:center;padding:10px 0">
+      <span style="font-size:4rem;display:block;margin-bottom:14px;filter:drop-shadow(0 0 18px var(--a))">${p.icon}</span>
+      <h2>¡RECOMPENSA OBTENIDA!</h2>
+      <div style="font-family:var(--font-pixel);font-size:0.38rem;color:var(--text);margin-bottom:16px;line-height:2">${p.name}</div>
+      <div style="font-family:var(--font-vt);font-size:1.1rem;color:var(--muted);margin-bottom:20px">${buildNoteStr(p.give)}</div>
+      <button class="btn-pixel btn-gold large pulse" onclick="document.getElementById('modal').setAttribute('aria-hidden','true')" style="margin-top:8px">🎉 ¡GENIAL!</button>
+    </div>`);
 }
 
 /* ══════════════════════════════════════
-   HISTORIAL
+   RENDER PRODUCTS
 ══════════════════════════════════════ */
-function getPurchases(){return lsGet(LS.purchases,[]);}
-function addPurchase(product,note=''){
-  const hist=getPurchases();
-  hist.unshift({id:product.id,name:product.name,icon:product.emoji||'📦',note,date:new Date().toISOString()});
-  if(hist.length>50)hist.pop();
-  lsSet(LS.purchases,hist);renderHistory();
-}
-function renderHistory(){
-  const list=$('#histList');if(!list)return;
-  const hist=getPurchases();
-  if(!hist.length){
-    list.innerHTML='<div class="hist-empty"><span>📭</span><p>SIN COMPRAS AÚN</p></div>';
+let currentCategory = 'all';
+
+function renderProducts() {
+  const grid = $('#productsGrid'); if (!grid) return;
+  const filtered = currentCategory==='all' ? PRODUCTS : PRODUCTS.filter(p=>p.cat===currentCategory);
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;font-family:var(--font-pixel);font-size:0.32rem;color:var(--muted)">Sin productos en esta categoría.</div>`;
     return;
   }
-  list.innerHTML=hist.map(p=>`
-    <div class="hist-item">
-      <span class="hi-icon">${p.icon||'📦'}</span>
-      <div class="hi-info">
-        <div class="hi-name">${esc(p.name)}</div>
-        <div class="hi-note">${esc(p.note||'')}</div>
+
+  const couponPct = getCurrentCouponPct();
+  const isFlash   = flashDiscount > 0;
+
+  grid.innerHTML = filtered.map((p, idx) => {
+    const startMs  = parseDateStart(p.startsAt);
+    const expMs    = parseDate(p.expiresAt);
+    const isUpcoming = !!(startMs && startMs > now());
+    const isExpired  = !!(expMs   && expMs   < now());
+    const st = StockLS.get(p.id, p.stock);
+    const isOut = st <= 0;
+    const claimed = isProductClaimed(p);
+
+    const base   = Number(p.price)||0;
+    const isFree = base === 0;
+
+    // Calcular precio con descuento (cupón + flash)
+    const totalDisc = isFlash ? Math.min(100, couponPct + flashDiscount) : couponPct;
+    const finalPrc  = (!isFree && totalDisc > 0) ? Math.max(0, Math.round(base - base * totalDisc / 100)) : base;
+    const hasDisc   = !isFree && totalDisc > 0;
+
+    const priceHTML = isFree
+      ? `<span class="pc-price-main free-price">GRATIS</span>`
+      : hasDisc
+        ? `<span class="pc-price-old">⟡${base}</span><span class="pc-price-discounted">⟡${finalPrc}</span>`
+        : `<span class="pc-price-main">⟡${base}</span>`;
+
+    const discBadgeHTML = hasDisc
+      ? `<span class="pc-discount-badge">-${totalDisc}%</span>`
+      : '';
+
+    const tagsHTML    = (p.tags||[]).map(t=>`<span class="pc-tag ${t.t}">${t.l}</span>`).join('');
+    const badgeHTML   = p.badge ? `<div class="pc-badge ${p.badge}">${p.badge.toUpperCase()}</div>` : '';
+    const rarityClass = p.rarity || 'common';
+
+    // Stock display
+    const stockClass  = st <= 3 ? 'low' : '';
+    const stockText   = st >= 999 ? '∞' : String(st);
+    const restockEl   = p.restock ? `<span class="pc-restock">↻ ${p.restock}</span>` : '';
+
+    // Overlay
+    let overlayHTML = '';
+    if (isExpired)  overlayHTML = `<div class="pc-overlay"><div class="pc-overlay-box"><div class="pc-overlay-title">⌛ CADUCADO</div><div class="pc-overlay-sub">Oferta finalizada</div></div></div>`;
+    if (isUpcoming) overlayHTML = `<div class="pc-overlay"><div class="pc-overlay-box"><div class="pc-overlay-title" style="color:#93c5fd">⏳ PRÓXIMAMENTE</div><div class="pc-overlay-sub">${p.startsAt}</div></div></div>`;
+    if (isOut && !isExpired && !isUpcoming) overlayHTML = `<div class="pc-overlay" style="background:rgba(0,0,0,0.5)"><div class="pc-overlay-box"><div class="pc-overlay-title">AGOTADO</div><div class="pc-overlay-sub">${p.restock?`↻ ${p.restock}` : 'Sin restock'}</div></div></div>`;
+
+    const isDisabled  = isOut || isExpired || isUpcoming || (claimed && !p.daily);
+    let btnText = claimed && p.daily ? '✓ RECLAMADO HOY' : claimed ? '✓ RECLAMADO' : 'COMPRAR';
+    if (isOut)      btnText = 'AGOTADO';
+    if (isExpired)  btnText = 'CADUCADO';
+    if (isUpcoming) btnText = 'PRÓXIMAMENTE';
+    const btnClass = (claimed || isDisabled) ? (isOut?'btn-out':'btn-purchased') : '';
+
+    return `<div class="product-card reveal" data-id="${p.id}" data-rarity="${rarityClass}" style="animation-delay:${idx*0.04}s">
+      <div class="pc-band"></div>
+      ${badgeHTML}
+      ${overlayHTML}
+      <div class="pc-body">
+        <span class="pc-icon">${p.icon}</span>
+        <div class="pc-name">${p.name}</div>
+        <div class="pc-desc">${p.desc}</div>
+        <div class="pc-contents">${tagsHTML}</div>
       </div>
-      <div class="hi-time">${timeAgo(p.date)}</div>
-    </div>`).join('');
-  // Badge
-  const badge=$('#histBadge');
-  if(badge){badge.style.display=hist.length?'grid':'none';badge.textContent=hist.length>9?'9+':hist.length;}
+      <div class="pc-footer">
+        <div class="pc-stock-row">
+          <span class="pc-stock ${stockClass}">📦 ${stockText}</span>
+          ${restockEl}
+        </div>
+        <div class="pc-price-row">
+          ${priceHTML}
+          ${discBadgeHTML}
+        </div>
+        <button class="pc-btn ${btnClass}" data-id="${p.id}" ${isDisabled?'disabled':''}>
+          ${btnText}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Animación reveal
+  requestAnimationFrame(() => {
+    grid.querySelectorAll('.reveal').forEach((el,i) => setTimeout(()=>el.classList.add('visible'),i*35));
+  });
+
+  // Listeners
+  grid.querySelectorAll('.pc-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = PRODUCTS.find(x=>x.id===btn.dataset.id);
+      if (p) showConfirmModal(p);
+    });
+  });
 }
 
 /* ══════════════════════════════════════
-   NPC ZORRITO
+   MODAL
 ══════════════════════════════════════ */
-const NPC_MSGS=[
-  '¡Tengo los mejores items del portal!',
-  'Pack de bienvenida disponible GRATIS',
-  'Fin de semana = descuentos de Sand Brill',
-  'Los legendarios son rarísimos...',
-  '¡Cupones activos hoy!',
-  '¡Compra hoy, gira mañana!',
-  '¿Llaves o tickets? ¡Yo tengo todo!',
-  '¡Los pases te dan muchas recompensas!',
-  'Las llaves del calendario son clave 🔑',
-  '¡Black Friday con descuentos aleatorios!',
-];
-function initNPC(){
-  const d=$('#npcDialog');if(!d)return;
-  let i=0;
-  const upd=()=>{d.textContent=NPC_MSGS[i%NPC_MSGS.length];i++;};
-  upd();foxInterval=setInterval(upd,7000);
+function openModal(html) {
+  const m=$('#modal'), c=$('#modalContent'); if(!m||!c) return;
+  c.innerHTML = html;
+  m.setAttribute('aria-hidden','false');
+}
+function closeModal() { $('#modal')?.setAttribute('aria-hidden','true'); }
+
+/* ══════════════════════════════════════
+   TITLES UNLOCK
+══════════════════════════════════════ */
+function unlockShopTitle(productId) {
+  try {
+    const triggers = { _any:'tl_first_buy', sp_bf_pack:'tl_black_friday', ev_all_access:'tl_all_access' };
+    const earned   = lsGet('mv_titles_earned', ['tl_novato']);
+    const toAdd    = [];
+    if (!earned.includes(triggers._any)) toAdd.push(triggers._any);
+    if (triggers[productId] && !earned.includes(triggers[productId])) toAdd.push(triggers[productId]);
+    if (toAdd.length) lsSet('mv_titles_earned', [...new Set([...earned,...toAdd])]);
+  } catch {}
 }
 
 /* ══════════════════════════════════════
-   PARTÍCULAS
+   PARTICLES
 ══════════════════════════════════════ */
-function initCoins(){
-  const canvas=$('#bgCoins');if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  const dpi=Math.max(1,devicePixelRatio||1);
-  const init=()=>{canvas.width=innerWidth*dpi;canvas.height=innerHeight*dpi;};
-  const SYMS=['🪙','💰','✨','💛','⭐'];
-  let coins=[];
-  const mkCoins=()=>{
-    coins=Array.from({length:30},()=>({
-      x:Math.random()*canvas.width,y:Math.random()*canvas.height,
-      size:(Math.random()*10+8)*dpi,speed:(Math.random()*0.4+0.1)*dpi,
-      sym:SYMS[Math.floor(Math.random()*SYMS.length)],
-      o:Math.random()*0.3+0.05
-    }));
-  };
-  init();mkCoins();
+function initCoins() {
+  const canvas = $('#bgCoins'); if (!canvas) return;
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const SYMS = ['🪙','💰','✨','💛','⭐','🔶'];
+  const coins = Array.from({length:25},()=>({
+    x:Math.random()*canvas.width, y:Math.random()*canvas.height,
+    size:Math.random()*10+7, speed:Math.random()*0.35+0.08,
+    sym:SYMS[Math.floor(Math.random()*SYMS.length)],
+    o:Math.random()*0.25+0.04
+  }));
   (function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     coins.forEach(c=>{
-      ctx.globalAlpha=c.o;ctx.font=`${c.size}px serif`;
+      ctx.globalAlpha=c.o; ctx.font=`${c.size}px serif`;
       ctx.fillText(c.sym,c.x,c.y);
-      c.y-=c.speed;if(c.y<-20){c.y=canvas.height+10;c.x=Math.random()*canvas.width;}
+      c.y-=c.speed;
+      if(c.y<-20){c.y=canvas.height+10;c.x=Math.random()*canvas.width;}
     });
     requestAnimationFrame(draw);
   })();
-  window.addEventListener('resize',()=>{init();mkCoins();});
+  window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
 }
 
 /* ══════════════════════════════════════
-   TOAST
+   NPC
 ══════════════════════════════════════ */
-function toast(msg,icon='',type='success'){
-  const t=$('#toast');if(!t)return;
-  t.textContent=`${icon?icon+' ':''}${msg}`;t.className=`toast show ${type}`;
-  clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),3000);
+function initNPC() {
+  const d = $('#npc-dialog'); if (!d) return;
+  let i = 0;
+  function upd() { d.textContent = NPC_MSGS[i%NPC_MSGS.length]; i++; }
+  upd(); setInterval(upd, 7000);
 }
 
 /* ══════════════════════════════════════
-   REVEAL
+   TOAST / BEEP
 ══════════════════════════════════════ */
-function initReveal(){
-  const obs=new IntersectionObserver(entries=>{
+function toast(msg, type='success') {
+  const t = $('#toast'); if (!t) return;
+  t.textContent=`${msg}`; t.className=`toast show ${type}`;
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* ══════════════════════════════════════
+   NAV / HAMBURGER
+══════════════════════════════════════ */
+function initNav() {
+  const btn = $('#hamburger'), nav = $('#main-nav');
+  if (btn && nav) btn.addEventListener('click', ()=>nav.classList.toggle('open'));
+}
+
+/* ══════════════════════════════════════
+   HISTORY PANEL
+══════════════════════════════════════ */
+function initHistoryPanel() {
+  const fab = $('#historyFab'), panel = $('#historyPanel');
+  const closeBtn = $('#historyClose');
+  if (!fab || !panel) return;
+  fab.addEventListener('click', () => {
+    const isOpen = panel.classList.toggle('open');
+    panel.setAttribute('aria-hidden', String(!isOpen));
+  });
+  closeBtn?.addEventListener('click', () => {
+    panel.classList.remove('open');
+    panel.setAttribute('aria-hidden','true');
+  });
+  $('#btnClearHistory')?.addEventListener('click', ()=>{
+    if (!confirm('¿Limpiar todo el historial?')) return;
+    lsSet(LS.purchases, []);
+    renderHistory();
+    updateHistoryBadge();
+    toast('Historial limpiado','info');
+  });
+}
+
+/* ══════════════════════════════════════
+   REVEAL ON SCROLL
+══════════════════════════════════════ */
+function initReveal() {
+  const obs = new IntersectionObserver(entries=>{
     entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
   },{threshold:0.1});
   document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 }
 
 /* ══════════════════════════════════════
-   NAV
-══════════════════════════════════════ */
-function initNav(){
-  const btn=$('#hamburger'),nav=$('#main-nav');
-  if(btn&&nav)btn.addEventListener('click',()=>nav.classList.toggle('open'));
-}
-
-/* ══════════════════════════════════════
-   HISTORIAL DRAWER
-══════════════════════════════════════ */
-function initHistDrawer(){
-  const fab=$('#histFab'),drawer=$('#histDrawer'),backdrop=$('#histBackdrop'),close=$('#histClose');
-  const open=()=>{drawer.setAttribute('aria-hidden','false');backdrop.classList.add('show');}
-  const closeFn=()=>{drawer.setAttribute('aria-hidden','true');backdrop.classList.remove('show');}
-  fab?.addEventListener('click',open);
-  close?.addEventListener('click',closeFn);
-  backdrop?.addEventListener('click',closeFn);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFn();});
-
-  $('#btnClearHistory')?.addEventListener('click',()=>{
-    if(!confirm('¿Limpiar historial de compras?'))return;
-    lsSet(LS.purchases,[]);renderHistory();toast('Historial limpiado','🗑️','info');
-  });
-}
-
-/* ══════════════════════════════════════
-   SAND BRILL TIMER
-══════════════════════════════════════ */
-function updateSBTimer(){
-  if(!isSandBrillActive())return;
-  const state=getSBState();
-  const el=$('#sbTimer');
-  if(el&&state.nextRefresh>Date.now())el.textContent=timeLeft(state.nextRefresh);
-}
-
-/* ══════════════════════════════════════
    BOOT
 ══════════════════════════════════════ */
-function boot(){
-  console.log('🛒 Moonveil Tienda v3.0');
-  syncStocks();
+function boot() {
+  console.log('🛒 Moonveil Shop v3.0');
 
-  // Validate seasonal coupon
-  if(currentSeasonalId){
-    const allSCs=[...SEASONAL_COUPONS,BLACK_FRIDAY_COUPON];
-    const sc=allSCs.find(s=>s.id===currentSeasonalId);
-    if(!sc||!isSeasonalCouponActive(sc)){
-      saveSeasonalId(null);bfDiscount=null;currentCoupon=0;saveCoupon();
-    }else if(sc.id===BLACK_FRIDAY_COUPON.id){rollBF();currentCoupon=bfDiscount;saveCoupon();}
-  }
+  // Init stock for all products
+  PRODUCTS.forEach(p => initStock(p));
 
-  initReveal();initNav();initCoins();initNPC();initHistDrawer();
+  initReveal(); initNav(); initCoins(); initNPC();
+  initHistoryPanel();
+  renderHUD(); renderHistory(); updateHistoryBadge();
+  renderCouponUI();
+  initFlashSale(); initSandBrill();
 
-  renderHUD();renderHistory();renderCouponUI();
-  updateFlashBanner();updateFlashTimer();
-  renderSandBrill();
-  renderProducts();
-
-  // Intervalos
-  setInterval(updateFlashTimer,1000);
-  setInterval(updateSBTimer,5000);
-  setInterval(()=>{syncStocks();renderProducts();},60000);
-
-  // Categorías
-  $$('.cat-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      $$('.cat-btn').forEach(b=>b.classList.remove('active'));
+  // Category buttons
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
-      currentCategory=btn.dataset.cat||'all';
-      renderProducts();initReveal();
+      currentCategory = btn.dataset.cat || 'all';
+      renderProducts();
     });
   });
 
-  // Búsqueda
-  $('#searchInput')?.addEventListener('input',e=>{searchText=e.target.value||'';renderProducts();});
-  $('#searchClear')?.addEventListener('click',()=>{if($('#searchInput'))$('#searchInput').value='';searchText='';renderProducts();});
+  renderProducts();
 
-  // Clear coupon
-  $('#btnClearCoupon')?.addEventListener('click',()=>{
-    currentCoupon=0;saveSeasonalId(null);bfDiscount=null;saveCoupon();
-    renderCouponUI();renderProducts();toast('Cupón desactivado','','info');
+  // Modal close
+  $('#modalClose')?.addEventListener('click', closeModal);
+  $('#modal .modal-backdrop')?.addEventListener('click', closeModal);
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+
+  // Coupon clear
+  document.addEventListener('click', e=>{
+    if (e.target?.id==='couponClearBtn') {
+      currentCoupon=0; currentScId=null; bfCurrentDiscount=null;
+      localStorage.setItem(LS.coupon,'0');
+      localStorage.removeItem(LS.scActive);
+      renderCouponUI(); renderProducts(); renderSandBrill();
+      toast('Cupón desactivado','info');
+    }
   });
 
-  // Modal
-  $('#modalClose')?.addEventListener('click',closeModal);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+  // Timers
+  setInterval(()=>{ updateFlashTimer(); updateSandbrillTimer(); renderCouponUI(); }, 1000);
 
-  // Firebase auth
+  // Firebase
   onAuthChange(async user=>{
-    if(!user)return;
-    currentUID=user.uid;
+    if (!user) return;
+    currentUID = user.uid;
     await loadFromFirebase(user.uid);
-    renderHUD();renderHistory();
-    console.log('✅ Tienda Firebase OK:',user.uid);
+    renderHUD(); renderHistory();
+    console.log('✅ Shop Firebase OK:', user.uid);
   });
 }
 
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
