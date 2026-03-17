@@ -1,11 +1,9 @@
 'use strict';
 /**
  * tienda.js — Moonveil Portal Shop v3.1
- * CAMBIOS v3.1:
- * · NPC dialogs más grandes y variados
- * · Rusty dialogs más grandes, más frases de incentivo
- * · Historial: agrupado por fecha, total por día, total global, limpiar funcional
- * · Botón historial movido a la izquierda
+ * · Rusty: más diálogos y texto más grande
+ * · NPC flotante: texto más grande
+ * · Historial: secciones por fecha, totales diarios, limpiar funcional
  */
 
 import { db }           from './firebase.js';
@@ -128,6 +126,19 @@ function timeAgo(iso){
   const s=Math.floor((Date.now()-new Date(iso))/1000);
   if(s<60)return'hace un momento';if(s<3600)return`hace ${Math.floor(s/60)}m`;
   if(s<86400)return`hace ${Math.floor(s/3600)}h`;return`hace ${Math.floor(s/86400)}d`;
+}
+function formatDateLabel(isoDate){
+  // isoDate = 'YYYY-MM-DD'
+  const [y,m,d]=isoDate.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  const todayStr=today();
+  const yesterdayDt=new Date();yesterdayDt.setDate(yesterdayDt.getDate()-1);
+  const yesterdayStr=yesterdayDt.toISOString().slice(0,10);
+  if(isoDate===todayStr) return '📅 HOY';
+  if(isoDate===yesterdayStr) return '📅 AYER';
+  const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return`📅 ${dias[dt.getDay()]} ${d} ${meses[m-1]} ${y}`;
 }
 
 /* ══ COUNTDOWN ══ */
@@ -499,7 +510,6 @@ function buildCard(p,idx){
     superKeyIcons=`<div class="pc-superkey-icons">${entries.map(([k,a])=>{const info=SUPER_KEY_INFO[k]||{emoji:'⭐'};return`<span class="ck-mini" style="border-color:${info.color}44;color:${info.color}">${info.emoji}<sub>×${a}</sub></span>`;}).join('')}</div>`;
   }
   const amtBadge=p.amount&&p.amount>1?`<span class="pc-tag" style="color:#93c5fd;border-color:rgba(96,165,250,0.3)">🎫 x${p.amount}</span>`:'';
-
   const btnLabel=isDisabled?(isExpired?'CADUCADO':isUpcoming?'PRÓXIMO':'AGOTADO'):'COMPRAR';
 
   const html=`<div class="product-card reveal" data-rarity="${q}" data-id="${p.id}" style="animation-delay:${idx*0.04}s">
@@ -533,27 +543,33 @@ function buildCard(p,idx){
   return{html,cds};
 }
 
-/* ══ RUSTY — OFERTAS DIARIAS ══ */
-/* ── DIALOGOS MÁS GRANDES Y MÁS FRASES ── */
+/* ══ RUSTY — DIÁLOGOS AMPLIADOS ══ */
 const RUSTY_DIALOGUES=[
   '¡Mira estas ofertas, solo por hoy! 🔥',
-  '¡Las mejores rebajas del portal, te lo juro!',
-  '¡Corre, el stock es muy limitado! ⚡',
-  '¡A ese precio tan justo, verdad? 😏',
-  '¡Estas ofertas las escogí YO mismo! 🦊',
-  '¡Hoy es tu día de suerte, viajero! 🍀',
+  '¡Las mejores rebajas de todo el portal!',
+  '¡Corre, el stock es super limitado! ⚡',
+  '¿A qué precio tan justo, verdad? 🦊',
+  '¡Estas ofertas las elegí yo mismo!',
+  '¡Hoy es tu día de suerte, viajero!',
   '¡Compra ahora o lo perderás para siempre!',
-  'Mi nariz nunca falla con las gangas 🦊✨',
-  '¡Exclusivo de Rusty, solo aquí en el portal!',
-  '¡Los precios cambian mañana! ¡Apúrate!',
-  'Sssh… estos precios son un secreto 🤫',
-  '¡Mis ofertas son mejores que las de la tienda grande!',
-  '¡No digas que no te avisé cuando se agote! 😤',
-  '¡Con este precio hasta yo compraría dos! 🤩',
-  '¡Las llaves de cofre están a precio de ganga hoy!',
-  'He buscado todo el portal por estas gangas 🗺️',
-  '¡Mis clientes siempre vuelven felices! 😄',
-  '¡Última unidad! ¡Literalmente! Bueno… quizás… 😅',
+  'Mi nariz nunca falla con las gangas 🦊',
+  '¡Exclusivo de Rusty, solo aquí!',
+  '¡Los precios vuelven mañana! ¡Apúrate!',
+  '¡Soy el mejor mercader del portal! 💰',
+  '¡Estos precios me duelen pero los doy igual! 😭',
+  'Pssst… esto entre tú y yo, ¿eh? 🤫',
+  '¡Oferta relámpago! No cuentes conmigo mañana 😅',
+  '¡Mi jefe no sabe que vendo tan barato! 🫣',
+  '¡Estos artículos los conseguí con mucho esfuerzo! 💪',
+  '¿No vas a comprar nada? ¡Al menos mira! 👀',
+  '¡Yo mismo probé todos estos productos! 🌟',
+  '¡Los legendarios casi me costaron la vida! 🗡️',
+  'Viajero, esto no lo encontrarás en otro sitio 🏆',
+  '¡El cupón de hoy es una locura! Aprovéchalo 🎟️',
+  '¡Stock casi agotado, date prisa! 📦',
+  'Mi instinto de zorro me dice que esto te conviene 🦊',
+  '¡Precios que hacen llorar al creador del portal! 😂',
+  '¡Hasta yo me compraría esto si no lo vendiera! 🛒',
 ];
 let rustyDialogIdx=0;
 function startRustyDialogues(){
@@ -562,10 +578,33 @@ function startRustyDialogues(){
   setInterval(()=>{
     rustyDialogIdx=(rustyDialogIdx+1)%RUSTY_DIALOGUES.length;
     el.style.opacity='0';
-    setTimeout(()=>{el.textContent=RUSTY_DIALOGUES[rustyDialogIdx];el.style.opacity='1';},300);
-  },7000);
+    setTimeout(()=>{
+      el.textContent=RUSTY_DIALOGUES[rustyDialogIdx];
+      el.style.opacity='1';
+    },300);
+  },6000);
 }
 
+/* ══ NPC FLOTANTE — DIÁLOGOS AMPLIADOS ══ */
+const NPC_MSGS=[
+  '¡Los mejores productos del portal!',
+  '¿Ya viste los pases de temporada?',
+  '¡Flash Sale activo el finde! ⚡',
+  '🦊 ¡Mis ofertas son irresistibles!',
+  'Los legendarios son rarísimos…',
+  '¡Los stocks limitados se agotan!',
+  '¿Tickets o llaves? ¡Tengo todo!',
+  '¡Código especial para más descuentos!',
+  '¡Compra hoy antes de que se agote! 🔥',
+  '¡Los pases dan recompensas épicas! 🏆',
+  '¡El finde hay Flash Sale! ¡Vuelve! ⚡',
+  '¡Las llaves futuro son rarísimas! ⏩',
+  '¡Rusty tiene ofertas especiales hoy!',
+  '¡Aplica tu cupón antes de comprar! 🎟️',
+  '¡Las superestrellas brillan con fuerza! ⭐',
+];
+
+// Semilla diaria
 function getDailySeed(){
   const d=new Date();
   return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
@@ -677,8 +716,11 @@ function buySBProduct(p,finalPrice,disc){
 function deliverProduct(p){
   if(p.calKey){awardCalKeys(p.calKey);}
   else if(p.superKey){awardSuperKeys(p.superKey);}
-  else if(p.wheelId&&p.amount){addGachaT(p.wheelId,p.amount);}
-  else if(p.sec==='pases'){activatePass(p.id);}
+  else if(p.wheelId&&p.amount){
+    addGachaT(p.wheelId,p.amount);
+  } else if(p.sec==='pases'){
+    activatePass(p.id);
+  }
   renderHUD();
   scheduleSync();
 }
@@ -900,7 +942,7 @@ function executeBuy(p,finalPrice,discPct){
   if(currentCoupon){
     if(currentScId){
       const sc=[...SEASONAL_COUPONS,BLACK_FRIDAY].find(s=>s.id===currentScId);
-      if(sc&&sc.id===BLACK_FRIDAY.id){/* BF ilimitado */}
+      if(sc&&sc.id===BLACK_FRIDAY.id){/* BF no se agota */}
       else if(sc){decScUses(sc);if(getScUsesLeft(sc)<=0){saveCurrentScId(null);currentCoupon=0;saveCurrentCoupon();toast('🎟️ Usos de cupón agotados','info');}}
     } else {
       setCoupCD(currentCoupon,nextMidnight(1));
@@ -940,131 +982,108 @@ function getRewardLines(p){
   return lines;
 }
 
-/* ══ HISTORIAL — MEJORADO CON SECCIONES POR FECHA ══ */
+/* ══ HISTORIAL — REDISEÑADO CON SECCIONES POR FECHA ══ */
 function getPurchases(){return lsGet(LS.hist,[]);}
 
 function addPurchase(p,note='',finalPrice=null,discPct=0){
   const hist=getPurchases();
   hist.unshift({
-    id:p.id,name:p.name,icon:p.emoji||'📦',
-    note,date:new Date().toISOString(),
+    id:p.id,
+    name:p.name,
+    icon:p.emoji||'📦',
+    note,
+    date:new Date().toISOString(),
     price:finalPrice!=null?finalPrice:(p.price||0),
     origPrice:p.price||0,
     disc:discPct,
     sec:p.sec,
   });
-  if(hist.length>60)hist.pop();
+  if(hist.length>100)hist.pop();
   lsSet(LS.hist,hist);
   renderHistory();
   scheduleSync();
 }
 
+/**
+ * Agrupa el historial por fecha (YYYY-MM-DD)
+ * Cada grupo tiene: dateKey, items[], totalPaid
+ */
+function groupHistoryByDate(hist){
+  const groups={};
+  hist.forEach(h=>{
+    const dk=h.date?h.date.slice(0,10):today();
+    if(!groups[dk])groups[dk]={dateKey:dk,items:[],totalPaid:0,hasFree:false};
+    groups[dk].items.push(h);
+    groups[dk].totalPaid+=h.price||0;
+    if(h.price===0||(h.origPrice===0&&h.price===0))groups[dk].hasFree=true;
+  });
+  // Ordenar fechas descendiente (más reciente primero)
+  return Object.values(groups).sort((a,b)=>b.dateKey.localeCompare(a.dateKey));
+}
+
 function renderHistory(){
-  const list=$('#purchasesList');
-  if(!list)return;
+  const list=$('#purchasesList');if(!list)return;
   const hist=getPurchases();
 
-  // Badge en botón toggle
-  const badge=document.querySelector('#histToggle .hist-badge');
-  if(badge)badge.textContent=hist.length>0?hist.length:'';
+  // Actualizar badge y contador
+  const badge=$('#histToggle .hist-badge, .hist-badge');
+  $$('.hist-badge').forEach(b=>b.textContent=hist.length>0?hist.length:'');
+  const countEl=$('.hist-count');
+  if(countEl){
+    const totalSpent=hist.reduce((s,h)=>s+(h.price||0),0);
+    if(hist.length>0){
+      countEl.textContent=`${hist.length} compra${hist.length!==1?'s':''} · Total: ⟡${totalSpent}`;
+    } else {
+      countEl.textContent=' ';
+    }
+  }
 
-  // Count en cabecera del drawer
-  const countEl=document.querySelector('.hist-count');
-  if(countEl)countEl.textContent=hist.length>0?`${hist.length} compra${hist.length!==1?'s':''}`:' ';
-
-  // ─── VACÍO ───
   if(!hist.length){
     list.innerHTML=`<div class="empty-hist">
       <span>📭</span>
       <p>SIN COMPRAS AÚN</p>
-      <div class="empty-hist-sub">Tus compras aparecerán aquí agrupadas por día</div>
+      <div class="empty-hist-sub">Tus compras aparecerán aquí</div>
     </div>`;
-    const sumEl=document.getElementById('histSummary');
-    if(sumEl)sumEl.style.display='none';
     return;
   }
 
-  // ─── AGRUPAR POR FECHA (YYYY-MM-DD) ───
-  const groups={};
-  hist.forEach(h=>{
-    const dateKey=h.date?h.date.slice(0,10):'sin-fecha';
-    if(!groups[dateKey])groups[dateKey]=[];
-    groups[dateKey].push(h);
-  });
+  const groups=groupHistoryByDate(hist);
 
-  const sortedDates=Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+  list.innerHTML=groups.map(g=>{
+    const allFree=g.totalPaid===0;
+    const totalLabel=allFree
+      ? `GRATIS`
+      : `⟡${g.totalPaid}`;
+    const totalClass=allFree?'hist-date-total free':'hist-date-total';
 
-  // Total global
-  const totalGlobal=hist.reduce((sum,h)=>sum+Number(h.price||0),0);
-
-  // Labels de fecha
-  const todayStr=new Date().toISOString().slice(0,10);
-  const yesterdayStr=new Date(Date.now()-86400000).toISOString().slice(0,10);
-  const diasSem=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  const mesesCortos=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-
-  function formatDateLabel(dk){
-    if(dk==='sin-fecha')return'📅 SIN FECHA';
-    if(dk===todayStr)return'📅 HOY';
-    if(dk===yesterdayStr)return'📅 AYER';
-    const d=new Date(dk+'T12:00:00');
-    return`📅 ${diasSem[d.getDay()]} ${d.getDate()} ${mesesCortos[d.getMonth()]} ${d.getFullYear()}`;
-  }
-
-  let html='';
-  sortedDates.forEach(dk=>{
-    const items=groups[dk];
-    const dayTotal=items.reduce((sum,h)=>sum+Number(h.price||0),0);
-    html+=`<div class="hist-date-group">
-      <div class="hist-date-header">
-        <span class="hist-date-label">${formatDateLabel(dk)}</span>
-        <span class="hist-date-total">
-          <span class="hist-date-total-label">TOTAL:</span>
-          ${dayTotal===0?'<span style="color:var(--green)">GRATIS</span>':`⟡${dayTotal}`}
-        </span>
-      </div>`;
-
-    items.forEach(h=>{
-      const isFree=Number(h.origPrice)===0||Number(h.price)===0;
-      const hasDisc=Number(h.disc)>0;
-      const hora=h.date?new Date(h.date).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'}):'';
-      html+=`<div class="purchase-item">
+    const itemsHTML=g.items.map(h=>{
+      const isFree=h.price===0;
+      const hasDisc=h.disc>0;
+      const hh=new Date(h.date).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+      return`<div class="purchase-item">
         <div class="pi-icon-wrap">${h.icon||'📦'}</div>
         <div class="pi-info">
           <div class="pi-name">${esc(h.name)}</div>
-          <div class="pi-detail">${esc(h.note||h.sec||'')}</div>
-          <div class="pi-time">${hora?hora+' · ':''}${timeAgo(h.date)}</div>
+          ${h.note?`<div class="pi-detail">${esc(h.note)}</div>`:''}
+          <div class="pi-time-row">
+            <span class="pi-time">🕐 ${hh} · ${timeAgo(h.date)}</span>
+          </div>
         </div>
         <div class="pi-right">
           <span class="pi-price${isFree?' free':''}">${isFree?'GRATIS':'⟡'+h.price}</span>
           ${hasDisc?`<span class="pi-disc">-${h.disc}%</span>`:''}
         </div>
       </div>`;
-    });
+    }).join('');
 
-    html+=`</div>`; // hist-date-group
-  });
-
-  list.innerHTML=html;
-
-  // ─── RESUMEN TOTAL GLOBAL (al fondo del drawer) ───
-  let sumEl=document.getElementById('histSummary');
-  if(!sumEl){
-    const drawer=document.getElementById('histDrawer');
-    if(drawer){
-      sumEl=document.createElement('div');
-      sumEl.id='histSummary';
-      sumEl.className='hist-summary';
-      drawer.appendChild(sumEl);
-    }
-  }
-  if(sumEl){
-    sumEl.style.display='flex';
-    sumEl.innerHTML=`
-      <span class="hist-summary-label">💰 TOTAL GASTADO EN TOTAL</span>
-      <span class="hist-summary-val">⟡${totalGlobal}</span>
-    `;
-  }
+    return`<div class="hist-date-section">
+      <div class="hist-date-header">
+        <span class="hist-date-label">${formatDateLabel(g.dateKey)}</span>
+        <span class="${totalClass}">TOTAL: ${totalLabel}</span>
+      </div>
+      <div class="hist-date-items">${itemsHTML}</div>
+    </div>`;
+  }).join('');
 }
 
 /* ══ CUPONES RENDER ══ */
@@ -1157,29 +1176,15 @@ function toast(msg,type='success'){
   clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-/* ══ NPC — DIALOGOS MÁS GRANDES Y MÁS VARIADOS ══ */
-const NPC_MSGS=[
-  '¡Los mejores productos del portal!',
-  '¿Ya viste los pases de temporada?',
-  '¡Flash Sale activo el finde! ⚡',
-  '¡Stock limitado, no te lo pierdas!',
-  'Los legendarios son rarísimos… 👀',
-  '¿Tickets o llaves? ¡Tengo todo aquí!',
-  '¡Hoy puede ser tu día de suerte! 🍀',
-  '¡Compra ahora antes de que se agote!',
-  'Psst… los pases valen cada moneda 👀',
-  '¡Esos cofres esperan ser abiertos!',
-  '¡Nadie se arrepiente de comprar aquí!',
-  '¿Esperando? El stock no espera 😤',
-  '¡Las llaves superestrella son épicas ⭐!',
-  '¡El calendario recompensa a los valientes!',
-  '¡Vuelve mañana para más ofertas! 🦊',
-];
+/* ══ NPC ══ */
 let npcIdx=0,npcIv=null;
 function initNPC(){
   const d=$('#npc-dialog');if(!d)return;
   d.textContent=NPC_MSGS[0];
-  npcIv=setInterval(()=>{npcIdx=(npcIdx+1)%NPC_MSGS.length;d.textContent=NPC_MSGS[npcIdx];},9000);
+  npcIv=setInterval(()=>{
+    npcIdx=(npcIdx+1)%NPC_MSGS.length;
+    d.textContent=NPC_MSGS[npcIdx];
+  },9000);
 }
 
 /* ══ PARTICLES ══ */
@@ -1251,7 +1256,7 @@ function boot(){
     renderCoupons();renderAll();toast('Cupón eliminado','info');
   });
 
-  // Historial drawer — MOVIDO A LA IZQUIERDA, LIMPIAR FUNCIONAL
+  // Historial drawer
   const drawer=$('#histDrawer'),backdrop=$('#histBackdrop');
   $('#histToggle')?.addEventListener('click',()=>{
     drawer?.classList.toggle('open');
@@ -1267,15 +1272,14 @@ function boot(){
     backdrop.classList.remove('open');
   });
 
-  // ── LIMPIAR HISTORIAL — FUNCIONAL ──
+  // LIMPIAR HISTORIAL — completamente funcional
   $('#btnClearHistory')?.addEventListener('click',()=>{
-    if(!confirm('¿Limpiar todo el historial de compras?\n\nEsto no deshará las compras realizadas.'))return;
+    if(!confirm('¿Limpiar todo el historial de compras?\n\nEsta acción no se puede deshacer.'))return;
+    // Limpiar del localStorage completamente
     lsSet(LS.hist,[]);
+    // Forzar render inmediato
     renderHistory();
-    toast('🗑️ Historial limpiado completamente','info');
-    // Ocultar resumen de totales
-    const sumEl=document.getElementById('histSummary');
-    if(sumEl)sumEl.style.display='none';
+    toast('🗑️ Historial limpiado','info');
   });
 
   // Hamburger
