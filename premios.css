@@ -614,3 +614,134 @@ a:hover { color:#c4b5fd; }
   .wheel-tab { min-width:100%; }
   .footer-inner { flex-direction:column; text-align:center; }
 }
+
+/* ════════════════════════════════════
+   ADDITIONS v2.0
+   - Misiones countdown
+   - Zorrito más grande
+   - Botones con z-index correcto
+   - Textos más legibles
+════════════════════════════════════ */
+
+/* Fix botones de giro — z-index y pointer-events */
+.spin-controls {
+  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  justify-content:center;
+  position:relative; z-index:10;
+  margin-top:36px; /* espacio desde el puntero */
+}
+.btn-pixel {
+  position:relative; z-index:10;
+  cursor:pointer !important;
+  user-select:none;
+}
+.btn-pixel:disabled { pointer-events:none; opacity:0.4; cursor:not-allowed !important; }
+
+/* Wheel pointer — no bloquea botones */
+.wheel-pointer {
+  position:absolute; bottom:-34px; left:50%;
+  transform:translateX(-50%);
+  font-size:28px; color:var(--a);
+  text-shadow:0 0 12px var(--a), 2px 2px 0 #000;
+  animation:pointerBounce 2s ease-in-out infinite; z-index:5;
+  pointer-events:none;
+}
+
+/* NPC Zorrito — burbuja y texto más grandes */
+.npc-bubble {
+  margin-bottom:10px; padding:10px 14px; max-width:210px;
+  background:rgba(9,8,15,0.98); border:3px solid var(--a);
+  box-shadow:4px 4px 0 #000,0 0 16px rgba(139,92,246,0.4);
+  font-family:var(--font-pixel); font-size:0.32rem !important;
+  color:#c4b5fd; line-height:2.0;
+}
+.npc-avatar img {
+  width:80px; height:80px;
+  border:3px solid var(--a); background:#000;
+  image-rendering:pixelated;
+  box-shadow:4px 4px 0 #000,0 0 12px var(--a);
+}
+
+/* Misiones — textos más legibles */
+.mi-title {
+  font-family:var(--font-pixel); font-size:0.3rem !important;
+  color:var(--text); margin-bottom:4px; line-height:2.0;
+}
+.mi-desc {
+  font-family:var(--font-vt); font-size:1rem !important;
+  color:var(--muted); margin-bottom:6px;
+}
+.mi-tag { font-family:var(--font-pixel); font-size:0.24rem !important; }
+
+/* Countdown de reset de misiones */
+.mission-reset-row {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:6px; padding:6px 10px; margin-bottom:8px;
+  border:1px solid; font-family:var(--font-pixel);
+}
+.mission-reset-row.daily-reset  {
+  color:#4ade80; border-color:rgba(74,222,128,0.3);
+  background:rgba(74,222,128,0.06);
+}
+.mission-reset-row.weekly-reset {
+  color:#60a5fa; border-color:rgba(96,165,250,0.3);
+  background:rgba(96,165,250,0.06);
+}
+.mcd-label { font-size:0.2rem; color:inherit; opacity:0.7; }
+.mcd-val   { font-size:0.28rem; color:inherit; }
+
+/* Info de ruleta — texto desc más grande */
+.wi-desc { font-family:var(--font-vt); font-size:1rem !important; color:var(--muted); padding-top:8px; border-top:2px solid var(--border); }
+.wi-item { font-family:var(--font-pixel); font-size:0.28rem !important; color:var(--muted); }
+
+/* Pity labels más legibles */
+.pity-lbl    { font-family:var(--font-pixel); font-size:0.28rem !important; color:var(--muted); }
+.pity-counter{ font-family:var(--font-pixel); font-size:0.28rem !important; color:#c4b5fd; }
+.pity-bar-label { font-family:var(--font-pixel); font-size:0.24rem !important; color:var(--muted); }
+
+/* Tabs – nombres más visibles */
+.tab-name { font-family:var(--font-pixel); font-size:0.32rem !important; }
+.tab-desc { font-family:var(--font-vt); font-size:1rem !important; }
+.tab-timer{ font-family:var(--font-pixel); font-size:0.24rem !important; }
+
+/* Hero stats */
+.stat-val { font-family:var(--font-pixel); font-size:0.7rem !important; }
+.stat-lbl { font-family:var(--font-pixel); font-size:0.24rem !important; }
+.stat-ico { font-family:var(--font-pixel); font-size:0.28rem !important; }
+
+/* Sec titles */
+.sec-title { font-family:var(--font-pixel); font-size:0.44rem !important; }
+
+/* HUD tickets más legibles */
+.hud-ticket-slot { font-family:var(--font-pixel); font-size:0.32rem !important; padding:4px 9px; }
+
+/* Ticket badge */
+.tb-name  { font-family:var(--font-pixel); font-size:0.24rem !important; }
+.tb-count { font-family:var(--font-pixel); font-size:0.6rem !important; }
+
+/* Prize card texto */
+.prize-name   { font-family:var(--font-pixel); font-size:0.32rem !important; }
+.prize-rarity { font-family:var(--font-pixel); font-size:0.24rem !important; }
+
+/* Modal h2 */
+.modal-content h2 { font-family:var(--font-pixel); font-size:0.6rem !important; }
+
+/* Lock box */
+.lock-ico { font-size:2rem !important; }
+.lock-txt { font-family:var(--font-pixel); font-size:0.44rem !important; }
+.lock-range { font-family:var(--font-pixel); font-size:0.28rem !important; }
+
+/* ph-icon (panel header) */
+.ph-icon { font-family:var(--font-pixel); font-size:0.32rem !important; }
+
+/* rules-body */
+.rules-body { font-family:var(--font-vt); font-size:1.05rem !important; }
+.rules-body h3 { font-family:var(--font-pixel); font-size:0.38rem !important; }
+
+/* Boost */
+.boost-status { font-family:var(--font-pixel); font-size:0.32rem !important; }
+.boost-timer  { font-family:var(--font-pixel); font-size:0.28rem !important; }
+
+/* hero-lead */
+.hero-lead { font-family:var(--font-vt); font-size:1.1rem !important; }
+.hero-eyebrow { font-family:var(--font-pixel); font-size:0.34rem !important; }
