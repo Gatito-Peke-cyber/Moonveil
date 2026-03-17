@@ -1,15 +1,11 @@
 'use strict';
 /**
- * tienda.js — Moonveil Portal Shop v3.0
- * · Todas las secciones: pases, cofres, materiales, historia,
- *   monedas, eventos, pack coins, tickets, llaves cal, superestrellas
- * · Stock real con restock por medianoche
- * · Flash sale con countdown + descuento aleatorio fines de semana
- * · Sand Brill: ofertas relámpago al azar (10-60% off)
- * · Cupones: regular + temporada + Black Friday
- * · Countdown caducidad / próximamente por artículo
- * · Historial en drawer deslizable
- * · Firebase sync
+ * tienda.js — Moonveil Portal Shop v3.1
+ * CAMBIOS v3.1:
+ * · NPC dialogs más grandes y variados
+ * · Rusty dialogs más grandes, más frases de incentivo
+ * · Historial: agrupado por fecha, total por día, total global, limpiar funcional
+ * · Botón historial movido a la izquierda
  */
 
 import { db }           from './firebase.js';
@@ -216,14 +212,13 @@ function getPriceWithCoupon(base){
 let flashDiscount=0;
 function isWeekend(){const d=new Date().getDay();return d===0||d===6;}
 function initFlashSale(){
-  // Fines de semana: descuento aleatorio 15-40%
   if(isWeekend()){
     const stored=lsGet('mv_flash_sale',null);
-    const thisWeekend=today().slice(0,7);// year-month
+    const thisWeekend=today().slice(0,7);
     if(stored&&stored.week===thisWeekend){
       flashDiscount=stored.discount;
     } else {
-      flashDiscount=Math.floor(Math.random()*26)+15;// 15-40
+      flashDiscount=Math.floor(Math.random()*26)+15;
       lsSet('mv_flash_sale',{week:thisWeekend,discount:flashDiscount});
     }
     const textEl=$('#flashText');
@@ -233,7 +228,6 @@ function initFlashSale(){
     const textEl=$('#flashText');
     if(textEl)textEl.textContent='Vuelve el finde para el Flash Sale ⚡';
   }
-  // Countdown hasta medianoche
   setInterval(()=>{
     const now=new Date(),mn=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,0);
     const diff=Math.max(0,Math.floor((mn-now)/1000));
@@ -384,7 +378,6 @@ let currentSection='all', searchText='', currentModal=null;
 function renderAll(){
   clearAllCDs();
   const now=Date.now();
-  // Filtrar por sección y búsqueda
   const filtered=products.filter(p=>{
     const secOk=currentSection==='all'||p.sec===currentSection;
     const q=searchText.trim().toLowerCase();
@@ -392,10 +385,8 @@ function renderAll(){
     return secOk&&(!q||txt.includes(q));
   });
 
-  // Limpiar grids
   Object.values(GRID_MAP).forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});
 
-  // Mostrar/ocultar secciones
   Object.entries(SEC_MAP).forEach(([sec,secId])=>{
     const el=document.getElementById(secId);if(!el)return;
     const hasItems=filtered.some(p=>p.sec===sec);
@@ -411,7 +402,6 @@ function renderAll(){
     cds.forEach(c=>pendingCDs.push(c));
   });
 
-  // Botones
   $$('.pc-btn:not([disabled])').forEach(btn=>{
     btn.addEventListener('click',()=>openConfirmModal(btn.dataset.id));
   });
@@ -419,7 +409,6 @@ function renderAll(){
     btn.addEventListener('click',()=>openDetailModal(btn.dataset.id));
   });
 
-  // Iniciar CDs
   pendingCDs.forEach(({prefix,targetMs})=>startCD(prefix,targetMs));
 }
 
@@ -436,7 +425,6 @@ function buildCard(p,idx){
   const cds=[];
   const q=p.quality||'common';
 
-  // Estado badge
   let stateBadge='';
   if(isExpired) stateBadge=`<div class="pc-state-badge expired">⌛ CADUCADO</div>`;
   else if(isUpcoming) stateBadge=`<div class="pc-state-badge upcoming">⏳ PRÓXIMO</div>`;
@@ -444,7 +432,6 @@ function buildCard(p,idx){
   else if(st<=3&&p.stock>1) stateBadge=`<div class="pc-state-badge limited">⚠️ ÚLTIMOS</div>`;
   else if(p.sec==='eventos') stateBadge=`<div class="pc-state-badge event">🎪 EVENTO</div>`;
 
-  // Overlay
   let overlay='';
   if(isExpired){
     overlay=`<div class="pc-overlay"><div class="pc-overlay-txt">⌛ CADUCADO</div><div class="pc-overlay-sub">Oferta finalizada</div></div>`;
@@ -465,7 +452,6 @@ function buildCard(p,idx){
     overlay=`<div class="pc-overlay"><div class="pc-overlay-txt">❌ AGOTADO</div>${next?`<div class="pc-overlay-sub">↻ Restock aprox. ${new Date(next).toLocaleDateString('es-PE',{day:'2-digit',month:'short'})}</div>`:''}</div>`;
   }
 
-  // Precio con cupón y flash
   let basePrice=p.price;
   let flashAdded=false;
   if(flashDiscount&&basePrice>0&&!isDisabled){basePrice=Math.round(basePrice*(1-flashDiscount/100));flashAdded=true;}
@@ -474,7 +460,6 @@ function buildCard(p,idx){
   if(p.price===0){
     priceHTML=`<span class="pc-price free-price">GRATIS</span>`;
   } else {
-    const showOld=(oldPrice&&oldPrice!==finalPrice)||(flashAdded&&p.price!==basePrice);
     const originalShow=flashAdded?p.price:null;
     if(originalShow) priceHTML+=`<span class="pc-price-old">⟡${originalShow}</span>`;
     if(oldPrice&&oldPrice!==finalPrice) priceHTML+=`<span class="pc-price-old">⟡${oldPrice}</span>`;
@@ -483,13 +468,10 @@ function buildCard(p,idx){
     else if(flashAdded) priceHTML+=`<span class="pc-discount">-${flashDiscount}%</span>`;
   }
 
-  // Stock
   const stockClass=st===0?'no-stock':st<=3?'low-stock':'';
-  const stockLabel=st===0?'AGOTADO':st===999?'∞':'';
   const stockNum=st===0?'':st===999?'∞':String(st);
   const restockStr=p.restock?`↻ ${p.restock}`:p.stock>1?'Sin restock':'—';
 
-  // Countdown expiración
   let expiryHTML='';
   if(expMs&&!isExpired&&!isUpcoming){
     const pfx=`cd-exp-${p.id}`;
@@ -505,9 +487,7 @@ function buildCard(p,idx){
     </div>`;
   }
 
-  // Tags
   const tagsHTML=(p.tags||[]).map(t=>`<span class="pc-tag">#${esc(t)}</span>`).join('');
-  // CalKey icons
   let calKeyIcons='';
   if(p.calKey){
     const entries=p.calKey.pack&&p.calKey.keys?Object.entries(p.calKey.keys):[[p.calKey.type,p.calKey.amount]];
@@ -518,7 +498,6 @@ function buildCard(p,idx){
     const entries=p.superKey.pack&&p.superKey.keys?Object.entries(p.superKey.keys):[[p.superKey.keyId,p.superKey.amount]];
     superKeyIcons=`<div class="pc-superkey-icons">${entries.map(([k,a])=>{const info=SUPER_KEY_INFO[k]||{emoji:'⭐'};return`<span class="ck-mini" style="border-color:${info.color}44;color:${info.color}">${info.emoji}<sub>×${a}</sub></span>`;}).join('')}</div>`;
   }
-  // Badge ticket amount
   const amtBadge=p.amount&&p.amount>1?`<span class="pc-tag" style="color:#93c5fd;border-color:rgba(96,165,250,0.3)">🎫 x${p.amount}</span>`:'';
 
   const btnLabel=isDisabled?(isExpired?'CADUCADO':isUpcoming?'PRÓXIMO':'AGOTADO'):'COMPRAR';
@@ -555,18 +534,26 @@ function buildCard(p,idx){
 }
 
 /* ══ RUSTY — OFERTAS DIARIAS ══ */
-// Los diálogos de Rusty rotan automáticamente
+/* ── DIALOGOS MÁS GRANDES Y MÁS FRASES ── */
 const RUSTY_DIALOGUES=[
-  '¡Mira estas ofertas, solo por hoy!',
-  '¡Las mejores rebajas del portal!',
-  '¡Corre, el stock es limitado!',
-  '¿A que precio tan justo, verdad?',
-  '¡Estas ofertas las elegí yo mismo!',
-  '¡Hoy es tu día de suerte, viajero!',
-  '¡Compra ahora o lo perderás!',
-  'Mi nariz nunca falla con las gangas 🦊',
-  '¡Exclusivo de Rusty, solo aquí!',
-  '¡Los precios vuelven mañana! ¡Apúrate!',
+  '¡Mira estas ofertas, solo por hoy! 🔥',
+  '¡Las mejores rebajas del portal, te lo juro!',
+  '¡Corre, el stock es muy limitado! ⚡',
+  '¡A ese precio tan justo, verdad? 😏',
+  '¡Estas ofertas las escogí YO mismo! 🦊',
+  '¡Hoy es tu día de suerte, viajero! 🍀',
+  '¡Compra ahora o lo perderás para siempre!',
+  'Mi nariz nunca falla con las gangas 🦊✨',
+  '¡Exclusivo de Rusty, solo aquí en el portal!',
+  '¡Los precios cambian mañana! ¡Apúrate!',
+  'Sssh… estos precios son un secreto 🤫',
+  '¡Mis ofertas son mejores que las de la tienda grande!',
+  '¡No digas que no te avisé cuando se agote! 😤',
+  '¡Con este precio hasta yo compraría dos! 🤩',
+  '¡Las llaves de cofre están a precio de ganga hoy!',
+  'He buscado todo el portal por estas gangas 🗺️',
+  '¡Mis clientes siempre vuelven felices! 😄',
+  '¡Última unidad! ¡Literalmente! Bueno… quizás… 😅',
 ];
 let rustyDialogIdx=0;
 function startRustyDialogues(){
@@ -579,7 +566,6 @@ function startRustyDialogues(){
   },7000);
 }
 
-// Semilla diaria: garantiza mismas ofertas todo el día, cambian a medianoche
 function getDailySeed(){
   const d=new Date();
   return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
@@ -591,7 +577,6 @@ function seededRand(seed){
 
 let sbProducts=[];
 function pickSBProducts(){
-  // Excluir pases de temporada y de evento
   const eligible=products.filter(p=>{
     if(p.sec==='pases'||p.sec==='eventos')return false;
     const nowT=Date.now();
@@ -602,13 +587,11 @@ function pickSBProducts(){
   });
   const seed=getDailySeed();
   const rand=seededRand(seed);
-  // Shuffle con semilla
   const shuffled=[...eligible];
   for(let i=shuffled.length-1;i>0;i--){
     const j=Math.floor(rand()*(i+1));
     [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
   }
-  // Descuentos con semilla (10-60%)
   sbProducts=shuffled.slice(0,4).map((p,i)=>{
     const r=seededRand(seed+i+1);
     const disc=Math.floor(r()*51)+10;
@@ -618,7 +601,6 @@ function pickSBProducts(){
 
 function renderSBGrid(){
   const grid=$('#sbGrid');if(!grid)return;
-  // Subtítulo
   const sub=$('#rustySubtitle');
   if(sub){
     const dayNames=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -695,17 +677,8 @@ function buySBProduct(p,finalPrice,disc){
 function deliverProduct(p){
   if(p.calKey){awardCalKeys(p.calKey);}
   else if(p.superKey){awardSuperKeys(p.superKey);}
-  else if(p.wheelId&&p.amount){
-    // Tickets gacha
-    addGachaT(p.wheelId,p.amount);
-  } else if(p.sec==='pases'){
-    // Activar pase
-    activatePass(p.id);
-  } else if(p.sec==='materiales'||p.sec==='monedas'){
-    // Monedas virtuales — solo registrar
-  } else {
-    // Default: registrar compra
-  }
+  else if(p.wheelId&&p.amount){addGachaT(p.wheelId,p.amount);}
+  else if(p.sec==='pases'){activatePass(p.id);}
   renderHUD();
   scheduleSync();
 }
@@ -789,7 +762,6 @@ function openDetailModal(id){
   };
   const qc=qualityColors[p.quality||'common']||qualityColors.common;
 
-  // Llaves cal
   let calKeyBlock='';
   if(p.calKey){
     const entries=p.calKey.pack&&p.calKey.keys?Object.entries(p.calKey.keys):[[p.calKey.type,p.calKey.amount]];
@@ -806,7 +778,6 @@ function openDetailModal(id){
       }).join('')}`;
   }
 
-  // Llaves super
   let superKeyBlock='';
   if(p.superKey){
     const entries=p.superKey.pack&&p.superKey.keys?Object.entries(p.superKey.keys):[[p.superKey.keyId,p.superKey.amount]];
@@ -823,7 +794,6 @@ function openDetailModal(id){
       }).join('')}`;
   }
 
-  // Tickets block
   let ticketBlock='';
   if(p.wheelId&&p.amount){
     const curT=getGachaT(p.wheelId);
@@ -836,10 +806,8 @@ function openDetailModal(id){
       </div>`;
   }
 
-  // Pase block
   let paseBlock='';
   if(p.sec==='pases'){
-    const passId=`pass_s${p.id.replace('s','')}`;
     let passTier='Piedra';
     try{const raw=localStorage.getItem(`mv_pass_${p.id}`);if(raw){const s=JSON.parse(raw);passTier=({stone:'Piedra',iron:'Hierro',gold:'Oro',emerald:'Esmeralda',diamond:'Diamante'}[s.tier||'stone']||'Piedra');}}catch{}
     paseBlock=`
@@ -850,16 +818,13 @@ function openDetailModal(id){
       </div>`;
   }
 
-  // Precio
   const finalPrice=getEffectivePrice(p);
   const discPct=p.price>0?Math.round((p.price-finalPrice)/p.price*100):0;
 
-  // Información de stock
   const stockColorClass=st===0?'val-red':st<=3?'val-red':st===999?'val-green':'val-gold';
   const stockDisplay=st===0?'AGOTADO':st===999?'∞ Ilimitado':`${st} unidades`;
   const rstLabel=p.restock?({'24h':'Cada 24h','7d':'Cada 7 días','30d':'Cada 30 días'}[p.restock]||p.restock):'Sin restock automático';
 
-  // Estado
   let stateNote='';
   if(isExpired)stateNote=`<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);padding:10px 14px;font-family:var(--font-pixel);font-size:0.26rem;color:#ef4444;text-align:center">⌛ OFERTA CADUCADA EL ${p.expiresAt}</div>`;
   else if(isUpcoming)stateNote=`<div style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.25);padding:10px 14px;font-family:var(--font-pixel);font-size:0.26rem;color:#60a5fa;text-align:center">⏳ DISPONIBLE A PARTIR DEL ${p.startsAt}</div>`;
@@ -906,7 +871,7 @@ function openDetailModal(id){
       ${(p.tags||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">${(p.tags||[]).map(t=>`<span class="pc-tag">#${esc(t)}</span>`).join('')}</div>`:''}
       <div class="mdl-divider"></div>
       <div style="text-align:center">
-        ${discPct>0?`<div class="mdl-price-orig">Precio original: ⟡${p.price}</div>`:'' }
+        ${discPct>0?`<div class="mdl-price-orig">Precio original: ⟡${p.price}</div>`:''}
         <div class="mdl-price-final">${p.price===0?'GRATIS':'⟡'+finalPrice}</div>
         ${discPct>0?`<div class="mdl-price-disc">-${discPct}% DE DESCUENTO</div>`:''}
       </div>
@@ -932,11 +897,10 @@ function executeBuy(p,finalPrice,discPct){
   }
   deliverProduct(p);
   addPurchase(p,discPct>0?`-${discPct}% → ⟡${finalPrice}`:'',finalPrice,discPct);
-  // Gastar cupón
   if(currentCoupon){
     if(currentScId){
       const sc=[...SEASONAL_COUPONS,BLACK_FRIDAY].find(s=>s.id===currentScId);
-      if(sc&&sc.id===BLACK_FRIDAY.id){/* BF no se agota */}
+      if(sc&&sc.id===BLACK_FRIDAY.id){/* BF ilimitado */}
       else if(sc){decScUses(sc);if(getScUsesLeft(sc)<=0){saveCurrentScId(null);currentCoupon=0;saveCurrentCoupon();toast('🎟️ Usos de cupón agotados','info');}}
     } else {
       setCoupCD(currentCoupon,nextMidnight(1));
@@ -976,8 +940,9 @@ function getRewardLines(p){
   return lines;
 }
 
-/* ══ HISTORIAL ══ */
+/* ══ HISTORIAL — MEJORADO CON SECCIONES POR FECHA ══ */
 function getPurchases(){return lsGet(LS.hist,[]);}
+
 function addPurchase(p,note='',finalPrice=null,discPct=0){
   const hist=getPurchases();
   hist.unshift({
@@ -993,51 +958,119 @@ function addPurchase(p,note='',finalPrice=null,discPct=0){
   renderHistory();
   scheduleSync();
 }
+
 function renderHistory(){
-  const list=$('#purchasesList');if(!list)return;
+  const list=$('#purchasesList');
+  if(!list)return;
   const hist=getPurchases();
-  // Actualizar contador en botón
-  const toggleBtn=$('#histToggle');
-  if(toggleBtn){
-    const badge=toggleBtn.querySelector('.hist-badge');
-    if(badge)badge.textContent=hist.length>0?hist.length:'';
-  }
-  // Actualizar count en drawer
-  const countEl=$('.hist-count');
+
+  // Badge en botón toggle
+  const badge=document.querySelector('#histToggle .hist-badge');
+  if(badge)badge.textContent=hist.length>0?hist.length:'';
+
+  // Count en cabecera del drawer
+  const countEl=document.querySelector('.hist-count');
   if(countEl)countEl.textContent=hist.length>0?`${hist.length} compra${hist.length!==1?'s':''}`:' ';
+
+  // ─── VACÍO ───
   if(!hist.length){
     list.innerHTML=`<div class="empty-hist">
       <span>📭</span>
       <p>SIN COMPRAS AÚN</p>
-      <div class="empty-hist-sub">Tus compras aparecerán aquí</div>
+      <div class="empty-hist-sub">Tus compras aparecerán aquí agrupadas por día</div>
     </div>`;
+    const sumEl=document.getElementById('histSummary');
+    if(sumEl)sumEl.style.display='none';
     return;
   }
-  list.innerHTML=hist.map(h=>{
-    const isFree=h.origPrice===0||h.price===0;
-    const hasDisc=h.disc>0;
-    return`<div class="purchase-item">
-      <div class="pi-icon-wrap">${h.icon||'📦'}</div>
-      <div class="pi-info">
-        <div class="pi-name">${esc(h.name)}</div>
-        <div class="pi-detail">${esc(h.note||h.sec||'')}</div>
-        <div class="pi-time-row">
-          <span class="pi-time">${timeAgo(h.date)}</span>
+
+  // ─── AGRUPAR POR FECHA (YYYY-MM-DD) ───
+  const groups={};
+  hist.forEach(h=>{
+    const dateKey=h.date?h.date.slice(0,10):'sin-fecha';
+    if(!groups[dateKey])groups[dateKey]=[];
+    groups[dateKey].push(h);
+  });
+
+  const sortedDates=Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+
+  // Total global
+  const totalGlobal=hist.reduce((sum,h)=>sum+Number(h.price||0),0);
+
+  // Labels de fecha
+  const todayStr=new Date().toISOString().slice(0,10);
+  const yesterdayStr=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const diasSem=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const mesesCortos=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  function formatDateLabel(dk){
+    if(dk==='sin-fecha')return'📅 SIN FECHA';
+    if(dk===todayStr)return'📅 HOY';
+    if(dk===yesterdayStr)return'📅 AYER';
+    const d=new Date(dk+'T12:00:00');
+    return`📅 ${diasSem[d.getDay()]} ${d.getDate()} ${mesesCortos[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  let html='';
+  sortedDates.forEach(dk=>{
+    const items=groups[dk];
+    const dayTotal=items.reduce((sum,h)=>sum+Number(h.price||0),0);
+    html+=`<div class="hist-date-group">
+      <div class="hist-date-header">
+        <span class="hist-date-label">${formatDateLabel(dk)}</span>
+        <span class="hist-date-total">
+          <span class="hist-date-total-label">TOTAL:</span>
+          ${dayTotal===0?'<span style="color:var(--green)">GRATIS</span>':`⟡${dayTotal}`}
+        </span>
+      </div>`;
+
+    items.forEach(h=>{
+      const isFree=Number(h.origPrice)===0||Number(h.price)===0;
+      const hasDisc=Number(h.disc)>0;
+      const hora=h.date?new Date(h.date).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'}):'';
+      html+=`<div class="purchase-item">
+        <div class="pi-icon-wrap">${h.icon||'📦'}</div>
+        <div class="pi-info">
+          <div class="pi-name">${esc(h.name)}</div>
+          <div class="pi-detail">${esc(h.note||h.sec||'')}</div>
+          <div class="pi-time">${hora?hora+' · ':''}${timeAgo(h.date)}</div>
         </div>
-      </div>
-      <div class="pi-right">
-        <span class="pi-price${isFree?' free':''}">${isFree?'GRATIS':'⟡'+h.price}</span>
-        ${hasDisc?`<span class="pi-disc">-${h.disc}%</span>`:''}
-      </div>
-    </div>`;
-  }).join('');
+        <div class="pi-right">
+          <span class="pi-price${isFree?' free':''}">${isFree?'GRATIS':'⟡'+h.price}</span>
+          ${hasDisc?`<span class="pi-disc">-${h.disc}%</span>`:''}
+        </div>
+      </div>`;
+    });
+
+    html+=`</div>`; // hist-date-group
+  });
+
+  list.innerHTML=html;
+
+  // ─── RESUMEN TOTAL GLOBAL (al fondo del drawer) ───
+  let sumEl=document.getElementById('histSummary');
+  if(!sumEl){
+    const drawer=document.getElementById('histDrawer');
+    if(drawer){
+      sumEl=document.createElement('div');
+      sumEl.id='histSummary';
+      sumEl.className='hist-summary';
+      drawer.appendChild(sumEl);
+    }
+  }
+  if(sumEl){
+    sumEl.style.display='flex';
+    sumEl.innerHTML=`
+      <span class="hist-summary-label">💰 TOTAL GASTADO EN TOTAL</span>
+      <span class="hist-summary-val">⟡${totalGlobal}</span>
+    `;
+  }
 }
 
 /* ══ CUPONES RENDER ══ */
 function renderCoupons(){
   const box=$('#couponList');if(!box)return;
   const now=Date.now();
-  // Limpiar cooldowns vencidos
   const state=getCoupState();
   let dirty=false;
   REGULAR_COUPONS.forEach(c=>{if(Number(state[c]||0)>0&&Number(state[c])<=now){state[c]=0;dirty=true;}});
@@ -1046,7 +1079,6 @@ function renderCoupons(){
   const allSC=[...SEASONAL_COUPONS,BLACK_FRIDAY];
   const activeSC=allSC.filter(sc=>isScActive(sc));
 
-  // Validar sc guardado
   if(currentScId){
     if(!activeSC.find(sc=>sc.id===currentScId)){
       saveCurrentScId(null);bfDiscount=null;currentCoupon=0;saveCurrentCoupon();
@@ -1054,7 +1086,6 @@ function renderCoupons(){
   }
 
   let html='';
-  // Black Friday / SC
   activeSC.forEach(sc=>{
     const isSel=currentScId===sc.id;
     if(sc.id===BLACK_FRIDAY.id){
@@ -1075,7 +1106,6 @@ function renderCoupons(){
     }
   });
   if(activeSC.length){html+=`<div class="coupon-sep">── Cupones regulares ──</div>`;}
-  // Regulares
   html+=REGULAR_COUPONS.map(c=>{
     const cd=getCoupCD(c);const active=Number(cd)>now;
     const isSel=currentCoupon===c&&!currentScId;
@@ -1088,7 +1118,6 @@ function renderCoupons(){
   }).join('');
   box.innerHTML=html;
 
-  // Listeners SC
   box.querySelectorAll('[data-sc-id]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const scId=btn.dataset.scId;
@@ -1103,7 +1132,6 @@ function renderCoupons(){
       renderCoupons();renderAll();
     });
   });
-  // Listeners regulares
   box.querySelectorAll('[data-pct]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const pct=Number(btn.dataset.pct);
@@ -1129,16 +1157,23 @@ function toast(msg,type='success'){
   clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-/* ══ NPC ══ */
+/* ══ NPC — DIALOGOS MÁS GRANDES Y MÁS VARIADOS ══ */
 const NPC_MSGS=[
   '¡Los mejores productos del portal!',
   '¿Ya viste los pases de temporada?',
-  '¡Flash Sale activo el finde!',
-  '🦊 ¡Mis ofertas son irresistibles!',
-  'Los legendarios son rarísimos…',
-  '¡Los stocks limitados se agotan!',
-  '¿Tickets o llaves? Tengo todo',
-  '¡Código especial para más descuentos!',
+  '¡Flash Sale activo el finde! ⚡',
+  '¡Stock limitado, no te lo pierdas!',
+  'Los legendarios son rarísimos… 👀',
+  '¿Tickets o llaves? ¡Tengo todo aquí!',
+  '¡Hoy puede ser tu día de suerte! 🍀',
+  '¡Compra ahora antes de que se agote!',
+  'Psst… los pases valen cada moneda 👀',
+  '¡Esos cofres esperan ser abiertos!',
+  '¡Nadie se arrepiente de comprar aquí!',
+  '¿Esperando? El stock no espera 😤',
+  '¡Las llaves superestrella son épicas ⭐!',
+  '¡El calendario recompensa a los valientes!',
+  '¡Vuelve mañana para más ofertas! 🦊',
 ];
 let npcIdx=0,npcIv=null;
 function initNPC(){
@@ -1171,7 +1206,7 @@ const _revealObs=new MutationObserver(()=>{
 
 /* ══ BOOT ══ */
 function boot(){
-  console.log('🛒 Moonveil Shop v3.0 — Rusty Edition');
+  console.log('🛒 Moonveil Shop v3.1 — Rusty Edition');
   initReveal();initCoins();initNPC();
   initFlashSale();
   syncStocks();
@@ -1184,7 +1219,6 @@ function boot(){
   renderAll();
   renderHistory();
 
-  // Rerender grids después para reveal
   setTimeout(()=>{
     _revealObs.observe(document.body,{childList:true,subtree:true});
     document.querySelectorAll('.reveal').forEach(el=>{
@@ -1217,18 +1251,31 @@ function boot(){
     renderCoupons();renderAll();toast('Cupón eliminado','info');
   });
 
-  // Historial drawer
+  // Historial drawer — MOVIDO A LA IZQUIERDA, LIMPIAR FUNCIONAL
   const drawer=$('#histDrawer'),backdrop=$('#histBackdrop');
   $('#histToggle')?.addEventListener('click',()=>{
     drawer?.classList.toggle('open');
     backdrop?.classList.toggle('open');
     if(drawer?.classList.contains('open'))renderHistory();
   });
-  $('#histClose')?.addEventListener('click',()=>{drawer?.classList.remove('open');backdrop?.classList.remove('open');});
-  backdrop?.addEventListener('click',()=>{drawer?.classList.remove('open');backdrop.classList.remove('open');});
+  $('#histClose')?.addEventListener('click',()=>{
+    drawer?.classList.remove('open');
+    backdrop?.classList.remove('open');
+  });
+  backdrop?.addEventListener('click',()=>{
+    drawer?.classList.remove('open');
+    backdrop.classList.remove('open');
+  });
+
+  // ── LIMPIAR HISTORIAL — FUNCIONAL ──
   $('#btnClearHistory')?.addEventListener('click',()=>{
-    if(!confirm('¿Limpiar historial?'))return;
-    lsSet(LS.hist,[]);renderHistory();toast('Historial limpiado','info');
+    if(!confirm('¿Limpiar todo el historial de compras?\n\nEsto no deshará las compras realizadas.'))return;
+    lsSet(LS.hist,[]);
+    renderHistory();
+    toast('🗑️ Historial limpiado completamente','info');
+    // Ocultar resumen de totales
+    const sumEl=document.getElementById('histSummary');
+    if(sumEl)sumEl.style.display='none';
   });
 
   // Hamburger
