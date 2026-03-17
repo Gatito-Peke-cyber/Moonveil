@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="tienda.css"/>
 </head>
 <body class="shop-page">
+
   <div class="scanlines" aria-hidden="true"></div>
   <canvas id="bgCoins" class="coins-canvas" aria-hidden="true"></canvas>
 
@@ -28,21 +29,13 @@
         <a href="index.html"   class="nav-pill np-exit">SALIR</a>
       </nav>
       <div class="nav-hud">
-        <div class="hud-inventory" id="hudInventory">
-          <div class="hud-inv-slot" title="Tickets" id="hudTicketsTotal">
-            <span class="his-ico">🎫</span><span class="his-val">0</span>
-          </div>
-          <div class="hud-inv-slot" title="Llaves" id="hudKeys">
-            <span class="his-ico">🗝️</span><span class="his-val">0</span>
-          </div>
-          <div class="hud-inv-slot" title="Llaves Superestrellas" id="hudSuperKeys">
-            <span class="his-ico">⭐</span><span class="his-val">0</span>
-          </div>
+        <div class="hud-inv-row">
+          <div class="hud-slot" title="Tickets Gacha"><span class="hs-ico">🎫</span><span class="hs-val" id="hudTicketsVal">0</span></div>
+          <div class="hud-slot" title="Llaves"><span class="hs-ico">🗝️</span><span class="hs-val" id="hudKeysVal">0</span></div>
+          <div class="hud-slot" title="Superestrellas"><span class="hs-ico">⭐</span><span class="hs-val" id="hudSuperVal">0</span></div>
         </div>
       </div>
-      <button class="hamburger" id="hamburger" aria-label="menu">
-        <span></span><span></span><span></span>
-      </button>
+      <button class="hamburger" id="hamburger" aria-label="menu"><span></span><span></span><span></span></button>
     </div>
   </header>
 
@@ -55,20 +48,11 @@
           <span class="ht-sm">BIENVENIDO A LA</span>
           <span class="ht-big">TIENDA MOONVEIL</span>
         </h1>
-        <p class="hero-lead">Tickets, llaves, pases y más. Potencia tu aventura.</p>
+        <p class="hero-lead">Tickets, llaves, pases y más. Stock real · Precios claros · Descuentos épicos.</p>
         <div class="hero-stats-row">
-          <div class="stat-pill">
-            <span class="stat-ico">🎫</span>
-            <div class="stat-body"><div class="stat-val" id="heroTickets">0</div><div class="stat-lbl">TICKETS</div></div>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-ico">🗝️</span>
-            <div class="stat-body"><div class="stat-val" id="heroKeys">0</div><div class="stat-lbl">LLAVES</div></div>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-ico">⭐</span>
-            <div class="stat-body"><div class="stat-val" id="heroSuperKeys">0</div><div class="stat-lbl">SUPERESTRELLAS</div></div>
-          </div>
+          <div class="stat-pill"><span class="stat-ico">🎫</span><div class="stat-body"><div class="stat-val" id="heroTickets">0</div><div class="stat-lbl">TICKETS</div></div></div>
+          <div class="stat-pill"><span class="stat-ico">🗝️</span><div class="stat-body"><div class="stat-val" id="heroKeys">0</div><div class="stat-lbl">LLAVES</div></div></div>
+          <div class="stat-pill"><span class="stat-ico">⭐</span><div class="stat-body"><div class="stat-val" id="heroSuper">0</div><div class="stat-lbl">SUPER</div></div></div>
         </div>
       </div>
     </div>
@@ -76,112 +60,226 @@
 
   <div class="container main-shop">
 
+    <!-- CUPONES -->
+    <div class="coupon-section reveal">
+      <div class="coupon-header">
+        <h3 class="sec-title">🎟️ CUPONES DE DESCUENTO</h3>
+        <button class="btn-pixel btn-ghost" id="btnNoCoupon">Sin cupón</button>
+      </div>
+      <div class="coupon-list" id="couponList"></div>
+    </div>
+
     <!-- FLASH SALE -->
     <div class="flash-banner reveal" id="flashBanner">
       <div class="fb-left">
-        <span class="fb-tag">⚡ FLASH SALE</span>
-        <span class="fb-text" id="flashSaleText">¡Ofertas por tiempo limitado!</span>
+        <span class="fb-tag flash-blink">⚡ FLASH SALE</span>
+        <span class="fb-text" id="flashText">¡Ofertas especiales activas!</span>
       </div>
-      <div class="fb-right">
-        <span class="fb-discount-badge" id="flashDiscountBadge" style="display:none"></span>
-        <div class="fb-timer-wrap">
-          <span class="fb-timer-lbl">TERMINA EN</span>
-          <span class="fb-timer" id="flashTimer">00:00:00</span>
-        </div>
+      <div class="flash-timer-wrap">
+        <span class="flash-label">TERMINA EN:</span>
+        <span class="fb-timer" id="flashTimer">--:--:--</span>
       </div>
     </div>
 
-    <!-- SAND BRILL DEALS -->
-    <div class="sandbrill-section reveal" id="sandbrill-section" style="display:none">
+    <!-- SAND BRILL -->
+    <div class="sandbrill-section reveal" id="sandbrillSection">
       <div class="sb-header">
         <div class="sb-title-row">
-          <span class="sb-tag">🦊</span>
+          <span class="sb-fox">🦊</span>
           <div>
-            <div class="sb-title">SAND BRILL — REBAJAS ESPECIALES</div>
-            <div class="sb-subtitle">Artículos seleccionados al azar con descuento</div>
-          </div>
-          <div class="sb-countdown">
-            <span class="sb-cd-lbl">↻ CAMBIA EN</span>
-            <span class="sb-cd-val" id="sbTimer">--:--</span>
+            <div class="sb-tag">SAND BRILL · OFERTAS RELÁMPAGO</div>
+            <div class="sb-desc">Artículos al azar con descuentos de 10% a 60% — ¡Solo hoy!</div>
           </div>
         </div>
+        <button class="btn-pixel btn-ghost" id="btnRefreshSB">↻ RENOVAR</button>
       </div>
-      <div class="sb-grid" id="sbDeals"></div>
-    </div>
-
-    <!-- CUPONES -->
-    <div class="coupons-wrap reveal">
-      <div class="coupon-header-row">
-        <span class="coupon-ico">🎟️</span>
-        <span class="coupon-ttl">CUPONES DE DESCUENTO</span>
-        <div class="coupon-header-actions">
-          <span class="coupon-active-lbl" id="couponActiveLbl" style="display:none"></span>
-          <button id="couponClearBtn" class="btn-ghost-coupon">✕ Sin cupón</button>
-        </div>
-      </div>
-      <div id="couponList" class="coupon-list"></div>
+      <div class="sb-grid" id="sbGrid"></div>
     </div>
 
     <!-- CATEGORÍAS -->
     <div class="cat-bar reveal">
-      <button class="cat-btn active" data-cat="all">✦ TODO</button>
-      <button class="cat-btn" data-cat="pases">🏆 PASES</button>
-      <button class="cat-btn" data-cat="llaves">🗝️ COFRES</button>
-      <button class="cat-btn" data-cat="tickets">🎫 TICKETS</button>
-      <button class="cat-btn" data-cat="calkeys">🔑 LLAVES CAL</button>
-      <button class="cat-btn" data-cat="superestrellas">⭐ SUPERKEYS</button>
-      <button class="cat-btn" data-cat="materiales">⚙️ MATERIALES</button>
-      <button class="cat-btn" data-cat="historia">📚 HISTORIA</button>
-      <button class="cat-btn" data-cat="monedas">🪙 MONEDAS</button>
-      <button class="cat-btn" data-cat="eventos">🎪 EVENTOS</button>
-      <button class="cat-btn" data-cat="packs">📦 PACKS</button>
-      <button class="cat-btn" data-cat="especiales">✨ ESPECIALES</button>
+      <button class="cat-btn active" data-sec="all">TODO</button>
+      <button class="cat-btn" data-sec="pases">🏆 PASES</button>
+      <button class="cat-btn" data-sec="llaves">🗝️ COFRES</button>
+      <button class="cat-btn" data-sec="cosas">⚙️ MATERIALES</button>
+      <button class="cat-btn" data-sec="historia">📚 HISTORIA</button>
+      <button class="cat-btn" data-sec="materiales">🪙 MONEDAS</button>
+      <button class="cat-btn" data-sec="eventos">🎪 EVENTOS</button>
+      <button class="cat-btn" data-sec="monedas">💰 PACK COINS</button>
+      <button class="cat-btn" data-sec="tickets">🎫 TICKETS</button>
+      <button class="cat-btn" data-sec="calkeys">🔑 LLAVES CAL</button>
+      <button class="cat-btn" data-sec="superestrellas">⭐ SUPER</button>
     </div>
 
     <!-- BÚSQUEDA -->
-    <div class="search-row reveal">
-      <div class="search-wrap">
-        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input id="searchInput" type="search" placeholder="Buscar por nombre, tipo o etiqueta..." autocomplete="off"/>
-        <button id="clearSearch" class="clear-btn">✕</button>
-      </div>
+    <div class="search-wrap reveal">
+      <span class="search-ico-label">🔍</span>
+      <input id="searchInput" type="search" placeholder="Buscar por nombre, categoría o etiqueta…" autocomplete="off"/>
+      <button id="clearSearch" class="clear-btn">✕</button>
     </div>
 
-    <!-- GRID DE PRODUCTOS -->
-    <div class="products-grid" id="productsGrid"></div>
+    <!-- SECCIÓN: PASES -->
+    <section class="shop-sec" id="secPases" data-sec="pases">
+      <div class="sec-head reveal">
+        <span class="sec-icon">🏆</span>
+        <div>
+          <h2 class="sec-title-big">PASES DE TEMPORADA</h2>
+          <p class="sec-sub">Acceso a retos y recompensas exclusivas de cada temporada.</p>
+        </div>
+      </div>
+      <div class="products-grid" id="gridPases"></div>
+    </section>
+
+    <!-- SECCIÓN: COFRES -->
+    <section class="shop-sec" id="secLlaves" data-sec="llaves">
+      <div class="sec-head reveal">
+        <span class="sec-icon">🗝️</span>
+        <div>
+          <h2 class="sec-title-big">COFRES</h2>
+          <p class="sec-sub">Ábrelos y que la suerte te acompañe.</p>
+        </div>
+      </div>
+      <div class="products-grid" id="gridCofres"></div>
+    </section>
+
+    <!-- SECCIÓN: MATERIALES -->
+    <section class="shop-sec" id="secCosas" data-sec="cosas">
+      <div class="sec-head reveal">
+        <span class="sec-icon">⚙️</span>
+        <div>
+          <h2 class="sec-title-big">MATERIALES</h2>
+          <p class="sec-sub">Algunos materiales que capaz te sirvan…</p>
+        </div>
+      </div>
+      <div class="products-grid" id="gridMats"></div>
+    </section>
+
+    <!-- SECCIÓN: HISTORIA -->
+    <section class="shop-sec" id="secHistoria" data-sec="historia">
+      <div class="sec-head reveal">
+        <span class="sec-icon">📚</span>
+        <div>
+          <h2 class="sec-title-big">HISTORIA</h2>
+          <p class="sec-sub">Libros de lo que pasa en el mundo de Moonveil.</p>
+        </div>
+      </div>
+      <div class="products-grid" id="gridHistoria"></div>
+    </section>
+
+    <!-- SECCIÓN: LOTE MONEDAS -->
+    <section class="shop-sec" id="secMateriales" data-sec="materiales">
+      <div class="sec-head reveal">
+        <span class="sec-icon">🪙</span>
+        <div>
+          <h2 class="sec-title-big">LOTE DE MONEDAS</h2>
+          <p class="sec-sub">Packs rebajados un 50%.</p>
+        </div>
+      </div>
+      <div class="products-grid" id="gridLoteMonedas"></div>
+    </section>
+
+    <!-- SECCIÓN: EVENTOS -->
+    <section class="shop-sec" id="secEventos" data-sec="eventos">
+      <div class="sec-head reveal">
+        <span class="sec-icon">🎪</span>
+        <div>
+          <h2 class="sec-title-big">PASES DE EVENTO</h2>
+          <p class="sec-sub">Eventos temporales con misiones y recompensas únicas.</p>
+        </div>
+      </div>
+      <div class="products-grid" id="gridEventos"></div>
+    </section>
+
+    <!-- SECCIÓN: PACK MONEDAS -->
+    <section class="shop-sec" id="secMonedas" data-sec="monedas">
+      <div class="sec-head reveal">
+        <span class="sec-icon">💰</span>
+        <div>
+          <h2 class="sec-title-big">PACK DE MONEDAS</h2>
+          <p class="sec-sub">Packs para comerciar.</p>
+        </div>
+      </div>
+      <div class="products-grid" id="gridPackMonedas"></div>
+    </section>
+
+    <!-- SECCIÓN: TICKETS -->
+    <section class="shop-sec" id="secTickets" data-sec="tickets">
+      <div class="sec-head reveal">
+        <span class="sec-icon">🎫</span>
+        <div>
+          <h2 class="sec-title-big">TICKETS GACHA</h2>
+          <p class="sec-sub">Tickets especiales para las ruletas.</p>
+        </div>
+      </div>
+      <div class="products-grid" id="gridTickets"></div>
+    </section>
+
+    <!-- SECCIÓN: LLAVES CALENDARIO -->
+    <section class="shop-sec" id="secCalKeys" data-sec="calkeys">
+      <div class="sec-head reveal">
+        <span class="sec-icon">🔑</span>
+        <div>
+          <h2 class="sec-title-big">LLAVES DEL CALENDARIO</h2>
+          <p class="sec-sub">Recupera días perdidos o reclama el futuro.</p>
+        </div>
+      </div>
+      <div class="calkey-legend reveal">
+        <span><span class="ckl-ico">🔵</span>Normal</span>
+        <span><span class="ckl-ico">💗</span>Rosa</span>
+        <span><span class="ckl-ico">🟢</span>Verde</span>
+        <span><span class="ckl-ico">🎃</span>Naranja</span>
+        <span><span class="ckl-ico">😺</span>Gato</span>
+        <span><span class="ckl-ico">💜</span>Especial</span>
+        <span class="ckl-rare"><span class="ckl-ico">⏩</span>Futuro ✦ Rara</span>
+      </div>
+      <div class="products-grid" id="gridCalKeys"></div>
+    </section>
+
+    <!-- SECCIÓN: SUPERESTRELLAS -->
+    <section class="shop-sec" id="secSuper" data-sec="superestrellas">
+      <div class="sec-head reveal">
+        <span class="sec-icon">⭐</span>
+        <div>
+          <h2 class="sec-title-big">LLAVES SUPERESTRELLA</h2>
+          <p class="sec-sub">Llaves para los cofres de aventuras.</p>
+        </div>
+      </div>
+      <div class="superkey-legend reveal">
+        <span><span style="color:#94A3B8">⭐</span>Común</span>
+        <span><span style="color:#38BDF8">💫</span>Brillante</span>
+        <span><span style="color:#22C55E">✨</span>Especial</span>
+        <span><span style="color:#A855F7">🔮</span>Épica</span>
+        <span class="skl-rare"><span style="color:#FBBF24">👑</span>Legendaria ✦ Rara</span>
+        <span><span>🎆</span>Evento</span>
+      </div>
+      <div class="products-grid" id="gridSuper"></div>
+    </section>
 
   </div><!-- /main-shop -->
 
-  <!-- BOTÓN HISTORIAL FLOTANTE -->
-  <button class="history-fab" id="historyFabBtn" title="Ver historial de compras">
-    📋 <span class="fab-lbl">HISTORIAL</span>
-    <span class="hist-count" id="histCount" style="display:none">0</span>
-  </button>
+  <!-- NPC MERCADER -->
+  <div class="npc-wrap" id="npc">
+    <div class="npc-bubble" id="npc-dialog">¡Bienvenido!</div>
+    <div class="npc-avatar">
+      <img src="img/fox2.gif" onerror="this.style.display='none';this.parentElement.innerHTML='🦊'" alt="Merchant"/>
+    </div>
+  </div>
 
-  <!-- PANEL HISTORIAL DESLIZABLE -->
-  <div class="history-panel" id="historyPanel" aria-hidden="true">
-    <div class="hp-header">
-      <span class="hp-title">📋 HISTORIAL DE COMPRAS</span>
-      <div class="hp-acts">
-        <button class="btn-pixel-sm btn-ghost-sm" id="btnClearHistory">🗑️ Limpiar</button>
-        <button class="hp-close" id="historyClose">✕</button>
+  <!-- HISTORIAL (drawer) -->
+  <button class="hist-toggle-btn" id="histToggle" title="Ver historial de compras">📋 HISTORIAL</button>
+  <div class="hist-drawer" id="histDrawer" aria-hidden="true">
+    <div class="hist-drawer-head">
+      <span class="hist-title">📋 HISTORIAL DE COMPRAS</span>
+      <div class="hist-actions">
+        <button class="btn-pixel btn-ghost btn-sm" id="btnClearHistory">🗑️</button>
+        <button class="btn-pixel btn-ghost btn-sm" id="histClose">✕</button>
       </div>
     </div>
     <div id="purchasesList" class="purchases-list">
       <div class="empty-hist"><span>📭</span><p>SIN COMPRAS AÚN</p></div>
     </div>
   </div>
-  <div class="history-overlay" id="historyOverlay"></div>
-
-  <!-- NPC ZORRITO -->
-  <div class="npc-wrap" id="npc">
-    <div class="npc-bubble" id="npc-dialog">¡Bienvenido!</div>
-    <div class="npc-avatar">
-      <img src="img/fox2.gif"
-           onerror="this.src='img/merchant.gif';this.onerror=function(){this.style.display='none';this.parentElement.innerHTML='<span style=font-size:3rem>🦊</span>'}"
-           alt="Fox Merchant"/>
-    </div>
-  </div>
+  <div class="hist-backdrop" id="histBackdrop"></div>
 
   <!-- MODAL -->
   <div id="modal" class="modal-overlay" aria-hidden="true">
@@ -204,6 +302,6 @@
   </footer>
 
   <script type="module" src="tienda.js"></script>
-  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
