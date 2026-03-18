@@ -27,7 +27,7 @@
 </div>
 
 <!-- ══════════════════════════
-     HEADER  (igual a perfil)
+     HEADER
 ══════════════════════════════ -->
 <header class="header">
   <div class="container nav-wrap">
@@ -45,13 +45,41 @@
       <a href="perfiles.html" class="nav-pill np-perfil">👤 PERFIL</a>
     </nav>
 
-    <!-- Zona derecha: info usuario + salir -->
-    <div class="nav-cta">
+    <!-- HUD inventario (banco-style) -->
+    <div class="nav-hud" id="nav-hud">
+      <div class="hud-slots-row">
+        <div class="hud-slot" title="Tickets Gacha">
+          <span class="hud-slot-ico">🎫</span>
+          <div class="hud-slot-body">
+            <span class="hud-slot-val" id="hud-tickets">0</span>
+            <span class="hud-slot-lbl">TICKETS</span>
+          </div>
+        </div>
+        <div class="hud-slot" title="Llaves de Cofre">
+          <span class="hud-slot-ico">🗝️</span>
+          <div class="hud-slot-body">
+            <span class="hud-slot-val" id="hud-keys">0</span>
+            <span class="hud-slot-lbl">LLAVES</span>
+          </div>
+        </div>
+        <div class="hud-slot" title="Superestrellas">
+          <span class="hud-slot-ico">⭐</span>
+          <div class="hud-slot-body">
+            <span class="hud-slot-val" id="hud-super">0</span>
+            <span class="hud-slot-lbl">SUPER</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info usuario -->
       <div class="nav-user-info" id="nav-user-info">
         <span class="nav-avatar" id="nav-avatar">🌙</span>
-        <span class="nav-username" id="nav-username">EXPLORADOR</span>
-        <span class="xp-badge" id="xp-display">⚡ 0 XP</span>
+        <div class="nav-user-body">
+          <span class="nav-username" id="nav-username">EXPLORADOR</span>
+          <span class="xp-badge" id="xp-display">⚡ 0 XP</span>
+        </div>
       </div>
+
       <button class="btn btn-logout" id="btn-logout">✕ SALIR</button>
     </div>
 
@@ -70,7 +98,6 @@
 
   <!-- Hero -->
   <section class="hub-hero">
-    <!-- Destellos decorativos -->
     <div class="hero-stars-deco" aria-hidden="true">
       <span class="hsd-1">✦</span>
       <span class="hsd-2">★</span>

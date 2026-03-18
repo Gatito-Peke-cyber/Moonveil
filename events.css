@@ -1,6 +1,7 @@
 /* =====================================================
-   Moonveil Portal — Events Hub CSS  v3  (Space Theme)
+   Moonveil Portal — Events Hub CSS  v4
    Pixel art · Espacio azul · Estrellas fugaces
+   HUD inventario estilo banco
    ===================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap');
 
@@ -11,7 +12,7 @@
   --card:     #0a1530;
   --border:   #1a3060;
 
-  --primary:   #00d4ff;   /* cian espacio */
+  --primary:   #00d4ff;
   --primary-d: #006e88;
   --primary-l: #80f0ff;
 
@@ -29,6 +30,7 @@
   --muted: #3d5a80;
 
   --shadow: 4px 4px 0 #000;
+  --shadow-cyan: 4px 4px 0 #000, 0 0 18px rgba(0,212,255,0.35);
 
   --font-pixel: 'Press Start 2P', monospace;
   --font-vt:    'VT323', monospace;
@@ -103,15 +105,31 @@ a { text-decoration:none; color:inherit; }
 @keyframes fadeUp     { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
 @keyframes colorCycle { 0%{color:var(--primary)} 25%{color:var(--indigo)} 50%{color:var(--cyan)} 75%{color:var(--blue)} 100%{color:var(--primary)} }
 @keyframes cubeRotate { to { transform: rotate(360deg); } }
-@keyframes glowPulse  { 0%,100%{box-shadow:var(--shadow),0 0 12px rgba(0,212,255,0.3)} 50%{box-shadow:var(--shadow),0 0 28px rgba(0,212,255,0.7)} }
+@keyframes glowPulse  {
+  0%,100%{box-shadow:var(--shadow),0 0 12px rgba(0,212,255,0.3)}
+  50%{box-shadow:var(--shadow),0 0 28px rgba(0,212,255,0.7)}
+}
 @keyframes gradShift  { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
 @keyframes shimmer    { to { background-position:-200% 0; } }
-@keyframes heroGlow   { 0%{opacity:.4;transform:translate(-50%,-50%) scale(1)} 100%{opacity:1;transform:translate(-50%,-50%) scale(1.12)} }
-@keyframes titleUp    { from{opacity:0;transform:translateY(35px) scale(.95)} to{opacity:1;transform:none} }
+@keyframes heroGlow   {
+  0%{opacity:.4;transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}
+}
+@keyframes titleUp    {
+  from{opacity:0;transform:translateY(35px) scale(.95)}
+  to{opacity:1;transform:none}
+}
 @keyframes dotPulse   { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.6);opacity:.5} }
 @keyframes cardIn     { from{opacity:0;transform:translateY(28px) scale(.95)} to{opacity:1;transform:none} }
-@keyframes legendBand { 0%{background-position:0% 0} 100%{background-position:200% 0} }
-@keyframes idScan     { 0%{top:-100%} 100%{top:200%} }
+@keyframes hudSlotGlow {
+  0%,100%{box-shadow:2px 2px 0 #000, 0 0 8px rgba(0,212,255,0.2)}
+  50%{box-shadow:2px 2px 0 #000, 0 0 18px rgba(0,212,255,0.5)}
+}
+@keyframes hudValPop  {
+  0%{transform:scale(1)}
+  50%{transform:scale(1.25);color:var(--primary-l)}
+  100%{transform:scale(1)}
+}
 
 /* Destellos en hero */
 @keyframes sparkle1 { 0%,100%{opacity:0.3;transform:scale(1) rotate(0deg)} 50%{opacity:1;transform:scale(1.4) rotate(20deg)} }
@@ -121,11 +139,11 @@ a { text-decoration:none; color:inherit; }
 @keyframes sparkle5 { 0%,100%{opacity:0.4;transform:rotate(0)} 40%{opacity:1;transform:rotate(40deg)} }
 
 /* ══════════════════════════════
-   HEADER  (idéntico a perfil)
+   HEADER
 ══════════════════════════════ */
 .header {
   position: sticky; top: 0; z-index: 1000;
-  background: rgba(3,10,26,0.96);
+  background: rgba(3,10,26,0.97);
   border-bottom: 3px solid var(--border);
   box-shadow: 0 4px 0 #000, 0 0 30px rgba(0,212,255,0.06);
 }
@@ -166,16 +184,109 @@ a { text-decoration:none; color:inherit; }
 .np-perfil { border-color: var(--indigo)!important; color: var(--indigo)!important; }
 .np-perfil:hover { background: var(--indigo)!important; color: #fff!important; }
 
-/* Nav CTA: usuario + salir */
-.nav-cta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.nav-user-info {
-  display: flex; align-items: center; gap: 7px;
+/* ══════════════════════════════
+   HUD INVENTARIO (banco-style)
+══════════════════════════════ */
+.nav-hud {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Fila de slots */
+.hud-slots-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Slot individual */
+.hud-slot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   background: rgba(0,212,255,0.06);
   border: 2px solid rgba(0,212,255,0.2);
-  padding: 4px 10px;
+  padding: 6px 12px;
+  box-shadow: 2px 2px 0 #000, 0 0 10px rgba(0,212,255,0.15);
+  transition: 0.15s;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Línea de acento en la parte superior del slot */
+.hud-slot::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0.6;
+}
+
+.hud-slot:hover {
+  border-color: rgba(0,212,255,0.5);
+  box-shadow: 2px 2px 0 #000, 0 0 18px rgba(0,212,255,0.35);
+  transform: translateY(-1px);
+}
+
+.hud-slot-ico {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(0,212,255,0.4));
+}
+
+.hud-slot-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 28px;
+}
+
+.hud-slot-val {
+  font-family: var(--font-pixel);
+  font-size: 0.48rem;
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(0,212,255,0.5);
+  line-height: 1;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.hud-slot-val.pop {
+  animation: hudValPop 0.4s ease;
+}
+
+.hud-slot-lbl {
+  font-family: var(--font-pixel);
+  font-size: 0.18rem;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+/* Divisor entre slots y usuario */
+.hud-divider {
+  width: 2px;
+  height: 36px;
+  background: linear-gradient(180deg, transparent, var(--border), transparent);
+  flex-shrink: 0;
+}
+
+/* Info usuario */
+.nav-user-info {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(0,212,255,0.04);
+  border: 2px solid rgba(0,212,255,0.15);
+  padding: 5px 10px;
   box-shadow: 2px 2px 0 #000;
 }
-.nav-avatar  { font-size: 1.2rem; }
+.nav-avatar  { font-size: 1.3rem; line-height: 1; }
+.nav-user-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .nav-username {
   font-family: var(--font-pixel); font-size: 0.28rem;
   color: var(--white); letter-spacing: 1px;
@@ -183,16 +294,14 @@ a { text-decoration:none; color:inherit; }
   text-overflow: ellipsis; white-space: nowrap;
 }
 .xp-badge {
-  font-family: var(--font-pixel); font-size: 0.38rem;
-  color: var(--primary); background: rgba(0,212,255,0.1);
-  border: 2px solid var(--primary); padding: 5px 9px;
-  box-shadow: 2px 2px 0 #000;
+  font-family: var(--font-pixel); font-size: 0.28rem;
+  color: var(--cyan);
 }
 
 /* Botones globales */
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--font-pixel); font-size: 0.42rem;
+  font-family: var(--font-pixel); font-size: 0.38rem;
   border: none; padding: 8px 12px; cursor: pointer;
   box-shadow: var(--shadow); transition: 0.1s; letter-spacing: 1px;
 }
@@ -200,7 +309,7 @@ a { text-decoration:none; color:inherit; }
 .btn:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 #000; }
 .btn-logout {
   background: transparent; color: var(--red);
-  border: 2px solid var(--red); font-size: 0.35rem; padding: 5px 8px;
+  border: 2px solid var(--red); font-size: 0.32rem; padding: 6px 10px;
 }
 .btn-logout:hover { background: var(--red); color: #fff; }
 
@@ -350,7 +459,6 @@ a { text-decoration:none; color:inherit; }
   overflow: hidden;
 }
 
-/* Línea de color superior */
 .hub-card::before {
   content: "";
   position: absolute; top: 0; left: 0; right: 0; height: 3px;
@@ -359,7 +467,6 @@ a { text-decoration:none; color:inherit; }
   z-index: 3;
 }
 
-/* Esquina decorativa pixel */
 .hub-card::after {
   content: "";
   position: absolute; top: 3px; right: 3px;
@@ -370,7 +477,6 @@ a { text-decoration:none; color:inherit; }
   z-index: 4;
 }
 
-/* Hover */
 .hub-card:not(.card-locked):not(.card-soon):hover {
   transform: translate(-4px,-4px);
   box-shadow: 8px 8px 0 #000, 0 0 20px rgba(0,212,255,0.2);
@@ -378,7 +484,7 @@ a { text-decoration:none; color:inherit; }
   text-decoration: none;
 }
 
-/* ── Fondo imagen ── */
+/* Fondo imagen */
 .card-bg {
   position: absolute; inset: 0; z-index: 0;
   background-size: cover; background-position: center;
@@ -400,7 +506,6 @@ a { text-decoration:none; color:inherit; }
   );
 }
 
-/* Orbe decorativo (sin imagen) */
 .card-glow {
   position: absolute; z-index: 1;
   border-radius: 50%; pointer-events: none;
@@ -409,7 +514,7 @@ a { text-decoration:none; color:inherit; }
 }
 .hub-card:not(.card-locked):not(.card-soon):hover .card-glow { opacity: 1; }
 
-/* ── Cuerpo ── */
+/* Cuerpo */
 .card-body {
   position: relative; z-index: 2;
   padding: 20px 18px 16px;
@@ -448,7 +553,7 @@ a { text-decoration:none; color:inherit; }
   color: var(--muted); line-height: 1.4; flex: 1;
 }
 
-/* Chips de estado */
+/* Chips */
 .card-chip {
   align-self: flex-start;
   display: inline-flex; align-items: center; gap: 5px;
@@ -475,7 +580,7 @@ a { text-decoration:none; color:inherit; }
 }
 .chip-ok.card-chip { animation: glowPulse 2s ease-in-out infinite; }
 
-/* ── Tarjeta bloqueada ── */
+/* Tarjeta bloqueada */
 .card-locked {
   cursor: not-allowed;
   filter: grayscale(.8) opacity(.5);
@@ -492,14 +597,14 @@ a { text-decoration:none; color:inherit; }
   pointer-events: none;
 }
 
-/* ── Tarjeta próximamente ── */
+/* Tarjeta próximamente */
 .card-soon {
   cursor: default;
   border-color: rgba(251,191,36,.25);
 }
 .card-soon:hover { transform: none!important; }
 
-/* ── Cuenta regresiva ── */
+/* Cuenta regresiva */
 .card-countdown,
 .card-expiry-cd,
 .card-month-cd {
@@ -523,15 +628,13 @@ a { text-decoration:none; color:inherit; }
   color: var(--muted); margin-top: 2px; letter-spacing: 0.5px;
 }
 
-/* Expiry → verde azulado */
 .card-expiry-cd .cd-block { background:rgba(0,212,255,.08); border-color:rgba(0,212,255,.3); }
 .card-expiry-cd .cd-value { color:var(--cyan); text-shadow:0 0 10px rgba(34,211,238,.4); }
 
-/* Month → cyan */
 .card-month-cd .cd-block { background:rgba(34,211,238,.07); border-color:rgba(34,211,238,.25); }
 .card-month-cd .cd-value { color:var(--cyan); text-shadow:0 0 10px rgba(34,211,238,.4); }
 
-/* ── Barra de progreso ── */
+/* Barra de progreso */
 .card-days-bar {
   position: relative; z-index: 2; height: 5px;
   background: rgba(255,255,255,.05);
@@ -600,6 +703,11 @@ a { text-decoration:none; color:inherit; }
 /* ══════════════════════════════
    RESPONSIVE
 ══════════════════════════════ */
+@media (max-width: 1100px) {
+  .hud-slot-lbl { display: none; }
+  .hud-slot { padding: 6px 8px; }
+}
+
 @media (max-width: 900px) {
   .nav {
     position: absolute; inset: 54px 0 auto 0;
@@ -612,6 +720,7 @@ a { text-decoration:none; color:inherit; }
   .hamburger { display: block; }
   .cards-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
   .nav-user-info { display: none; }
+  .hud-slots-row { display: none; }
 }
 
 @media (max-width: 600px) {

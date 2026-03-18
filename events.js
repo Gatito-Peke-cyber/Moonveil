@@ -1,31 +1,97 @@
 /* =========================================================
    Moonveil Portal — Events Hub JS  v4
    + Firebase auth (header usuario)
+   + HUD inventario (tickets, llaves, superestrellas)
    + Estrellas fugaces + partículas espaciales
    + Tarjetas pixel art con contadores
-
-   ¿Cómo agregar/editar tarjetas?
-   ─────────────────────────────────
-   title       (string)  — Nombre visible
-   desc        (string)  — Descripción corta
-   emoji       (string)  — Emoji principal
-   url         (string)  — Ruta de la página
-   bg          (string)  — URL imagen de fondo (opcional)
-   expiry      (string)  — "YYYY-MM-DD" fecha de bloqueo (opcional)
-   startDate   (string)  — "YYYY-MM-DD" cuenta regresiva (opcional)
-   daysTotal   (number)  — días totales del evento (opcional)
-   isCalendar  (boolean) — contador de días del mes (opcional)
-   accent      (string)  — color CSS de acento (opcional)
    ========================================================= */
 
 import { onAuthChange, logout } from './auth.js';
 
-/* ── Lectura de localStorage (sincronizado por database.js) ── */
+/* ── Lectura de localStorage ── */
 const PERFIL_KEY    = 'mv_perfil';
 const INVENTORY_KEY = 'mv_inventory';
+const CHEST_KEYS_LS = 'mv_chest_keys_v1';
 
 /* ══════════════════════════════════════════
-   CATEGORÍAS Y TARJETAS  ← edita aquí
+   UTILIDADES LS
+══════════════════════════════════════════ */
+function lsGet(k, fb = null) {
+  try {
+    const v = localStorage.getItem(k);
+    return v != null ? JSON.parse(v) : fb;
+  } catch { return fb; }
+}
+
+/* ══════════════════════════════════════════
+   HUD — leer inventario y mostrarlo
+══════════════════════════════════════════ */
+function getInv() {
+  return lsGet(INVENTORY_KEY, { tickets: 0, keys: 0, superstar_keys: 0 });
+}
+
+/** Devuelve el total de tickets gacha sumando todas las ruedas + el campo genérico */
+function getTotalTickets() {
+  const inv = getInv();
+  const WHEEL_IDS = ['classic', 'dark_moon', 'spring', 'storm', 'cyber', 'abyss', 'elemental', 'event'];
+  let total = inv.tickets || 0;
+  WHEEL_IDS.forEach(id => {
+    total += Math.max(0, parseInt(localStorage.getItem(`mv_tickets_${id}`) || '0', 10));
+  });
+  return total;
+}
+
+/** Total de llaves de cofre: keys genérico + chest_keys_v1 */
+function getTotalKeys() {
+  const inv = getInv();
+  let total = inv.keys || 0;
+  const chestKeys = lsGet(CHEST_KEYS_LS, {});
+  Object.values(chestKeys).forEach(v => { total += (typeof v === 'number' ? v : 0); });
+  return total;
+}
+
+/** Total de superestrellas (superstar_keys) */
+function getTotalSuper() {
+  const inv = getInv();
+  return inv.superstar_keys || 0;
+}
+
+/** Anima el valor de un slot cuando cambia */
+function animateSlotVal(el, newVal) {
+  const cur = parseInt(el.textContent || '0', 10);
+  if (cur === newVal) return;
+  el.textContent = newVal;
+  el.classList.remove('pop');
+  // Trigger reflow
+  void el.offsetWidth;
+  el.classList.add('pop');
+  setTimeout(() => el.classList.remove('pop'), 400);
+}
+
+/** Renderiza los tres slots del HUD */
+function renderHUD() {
+  const elTickets = document.getElementById('hud-tickets');
+  const elKeys    = document.getElementById('hud-keys');
+  const elSuper   = document.getElementById('hud-super');
+
+  if (elTickets) animateSlotVal(elTickets, getTotalTickets());
+  if (elKeys)    animateSlotVal(elKeys,    getTotalKeys());
+  if (elSuper)   animateSlotVal(elSuper,   getTotalSuper());
+}
+
+/** Escucha cambios de localStorage desde otras pestañas */
+window.addEventListener('storage', (e) => {
+  const relevant = [
+    INVENTORY_KEY, CHEST_KEYS_LS,
+    'mv_tickets_classic', 'mv_tickets_dark_moon', 'mv_tickets_spring',
+    'mv_tickets_storm', 'mv_tickets_cyber', 'mv_tickets_abyss',
+    'mv_tickets_elemental', 'mv_tickets_event',
+  ];
+  if (relevant.includes(e.key)) renderHUD();
+});
+
+/* ══════════════════════════════════════════
+   CATEGORÍAS Y TARJETAS
 ══════════════════════════════════════════ */
 const CATEGORIES = [
 
@@ -382,7 +448,7 @@ function loadUserHeader() {
     if (avatarEl)   avatarEl.textContent   = p.avatar  || "🌙";
     if (usernameEl) usernameEl.textContent = (p.nombre || "EXPLORADOR").toUpperCase();
     if (xpEl)       xpEl.textContent       = `⚡ ${p.xp || 0} XP`;
-  } catch { /* sin datos locales, se muestra el default */ }
+  } catch { /* sin datos locales */ }
 }
 
 /* ══════════════════════════════════════════
@@ -396,21 +462,19 @@ function initSpaceCanvas() {
 
   let W, H, stars, shootingStars;
 
-  /* ── Colores de partículas ── */
   const COLORS = [
-    "rgba(0,212,255,",    // cyan
-    "rgba(59,130,246,",   // blue
-    "rgba(129,140,248,",  // indigo
-    "rgba(167,139,250,",  // purple
-    "rgba(34,211,238,",   // cyan2
-    "rgba(200,224,255,",  // white-blue
+    "rgba(0,212,255,",
+    "rgba(59,130,246,",
+    "rgba(129,140,248,",
+    "rgba(167,139,250,",
+    "rgba(34,211,238,",
+    "rgba(200,224,255,",
   ];
 
   function init() {
     W = c.width  = innerWidth  * dpi;
     H = c.height = innerHeight * dpi;
 
-    /* Estrellas estáticas pequeñas */
     stars = Array.from({ length: 200 }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
@@ -423,16 +487,14 @@ function initSpaceCanvas() {
       vy: Math.random() > 0.7 ? (0.05 + Math.random() * 0.2) : 0,
     }));
 
-    /* Estrellas fugaces (meteoros) */
     shootingStars = [];
   }
 
-  /* Lanzar estrella fugaz */
   function spawnShootingStar() {
-    const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.3; // ~45°
+    const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.3;
     const speed = (6 + Math.random() * 8) * dpi;
     const length= (80 + Math.random() * 160) * dpi;
-    const colorIdx = Math.random() > 0.7 ? 1 : 0; // mayormente cyan
+    const colorIdx = Math.random() > 0.7 ? 1 : 0;
     shootingStars.push({
       x: Math.random() * W * 0.8,
       y: Math.random() * H * 0.4,
@@ -446,14 +508,12 @@ function initSpaceCanvas() {
     });
   }
 
-  /* Temporizador de estrellas fugaces */
   let shootTimer = 0;
-  const shootInterval = 110 + Math.random() * 200; // cuadros entre meteoros
+  const shootInterval = 110 + Math.random() * 200;
 
   function tick() {
     ctx.clearRect(0, 0, W, H);
 
-    /* Partículas flotantes (estrellas de fondo) */
     stars.forEach(s => {
       s.twinklePhase += s.twinkleSpeed;
       const alpha = s.a * (0.5 + 0.5 * Math.sin(s.twinklePhase));
@@ -468,7 +528,6 @@ function initSpaceCanvas() {
       }
     });
 
-    /* Estrellas fugaces */
     shootTimer++;
     if (shootTimer >= shootInterval) {
       shootTimer = 0;
@@ -494,7 +553,6 @@ function initSpaceCanvas() {
       ctx.lineCap = "round";
       ctx.stroke();
 
-      /* Punta brillante */
       ctx.beginPath();
       ctx.arc(m.x, m.y, m.width * 1.5 * m.life, 0, Math.PI * 2);
       ctx.fillStyle = m.color + m.life + ")";
@@ -604,7 +662,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     loadUserHeader();
-    render();
+    renderHUD();       // ← HUD inventario
+    render();          // ← Tarjetas
 
     const fy = document.getElementById("footerYear");
     if (fy) fy.textContent = new Date().getFullYear();
