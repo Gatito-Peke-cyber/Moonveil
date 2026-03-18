@@ -6,13 +6,13 @@
   <meta name="color-scheme" content="dark"/>
   <title>Moonveil — Banco del Reino</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230a0800'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23f59e0b'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%23d97706'/%3E%3C/svg%3E"/>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23040810'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%231d4ed8'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%233b82f6'/%3E%3C/svg%3E"/>
   <link rel="stylesheet" href="banco.css"/>
 </head>
 <body>
 
   <div class="scanlines" aria-hidden="true"></div>
-  <canvas id="bgCoins" class="coins-canvas" aria-hidden="true"></canvas>
+  <canvas id="bgCanvas" class="bg-canvas" aria-hidden="true"></canvas>
 
   <!-- HEADER -->
   <header class="top-hud" role="banner">
@@ -29,7 +29,19 @@
         <a href="perfil.html"  class="nav-pill np-profile">PERFIL</a>
         <a href="index.html"   class="nav-pill np-exit">SALIR</a>
       </nav>
-      <button class="hamburger" id="hamburger" aria-label="menu"><span></span><span></span><span></span></button>
+      <div class="nav-hud">
+        <div class="hud-slot" title="Total en bóvedas">
+          <span class="hs-ico">🏦</span>
+          <span class="hs-val" id="hudTotalVal">0</span>
+        </div>
+        <div class="hud-slot" title="Listo para recolectar">
+          <span class="hs-ico">✅</span>
+          <span class="hs-val" id="hudReadyVal">0</span>
+        </div>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </header>
 
@@ -37,54 +49,79 @@
   <section class="hero">
     <div class="container">
       <div class="hero-inner reveal">
-        <div class="hero-eyebrow"><span class="coin-blink">🏦</span>BANCO DEL REINO</div>
+        <div class="hero-eyebrow"><span class="blink-dot">🏛️</span>BANCO DEL REINO</div>
         <h1 class="hero-title">
           <span class="ht-sm">BIENVENIDO AL</span>
           <span class="ht-big">BANCO MOONVEIL</span>
         </h1>
-        <p class="hero-lead">Tus monedas se acumulan automáticamente. ¡No dejes que las bóvedas se llenen!</p>
+        <p class="hero-lead">Tus monedas se acumulan solas mientras exploras. Recógelas antes de que la bóveda se llene.</p>
         <div class="hero-stats-row">
-          <div class="stat-pill"><span class="stat-ico">💰</span><div class="stat-body"><div class="stat-val" id="heroTotal">0</div><div class="stat-lbl">TOTAL EN BÓVEDAS</div></div></div>
-          <div class="stat-pill"><span class="stat-ico">🏛️</span><div class="stat-body"><div class="stat-val" id="heroActive">0</div><div class="stat-lbl">BÓVEDAS ACTIVAS</div></div></div>
-          <div class="stat-pill"><span class="stat-ico">📊</span><div class="stat-body"><div class="stat-val" id="heroHistoric">0</div><div class="stat-lbl">HISTÓRICO TOTAL</div></div></div>
-          <div class="stat-pill"><span class="stat-ico">⏱️</span><div class="stat-body"><div class="stat-val" id="heroUptime">0d</div><div class="stat-lbl">TIEMPO ACTIVO</div></div></div>
+          <div class="stat-pill">
+            <span class="stat-ico">💰</span>
+            <div class="stat-body">
+              <div class="stat-val" id="heroTotalVault">0</div>
+              <div class="stat-lbl">EN BÓVEDAS</div>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-ico">📊</span>
+            <div class="stat-body">
+              <div class="stat-val" id="heroTotalEver">0</div>
+              <div class="stat-lbl">HISTÓRICO</div>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-ico">🏛️</span>
+            <div class="stat-body">
+              <div class="stat-val" id="heroActiveVaults">0</div>
+              <div class="stat-lbl">BÓVEDAS ACTIVAS</div>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-ico">⏱️</span>
+            <div class="stat-body">
+              <div class="stat-val" id="heroUptime">0d</div>
+              <div class="stat-lbl">TIEMPO ACTIVO</div>
+            </div>
+          </div>
         </div>
         <div class="hero-actions">
-          <button class="btn-pixel btn-gold pulse" id="collectAllBtn" disabled>🎁 RECOLECTAR TODO</button>
-          <button class="btn-pixel btn-ghost" id="sortBtn">🔀 ORDENAR</button>
+          <button class="btn-pixel btn-blue pulse-blue" id="collectAllBtn" disabled>🎁 RECOLECTAR TODO</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- BÓVEDAS -->
-  <div class="container main-bank">
+  <!-- BANCO MAIN -->
+  <div class="container banco-main">
 
     <!-- SORT BAR -->
     <div class="sort-bar reveal">
-      <span class="sort-label">ORDENAR POR:</span>
-      <button class="sort-pill active" data-sort="default">ORIGINAL</button>
-      <button class="sort-pill" data-sort="vault-desc">MAYOR BÓVEDA</button>
-      <button class="sort-pill" data-sort="total-desc">MAYOR TOTAL</button>
-      <button class="sort-pill" data-sort="rate-asc">MÁS RÁPIDA</button>
+      <span class="sort-label">🗂️ ORDENAR:</span>
+      <div class="sort-btns">
+        <button class="sort-btn active" data-sort="default">ORIGINAL</button>
+        <button class="sort-btn" data-sort="vault-desc">MAYOR BÓVEDA</button>
+        <button class="sort-btn" data-sort="total-desc">MAYOR TOTAL</button>
+        <button class="sort-btn" data-sort="rate-asc">MÁS RÁPIDA</button>
+      </div>
     </div>
 
-    <!-- GRID DE BÓVEDAS -->
-    <div class="vaults-grid" id="vaultsGrid"></div>
+    <!-- CURRENCY GRID -->
+    <div class="currency-grid" id="currencyGrid"></div>
 
     <!-- LOG DE ACTIVIDAD -->
-    <section class="log-section reveal">
-      <div class="log-header">
+    <div class="activity-section reveal">
+      <div class="activity-header">
         <h2 class="sec-title">📜 REGISTRO DE ACTIVIDAD</h2>
         <button class="btn-pixel btn-ghost btn-sm" id="clearLogBtn">🗑️ LIMPIAR</button>
       </div>
       <div class="activity-log" id="activityLog">
         <div class="log-entry system">
           <span class="log-time">AHORA</span>
-          <span class="log-msg">Sistema bancario inicializado correctamente</span>
+          <span class="log-msg">Sistema bancario iniciado</span>
         </div>
       </div>
-    </section>
+    </div>
 
   </div>
 
@@ -94,7 +131,10 @@
   <!-- FOOTER -->
   <footer class="footer">
     <div class="container footer-inner">
-      <div class="footer-brand"><div class="brand-cube small"></div><span>Moonveil Portal</span></div>
+      <div class="footer-brand">
+        <div class="brand-cube small"></div>
+        <span>Moonveil Portal</span>
+      </div>
       <div class="footer-copy">© <span id="year"></span> Moonveil. Todos los derechos reservados.</div>
     </div>
   </footer>
