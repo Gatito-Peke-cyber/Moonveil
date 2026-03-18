@@ -11,7 +11,10 @@
 </head>
 <body>
 
+<!-- Fondo escanlines -->
 <div class="scanlines" aria-hidden="true"></div>
+
+<!-- Canvas estrellas y meteoros -->
 <canvas id="stars-canvas" class="stars-canvas" aria-hidden="true"></canvas>
 
 <!-- LOADER -->
@@ -24,22 +27,25 @@
 </div>
 
 <!-- ══════════════════════════
-     HEADER
+     HEADER  (igual a perfil)
 ══════════════════════════════ -->
 <header class="header">
   <div class="container nav-wrap">
 
+    <!-- Brand -->
     <div class="nav-brand">
       <div class="brand-cube-sm"></div>
       <span class="logo">Moon<span>veil</span></span>
     </div>
 
+    <!-- Nav pills -->
     <nav class="nav" id="main-nav">
       <a href="inicio.html"   class="nav-pill np-home">🏠 INICIO</a>
       <a href="events.html"   class="nav-pill np-hub active">🌌 HUB</a>
       <a href="perfiles.html" class="nav-pill np-perfil">👤 PERFIL</a>
     </nav>
 
+    <!-- Zona derecha: info usuario + salir -->
     <div class="nav-cta">
       <div class="nav-user-info" id="nav-user-info">
         <span class="nav-avatar" id="nav-avatar">🌙</span>
@@ -49,6 +55,7 @@
       <button class="btn btn-logout" id="btn-logout">✕ SALIR</button>
     </div>
 
+    <!-- Hamburger mobile -->
     <button class="hamburger" id="hamburger" aria-label="Abrir menú">
       <span></span><span></span><span></span>
     </button>
@@ -57,10 +64,13 @@
 </header>
 
 <!-- ══════════════════════════
-     HERO
+     MAIN
 ══════════════════════════════ -->
 <main class="hub-main" role="main">
+
+  <!-- Hero -->
   <section class="hub-hero">
+    <!-- Destellos decorativos -->
     <div class="hero-stars-deco" aria-hidden="true">
       <span class="hsd-1">✦</span>
       <span class="hsd-2">★</span>
@@ -74,61 +84,26 @@
       <span class="ht-line ht-accent">HUB CENTRAL</span>
     </h1>
     <p class="hub-subtitle">▸ TODAS LAS SECCIONES DEL PORTAL ◂</p>
-
-    <!-- Stats row (igual que la tienda) -->
-    <div class="hero-stats-row">
-      <div class="hero-stat-pill">
-        <span class="hsp-ico">🌌</span>
-        <div class="hsp-body">
-          <div class="hsp-val" id="heroBadgeCount">—</div>
-          <div class="hsp-lbl">ACTIVAS</div>
-        </div>
-      </div>
-      <div class="hero-stat-pill">
-        <span class="hsp-ico">⏳</span>
-        <div class="hsp-body">
-          <div class="hsp-val" id="heroSoonCount">—</div>
-          <div class="hsp-lbl">PRÓXIMAS</div>
-        </div>
-      </div>
-      <div class="hero-stat-pill">
-        <span class="hsp-ico">🔒</span>
-        <div class="hsp-body">
-          <div class="hsp-val" id="heroExpCount">—</div>
-          <div class="hsp-lbl">CERRADAS</div>
-        </div>
-      </div>
-    </div>
-
     <div class="hero-badge">
       <span class="hero-badge-dot"></span>
-      <span>PORTAL EN LÍNEA · SERVIDOR ACTIVO</span>
+      <span><b id="heroBadgeCount">—</b> secciones activas ahora mismo</span>
     </div>
   </section>
 
-  <!-- Barra de categorías (como la tienda) -->
-  <div class="hub-cat-bar container" id="hubCatBar">
-    <button class="hub-cat-btn active" data-cat="all">TODO</button>
-    <!-- se rellena con JS según las categorías -->
-  </div>
-
-  <!-- Búsqueda -->
-  <div class="hub-search-wrap container">
-    <span class="search-ico">🔍</span>
-    <input id="hubSearch" type="search" placeholder="Buscar sección…" autocomplete="off"/>
-    <button id="hubSearchClear" class="search-clear-btn">✕</button>
-  </div>
-
   <!-- Tarjetas generadas por events.js -->
-  <div class="hub-body container" id="hubBody"></div>
+  <div class="hub-body" id="hubBody"></div>
 
 </main>
 
+<!-- Footer -->
 <footer class="hub-footer">
   <p>🌌 Moonveil Portal · Hub Central · <span id="footerYear"></span></p>
 </footer>
 
+<!-- Toast -->
 <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Volver arriba -->
 <button class="back-to-top" id="back-top" title="Volver arriba">▲</button>
 
 <script type="module" src="events.js"></script>
