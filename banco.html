@@ -1,258 +1,105 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <!-- ============================================
-       Moonveil Portal — Banco del Reino
-       Tema: Azul marino / Dorado bancario
-       ============================================ -->
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark"/>
   <title>Moonveil — Banco del Reino</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Cinzel:wght@600;900&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-
-  <link rel="icon" type="image/svg+xml"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23060c1a'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%231e40af'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%231d4ed8'/%3E%3C/svg%3E">
-
-  <link rel="stylesheet" href="banco.css" />
-  <meta name="description" content="Banco del Reino Moonveil — Gestiona tus riquezas y observa cómo crecen." />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%230a0800'/%3E%3Crect x='8' y='8' width='48' height='48' fill='%23f59e0b'/%3E%3Crect x='14' y='14' width='36' height='36' fill='%23d97706'/%3E%3C/svg%3E"/>
+  <link rel="stylesheet" href="banco.css"/>
 </head>
 <body>
 
-  <!-- Fondo global -->
-  <div class="bg" aria-hidden="true">
-    <canvas id="bgParticles"></canvas>
-    <div class="bg-parallax">
-      <div class="layer sky"></div>
-      <div class="layer far"></div>
-      <div class="layer mid"></div>
-      <div class="layer near"></div>
-    </div>
-  </div>
+  <div class="scanlines" aria-hidden="true"></div>
+  <canvas id="bgCoins" class="coins-canvas" aria-hidden="true"></canvas>
 
-  <!-- ══════════════════════════════════
-       HEADER / HUD (idéntico al de tienda/eventos)
-       ══════════════════════════════════ -->
+  <!-- HEADER -->
   <header class="top-hud" role="banner">
-    <nav class="navbar" aria-label="Navegación principal">
-      <a class="brand" href="inicio.html" aria-label="Ir a inicio">
-        <span class="cube" aria-hidden="true"></span>
-        <span class="brand__title">Moonveil <b>Portal</b></span>
-      </a>
-      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="inicio.html">Inicio</a></li>
-        <li><a href="banco.html" class="active">Bank</a></li>
-        <li><a href="index.html">Salir</a></li>
-      </ul>
-    </nav>
-
-    <div class="hud-stats" aria-label="Indicadores">
-      <div class="hud__bars">
-        <div class="hud-bar hp" data-val="82" aria-label="Vida 82%"></div>
-        <div class="hud-bar xp" data-val="63" aria-label="XP 63%"></div>
+    <div class="container nav-wrap">
+      <div class="nav-brand">
+        <div class="brand-cube"></div>
+        <span class="logo">Moon<span>veil</span></span>
       </div>
-      <div class="hud__inv" aria-label="Inventario rápido">
-        <button class="slot" title="Esmeraldas"><span class="i i-emerald" aria-hidden="true"></span></button>
-        <button class="slot" title="Pan"><span class="i i-bread" aria-hidden="true"></span></button>
-        <button class="slot" title="Espada"><span class="i i-sword" aria-hidden="true"></span></button>
-      </div>
+      <nav class="navbar" id="main-nav">
+        <a href="inicio.html"  class="nav-pill np-home">HOME</a>
+        <a href="premios.html" class="nav-pill np-gacha">RULETAS</a>
+        <a href="tienda.html"  class="nav-pill np-shop">TIENDA</a>
+        <a href="banco.html"   class="nav-pill np-bank active">BANCO</a>
+        <a href="perfil.html"  class="nav-pill np-profile">PERFIL</a>
+        <a href="index.html"   class="nav-pill np-exit">SALIR</a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="menu"><span></span><span></span><span></span></button>
     </div>
   </header>
 
-  <!-- ══════════════════════════════════
-       MAIN
-       ══════════════════════════════════ -->
-  <main class="banco-main">
-
-    <!-- HERO -->
-    <section class="banco-hero">
-      <div class="hero-bg-art" aria-hidden="true">
-        <div class="hero-arc arc1"></div>
-        <div class="hero-arc arc2"></div>
-        <div class="hero-arc arc3"></div>
-        <div class="hero-columns">
-          <span></span><span></span><span></span><span></span>
-        </div>
-      </div>
-
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
       <div class="hero-inner reveal">
-        <div class="hero-eyebrow">
-          <span class="blue-dot"></span>
-          Banco del Reino · Moonveil Portal
-        </div>
+        <div class="hero-eyebrow"><span class="coin-blink">🏦</span>BANCO DEL REINO</div>
         <h1 class="hero-title">
           <span class="ht-sm">BIENVENIDO AL</span>
           <span class="ht-big">BANCO MOONVEIL</span>
         </h1>
-        <p class="hero-lead">Tus riquezas se acumulan automáticamente mientras exploras el reino. Gestiona tus bóvedas y recolecta a tiempo.</p>
-
-        <div class="hero-stats">
-          <div class="hstat">
-            <span class="hstat-ico">💰</span>
-            <div>
-              <strong id="totalCoins">0</strong>
-              <small>Total acumulado</small>
-            </div>
-          </div>
-          <div class="hstat">
-            <span class="hstat-ico">🏛️</span>
-            <div>
-              <strong id="activeVaults">7</strong>
-              <small>Bóvedas activas</small>
-            </div>
-          </div>
-          <div class="hstat">
-            <span class="hstat-ico">⏱️</span>
-            <div>
-              <strong id="uptime">0d</strong>
-              <small>Tiempo activo</small>
-            </div>
-          </div>
-          <div class="hstat">
-            <span class="hstat-ico">📊</span>
-            <div>
-              <strong id="totalEver">0</strong>
-              <small>Histórico total</small>
-            </div>
-          </div>
+        <p class="hero-lead">Tus monedas se acumulan automáticamente. ¡No dejes que las bóvedas se llenen!</p>
+        <div class="hero-stats-row">
+          <div class="stat-pill"><span class="stat-ico">💰</span><div class="stat-body"><div class="stat-val" id="heroTotal">0</div><div class="stat-lbl">TOTAL EN BÓVEDAS</div></div></div>
+          <div class="stat-pill"><span class="stat-ico">🏛️</span><div class="stat-body"><div class="stat-val" id="heroActive">0</div><div class="stat-lbl">BÓVEDAS ACTIVAS</div></div></div>
+          <div class="stat-pill"><span class="stat-ico">📊</span><div class="stat-body"><div class="stat-val" id="heroHistoric">0</div><div class="stat-lbl">HISTÓRICO TOTAL</div></div></div>
+          <div class="stat-pill"><span class="stat-ico">⏱️</span><div class="stat-body"><div class="stat-val" id="heroUptime">0d</div><div class="stat-lbl">TIEMPO ACTIVO</div></div></div>
         </div>
-
         <div class="hero-actions">
-          <button class="btn-collect-all" id="collectAllBtn" disabled>
-            🎁 Recolectar Todo
-          </button>
-          <button class="btn-vault-open" id="vaultOpenBtn">
-            🏦 Ver Bóveda
-          </button>
+          <button class="btn-pixel btn-gold pulse" id="collectAllBtn" disabled>🎁 RECOLECTAR TODO</button>
+          <button class="btn-pixel btn-ghost" id="sortBtn">🔀 ORDENAR</button>
         </div>
       </div>
+    </div>
+  </section>
 
-      <!-- Puerta de bóveda decorativa -->
-      <div class="vault-deco reveal" id="vaultDoor" title="Clic para abrir">
-        <div class="vault-outer">
-          <div class="vault-ring r1"></div>
-          <div class="vault-ring r2"></div>
-          <div class="vault-ring r3"></div>
-          <div class="vault-dial">
-            <div class="vault-notches">
-              <span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span>
-            </div>
-            <div class="vault-lock-center">
-              <div class="vault-keyhole"></div>
-            </div>
-          </div>
-          <div class="vault-shine"></div>
-        </div>
-        <p class="vault-hint">Clic para girar</p>
-      </div>
-    </section>
+  <!-- BÓVEDAS -->
+  <div class="container main-bank">
 
-    <!-- BÓVEDAS -->
-    <section class="currency-section">
-      <div class="section-header reveal">
-        <div>
-          <h2>🏛️ Tus Bóvedas</h2>
-          <p class="sec-sub">Las ganancias se acumulan automáticamente. No dejes que se llenen.</p>
-        </div>
-        <div class="section-controls">
-          <div class="sort-wrap">
-            <select id="sortSelect">
-              <option value="default">Orden original</option>
-              <option value="vault-desc">Mayor en bóveda</option>
-              <option value="total-desc">Mayor acumulado</option>
-              <option value="rate-asc">Más rápida</option>
-            </select>
-          </div>
-        </div>
-      </div>
+    <!-- SORT BAR -->
+    <div class="sort-bar reveal">
+      <span class="sort-label">ORDENAR POR:</span>
+      <button class="sort-pill active" data-sort="default">ORIGINAL</button>
+      <button class="sort-pill" data-sort="vault-desc">MAYOR BÓVEDA</button>
+      <button class="sort-pill" data-sort="total-desc">MAYOR TOTAL</button>
+      <button class="sort-pill" data-sort="rate-asc">MÁS RÁPIDA</button>
+    </div>
 
-      <div class="currency-grid" id="currencyGrid">
-        <!-- Las tarjetas se generan desde JS para mayor flexibilidad -->
-      </div>
-    </section>
+    <!-- GRID DE BÓVEDAS -->
+    <div class="vaults-grid" id="vaultsGrid"></div>
 
     <!-- LOG DE ACTIVIDAD -->
-    <section class="activity-section reveal">
-      <div class="activity-header">
-        <h2>📜 Registro de Actividad</h2>
-        <button class="btn-clear-log" id="clearLogBtn">Limpiar</button>
+    <section class="log-section reveal">
+      <div class="log-header">
+        <h2 class="sec-title">📜 REGISTRO DE ACTIVIDAD</h2>
+        <button class="btn-pixel btn-ghost btn-sm" id="clearLogBtn">🗑️ LIMPIAR</button>
       </div>
       <div class="activity-log" id="activityLog">
         <div class="log-entry system">
-          <span class="log-time">Ahora</span>
+          <span class="log-time">AHORA</span>
           <span class="log-msg">Sistema bancario inicializado correctamente</span>
         </div>
       </div>
     </section>
 
-  </main>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
 
   <!-- FOOTER -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="footer-logo">
-            <span class="cube"></span>
-            <span>Moonveil <b>Portal</b></span>
-          </div>
-          <p class="footer-tagline">El Banco del Reino — Tus riquezas están seguras en las bóvedas de Moonveil.</p>
-          <div class="footer-live">
-            <span class="blue-dot small"></span>
-            Banco activo · Ganancias en tiempo real
-          </div>
-        </div>
-        <div class="footer-col">
-          <h4>Navegar</h4>
-          <ul>
-            <li><a href="inicio.html">🏠 Inicio</a></li>
-            <li><a href="eventos.html">🎉 Eventos</a></li>
-            <li><a href="premios.html">🎰 Ruleta</a></li>
-            <li><a href="tienda.html">🛒 Tienda</a></li>
-            <li><a href="tradeos.html">🔀 Tradeos</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Bóvedas</h4>
-          <ul>
-            <li><a href="#currencyGrid">💎 Esmeraldas</a></li>
-            <li><a href="#currencyGrid">⭐ Oro</a></li>
-            <li><a href="#currencyGrid">🔥 Inframundo</a></li>
-            <li><a href="#currencyGrid">⚡ Pepitas Rápidas</a></li>
-            <li><a href="#currencyGrid">💠 Diamantes</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Info</h4>
-          <ul>
-            <li><a href="#">📩 Soporte</a></li>
-            <li><a href="#">📜 Términos</a></li>
-            <li><a href="#">🔒 Privacidad</a></li>
-            <li><a href="index.html">🚪 Salir</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <span>© <span id="y"></span> Moonveil Portal — ¡Que tus riquezas crezcan!</span>
-        <span class="footer-live-txt">⚡ Bóvedas activas</span>
-      </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand"><div class="brand-cube small"></div><span>Moonveil Portal</span></div>
+      <div class="footer-copy">© <span id="year"></span> Moonveil. Todos los derechos reservados.</div>
     </div>
   </footer>
 
-  <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-
-  <!-- Botón música -->
-  <button class="pixel-button floating-music" onclick="toggleMusic()">🎵 Música</button>
-
-  <!-- Música -->
-  <audio id="bg-music" loop>
-    <source src="music/8.mp3" type="audio/mpeg" />
-  </audio>
-
-  <script src="banco.js"></script>
+  <script type="module" src="banco.js"></script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
