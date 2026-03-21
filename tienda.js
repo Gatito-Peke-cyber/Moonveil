@@ -1,15 +1,15 @@
 'use strict';
 /**
- * tienda.js — Moonveil Portal Shop v3.1
- * · Rusty: más diálogos y texto más grande
- * · NPC flotante: texto más grande
- * · Historial: secciones por fecha, totales diarios, limpiar funcional
+ * tienda.js — Moonveil Portal Shop v3.2
+ * · SYNC EN TIEMPO REAL: onSnapshot para stock/compras/inventario
+ * · Cuando compras en un dispositivo, el otro se actualiza al instante
+ * · Sin perder ninguna función existente
  */
 
 import { db }           from './firebase.js';
 import { onAuthChange }  from './auth.js';
 import {
-  doc, getDoc, updateDoc, serverTimestamp,
+  doc, getDoc, updateDoc, onSnapshot, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 import { saveInventory } from './database.js';
 
@@ -34,7 +34,12 @@ function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
 
 /* ══ FIREBASE ══ */
 let currentUID=null, syncTO=null;
+// Flag para evitar que el propio onSnapshot dispare un re-render por cambios que ya hicimos nosotros
+let _ignoreNextSnapshot=false;
+let _shopUnsub=null; // unsubscribe del listener en tiempo real
+
 function scheduleSync(){if(!currentUID)return;clearTimeout(syncTO);syncTO=setTimeout(doSync,2500);}
+
 async function doSync(){
   if(!currentUID)return;
   try{
@@ -44,12 +49,130 @@ async function doSync(){
     ['classic','dark_moon','spring','storm','cyber','abyss'].forEach(id=>{
       gachaTickets[id]=parseInt(localStorage.getItem(`mv_tickets_${id}`)||'0',10);
     });
+
+    // Guardar también el stock actual de cada producto para sincronizar entre dispositivos
+    const stockSnapshot={};
+    products.forEach(p=>{
+      const v=localStorage.getItem(LS.stock(p.id));
+      if(v!=null) stockSnapshot[p.id]=parseInt(v,10);
+    });
+
+    _ignoreNextSnapshot=true;
     await updateDoc(doc(db,'users',currentUID),{
-      inventory:inv,shop_purchases:hist,gacha_tickets:gachaTickets,
+      inventory:inv,
+      shop_purchases:hist,
+      gacha_tickets:gachaTickets,
+      shop_stock:stockSnapshot,
       updatedAt:serverTimestamp(),
     });
-  }catch(e){console.warn('[Shop] sync:',e);}
+    // Resetear el flag después de un pequeño delay para que el snapshot no rebote
+    setTimeout(()=>{_ignoreNextSnapshot=false;},1500);
+  }catch(e){console.warn('[Shop] sync:',e);_ignoreNextSnapshot=false;}
 }
+
+/**
+ * Aplicar datos llegados desde Firebase (otro dispositivo)
+ * Solo se ejecuta cuando el cambio NO fue iniciado por este dispositivo
+ */
+function applyRemoteData(data){
+  let changed=false;
+
+  // Sincronizar inventario (tomar el mayor valor)
+  if(data.inventory){
+    const cur=lsGet(LS.inv,{tickets:0,keys:0,superstar_keys:0});
+    const merged={
+      tickets:      Math.max(cur.tickets||0,      data.inventory.tickets||0),
+      keys:         Math.max(cur.keys||0,          data.inventory.keys||0),
+      superstar_keys:Math.max(cur.superstar_keys||0,data.inventory.superstar_keys||0),
+    };
+    // Solo actualizar si hay diferencia
+    if(JSON.stringify(merged)!==JSON.stringify(cur)){
+      lsSet(LS.inv,merged);
+      changed=true;
+    }
+  }
+
+  // Sincronizar tickets gacha (tomar el mayor valor)
+  if(data.gacha_tickets){
+    Object.entries(data.gacha_tickets).forEach(([rid,count])=>{
+      const k=`mv_tickets_${rid}`;
+      const local=parseInt(localStorage.getItem(k)||'0',10);
+      const remote=count||0;
+      if(remote>local){
+        localStorage.setItem(k,String(remote));
+        changed=true;
+      }
+    });
+  }
+
+  // Sincronizar historial de compras (usar el más largo)
+  if(data.shop_purchases&&Array.isArray(data.shop_purchases)){
+    const loc=lsGet(LS.hist,[]);
+    if(data.shop_purchases.length>loc.length){
+      lsSet(LS.hist,data.shop_purchases);
+      changed=true;
+    }
+  }
+
+  // Sincronizar stock de productos (tomar el MENOR — el que tenga menos = el que compró)
+  if(data.shop_stock){
+    Object.entries(data.shop_stock).forEach(([id,remoteStock])=>{
+      const p=products.find(x=>x.id===id);
+      if(!p)return;
+      const localStock=getStock(p);
+      // Si el remoto tiene menos stock, significa que el otro dispositivo compró
+      if(remoteStock<localStock){
+        setStock(p,remoteStock);
+        // Si quedó en 0 y hay restock, calcular próximo restock
+        if(remoteStock<=0&&p.restock){
+          const days=RESTOCK_DAYS[p.restock];
+          if(days&&!getNextRestock(p)){
+            setNextRestock(p,nextMidnight(days));
+          }
+        }
+        changed=true;
+      }
+    });
+  }
+
+  if(changed){
+    renderHUD();
+    renderAll();
+    renderHistory();
+    console.log('[Shop] 🔄 Sincronizado desde otro dispositivo');
+  }
+}
+
+/**
+ * Iniciar listener en tiempo real del documento del usuario en Firestore
+ * Esto es lo que hace que la tienda se sincronice como contactos y perfil
+ */
+function startRealtimeListener(uid){
+  // Cancelar listener anterior si existe
+  if(_shopUnsub){_shopUnsub();_shopUnsub=null;}
+
+  _shopUnsub=onSnapshot(
+    doc(db,'users',uid),
+    (snap)=>{
+      if(!snap.exists())return;
+
+      // Si el cambio lo iniciamos nosotros, ignorar para no re-renderizar en bucle
+      if(_ignoreNextSnapshot){
+        console.log('[Shop] Snapshot propio — ignorado');
+        return;
+      }
+
+      const data=snap.data();
+      applyRemoteData(data);
+    },
+    (err)=>{
+      console.warn('[Shop] onSnapshot error:',err);
+    }
+  );
+
+  console.log('[Shop] ✅ Listener en tiempo real activo');
+}
+
 async function loadFromFirebase(uid){
   try{
     const snap=await getDoc(doc(db,'users',uid));if(!snap.exists())return;
@@ -72,6 +195,17 @@ async function loadFromFirebase(uid){
     if(d.shop_purchases&&Array.isArray(d.shop_purchases)){
       const loc=lsGet(LS.hist,[]);
       if(d.shop_purchases.length>loc.length)lsSet(LS.hist,d.shop_purchases);
+    }
+    // Cargar stock remoto al iniciar (tomar el menor para reflejar compras de otros dispositivos)
+    if(d.shop_stock){
+      Object.entries(d.shop_stock).forEach(([id,remoteStock])=>{
+        const p=products.find(x=>x.id===id);
+        if(!p)return;
+        const localStock=getStock(p);
+        if(remoteStock<localStock){
+          setStock(p,remoteStock);
+        }
+      });
     }
   }catch(e){console.warn('[Shop] load:',e);}
 }
@@ -128,7 +262,6 @@ function timeAgo(iso){
   if(s<86400)return`hace ${Math.floor(s/3600)}h`;return`hace ${Math.floor(s/86400)}d`;
 }
 function formatDateLabel(isoDate){
-  // isoDate = 'YYYY-MM-DD'
   const [y,m,d]=isoDate.split('-').map(Number);
   const dt=new Date(y,m-1,d);
   const todayStr=today();
@@ -543,7 +676,7 @@ function buildCard(p,idx){
   return{html,cds};
 }
 
-/* ══ RUSTY — DIÁLOGOS AMPLIADOS ══ */
+/* ══ RUSTY — DIÁLOGOS ══ */
 const RUSTY_DIALOGUES=[
   '¡Mira estas ofertas, solo por hoy! 🔥',
   '¡Las mejores rebajas de todo el portal!',
@@ -585,7 +718,7 @@ function startRustyDialogues(){
   },6000);
 }
 
-/* ══ NPC FLOTANTE — DIÁLOGOS AMPLIADOS ══ */
+/* ══ NPC FLOTANTE ══ */
 const NPC_MSGS=[
   '¡Los mejores productos del portal!',
   '¿Ya viste los pases de temporada?',
@@ -604,7 +737,6 @@ const NPC_MSGS=[
   '¡Las superestrellas brillan con fuerza! ⭐',
 ];
 
-// Semilla diaria
 function getDailySeed(){
   const d=new Date();
   return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
@@ -982,7 +1114,7 @@ function getRewardLines(p){
   return lines;
 }
 
-/* ══ HISTORIAL — REDISEÑADO CON SECCIONES POR FECHA ══ */
+/* ══ HISTORIAL ══ */
 function getPurchases(){return lsGet(LS.hist,[]);}
 
 function addPurchase(p,note='',finalPrice=null,discPct=0){
@@ -1004,10 +1136,6 @@ function addPurchase(p,note='',finalPrice=null,discPct=0){
   scheduleSync();
 }
 
-/**
- * Agrupa el historial por fecha (YYYY-MM-DD)
- * Cada grupo tiene: dateKey, items[], totalPaid
- */
 function groupHistoryByDate(hist){
   const groups={};
   hist.forEach(h=>{
@@ -1017,7 +1145,6 @@ function groupHistoryByDate(hist){
     groups[dk].totalPaid+=h.price||0;
     if(h.price===0||(h.origPrice===0&&h.price===0))groups[dk].hasFree=true;
   });
-  // Ordenar fechas descendiente (más reciente primero)
   return Object.values(groups).sort((a,b)=>b.dateKey.localeCompare(a.dateKey));
 }
 
@@ -1025,8 +1152,6 @@ function renderHistory(){
   const list=$('#purchasesList');if(!list)return;
   const hist=getPurchases();
 
-  // Actualizar badge y contador
-  const badge=$('#histToggle .hist-badge, .hist-badge');
   $$('.hist-badge').forEach(b=>b.textContent=hist.length>0?hist.length:'');
   const countEl=$('.hist-count');
   if(countEl){
@@ -1051,9 +1176,7 @@ function renderHistory(){
 
   list.innerHTML=groups.map(g=>{
     const allFree=g.totalPaid===0;
-    const totalLabel=allFree
-      ? `GRATIS`
-      : `⟡${g.totalPaid}`;
+    const totalLabel=allFree?`GRATIS`:`⟡${g.totalPaid}`;
     const totalClass=allFree?'hist-date-total free':'hist-date-total';
 
     const itemsHTML=g.items.map(h=>{
@@ -1211,7 +1334,7 @@ const _revealObs=new MutationObserver(()=>{
 
 /* ══ BOOT ══ */
 function boot(){
-  console.log('🛒 Moonveil Shop v3.1 — Rusty Edition');
+  console.log('🛒 Moonveil Shop v3.2 — Sync Edition');
   initReveal();initCoins();initNPC();
   initFlashSale();
   syncStocks();
@@ -1272,13 +1395,13 @@ function boot(){
     backdrop.classList.remove('open');
   });
 
-  // LIMPIAR HISTORIAL — completamente funcional
+  // Limpiar historial
   $('#btnClearHistory')?.addEventListener('click',()=>{
     if(!confirm('¿Limpiar todo el historial de compras?\n\nEsta acción no se puede deshacer.'))return;
-    // Limpiar del localStorage completamente
     lsSet(LS.hist,[]);
-    // Forzar render inmediato
     renderHistory();
+    // Sincronizar el historial vacío con Firebase
+    scheduleSync();
     toast('🗑️ Historial limpiado','info');
   });
 
@@ -1286,13 +1409,29 @@ function boot(){
   const ham=$('#hamburger'),nav=$('#main-nav');
   ham?.addEventListener('click',()=>nav?.classList.toggle('open'));
 
-  // Firebase auth
+  // ══ FIREBASE AUTH + LISTENER EN TIEMPO REAL ══
   onAuthChange(async user=>{
-    if(!user)return;
+    if(!user){
+      // Si el usuario cierra sesión, cancelar el listener
+      if(_shopUnsub){_shopUnsub();_shopUnsub=null;}
+      return;
+    }
     currentUID=user.uid;
+
+    // 1. Carga inicial desde Firebase (getDoc, rápido)
     await loadFromFirebase(user.uid);
-    renderHUD();renderHistory();
-    console.log('✅ Shop Firebase OK:',user.uid);
+    renderHUD();renderAll();renderHistory();
+
+    // 2. Iniciar listener en tiempo real (onSnapshot)
+    // Esto sincroniza automáticamente cuando el otro dispositivo compra algo
+    startRealtimeListener(user.uid);
+
+    console.log('✅ Shop Firebase OK + Listener activo:',user.uid);
+  });
+
+  // Limpiar listener si se cierra la página
+  window.addEventListener('beforeunload',()=>{
+    if(_shopUnsub){_shopUnsub();_shopUnsub=null;}
   });
 }
 
