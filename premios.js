@@ -1,13 +1,14 @@
 /**
- * premios.js — Sistema Gacha Moonveil v3.0
+ * premios.js — Sistema Gacha Moonveil v3.1
  * ════════════════════════════════════════
+ * ✅ SYNC EN TIEMPO REAL: onSnapshot cross-device
+ * ✅ Tickets, inventario gacha y pity sincronizados al instante
  * ✅ Responsive móvil: misiones visibles en panel inferior
  * ✅ Misiones bloqueadas si la ruleta no ha iniciado
  * ✅ Timers más grandes y legibles
  * ✅ Pity legendario: probabilidad creciente desde tiro 1 (soft pity desde 45)
  * ✅ Últimos premios: muestra los N del último lote (x1 → 1, x10 → 10)
  * ✅ Botón LIMPIAR inventario por ruleta individual
- * ✅ Firebase Firestore sync cross-device
  * ✅ window.addTickets() para tienda.js
  */
 
@@ -16,7 +17,7 @@
 import { db }           from './firebase.js';
 import { onAuthChange }  from './auth.js';
 import {
-  doc, getDoc, updateDoc, serverTimestamp
+  doc, getDoc, updateDoc, onSnapshot, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
 const $  = s => document.querySelector(s);
@@ -40,18 +41,144 @@ function lsGet(k,fb=null){ try{const v=localStorage.getItem(k);return v!==null?J
 function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch{} }
 
 /* ══════════════════════════════════════
-   FIREBASE
+   FIREBASE — SYNC EN TIEMPO REAL
 ══════════════════════════════════════ */
 let currentUID=null, syncTimeout=null;
-function scheduleSync(){ if(!currentUID)return; clearTimeout(syncTimeout); syncTimeout=setTimeout(doSync,3000); }
+let _gachaUnsub=null;       // unsubscribe del onSnapshot
+let _ignoreNextSnapshot=false; // evitar loop cuando nosotros mismos actualizamos
+
+function scheduleSync(){
+  if(!currentUID)return;
+  clearTimeout(syncTimeout);
+  syncTimeout=setTimeout(doSync,3000);
+}
+
 async function doSync(){
   if(!currentUID)return;
   try{
     const inv=lsGet(LS.gachaInv,{}), stats=lsGet(LS.stats,{}), tix={};
     ROULETTES.forEach(r=>{ tix[r.id]=getTickets(r.id); });
-    await updateDoc(doc(db,'users',currentUID),{ gacha_inventory:inv, gacha_stats:stats, gacha_tickets:tix, updatedAt:serverTimestamp() });
-  }catch(e){ console.warn('[Gacha] sync:',e); }
+
+    // Guardar también el pity para sincronizarlo entre dispositivos
+    const pityData={};
+    ROULETTES.forEach(r=>{
+      pityData[`pity_epic_${r.id}`]  = getPityEpic(r.id);
+      pityData[`pity_legend_${r.id}`]= getPityLeg(r.id);
+    });
+
+    _ignoreNextSnapshot=true;
+    await updateDoc(doc(db,'users',currentUID),{
+      gacha_inventory: inv,
+      gacha_stats:     stats,
+      gacha_tickets:   tix,
+      gacha_pity:      pityData,
+      updatedAt:       serverTimestamp(),
+    });
+    // Resetear el flag tras un delay para que el snapshot no rebote
+    setTimeout(()=>{ _ignoreNextSnapshot=false; }, 1500);
+  }catch(e){
+    console.warn('[Gacha] sync:',e);
+    _ignoreNextSnapshot=false;
+  }
 }
+
+/**
+ * Aplicar datos remotos llegados desde otro dispositivo via onSnapshot
+ */
+function applyRemoteData(data){
+  let changed=false;
+
+  // ── Tickets: tomar el mayor valor por ruleta ──
+  if(data.gacha_tickets){
+    ROULETTES.forEach(r=>{
+      const remote=data.gacha_tickets[r.id]??0;
+      const local=getTickets(r.id);
+      if(remote>local){
+        localStorage.setItem(LS.tickets(r.id), String(remote));
+        changed=true;
+      }
+    });
+  }
+
+  // ── Inventario gacha: fusionar (tomar el mayor count por ítem) ──
+  if(data.gacha_inventory){
+    const local=lsGet(LS.gachaInv,{});
+    const merged={...data.gacha_inventory};
+    Object.keys(local).forEach(k=>{
+      if(!merged[k]) merged[k]=local[k];
+      else if((local[k].count||0)>(merged[k].count||0)) merged[k]=local[k];
+    });
+    if(JSON.stringify(merged)!==JSON.stringify(local)){
+      lsSet(LS.gachaInv,merged);
+      changed=true;
+    }
+  }
+
+  // ── Stats: tomar el mayor totalSpins y totalPrizes ──
+  if(data.gacha_stats){
+    const local=lsGet(LS.stats,{totalSpins:0,totalPrizes:0});
+    const merged={
+      totalSpins:  Math.max(local.totalSpins||0,  data.gacha_stats.totalSpins||0),
+      totalPrizes: Math.max(local.totalPrizes||0, data.gacha_stats.totalPrizes||0),
+    };
+    if(JSON.stringify(merged)!==JSON.stringify(local)){
+      lsSet(LS.stats,merged);
+      changed=true;
+    }
+  }
+
+  // ── Pity: tomar el más alto (el que más giró) ──
+  if(data.gacha_pity){
+    ROULETTES.forEach(r=>{
+      const remoteEpic  = data.gacha_pity[`pity_epic_${r.id}`]??0;
+      const remoteLeg   = data.gacha_pity[`pity_legend_${r.id}`]??0;
+      const localEpic   = getPityEpic(r.id);
+      const localLeg    = getPityLeg(r.id);
+      if(remoteEpic>localEpic){
+        localStorage.setItem(LS.pityEpic(r.id), String(remoteEpic));
+        changed=true;
+      }
+      if(remoteLeg>localLeg){
+        localStorage.setItem(LS.pityLegend(r.id), String(remoteLeg));
+        changed=true;
+      }
+    });
+  }
+
+  if(changed){
+    renderTicketsDisplay();
+    renderHUDTickets();
+    updateCurrentWheelInfo();
+    renderStats();
+    updatePityUI();
+    updateInventoryBadge();
+    console.log('[Gacha] 🔄 Sincronizado desde otro dispositivo');
+  }
+}
+
+/**
+ * Iniciar listener en tiempo real del documento del usuario
+ * Equivalente al onSnapshot de contactos/perfil
+ */
+function startRealtimeListener(uid){
+  if(_gachaUnsub){ _gachaUnsub(); _gachaUnsub=null; }
+
+  _gachaUnsub=onSnapshot(
+    doc(db,'users',uid),
+    (snap)=>{
+      if(!snap.exists())return;
+      if(_ignoreNextSnapshot){
+        console.log('[Gacha] Snapshot propio — ignorado');
+        return;
+      }
+      applyRemoteData(snap.data());
+    },
+    (err)=>{ console.warn('[Gacha] onSnapshot error:',err); }
+  );
+
+  console.log('[Gacha] ✅ Listener en tiempo real activo');
+}
+
 async function loadFromFirebase(uid){
   try{
     const snap=await getDoc(doc(db,'users',uid)); if(!snap.exists())return;
@@ -66,7 +193,18 @@ async function loadFromFirebase(uid){
       Object.keys(local).forEach(k=>{ if(!merged[k])merged[k]=local[k]; else if((local[k].count||0)>(merged[k].count||0))merged[k]=local[k]; });
       lsSet(LS.gachaInv,merged);
     }
-    if(d.gacha_stats)lsSet(LS.stats,d.gacha_stats);
+    if(d.gacha_stats) lsSet(LS.stats,d.gacha_stats);
+    // Cargar pity desde Firebase al iniciar
+    if(d.gacha_pity){
+      ROULETTES.forEach(r=>{
+        const remoteEpic=d.gacha_pity[`pity_epic_${r.id}`]??0;
+        const remoteLeg =d.gacha_pity[`pity_legend_${r.id}`]??0;
+        const localEpic =getPityEpic(r.id);
+        const localLeg  =getPityLeg(r.id);
+        if(remoteEpic>localEpic) localStorage.setItem(LS.pityEpic(r.id),  String(remoteEpic));
+        if(remoteLeg >localLeg)  localStorage.setItem(LS.pityLegend(r.id), String(remoteLeg));
+      });
+    }
   }catch(e){ console.warn('[Gacha] load:',e); }
 }
 
@@ -271,7 +409,6 @@ function addToGachaInv(wheelId,reward){
   updateInventoryBadge(); scheduleSync();
 }
 
-/* Limpiar inventario de UNA ruleta */
 function clearWheelInventory(wheelId){
   if(!confirm(`¿Limpiar todo el inventario de "${ROULETTES.find(r=>r.id===wheelId)?.title||wheelId}"?`)) return;
   const inv=getGachaInv();
@@ -318,7 +455,6 @@ function showInventory(){
       <button class="btn-pixel btn-ghost" id="btnClearInv">🗑️ LIMPIAR INVENTARIO</button>
       <button class="btn-pixel btn-purple" onclick="document.getElementById('modal').setAttribute('aria-hidden','true')">CERRAR</button>
     </div>`);
-  // El listener debe quedar DESPUÉS de que el modal se inyecte
   setTimeout(()=>{
     $('#btnClearInv')?.addEventListener('click',()=>{
       closeModal();
@@ -328,7 +464,7 @@ function showInventory(){
 }
 
 /* ══════════════════════════════════════
-   ÚLTIMOS PREMIOS — guarda lote completo
+   ÚLTIMOS PREMIOS
 ══════════════════════════════════════ */
 function saveLastPrizes(rewards){
   lsSet(LS.lastPrizes, rewards.map(r=>({img:r.img,label:r.label,rarity:r.rarity,desc:r.desc})));
@@ -379,9 +515,7 @@ function formatTime(sec){
 }
 
 /* ══════════════════════════════════════
-   PITY — soft pity desde tiro 45 para legendario
-   La probabilidad base de legendario es ~1.7%.
-   Desde tiro 45 aumenta progresivamente hasta el 100% en 60.
+   PITY
 ══════════════════════════════════════ */
 function getPityEpic(id)  { return parseInt(localStorage.getItem(LS.pityEpic(id))  ||'0',10); }
 function setPityEpic(id,v){ localStorage.setItem(LS.pityEpic(id),  String(v)); updatePityUI(); }
@@ -408,8 +542,6 @@ function useStock(id)  { const c=getStock(id); if(c!==null){ if(c<=0)return fals
 
 /* ══════════════════════════════════════
    PICK CON PITY
-   Soft pity legendario: desde tiro 45 la probabilidad sube ~6% por tiro.
-   Hard pity en tiro 60.
 ══════════════════════════════════════ */
 function pickWithPity(wheelId){
   const wheel=ROULETTES.find(w=>w.id===wheelId); if(!wheel)return null;
@@ -419,28 +551,21 @@ function pickWithPity(wheelId){
   const epics  =avail.filter(r=>r.rarity==='epic');
   const legends=avail.filter(r=>r.rarity==='legend');
 
-  /* ── Hard pity legendario (tiro 60) ── */
   if(pl>=60&&legends.length){
     const r=legends[Math.floor(Math.random()*legends.length)];
     setPityEpic(wheelId,pe+1); setPityLeg(wheelId,0); return r;
   }
-
-  /* ── Soft pity legendario (tiro 45-59): probabilidad creciente ── */
   if(pl>=45&&legends.length){
-    const extra=(pl-44)*0.06; // +6% por cada tiro desde el 45
+    const extra=(pl-44)*0.06;
     if(Math.random()<extra){
       const r=legends[Math.floor(Math.random()*legends.length)];
       setPityEpic(wheelId,pe+1); setPityLeg(wheelId,0); return r;
     }
   }
-
-  /* ── Hard pity épico (tiro 20) ── */
   if(pe>=20&&epics.length){
     const r=epics[Math.floor(Math.random()*epics.length)];
     setPityEpic(wheelId,0); setPityLeg(wheelId,pl+1); return r;
   }
-
-  /* ── Ruleta de pesos normal ── */
   const total=avail.reduce((s,r)=>s+r.weight,0);
   let rng=Math.random()*total;
   for(const r of avail){
@@ -549,11 +674,12 @@ async function spinWheel(times=1){
   const tickIv=setInterval(()=>beep(120,0.02),80);
   await wait(4600); clearInterval(tickIv);
   spinning=false; updateSpinButtons();
-  /* Guardar y mostrar TODOS los premios del lote */
   saveLastPrizes(results);
   renderLastPrizesPanel(results);
   times===1 ? showPrizeModal(last) : showMultiPrizeModal(results);
   beep(880,0.05,0.06);
+  // Forzar sync inmediato después de un giro (no esperar el delay de 3s)
+  scheduleSync();
 }
 
 /* ══════════════════════════════════════
@@ -731,8 +857,6 @@ function renderHUDTickets(){
 
 /* ══════════════════════════════════════
    MISIONES
-   - Bloqueadas si la ruleta no ha iniciado
-   - Reset a medianoche local
 ══════════════════════════════════════ */
 function getMissionsState(){ return lsGet(LS.missions,{}); }
 function setMissionsState(s){ lsSet(LS.missions,s); }
@@ -758,7 +882,6 @@ function renderMissions(){
   const missions=MISSIONS_BY_WHEEL[currentWheelId]||[];
   let available=0;
 
-  /* Si la ruleta no ha iniciado, mostrar mensaje de bloqueo */
   if(wheel&&!isWheelActive(wheel)&&getTimeUntilStart(wheel)&&getTimeUntilStart(wheel)>0){
     box.innerHTML=`
       <div class="missions-locked-msg">
@@ -880,19 +1003,19 @@ function initTickets(){ ROULETTES.forEach(r=>{ if(localStorage.getItem(LS.ticket
    BOOT
 ══════════════════════════════════════ */
 function boot(){
-  console.log('🎡 Moonveil Gacha v3.0');
+  console.log('🎡 Moonveil Gacha v3.1 — Sync Edition');
   initStocks(); initTickets();
   renderWheelTabs(); renderWheel(currentWheelId); renderMissions();
   renderTicketsDisplay(); renderHUDTickets();
   updateCurrentWheelInfo(); updatePityUI(); updateBoostUI(); renderStats(); updateInventoryBadge();
   const wheel=ROULETTES.find(w=>w.id===currentWheelId);
   if(wheel)updateBackground(wheel);
-  /* Restaurar últimos premios */
   const lp=lsGet(LS.lastPrizes,null);
   if(lp&&lp.length)renderLastPrizesPanel(lp);
   initStars(); initReveal(); initNav(); initFox();
   boostInterval=setInterval(updateBoostUI,1000);
   timerInterval=setInterval(()=>{ updateWheelTimers(); updateCurrentWheelInfo(); updateMissionCountdowns(); },1000);
+
   $('#btnSpin')?.addEventListener('click',()=>spinWheel(1));
   $('#btnSpin10')?.addEventListener('click',()=>spinWheel(10));
   $('#btnPreview')?.addEventListener('click',showPreview);
@@ -900,17 +1023,37 @@ function boot(){
   $('#btnOpenRules')?.addEventListener('click',showRules);
   $('#modalClose')?.addEventListener('click',closeModal);
   document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeModal(); });
+
   $('#multiplierBtn')?.addEventListener('click',()=>{
     const now=Date.now();
     if(boostState.activeUntil>now||boostState.cooldownUntil>now)return;
     boostState={activeUntil:now+BOOST_DUR*1000,cooldownUntil:getTonightMidnight()};
     lsSet(LS.boostState,boostState); updateBoostUI(); toast('Boost x2 activado — 1 hora','⚡');
   });
+
+  // ══ FIREBASE AUTH + LISTENER EN TIEMPO REAL ══
   onAuthChange(async user=>{
-    if(!user)return; currentUID=user.uid;
+    if(!user){
+      // Si cierra sesión, cancelar el listener
+      if(_gachaUnsub){ _gachaUnsub(); _gachaUnsub=null; }
+      return;
+    }
+    currentUID=user.uid;
+
+    // 1. Carga inicial (getDoc — rápido, una sola vez)
     await loadFromFirebase(user.uid);
-    renderTicketsDisplay(); renderHUDTickets(); updateCurrentWheelInfo(); renderStats();
-    console.log('✅ Gacha Firebase OK:',user.uid);
+    renderTicketsDisplay(); renderHUDTickets(); updateCurrentWheelInfo(); renderStats(); updatePityUI(); updateInventoryBadge();
+
+    // 2. Listener en tiempo real (onSnapshot)
+    // Sincroniza automáticamente cuando el otro dispositivo gira o compra tickets
+    startRealtimeListener(user.uid);
+
+    console.log('✅ Gacha Firebase OK + Listener activo:',user.uid);
+  });
+
+  // Limpiar listener al cerrar la página
+  window.addEventListener('beforeunload',()=>{
+    if(_gachaUnsub){ _gachaUnsub(); _gachaUnsub=null; }
   });
 }
 
