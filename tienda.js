@@ -1,6 +1,10 @@
 'use strict';
 /**
- * tienda.js — Moonveil Portal Shop v3.2
+ * tienda.js — Moonveil Portal Shop v3.3
+ * FIX v3.3: notifyPassSpend() — al comprar en la tienda,
+ *   ahora se notifica al sistema de pases sobre el gasto.
+ *   Esto hace que las misiones "Gasta X ⟡" funcionen.
+ *
  * · SYNC EN TIEMPO REAL: onSnapshot para stock/compras/inventario
  * · Cuando compras en un dispositivo, el otro se actualiza al instante
  * · Sin perder ninguna función existente
@@ -29,8 +33,43 @@ const LS = {
   coup: 'mv_current_coupon',
   coupSc:'mv_sc_active',
 };
+
+// ══ KEY para el queue de gastos que lee pases.js ══
+const SHOP_SPEND_QUEUE_KEY = 'mv_shop_spend_queue';
+
 function lsGet(k,fb=null){try{const v=localStorage.getItem(k);return v!=null?JSON.parse(v):fb;}catch{return fb;}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+/* ══════════════════════════════════════════════════════════
+   NOTIFICAR GASTO AL SISTEMA DE PASES
+   FIX v3.3 — Esta función es la que faltaba.
+   Se llama desde executeBuy() y buySBProduct() cada vez
+   que se completa una compra con precio > 0.
+══════════════════════════════════════════════════════════ */
+function notifyPassSpend(amount) {
+  if (!amount || amount <= 0) return;
+  try {
+    // Caso 1: pases.js está cargado en la misma pestaña
+    // (por ejemplo si tienda.html y pases.html son la misma SPA)
+    if (typeof window.notifyPassShopSpend === 'function') {
+      window.notifyPassShopSpend(amount);
+      return; // notifyPassShopSpend ya hace scheduleSync internamente
+    }
+
+    // Caso 2: pases.html está en otra pestaña / no está cargado.
+    // Escribir en el queue de localStorage para que pases.js
+    // lo procese en su polling cada 5s o al abrirse.
+    const raw = localStorage.getItem(SHOP_SPEND_QUEUE_KEY);
+    let queue;
+    try { queue = raw ? JSON.parse(raw) : []; } catch { queue = []; }
+    if (!Array.isArray(queue)) queue = [];
+    queue.push({ amount, timestamp: Date.now() });
+    localStorage.setItem(SHOP_SPEND_QUEUE_KEY, JSON.stringify(queue));
+    console.log(`[Shop] 💰 Gasto ⟡${amount} añadido al queue para pases.js`);
+  } catch (e) {
+    console.warn('[Shop] notifyPassSpend error:', e);
+  }
+}
 
 /* ══ FIREBASE ══ */
 let currentUID=null, syncTO=null;
@@ -830,6 +869,9 @@ function startRustyCountdown(){
   tick();setInterval(tick,1000);
 }
 
+/* ══════════════════════════════════════════════════════════
+   buySBProduct — FIX v3.3: notifica el gasto al sistema de pases
+══════════════════════════════════════════════════════════ */
 function buySBProduct(p,finalPrice,disc){
   const st=getStock(p);
   if(st<=0){toast('¡Agotado!','error');return;}
@@ -840,11 +882,14 @@ function buySBProduct(p,finalPrice,disc){
   }
   deliverProduct(p);
   addPurchase(p,`Rusty -${disc}% → ⟡${finalPrice}`,finalPrice,disc);
+
+  // ── FIX v3.3: notificar gasto al sistema de pases ──
+  if(finalPrice>0){
+    notifyPassSpend(finalPrice);
+  }
+
   toast(`🦊 Rusty: ¡${p.name} por ⟡${finalPrice}!`,'success');
   renderSBGrid();renderAll();
-  if (finalPrice > 0 && window.notifyPassShopSpend) {
-  window.notifyPassShopSpend(finalPrice);
-}
 }
 
 /* ══ COMPRA ══ */
@@ -1064,6 +1109,9 @@ function openDetailModal(id){
   },50);
 }
 
+/* ══════════════════════════════════════════════════════════
+   executeBuy — FIX v3.3: notifica el gasto al sistema de pases
+══════════════════════════════════════════════════════════ */
 function executeBuy(p,finalPrice,discPct){
   const st=getStock(p);
   if(st<=0){toast('❌ Sin stock','error');return;}
@@ -1074,6 +1122,14 @@ function executeBuy(p,finalPrice,discPct){
   }
   deliverProduct(p);
   addPurchase(p,discPct>0?`-${discPct}% → ⟡${finalPrice}`:'',finalPrice,discPct);
+
+  // ── FIX v3.3: notificar gasto al sistema de pases ──
+  // Se hace DESPUÉS de deliverProduct y addPurchase para que
+  // el historial quede registrado antes de sincronizar.
+  if(finalPrice>0){
+    notifyPassSpend(finalPrice);
+  }
+
   if(currentCoupon){
     if(currentScId){
       const sc=[...SEASONAL_COUPONS,BLACK_FRIDAY].find(s=>s.id===currentScId);
@@ -1084,10 +1140,6 @@ function executeBuy(p,finalPrice,discPct){
       currentCoupon=0;saveCurrentCoupon();
     }
     renderCoupons();
-    // línea ~después de deliverProduct(p);
-if (finalPrice > 0 && window.notifyPassShopSpend) {
-  window.notifyPassShopSpend(finalPrice);
-}
   }
   renderAll();
   showSuccessModal(p,finalPrice);
@@ -1341,7 +1393,7 @@ const _revealObs=new MutationObserver(()=>{
 
 /* ══ BOOT ══ */
 function boot(){
-  console.log('🛒 Moonveil Shop v3.2 — Sync Edition');
+  console.log('🛒 Moonveil Shop v3.3 — Pass Spend Fix');
   initReveal();initCoins();initNPC();
   initFlashSale();
   syncStocks();
@@ -1407,7 +1459,6 @@ function boot(){
     if(!confirm('¿Limpiar todo el historial de compras?\n\nEsta acción no se puede deshacer.'))return;
     lsSet(LS.hist,[]);
     renderHistory();
-    // Sincronizar el historial vacío con Firebase
     scheduleSync();
     toast('🗑️ Historial limpiado','info');
   });
@@ -1419,7 +1470,6 @@ function boot(){
   // ══ FIREBASE AUTH + LISTENER EN TIEMPO REAL ══
   onAuthChange(async user=>{
     if(!user){
-      // Si el usuario cierra sesión, cancelar el listener
       if(_shopUnsub){_shopUnsub();_shopUnsub=null;}
       return;
     }
@@ -1430,7 +1480,6 @@ function boot(){
     renderHUD();renderAll();renderHistory();
 
     // 2. Iniciar listener en tiempo real (onSnapshot)
-    // Esto sincroniza automáticamente cuando el otro dispositivo compra algo
     startRealtimeListener(user.uid);
 
     console.log('✅ Shop Firebase OK + Listener activo:',user.uid);
