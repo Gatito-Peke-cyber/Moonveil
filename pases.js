@@ -1,15 +1,14 @@
 /* =========================================================
-   Moonveil Portal — pases.js v5.3  (CORREGIDO)
-   FIXES v5.2:
-   · checkMissionReset: ya no borra el progreso al inicializar resetAt
-   · recordDailyLogin: guarda resetAt junto con el progreso
-   · setActivePass: activa la misión única "uniq_first"
-   
-   FIXES v5.3:
-   · processShopSpendQueue: se llama en setActivePass() para procesar
-     gastos de tienda pendientes al seleccionar un pase
-   · Boot: inicia polling cada 5s del queue para detectar compras
-     hechas en tienda.html mientras pases.html estaba abierto
+   Moonveil Portal — pases.js v5.4  (CORREGIDO SHOP SPEND)
+   FIXES v5.4:
+   · processShopSpendQueue: ya no llama a notifyPassShopSpend
+     (que no existe en tienda.html). Ahora llama directamente
+     a recordShopSpend para cada pase activo en el momento.
+   · recordShopSpend: ahora llama a scheduleSync() al final
+     para que el progreso se persista en Firebase.
+   · notifyPassShopSpend: también llama scheduleSync() tras
+     actualizar todos los pases activos.
+   · Boot: el polling cada 5s procesa el queue directamente.
    ========================================================= */
 
 import { db }           from './firebase.js';
@@ -34,7 +33,7 @@ const PASS_BOOSTS_LS         = 'mv_active_boosts';
 const PASS_MAIL_LS           = 'mv_pass_mail_claimed';
 const GLOBAL_INV_LS          = 'mv_global_inventory';
 const TICKETS_BASE           = 'mv_tickets_';
-const SHOP_SPEND_QUEUE_KEY   = 'mv_shop_spend_queue'; // FIX v5.3
+const SHOP_SPEND_QUEUE_KEY   = 'mv_shop_spend_queue';
 
 /* ── FIREBASE STATE ── */
 let currentUID = null, _passUnsub = null, _syncTO = null;
@@ -100,6 +99,14 @@ function applyRemotePassData(data, silent = false) {
             progress: Math.max(lm.progress || 0, ms.progress || 0),
             claimed: lm.claimed || ms.claimed,
           };
+        });
+      }
+      if (remoteState.stats && local.stats) {
+        // Merge stats tomando el mayor valor en cada campo de gasto
+        merged.stats = { ...(local.stats || {}), ...(remoteState.stats || {}) };
+        const spendFields = ['shopSpentDaily','shopSpentWeekly','shopSpentMonthly','shopSpentTotal'];
+        spendFields.forEach(f => {
+          merged.stats[f] = Math.max(local.stats?.[f] || 0, remoteState.stats?.[f] || 0);
         });
       }
       if (remoteState.tier && local.tier) {
@@ -539,7 +546,6 @@ function getPassStatus(pass) {
 
 /* ══════════════════════════════════════════════════════════
    MISIONES — RESET Y ESTADO
-   FIX v5.2: checkMissionReset ya no borra el progreso al inicializar
 ══════════════════════════════════════════════════════════ */
 function getNextMidnight() { const d = new Date(); d.setHours(24, 0, 0, 0); return d.getTime(); }
 function getNextReset(resetType) {
@@ -564,7 +570,6 @@ function checkMissionReset(passId, m) {
   const n = now();
 
   if (!mst.resetAt) {
-    // Primera vez que se ve esta misión: inicializar resetAt sin tocar el progreso
     saveMissionState(passId, m.id, {
       progress: mst.progress || (m.preCompleted ? m.target : 0),
       claimed:  mst.claimed  || false,
@@ -574,7 +579,6 @@ function checkMissionReset(passId, m) {
   }
 
   if (n > mst.resetAt) {
-    // El timer de reset sí venció: resetear progreso
     saveMissionState(passId, m.id, {
       progress: m.preCompleted ? m.target : 0,
       claimed:  false,
@@ -617,7 +621,7 @@ function setActivePass(passId) {
   activePassId = passId;
   $$('.pass-card-btn').forEach(b => b.classList.toggle('is-active', b.dataset.passId === passId));
 
-  // ── FIX v5.3: procesar gastos de tienda pendientes al seleccionar pase ──
+  // Procesar gastos pendientes de la tienda
   processShopSpendQueue();
 
   recordDailyLogin(passId);
@@ -1226,64 +1230,110 @@ function claimAllMissions(passId) {
 
 /* ══════════════════════════════════════════════════════════
    SHOP SPEND TRACKING
+   FIX v5.4: recordShopSpend ahora llama scheduleSync()
+   para persistir en Firebase inmediatamente.
 ══════════════════════════════════════════════════════════ */
 function recordShopSpend(passId, amount) {
-  if (!passId || !amount) return;
+  if (!passId || !amount || amount <= 0) return;
   const st = getPassState(passId);
   if (!st.stats) st.stats = {};
-  st.stats.shopSpentDaily   = (st.stats.shopSpentDaily||0)   + amount;
-  st.stats.shopSpentWeekly  = (st.stats.shopSpentWeekly||0)  + amount;
-  st.stats.shopSpentMonthly = (st.stats.shopSpentMonthly||0) + amount;
-  st.stats.shopSpentTotal   = (st.stats.shopSpentTotal||0)   + amount;
-  savePassState(passId, st);
+  st.stats.shopSpentDaily   = (st.stats.shopSpentDaily   || 0) + amount;
+  st.stats.shopSpentWeekly  = (st.stats.shopSpentWeekly  || 0) + amount;
+  st.stats.shopSpentMonthly = (st.stats.shopSpentMonthly || 0) + amount;
+  st.stats.shopSpentTotal   = (st.stats.shopSpentTotal   || 0) + amount;
+  savePassState(passId, st);  // <-- esto ya llama scheduleSync() internamente
+
+  // Actualizar progreso de todas las misiones de gasto
   MISSIONS_TEMPLATE.filter(m => m.trackId && m.trackId.startsWith('shop_spent')).forEach(m => {
-    const mst = getMissionState(passId, m.id); if (mst.claimed) return;
-    const map = { shop_spent_daily:'shopSpentDaily', shop_spent_weekly:'shopSpentWeekly', shop_spent_monthly:'shopSpentMonthly', shop_spent_total:'shopSpentTotal' };
-    mst.progress = Math.min(m.target, st.stats[map[m.trackId]||'shopSpentTotal']||0);
+    const mst = getMissionState(passId, m.id);
+    if (mst.claimed) return;
+    const statMap = {
+      shop_spent_daily:   'shopSpentDaily',
+      shop_spent_weekly:  'shopSpentWeekly',
+      shop_spent_monthly: 'shopSpentMonthly',
+      shop_spent_total:   'shopSpentTotal',
+    };
+    const freshSt = getPassState(passId);  // re-leer para tener el valor actualizado
+    mst.progress = Math.min(m.target, freshSt.stats[statMap[m.trackId] || 'shopSpentTotal'] || 0);
     mst.resetAt  = mst.resetAt || getNextReset(m.reset);
     saveMissionState(passId, m.id, mst);
   });
+
+  console.log(`[Pases] 💰 Gasto registrado en ${passId}: +${amount} (Total: ${st.stats.shopSpentTotal + amount})`);
+
   if (activePassId === passId) renderMissions(passId);
 }
 
+/* ══════════════════════════════════════════════════════════
+   notifyPassShopSpend — punto de entrada desde tienda.js
+   cuando ambas páginas están cargadas a la vez.
+   FIX v5.4: también llama scheduleSync() al final.
+══════════════════════════════════════════════════════════ */
 window.notifyPassShopSpend = function(amount) {
   if (!amount || amount <= 0) return;
   const n = now();
   // Registrar en todos los pases activos en este momento
   PASSES.forEach(p => {
-    const s = new Date(p.startDate+'T00:00:00').getTime();
-    const e = new Date(p.endDate+'T23:59:59').getTime();
+    const s = new Date(p.startDate + 'T00:00:00').getTime();
+    const e = new Date(p.endDate   + 'T23:59:59').getTime();
     if (n >= s && n <= e) recordShopSpend(p.id, amount);
   });
+  // Forzar sync a Firebase tras actualizar todos los pases
+  scheduleSync();
 };
 
 /* ══════════════════════════════════════════════════════════
    PROCESS SHOP SPEND QUEUE
-   FIX v5.3: se llama en setActivePass y en polling para no
-   perder gastos hechos en tienda.html mientras pases.html
-   estaba abierto o cargado antes.
+   FIX v5.4: ya no llama a window.notifyPassShopSpend
+   (que genera un loop). Llama directamente a recordShopSpend
+   para cada pase activo, igual que notifyPassShopSpend.
 ══════════════════════════════════════════════════════════ */
 function processShopSpendQueue() {
   try {
     const raw = localStorage.getItem(SHOP_SPEND_QUEUE_KEY);
     if (!raw) return;
-    const queue = JSON.parse(raw);
-    if (!queue || !queue.length) return;
-    // Procesar cada gasto pendiente
+    let queue;
+    try { queue = JSON.parse(raw); } catch { localStorage.removeItem(SHOP_SPEND_QUEUE_KEY); return; }
+    if (!Array.isArray(queue) || !queue.length) {
+      localStorage.removeItem(SHOP_SPEND_QUEUE_KEY);
+      return;
+    }
+
+    const n = now();
+    let processed = 0;
+
     queue.forEach(item => {
-      if (item && item.amount > 0) {
-        window.notifyPassShopSpend(item.amount);
-      }
+      if (!item || !item.amount || item.amount <= 0) return;
+      // Aplicar a todos los pases activos en el momento de la compra
+      // (usamos now() porque no guardamos timestamp de cuándo era activo cada pase)
+      PASSES.forEach(p => {
+        const s = new Date(p.startDate + 'T00:00:00').getTime();
+        const e = new Date(p.endDate   + 'T23:59:59').getTime();
+        if (n >= s && n <= e) {
+          recordShopSpend(p.id, item.amount);
+        }
+      });
+      processed++;
     });
-    // Limpiar el queue después de procesarlo
+
+    // Limpiar el queue DESPUÉS de procesar todo
     localStorage.removeItem(SHOP_SPEND_QUEUE_KEY);
-    // Actualizar UI si hay un pase activo
-    if (activePassId) {
-      renderMissions(activePassId);
-      console.log(`[Pases] ✅ Queue de tienda procesado: ${queue.length} item(s)`);
+
+    if (processed > 0) {
+      console.log(`[Pases] ✅ Queue procesado: ${processed} compra(s) de tienda aplicadas`);
+      // Forzar sync a Firebase
+      scheduleSync();
+      // Actualizar UI si hay pase activo
+      if (activePassId) {
+        renderMissions(activePassId);
+        renderPassHeader(activePassId);
+        updateHUD(activePassId);
+      }
     }
   } catch (e) {
     console.warn('[Pases] processShopSpendQueue error:', e);
+    // En caso de error, limpiar el queue para evitar loops
+    try { localStorage.removeItem(SHOP_SPEND_QUEUE_KEY); } catch {}
   }
 }
 
@@ -1756,9 +1806,9 @@ window._filterTierView       = function(passId, tierId) {
    BOOT
 ══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🏆 Moonveil Pases v5.3 — Shop Queue Fix');
+  console.log('🏆 Moonveil Pases v5.4 — Shop Spend Fix');
 
-  // Procesar gastos de tienda que hayan quedado pendientes
+  // Procesar gastos de tienda pendientes desde la queue
   processShopSpendQueue();
 
   renderPassSelector();
@@ -1777,13 +1827,15 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHUD(firstPass.id);
   setTimeout(() => toast('✨ ¡Pases de Temporada cargados!'), 500);
 
-  // ── FIX v5.3: polling del queue cada 5 segundos ──
-  // Detecta compras hechas en tienda.html mientras esta página estaba abierta
+  // Polling cada 5s para detectar compras hechas en tienda.html
+  // mientras pases.html estaba abierto
   setInterval(() => {
-    const raw = localStorage.getItem(SHOP_SPEND_QUEUE_KEY);
-    if (raw && raw !== '[]') {
-      processShopSpendQueue();
-    }
+    try {
+      const raw = localStorage.getItem(SHOP_SPEND_QUEUE_KEY);
+      if (raw && raw !== '[]' && raw !== 'null') {
+        processShopSpendQueue();
+      }
+    } catch {}
   }, 5000);
 
   onAuthChange(async user => {
