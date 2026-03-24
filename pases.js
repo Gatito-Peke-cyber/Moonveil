@@ -1,13 +1,15 @@
 /* =========================================================
-   Moonveil Portal — pases.js v5.1  (CORREGIDO)
-   FIXES:
-   · Todas las funciones usadas en onclick="" expuestas en window
-   · setActivePass expuesto en window
-   · Sincronización Firebase en tiempo real (onSnapshot)
-   · claimLevelReward, claimMission, claimAllLevelRewards,
-     claimAllMissions, claimPassMail, buyTierUpgrade,
-     filterTierView, redirectToShop, openLevelModal
-     ahora son accesibles desde el HTML generado dinámicamente
+   Moonveil Portal — pases.js v5.3  (CORREGIDO)
+   FIXES v5.2:
+   · checkMissionReset: ya no borra el progreso al inicializar resetAt
+   · recordDailyLogin: guarda resetAt junto con el progreso
+   · setActivePass: activa la misión única "uniq_first"
+   
+   FIXES v5.3:
+   · processShopSpendQueue: se llama en setActivePass() para procesar
+     gastos de tienda pendientes al seleccionar un pase
+   · Boot: inicia polling cada 5s del queue para detectar compras
+     hechas en tienda.html mientras pases.html estaba abierto
    ========================================================= */
 
 import { db }           from './firebase.js';
@@ -32,6 +34,7 @@ const PASS_BOOSTS_LS         = 'mv_active_boosts';
 const PASS_MAIL_LS           = 'mv_pass_mail_claimed';
 const GLOBAL_INV_LS          = 'mv_global_inventory';
 const TICKETS_BASE           = 'mv_tickets_';
+const SHOP_SPEND_QUEUE_KEY   = 'mv_shop_spend_queue'; // FIX v5.3
 
 /* ── FIREBASE STATE ── */
 let currentUID = null, _passUnsub = null, _syncTO = null;
@@ -72,7 +75,6 @@ async function loadFromFirebase(uid) {
   } catch (e) { console.warn('[Pases] load:', e); }
 }
 
-/* silent=true → no re-render (carga inicial), false → re-render (otro dispositivo) */
 function applyRemotePassData(data, silent = false) {
   let changed = false;
 
@@ -100,7 +102,6 @@ function applyRemotePassData(data, silent = false) {
           };
         });
       }
-      // Sync tier: tomar el mayor tier
       if (remoteState.tier && local.tier) {
         const tIdx = TIER_ORDER.indexOf(remoteState.tier);
         const lIdx = TIER_ORDER.indexOf(local.tier);
@@ -179,23 +180,13 @@ const TIER_ORDER = ['stone','iron','gold','emerald','diamond'];
 
 /* ══════════════════════════════════════════════════════════
    RECOMPENSAS DE NIVEL
-   ⚠️  freeRewards[] y paidRewards[] vacíos — rellenar tú mismo
 ══════════════════════════════════════════════════════════ */
 function makeDefaultLevels() {
   const levels = [];
-
-  const freeRewards = [
-    // índice 0 = nivel 1  …  índice 59 = nivel 60
-    // Ejemplo: { type:'keys', emoji:'⭐', name:'Llave Superestrella', amount:1, keyId:'key_common' }
-  ];
-
-  const paidRewards = [
-    // Ejemplo: { type:'keys', emoji:'💫', name:'Llave Brillante', amount:1, keyId:'key_rare' }
-  ];
-
+  const freeRewards = [];
+  const paidRewards = [];
   const fallbackFree = { type:'xp',      emoji:'⭐', name:'XP Bonus', amount:50 };
   const fallbackPaid = { type:'emeralds', emoji:'💎', name:'Gemas',    amount:10 };
-
   for (let i = 0; i < MAX_LEVELS; i++) {
     levels.push({
       free: freeRewards[i] || fallbackFree,
@@ -548,6 +539,7 @@ function getPassStatus(pass) {
 
 /* ══════════════════════════════════════════════════════════
    MISIONES — RESET Y ESTADO
+   FIX v5.2: checkMissionReset ya no borra el progreso al inicializar
 ══════════════════════════════════════════════════════════ */
 function getNextMidnight() { const d = new Date(); d.setHours(24, 0, 0, 0); return d.getTime(); }
 function getNextReset(resetType) {
@@ -570,12 +562,24 @@ function checkMissionReset(passId, m) {
   if (m.reset === 'unique') return;
   const mst = getMissionState(passId, m.id);
   const n = now();
+
   if (!mst.resetAt) {
-    saveMissionState(passId, m.id, { progress:m.preCompleted?m.target:0, claimed:false, resetAt:getNextReset(m.reset) });
+    // Primera vez que se ve esta misión: inicializar resetAt sin tocar el progreso
+    saveMissionState(passId, m.id, {
+      progress: mst.progress || (m.preCompleted ? m.target : 0),
+      claimed:  mst.claimed  || false,
+      resetAt:  getNextReset(m.reset),
+    });
     return;
   }
+
   if (n > mst.resetAt) {
-    saveMissionState(passId, m.id, { progress:m.preCompleted?m.target:0, claimed:false, resetAt:getNextReset(m.reset) });
+    // El timer de reset sí venció: resetear progreso
+    saveMissionState(passId, m.id, {
+      progress: m.preCompleted ? m.target : 0,
+      claimed:  false,
+      resetAt:  getNextReset(m.reset),
+    });
   }
 }
 
@@ -612,8 +616,20 @@ let _headerCDIv = null, _missBanIv = null;
 function setActivePass(passId) {
   activePassId = passId;
   $$('.pass-card-btn').forEach(b => b.classList.toggle('is-active', b.dataset.passId === passId));
+
+  // ── FIX v5.3: procesar gastos de tienda pendientes al seleccionar pase ──
+  processShopSpendQueue();
+
   recordDailyLogin(passId);
   initGameMissions(passId);
+
+  // Activar misión "¡Primer Pase!" al seleccionar un pase
+  const uniqFirst = getMissionState(passId, 'uniq_first');
+  if (!uniqFirst.claimed && uniqFirst.progress < 1) {
+    uniqFirst.progress = 1;
+    saveMissionState(passId, 'uniq_first', uniqFirst);
+  }
+
   $('#passMainSec').style.display = '';
   $('#noPassSec').style.display = 'none';
   setTimeout(() => {
@@ -646,6 +662,7 @@ function recordDailyLogin(passId) {
 
   const dlMst = getMissionState(passId, 'daily_login');
   dlMst.progress = Math.min(1, (dlMst.progress || 0) + 1);
+  dlMst.resetAt  = dlMst.resetAt || getNextReset('24h');
   saveMissionState(passId, 'daily_login', dlMst);
 
   MISSIONS_TEMPLATE.filter(m => m.trackId === 'login_streak').forEach(m => {
@@ -1092,7 +1109,6 @@ function renderMissions(passId) {
     groups[m.category].missions.push(m);
   });
 
-  const pad = n => String(n).padStart(2,'0');
   const timeLeft = ts => {
     const diff = Math.max(0, ts - now());
     const d=Math.floor(diff/H24), h=Math.floor((diff%H24)/H1), m=Math.floor((diff%H1)/M1);
@@ -1224,30 +1240,51 @@ function recordShopSpend(passId, amount) {
     const mst = getMissionState(passId, m.id); if (mst.claimed) return;
     const map = { shop_spent_daily:'shopSpentDaily', shop_spent_weekly:'shopSpentWeekly', shop_spent_monthly:'shopSpentMonthly', shop_spent_total:'shopSpentTotal' };
     mst.progress = Math.min(m.target, st.stats[map[m.trackId]||'shopSpentTotal']||0);
+    mst.resetAt  = mst.resetAt || getNextReset(m.reset);
     saveMissionState(passId, m.id, mst);
   });
   if (activePassId === passId) renderMissions(passId);
 }
 
 window.notifyPassShopSpend = function(amount) {
+  if (!amount || amount <= 0) return;
   const n = now();
+  // Registrar en todos los pases activos en este momento
   PASSES.forEach(p => {
     const s = new Date(p.startDate+'T00:00:00').getTime();
     const e = new Date(p.endDate+'T23:59:59').getTime();
     if (n >= s && n <= e) recordShopSpend(p.id, amount);
   });
-  if (activePassId) recordShopSpend(activePassId, amount);
 };
 
+/* ══════════════════════════════════════════════════════════
+   PROCESS SHOP SPEND QUEUE
+   FIX v5.3: se llama en setActivePass y en polling para no
+   perder gastos hechos en tienda.html mientras pases.html
+   estaba abierto o cargado antes.
+══════════════════════════════════════════════════════════ */
 function processShopSpendQueue() {
-  const QUEUE_KEY = 'mv_shop_spend_queue';
   try {
-    const raw = localStorage.getItem(QUEUE_KEY);
+    const raw = localStorage.getItem(SHOP_SPEND_QUEUE_KEY);
     if (!raw) return;
     const queue = JSON.parse(raw);
-    if (queue?.length) queue.forEach(item => { if (item?.amount > 0) window.notifyPassShopSpend(item.amount); });
-    localStorage.removeItem(QUEUE_KEY);
-  } catch {}
+    if (!queue || !queue.length) return;
+    // Procesar cada gasto pendiente
+    queue.forEach(item => {
+      if (item && item.amount > 0) {
+        window.notifyPassShopSpend(item.amount);
+      }
+    });
+    // Limpiar el queue después de procesarlo
+    localStorage.removeItem(SHOP_SPEND_QUEUE_KEY);
+    // Actualizar UI si hay un pase activo
+    if (activePassId) {
+      renderMissions(activePassId);
+      console.log(`[Pases] ✅ Queue de tienda procesado: ${queue.length} item(s)`);
+    }
+  } catch (e) {
+    console.warn('[Pases] processShopSpendQueue error:', e);
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1357,7 +1394,7 @@ function redirectToShop(passId) {
 }
 
 /* ══════════════════════════════════════════════════════════
-   ACTIVAR TIER DESDE TIENDA (llamado por tienda.js)
+   ACTIVAR TIER DESDE TIENDA
 ══════════════════════════════════════════════════════════ */
 window.activatePassTier = function(passId, tierId) {
   const st = getPassState(passId);
@@ -1696,8 +1733,6 @@ document.addEventListener('keydown', e => {
 
 /* ══════════════════════════════════════════════════════════
    EXPONER FUNCIONES EN window
-   ← ESTO ES LO QUE FALTABA: los onclick="" en HTML dinámico
-     necesitan acceder a estas funciones desde el scope global
 ══════════════════════════════════════════════════════════ */
 window._setActivePass        = setActivePass;
 window._openLevelModal       = openLevelModal;
@@ -1721,8 +1756,11 @@ window._filterTierView       = function(passId, tierId) {
    BOOT
 ══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🏆 Moonveil Pases v5.1 — Corregido');
+  console.log('🏆 Moonveil Pases v5.3 — Shop Queue Fix');
+
+  // Procesar gastos de tienda que hayan quedado pendientes
   processShopSpendQueue();
+
   renderPassSelector();
   if (localStorage.getItem('pass_music') === 'on' && audio) musicOrb?.classList.add('active');
   const boosts = getActiveBoosts();
@@ -1739,7 +1777,15 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHUD(firstPass.id);
   setTimeout(() => toast('✨ ¡Pases de Temporada cargados!'), 500);
 
-  /* ── FIREBASE AUTH + SYNC ── */
+  // ── FIX v5.3: polling del queue cada 5 segundos ──
+  // Detecta compras hechas en tienda.html mientras esta página estaba abierta
+  setInterval(() => {
+    const raw = localStorage.getItem(SHOP_SPEND_QUEUE_KEY);
+    if (raw && raw !== '[]') {
+      processShopSpendQueue();
+    }
+  }, 5000);
+
   onAuthChange(async user => {
     if (!user) {
       if (_passUnsub) { _passUnsub(); _passUnsub = null; }
@@ -1747,11 +1793,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     currentUID = user.uid;
-
-    // Carga inicial desde Firestore
     await loadFromFirebase(user.uid);
-
-    // Re-renderizar con datos de Firebase
     if (activePassId) {
       renderPassHeader(activePassId);
       renderTrack(activePassId);
@@ -1761,8 +1803,6 @@ document.addEventListener('DOMContentLoaded', () => {
       updateHUD(activePassId);
       renderMejoras(activePassId);
     }
-
-    // Listener en tiempo real para sincronizar entre dispositivos
     startRealtimeListener(user.uid);
     console.log('✅ Pases Firebase OK + Listener activo:', user.uid);
   });
