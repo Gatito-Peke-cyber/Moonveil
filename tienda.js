@@ -842,6 +842,9 @@ function buySBProduct(p,finalPrice,disc){
   addPurchase(p,`Rusty -${disc}% → ⟡${finalPrice}`,finalPrice,disc);
   toast(`🦊 Rusty: ¡${p.name} por ⟡${finalPrice}!`,'success');
   renderSBGrid();renderAll();
+  if (finalPrice > 0 && window.notifyPassShopSpend) {
+  window.notifyPassShopSpend(finalPrice);
+}
 }
 
 /* ══ COMPRA ══ */
@@ -1081,6 +1084,10 @@ function executeBuy(p,finalPrice,discPct){
       currentCoupon=0;saveCurrentCoupon();
     }
     renderCoupons();
+    // línea ~después de deliverProduct(p);
+if (finalPrice > 0 && window.notifyPassShopSpend) {
+  window.notifyPassShopSpend(finalPrice);
+}
   }
   renderAll();
   showSuccessModal(p,finalPrice);
