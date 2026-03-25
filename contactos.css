@@ -1,6 +1,7 @@
 /* ================================================================
    Moonveil Portal — Contactos v4  CSS
    UPDATED: bigger quickbar · bigger settings · group description · kick styles
+   + v4.1: Pass tier badges (iron/gold/emerald/diamond) junto al nombre
    ================================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap');
 
@@ -16,6 +17,16 @@
   --fo:'Orbitron',sans-serif;
   --nav-h:58px;
   --msg-font:1rem;
+
+  /* ── TIER COLORS ── */
+  --tier-iron-color:#b0b8c1;
+  --tier-iron-glow:rgba(176,184,193,0.55);
+  --tier-gold-color:#f5c518;
+  --tier-gold-glow:rgba(245,197,24,0.55);
+  --tier-emerald-color:#34d399;
+  --tier-emerald-glow:rgba(52,211,153,0.55);
+  --tier-diamond-color:#00e5ff;
+  --tier-diamond-glow:rgba(0,229,255,0.55);
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -54,6 +65,24 @@ img,canvas{display:block;max-width:100%}
 @keyframes msgPop{0%{transform:scale(.92);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
 @keyframes shimmerBg{0%{background-position:200% center}100%{background-position:-200% center}}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── TIER BADGE ANIMATIONS ── */
+@keyframes ironShimmer {
+  0%   { background-position:0% center }
+  100% { background-position:-200% center }
+}
+@keyframes goldShimmer {
+  0%   { background-position:0% center }
+  100% { background-position:-200% center }
+}
+@keyframes emeraldPulse {
+  0%,100% { box-shadow:0 0 4px 1px rgba(52,211,153,0.4); }
+  50%     { box-shadow:0 0 8px 2px rgba(52,211,153,0.8); }
+}
+@keyframes diamondRainbow {
+  0%   { background-position:0%   center }
+  100% { background-position:-300% center }
+}
 
 /* ── HEADER ── */
 .header{
@@ -170,13 +199,25 @@ img,canvas{display:block;max-width:100%}
 .contact-item.group-t:hover,.contact-item.group-t:active{border-color:var(--purple)}
 .contact-item.group-t.active{border-color:var(--purple);background:rgba(191,90,242,.07)}
 
+/* ── TIER-TINTED FRIEND ITEMS ── */
+/* Cuando un amigo tiene pase activo, el borde del item se tinta con el color del tier */
+.contact-item.friend-t.tier-iron   { border-color:rgba(176,184,193,.35); }
+.contact-item.friend-t.tier-gold   { border-color:rgba(245,197,24,.35); }
+.contact-item.friend-t.tier-emerald{ border-color:rgba(52,211,153,.35); }
+.contact-item.friend-t.tier-diamond{ border-color:rgba(0,229,255,.35); }
+
+.contact-item.friend-t.tier-iron.active   { border-color:rgba(176,184,193,.7);background:rgba(176,184,193,.06); }
+.contact-item.friend-t.tier-gold.active   { border-color:rgba(245,197,24,.7);background:rgba(245,197,24,.06); }
+.contact-item.friend-t.tier-emerald.active{ border-color:rgba(52,211,153,.7);background:rgba(52,211,153,.06); }
+.contact-item.friend-t.tier-diamond.active{ border-color:rgba(0,229,255,.7);background:rgba(0,229,255,.06); }
+
 .ci-av{width:44px;height:44px;border:2px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:1.4rem;box-shadow:2px 2px 0 #000;position:relative;flex-shrink:0;overflow:hidden}
 .ci-av img{width:100%;height:100%;object-fit:cover;display:block}
 .ci-online-dot{position:absolute;bottom:-2px;right:-2px;width:10px;height:10px;border:2px solid var(--bg);background:var(--muted)}
 .ci-online-dot.online{background:var(--primary);animation:onlinePing 2s ease-in-out infinite}
 
 .ci-meta{min-width:0;display:flex;flex-direction:column;gap:3px}
-.ci-name{font-family:var(--fo);font-size:.55rem;font-weight:700;display:flex;align-items:center;gap:5px;overflow:hidden}
+.ci-name{font-family:var(--fo);font-size:.55rem;font-weight:700;display:flex;align-items:center;gap:5px;overflow:hidden;flex-wrap:wrap}
 .ci-name-text{color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ci-sub{font-family:var(--fv);font-size:.88rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ci-desc{font-family:var(--fv);font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic}
@@ -201,6 +242,115 @@ img,canvas{display:block;max-width:100%}
   background-clip:text;animation:rainbowShimmer 2.5s linear infinite;
 }
 .ci-title.tp-especial{color:var(--primary-l);animation:blink 3s step-end infinite}
+
+/* ════════════════════════════════════════════════════════
+   PASS TIER BADGE — medalla al lado del nombre del amigo
+   Aparece solo si el amigo tiene un pase pagado activo
+   (iron / gold / emerald / diamond) que no ha expirado.
+   ════════════════════════════════════════════════════════ */
+
+/* Nombre del amigo con tier: el texto adopta el color del tier */
+.ci-name-text.tier-iron    { color: var(--tier-iron-color) !important; }
+.ci-name-text.tier-gold    { color: var(--tier-gold-color) !important; }
+.ci-name-text.tier-emerald { color: var(--tier-emerald-color) !important; }
+.ci-name-text.tier-diamond {
+  background: linear-gradient(90deg, #00e5ff, #bf5af2, #ff2d78, #00e5ff);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: diamondRainbow 2.5s linear infinite;
+}
+
+/* Medalla (badge) de tier */
+.ci-pass-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--fp);
+  font-size: .18rem;
+  letter-spacing: .5px;
+  padding: 2px 6px;
+  border: 1px solid;
+  border-radius: 2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.6;
+  vertical-align: middle;
+}
+
+/* ── HIERRO: plata brillante ── */
+.ci-pass-badge.tier-iron {
+  color: var(--tier-iron-color);
+  border-color: rgba(176,184,193,.5);
+  background: rgba(176,184,193,.1);
+  background: linear-gradient(90deg,
+    rgba(176,184,193,.15) 0%,
+    rgba(220,225,230,.3)  50%,
+    rgba(176,184,193,.15) 100%);
+  background-size: 200% auto;
+  animation: ironShimmer 3s linear infinite;
+}
+
+/* ── ORO: dorado brillante ── */
+.ci-pass-badge.tier-gold {
+  color: var(--tier-gold-color);
+  border-color: rgba(245,197,24,.55);
+  background: linear-gradient(90deg,
+    rgba(245,197,24,.15) 0%,
+    rgba(255,220,60,.35) 50%,
+    rgba(245,197,24,.15) 100%);
+  background-size: 200% auto;
+  animation: goldShimmer 2.5s linear infinite;
+  text-shadow: 0 0 6px rgba(245,197,24,.5);
+}
+
+/* ── ESMERALDA: verde super brillante ── */
+.ci-pass-badge.tier-emerald {
+  color: var(--tier-emerald-color);
+  border-color: rgba(52,211,153,.6);
+  background: rgba(52,211,153,.12);
+  animation: emeraldPulse 2s ease-in-out infinite;
+  text-shadow: 0 0 8px rgba(52,211,153,.7);
+}
+
+/* ── DIAMANTE: multicolor ── */
+.ci-pass-badge.tier-diamond {
+  border-color: rgba(0,229,255,.55);
+  background: linear-gradient(90deg,
+    rgba(0,229,255,.12),
+    rgba(191,90,242,.12),
+    rgba(255,45,120,.12),
+    rgba(0,229,255,.12));
+  background-size: 300% auto;
+  animation: diamondRainbow 2s linear infinite;
+  /* Texto multicolor */
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-image: linear-gradient(90deg, #00e5ff, #bf5af2, #ff2d78, #f5c518, #00e5ff);
+  background-size: 300% auto;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  /* Borde de la medalla con animación separada mantenemos la border visible */
+  box-shadow: 0 0 6px rgba(0,229,255,.35);
+}
+
+/* Tooltip hover sobre la medalla */
+.ci-pass-badge[title] {
+  cursor: help;
+}
+
+/* ── AVATAR RING con color de tier en el borde ── */
+.ci-av.tier-iron    { border-color: var(--tier-iron-color); box-shadow: 2px 2px 0 #000, 0 0 6px var(--tier-iron-glow); }
+.ci-av.tier-gold    { border-color: var(--tier-gold-color); box-shadow: 2px 2px 0 #000, 0 0 8px var(--tier-gold-glow); }
+.ci-av.tier-emerald { border-color: var(--tier-emerald-color); box-shadow: 2px 2px 0 #000, 0 0 10px var(--tier-emerald-glow); animation: emeraldPulse 2.5s ease-in-out infinite; }
+.ci-av.tier-diamond {
+  border-color: var(--tier-diamond-color);
+  box-shadow: 2px 2px 0 #000,
+              0 0 10px var(--tier-diamond-glow),
+              0 0 20px rgba(191,90,242,.25);
+}
 
 .ci-extra{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .ci-badge{font-family:var(--fp);font-size:.18rem;padding:2px 4px;border:1px solid;letter-spacing:.5px}
@@ -388,7 +538,6 @@ img,canvas{display:block;max-width:100%}
 }
 .stab-pane textarea:focus,.sett-input:focus,.stab-pane input[type="text"]:focus{border-color:var(--primary)}
 .status-chars{font-family:var(--fp);font-size:.2rem;color:var(--muted);text-align:right}
-/* ── SETTINGS LABELS — BIGGER ── */
 .sett-label{font-family:var(--fp);font-size:.38rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
 .status-colors{display:flex;gap:5px}
 .sc{width:30px;height:30px;border:3px solid transparent;cursor:pointer;touch-action:manipulation}
@@ -422,12 +571,12 @@ img,canvas{display:block;max-width:100%}
 .gsc button{background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0;line-height:1;touch-action:manipulation}
 .group-no-friends{display:block}
 
-/* ── SETTINGS — BIGGER TEXT ── */
+/* ── SETTINGS ── */
 .settings-layout{display:grid;grid-template-columns:150px 1fr;height:calc(min(85dvh,540px) - 50px)}
 .settings-nav{display:flex;flex-direction:column;gap:3px;padding:8px 6px;border-right:2px solid var(--border);background:rgba(0,0,0,.3);overflow-y:auto}
 .sn-btn{
   font-family:var(--fp);
-  font-size:.42rem;   /* WAS .28rem — bigger */
+  font-size:.42rem;
   text-align:left;border:2px solid transparent;padding:9px 10px;
   color:var(--muted);transition:.1s;letter-spacing:.5px;touch-action:manipulation;
   line-height:1.5;
@@ -440,7 +589,7 @@ img,canvas{display:block;max-width:100%}
 .sett-pane.active{display:flex}
 .sett-sect-title{
   font-family:var(--fp);
-  font-size:.52rem;   /* WAS .38rem */
+  font-size:.52rem;
   color:var(--primary);letter-spacing:2px;
   padding-bottom:7px;border-bottom:2px solid var(--border);
 }
@@ -450,7 +599,7 @@ img,canvas{display:block;max-width:100%}
 .sett-select{height:38px;padding:0 10px;background:var(--card);border:2px solid var(--border);color:var(--white);font-family:var(--fp);font-size:14px;outline:none;-webkit-appearance:none}
 .sett-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
 .sett-toggle > div{display:flex;flex-direction:column;gap:3px}
-.sett-toggle strong{font-family:var(--fp);font-size:.38rem}  /* WAS .3rem */
+.sett-toggle strong{font-family:var(--fp);font-size:.38rem}
 .sett-toggle small{font-family:var(--fv);font-size:.95rem;color:var(--muted)}
 .tog{position:relative;display:inline-block;width:44px;height:22px;flex-shrink:0;touch-action:manipulation}
 .tog input{opacity:0;width:0;height:0}
@@ -468,7 +617,7 @@ img,canvas{display:block;max-width:100%}
 .ea-btn{width:34px;height:34px;font-size:1.2rem;border:2px solid var(--border);background:var(--card);display:grid;place-items:center;box-shadow:2px 2px 0 #000;touch-action:manipulation}
 .ea-btn.active{border-color:var(--primary);background:rgba(48,209,88,.1)}
 .sic{padding:9px;border:2px solid var(--border);background:var(--card);display:flex;flex-direction:column;gap:5px;box-shadow:2px 2px 0 #000}
-.sic-lbl{font-family:var(--fp);font-size:.28rem;color:var(--muted);letter-spacing:1px}  /* bigger */
+.sic-lbl{font-family:var(--fp);font-size:.28rem;color:var(--muted);letter-spacing:1px}
 .sic-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sic code{font-family:var(--fp);font-size:.4rem;color:var(--yellow);letter-spacing:3px}
 .sic-val{font-family:var(--fv);font-size:1rem;color:var(--muted)}
@@ -537,7 +686,6 @@ img,canvas{display:block;max-width:100%}
 .gs-m-conn.online{color:var(--primary)}
 .gs-m-conn.offline{color:var(--muted)}
 .gs-creator-chip{font-family:var(--fp);font-size:.18rem;border:1px solid var(--yellow);color:var(--yellow);padding:1px 5px;background:rgba(245,197,24,.08);margin-left:4px}
-/* KICK BUTTON */
 .gs-kick-btn{
   font-family:var(--fp);font-size:.22rem;border:2px solid var(--red);
   background:rgba(255,59,48,.1);color:var(--red);padding:4px 8px;
@@ -553,7 +701,6 @@ img,canvas{display:block;max-width:100%}
 .gs-add-btn{font-family:var(--fp);font-size:.24rem;border:2px solid var(--purple);background:rgba(191,90,242,.1);color:var(--purple);padding:4px 9px;margin-left:auto;touch-action:manipulation}
 .gs-no-friends{font-family:var(--fv);font-size:.95rem;color:var(--muted);padding:8px}
 
-/* GROUP DESCRIPTION */
 .gs-desc-display{
   font-family:var(--fv);font-size:1rem;color:var(--white);
   padding:8px 10px;border:1px solid var(--border);background:var(--card);
@@ -564,7 +711,6 @@ img,canvas{display:block;max-width:100%}
 .gs-save-icon-bar{display:flex;gap:8px;align-items:center;margin-top:8px;padding:8px;background:rgba(191,90,242,.06);border:1px solid rgba(191,90,242,.2)}
 .gs-save-icon-hint{font-family:var(--fp);font-size:.22rem;color:var(--purple);flex:1}
 
-/* Image error fallback */
 .img-error{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px;border:2px dashed var(--border);background:var(--surface);margin-top:6px;min-width:120px;min-height:80px;border-radius:6px}
 .img-error span{font-family:var(--fp);font-size:.22rem;color:var(--muted)}
 
