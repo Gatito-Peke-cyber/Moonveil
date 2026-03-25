@@ -1,5 +1,5 @@
 /* =====================================================
-   Moonveil Portal — Tienda CSS v3.2
+   Moonveil Portal — Tienda CSS v3.3
    Pixel Art · Tema DORADO / Ámbar
    ===================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap');
@@ -112,15 +112,20 @@ a:hover{color:var(--gold2)}
 /* ─── MAIN SHOP ─── */
 .main-shop{padding:24px 0 80px;position:relative;z-index:1;display:flex;flex-direction:column;gap:24px}
 
-/* ─── CUPONES ─── */
+/* ═══════════════════════════════════════════════════
+   CUPONES
+═══════════════════════════════════════════════════ */
 .coupon-section{background:var(--card);border:3px solid var(--border);box-shadow:var(--shadow);padding:16px 18px}
 .coupon-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .coupon-list{display:flex;gap:8px;flex-wrap:wrap}
+
+/* CUPÓN — número principal "10%", "30%", etc. — original 0.34 → v3.2 0.38 → ahora 0.46 */
 .coupon-card{
   display:flex;flex-direction:column;align-items:center;
   padding:10px 16px;border:2px solid rgba(245,158,11,0.25);
   background:rgba(245,158,11,0.06);color:var(--gold2);
-  font-family:var(--font-pixel);font-size:0.38rem; /* ↑ AUMENTADO de 0.34 */
+  font-family:var(--font-pixel);
+  font-size:0.46rem; /* ↑ AUMENTADO — número del cupón (10%, 20%...) — era 0.38 */
   cursor:pointer;box-shadow:2px 2px 0 #000;transition:0.1s;
   position:relative;overflow:hidden;
 }
@@ -128,16 +133,21 @@ a:hover{color:var(--gold2)}
 .coupon-card.active-coupon{border-color:var(--gold);background:rgba(245,158,11,0.18);box-shadow:2px 2px 0 #000,0 0 12px rgba(245,158,11,0.3)}
 .coupon-card.disabled-coupon{opacity:0.35;pointer-events:none;filter:grayscale(0.6)}
 
-/* ↑ AUMENTADO: texto de horas de espera del cupón */
-.coupon-sub{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted);margin-top:4px} /* ↑ de 0.22 */
+/* CUPÓN — subtexto: horas de espera "↻ 3h 20m", usos restantes, "✓ activo" — original 0.22 → v3.2 0.28 → ahora 0.34 */
+.coupon-sub{font-family:var(--font-pixel);font-size:0.34rem;color:var(--muted);margin-top:5px} /* ↑ AUMENTADO — horas espera / usos del cupón (↻ Xh Xm) — era 0.28 */
 
 .coupon-card.bf-coupon{background:rgba(5,5,5,0.85);border-color:rgba(251,191,36,0.4);color:#fbbf24}
-.coupon-bf-title{font-family:var(--font-pixel);font-size:0.34rem;font-weight:900;letter-spacing:1px} /* ↑ de 0.3 */
+
+/* CUPÓN — título "BLACK FRIDAY" — original 0.30 → v3.2 0.34 → ahora 0.40 */
+.coupon-bf-title{font-family:var(--font-pixel);font-size:0.40rem;font-weight:900;letter-spacing:1px} /* ↑ AUMENTADO — título BLACK FRIDAY — era 0.34 */
+
 .coupon-card.sc-valentine{background:rgba(244,114,182,0.08);border-color:rgba(244,114,182,0.3);color:#f9a8d4}
 .coupon-card.sc-newyear  {background:rgba(255,215,0,0.07);border-color:rgba(255,215,0,0.28);color:#fde68a}
 .coupon-card.sc-halloween{background:rgba(249,115,22,0.08);border-color:rgba(249,115,22,0.3);color:#fed7aa}
 .coupon-card.sc-christmas{background:linear-gradient(135deg,rgba(196,30,58,0.08),rgba(15,139,62,0.08));border-color:rgba(15,139,62,0.3);color:#bbf7d0}
-.coupon-sep{width:100%;font-family:var(--font-pixel);font-size:0.26rem;color:var(--dim);text-align:center;padding:4px 0;border-top:1px solid rgba(245,158,11,0.1);margin-top:4px} /* ↑ de 0.22 */
+
+/* CUPÓN — separador "── Cupones regulares ──" — original 0.22 → v3.2 0.26 → ahora 0.30 */
+.coupon-sep{width:100%;font-family:var(--font-pixel);font-size:0.30rem;color:var(--muted);text-align:center;padding:4px 0;border-top:1px solid rgba(245,158,11,0.1);margin-top:4px} /* ↑ AUMENTADO — separador de cupones — era 0.26 */
 
 /* ─── FLASH BANNER ─── */
 .flash-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:linear-gradient(90deg,rgba(245,158,11,0.1),rgba(251,191,36,0.06),rgba(245,158,11,0.1));border:3px solid var(--a2);box-shadow:var(--shadow),0 0 24px rgba(245,158,11,0.12);flex-wrap:wrap}
@@ -149,34 +159,18 @@ a:hover{color:var(--gold2)}
 .flash-label{font-family:var(--font-pixel);font-size:0.24rem;color:var(--muted)}
 .fb-timer{font-family:var(--font-pixel);font-size:0.6rem;color:var(--gold);text-shadow:0 0 12px var(--a);letter-spacing:2px;min-width:110px;text-align:right}
 
-/* ─── RUSTY DAILY DEALS ─── */
+/* ═══════════════════════════════════════════════════
+   RUSTY DAILY DEALS
+═══════════════════════════════════════════════════ */
 .rusty-section{background:var(--card);border:3px solid rgba(245,158,11,0.4);box-shadow:var(--shadow),0 0 20px rgba(245,158,11,0.08);padding:0;overflow:hidden}
 .rusty-layout{display:grid;grid-template-columns:200px 1fr;gap:0}
 .rusty-char{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:20px 16px 16px;background:linear-gradient(180deg,rgba(245,158,11,0.06) 0%,rgba(245,158,11,0.12) 100%);border-right:2px solid rgba(245,158,11,0.2);gap:6px;min-height:280px;position:relative}
-
-.rusty-bubble{
-  position:absolute;top:12px;left:8px;right:8px;
-  padding:10px 12px;background:rgba(10,8,0,0.97);
-  border:2px solid var(--a);box-shadow:3px 3px 0 #000,0 0 16px rgba(245,158,11,0.35);
-  font-family:var(--font-pixel);font-size:0.28rem;
-  color:var(--gold2);line-height:2.1;text-align:center;
-  z-index:2;transition:opacity 0.4s ease;animation:bubblePop 0.4s ease;
-}
-.rusty-bubble::after{
-  content:'';position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);
-  border:5px solid transparent;border-top-color:var(--a);
-}
-.rusty-avatar-wrap{
-  display:flex;flex-direction:column;align-items:center;gap:7px;
-  margin-top:90px;animation:npcFloat 3s ease-in-out infinite;
-}
+.rusty-bubble{position:absolute;top:12px;left:8px;right:8px;padding:10px 12px;background:rgba(10,8,0,0.97);border:2px solid var(--a);box-shadow:3px 3px 0 #000,0 0 16px rgba(245,158,11,0.35);font-family:var(--font-pixel);font-size:0.28rem;color:var(--gold2);line-height:2.1;text-align:center;z-index:2;transition:opacity 0.4s ease;animation:bubblePop 0.4s ease}
+.rusty-bubble::after{content:'';position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--a)}
+.rusty-avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:7px;margin-top:90px;animation:npcFloat 3s ease-in-out infinite}
 .rusty-img{width:96px;height:96px;border:3px solid var(--a);background:#000;image-rendering:pixelated;box-shadow:4px 4px 0 #000,0 0 18px rgba(245,158,11,0.45)}
 .rusty-fallback{font-size:3.5rem;display:block;margin:8px 0}
-.rusty-name-tag{
-  font-family:var(--font-pixel);font-size:0.32rem;
-  color:#000;background:var(--a2);padding:4px 14px;
-  box-shadow:2px 2px 0 #000;letter-spacing:3px;border:1px solid var(--gold);
-}
+.rusty-name-tag{font-family:var(--font-pixel);font-size:0.32rem;color:#000;background:var(--a2);padding:4px 14px;box-shadow:2px 2px 0 #000;letter-spacing:3px;border:1px solid var(--gold)}
 .rusty-deals-wrap{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
 .rusty-deals-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .rusty-title{font-family:var(--font-pixel);font-size:0.4rem;color:var(--gold);letter-spacing:1px;margin-bottom:4px}
@@ -185,7 +179,7 @@ a:hover{color:var(--gold2)}
 .rusty-cd-label{font-family:var(--font-pixel);font-size:0.2rem;color:var(--muted)}
 .rusty-cd{font-family:var(--font-pixel);font-size:0.48rem;color:var(--gold);text-shadow:0 0 10px rgba(245,158,11,0.4);letter-spacing:2px}
 
-/* ─── TARJETA RUSTY ─── */
+/* ─── TARJETAS RUSTY ─── */
 .sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .sb-card{background:var(--bg2);border:2px solid rgba(245,158,11,0.2);box-shadow:2px 2px 0 #000;display:flex;flex-direction:column;gap:0;transition:0.15s;position:relative;overflow:hidden}
 .sb-card:hover{border-color:var(--a);transform:translate(-2px,-2px);box-shadow:4px 4px 0 #000}
@@ -195,30 +189,32 @@ a:hover{color:var(--gold2)}
 .sb-card-img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(10,8,0,0.7) 100%)}
 .sb-card-body{padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
 .sb-card-header{display:flex;align-items:center;gap:8px}
-.sb-card-icon{font-size:1.4rem;flex-shrink:0}
+.sb-card-icon{font-size:1.5rem;flex-shrink:0}
 
-/* ↑ AUMENTADO: nombre del producto en sección Rusty */
-.sb-card-name{font-family:var(--font-pixel);font-size:0.3rem;color:var(--text);line-height:1.8} /* ↑ de 0.24 */
+/* RUSTY — nombre del producto — original 0.24 → v3.2 0.30 → ahora 0.36 */
+.sb-card-name{font-family:var(--font-pixel);font-size:0.36rem;color:var(--text);line-height:1.8} /* ↑ AUMENTADO — nombre producto en Rusty — era 0.30 */
 
-/* ↑ AUMENTADO: badge de descuento Rusty */
-.sb-discount-badge{position:absolute;top:8px;right:8px;font-family:var(--font-pixel);font-size:0.3rem;background:#ef4444;color:#fff;padding:3px 7px;box-shadow:2px 2px 0 #000;z-index:2;animation:blink 2s step-end infinite} /* ↑ de 0.24 */
+/* RUSTY — badge "-30%" rojo parpadeante — original 0.24 → v3.2 0.30 → ahora 0.34 */
+.sb-discount-badge{position:absolute;top:8px;right:8px;font-family:var(--font-pixel);font-size:0.34rem;background:#ef4444;color:#fff;padding:4px 8px;box-shadow:2px 2px 0 #000;z-index:2;animation:blink 2s step-end infinite} /* ↑ AUMENTADO — badge descuento -X% en Rusty — era 0.30 */
 
 .sb-prices{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
-/* ↑ AUMENTADO: precio tachado Rusty */
-.sb-price-old{font-family:var(--font-pixel);font-size:0.3rem;color:var(--muted);text-decoration:line-through} /* ↑ de 0.26 */
+/* RUSTY — precio tachado original — original 0.26 → v3.2 0.30 → ahora 0.36 */
+.sb-price-old{font-family:var(--font-pixel);font-size:0.36rem;color:var(--muted);text-decoration:line-through} /* ↑ AUMENTADO — precio tachado en Rusty — era 0.30 */
 
-/* ↑ AUMENTADO: precio final Rusty */
-.sb-price-new{font-family:var(--font-pixel);font-size:0.64rem;color:var(--green);text-shadow:0 0 8px rgba(48,209,88,0.4)} /* ↑ de 0.54 */
+/* RUSTY — precio nuevo/final en verde — original 0.54 → v3.2 0.64 → ahora 0.76 */
+.sb-price-new{font-family:var(--font-pixel);font-size:0.76rem;color:var(--green);text-shadow:0 0 8px rgba(48,209,88,0.4)} /* ↑ AUMENTADO — precio final en Rusty — era 0.64 */
 
-/* ↑ AUMENTADO: stock mini Rusty */
-.sb-stock-mini{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted)} /* ↑ de 0.2 */
+/* RUSTY — "📦 Stock: 5" — original 0.20 → v3.2 0.28 → ahora 0.32 */
+.sb-stock-mini{font-family:var(--font-pixel);font-size:0.32rem;color:var(--muted)} /* ↑ AUMENTADO — stock mini en Rusty — era 0.28 */
 
-.sb-btn{font-family:var(--font-pixel);font-size:0.28rem;padding:8px 0;width:100%;background:var(--a2);color:#000;border:2px solid var(--gold);border-top:none;box-shadow:none;cursor:pointer;transition:0.1s;letter-spacing:0.5px;margin-top:auto} /* ↑ de 0.24 */
+/* RUSTY — botón "¡COMPRAR! ⚡" — original 0.24 → v3.2 0.28 → ahora 0.34 */
+.sb-btn{font-family:var(--font-pixel);font-size:0.34rem;padding:10px 0;width:100%;background:var(--a2);color:#000;border:2px solid var(--gold);border-top:none;box-shadow:none;cursor:pointer;transition:0.1s;letter-spacing:0.5px;margin-top:auto} /* ↑ AUMENTADO — botón ¡COMPRAR! en Rusty — era 0.28 */
 .sb-btn:hover:not(:disabled){background:var(--gold)}
 .sb-btn:disabled{opacity:0.4;cursor:not-allowed}
-.sb-out-label{font-family:var(--font-pixel);font-size:0.28rem;color:var(--red);text-align:center;padding:6px;border-top:1px solid var(--border)} /* ↑ de 0.22 */
-/* sb-stock-mini ya definido arriba */
+
+/* RUSTY — label "AGOTADO" cuando no hay stock — original 0.22 → v3.2 0.28 → ahora 0.34 */
+.sb-out-label{font-family:var(--font-pixel);font-size:0.34rem;color:var(--red);text-align:center;padding:8px;border-top:1px solid var(--border)} /* ↑ AUMENTADO — label AGOTADO en Rusty — era 0.28 */
 
 /* ─── CATEGORY BAR ─── */
 .cat-bar{display:flex;gap:6px;flex-wrap:wrap;padding:14px;background:var(--card);border:3px solid var(--border);box-shadow:var(--shadow)}
@@ -251,11 +247,10 @@ a:hover{color:var(--gold2)}
 /* ─── PRODUCTS GRID ─── */
 .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
 
-/* ─── PRODUCT CARD ─── */
-.product-card{
-  background:var(--card);border:3px solid var(--border);box-shadow:var(--shadow);
-  position:relative;overflow:hidden;transition:0.15s;display:flex;flex-direction:column;
-}
+/* ═══════════════════════════════════════════════════
+   PRODUCT CARD
+═══════════════════════════════════════════════════ */
+.product-card{background:var(--card);border:3px solid var(--border);box-shadow:var(--shadow);position:relative;overflow:hidden;transition:0.15s;display:flex;flex-direction:column}
 .product-card:hover{transform:translate(-3px,-3px);box-shadow:7px 7px 0 #000}
 .product-card[data-rarity="epic"]   {border-color:rgba(192,132,252,0.5)}
 .product-card[data-rarity="epic"]:hover{box-shadow:7px 7px 0 #000,0 0 20px rgba(192,132,252,0.4)}
@@ -270,15 +265,15 @@ a:hover{color:var(--gold2)}
 .product-card[data-rarity="common"] .pc-band{background:var(--border);animation:none}
 .product-card[data-rarity="rare"]   .pc-band{background:linear-gradient(90deg,#1e40af,var(--rare),#1e40af);animation:none}
 
-/* ↑ AUMENTADO: badges de calidad (EPIC, COMMON, LEGENDARY, RARE) */
-.pc-quality-badge{position:absolute;top:10px;left:10px;font-family:var(--font-pixel);font-size:0.26rem;padding:4px 9px;box-shadow:2px 2px 0 #000;z-index:5} /* ↑ de 0.2 */
+/* TARJETA — badge calidad esquina sup-izq: "EPIC", "LEGENDARY", "COMMON", "RARE" — original 0.20 → v3.2 0.26 → ahora 0.30 */
+.pc-quality-badge{position:absolute;top:10px;left:10px;font-family:var(--font-pixel);font-size:0.30rem;padding:4px 10px;box-shadow:2px 2px 0 #000;z-index:5} /* ↑ AUMENTADO — badge EPIC/LEGENDARY/COMMON/RARE — era 0.26 */
 .pc-quality-badge.legend {background:#8a5000;color:var(--gold)}
 .pc-quality-badge.epic   {background:#3b1a7a;color:#d8b4fe}
 .pc-quality-badge.rare   {background:#1e3a5f;color:#7dd3fc}
 .pc-quality-badge.common {background:#1a1a1a;color:#d1d5db}
 
-/* ↑ AUMENTADO: badges de estado (AGOTADO, PRÓXIMO, etc.) */
-.pc-state-badge{position:absolute;top:10px;right:10px;font-family:var(--font-pixel);font-size:0.26rem;padding:4px 9px;box-shadow:2px 2px 0 #000;z-index:5} /* ↑ de 0.2 */
+/* TARJETA — badge estado esquina sup-der: "❌ AGOTADO" (parpadea), "⏳ PRÓXIMO", "⚠️ ÚLTIMOS" — original 0.20 → v3.2 0.26 → ahora 0.30 */
+.pc-state-badge{position:absolute;top:10px;right:10px;font-family:var(--font-pixel);font-size:0.30rem;padding:4px 10px;box-shadow:2px 2px 0 #000;z-index:5} /* ↑ AUMENTADO — badge AGOTADO/PRÓXIMO/ÚLTIMOS/EVENTO — era 0.26 */
 .pc-state-badge.out     {background:#4a1010;color:#ef4444;animation:blink 1.5s step-end infinite}
 .pc-state-badge.upcoming{background:#0c1a3a;color:#60a5fa}
 .pc-state-badge.expired {background:#1a1010;color:#6b7280}
@@ -290,10 +285,13 @@ a:hover{color:var(--gold2)}
 .product-card:hover .pc-img img{filter:brightness(1);transform:scale(1.04)}
 .pc-img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,0,0) 40%,rgba(10,8,0,0.85) 100%)}
 
-/* ↑ AUMENTADO: texto del overlay (AGOTADO grande en imagen) */
+/* TARJETA — texto grande en overlay de imagen cuando está agotado/caducado — original 0.30 → v3.2 0.38 → ahora 0.46 */
 .pc-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);z-index:3;gap:6px}
-.pc-overlay-txt{font-family:var(--font-pixel);font-size:0.38rem;color:#ef4444;text-shadow:2px 2px 0 #000} /* ↑ de 0.3 */
-.pc-overlay-sub{font-family:var(--font-pixel);font-size:0.28rem;color:#9ca3af} /* ↑ de 0.22 */
+.pc-overlay-txt{font-family:var(--font-pixel);font-size:0.46rem;color:#ef4444;text-shadow:2px 2px 0 #000} /* ↑ AUMENTADO — texto AGOTADO/CADUCADO grande sobre imagen — era 0.38 */
+
+/* TARJETA — subtexto overlay: "↻ Restock aprox. 15 ene", "Oferta finalizada" — original 0.22 → v3.2 0.28 → ahora 0.34 */
+.pc-overlay-sub{font-family:var(--font-pixel);font-size:0.34rem;color:#c4b5fd} /* ↑ AUMENTADO — "↻ Próximo restock aprox. XX" — era 0.28 */
+
 .pc-overlay-cd{display:flex;gap:6px;margin-top:4px}
 .pc-cd-block{display:flex;flex-direction:column;align-items:center;background:rgba(0,0,0,0.6);border:1px solid rgba(96,165,250,0.3);padding:4px 6px;min-width:38px}
 .pc-cd-val{font-family:var(--font-pixel);font-size:0.3rem;color:#93c5fd;line-height:1}
@@ -301,14 +299,14 @@ a:hover{color:var(--gold2)}
 
 .pc-body{padding:14px 14px 10px;flex:1;display:flex;flex-direction:column;gap:8px}
 
-/* ↑ AUMENTADO: nombre del producto en tarjeta */
-.pc-name{font-family:var(--font-pixel);font-size:0.38rem;color:var(--text);line-height:1.8;text-align:center} /* ↑ de 0.34 */
+/* TARJETA — nombre del producto — original 0.34 → v3.2 0.38 → ahora 0.44 */
+.pc-name{font-family:var(--font-pixel);font-size:0.44rem;color:var(--text);line-height:1.8;text-align:center} /* ↑ AUMENTADO — nombre del producto en la tarjeta — era 0.38 */
 
-.pc-desc{font-family:var(--font-vt);font-size:1.1rem;color:var(--muted);text-align:center;line-height:1.4}
+.pc-desc{font-family:var(--font-vt);font-size:1.15rem;color:var(--muted);text-align:center;line-height:1.4}
 .pc-tags{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
 
-/* ↑ AUMENTADO: tags (#ticket, #cofre, etc.) */
-.pc-tag{font-family:var(--font-pixel);font-size:0.22rem;padding:3px 7px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.07);color:var(--a)} /* ↑ de 0.18 */
+/* TARJETA — tags "#ticket", "#cofre", "#llave", etc. — original 0.18 → v3.2 0.22 → ahora 0.26 */
+.pc-tag{font-family:var(--font-pixel);font-size:0.26rem;padding:3px 7px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.07);color:var(--a)} /* ↑ AUMENTADO — tags del producto (#ticket, #cofre...) — era 0.22 */
 
 .pc-calkey-icons,.pc-superkey-icons{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:2px}
 .ck-mini{display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:99px;font-size:0.82rem;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--muted)}
@@ -316,151 +314,169 @@ a:hover{color:var(--gold2)}
 
 .pc-expiry{margin-top:4px}
 
-/* ↑ AUMENTADO: label "Caduca en:" */
-.pc-expiry-lbl{font-family:var(--font-pixel);font-size:0.26rem;color:var(--muted);margin-bottom:4px} /* ↑ de 0.2 */
+/* TARJETA — label "⏰ Caduca en:" — original 0.20 → v3.2 0.26 → ahora 0.30 */
+.pc-expiry-lbl{font-family:var(--font-pixel);font-size:0.30rem;color:var(--muted);margin-bottom:4px} /* ↑ AUMENTADO — label "⏰ Caduca en:" — era 0.26 */
 
 .pc-expiry-cd{display:flex;gap:4px;flex-wrap:wrap}
 .pc-exp-block{display:flex;flex-direction:column;align-items:center;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);padding:4px 5px;min-width:36px}
 
-/* ↑ AUMENTADO: números del countdown de expiración */
-.pc-exp-val{font-family:var(--font-pixel);font-size:0.34rem;color:var(--a);line-height:1} /* ↑ de 0.28 */
+/* TARJETA — números del countdown (12, 05, 30...) — original 0.28 → v3.2 0.34 → ahora 0.40 */
+.pc-exp-val{font-family:var(--font-pixel);font-size:0.40rem;color:var(--a);line-height:1} /* ↑ AUMENTADO — números días/hrs/min/seg del countdown — era 0.34 */
 
-/* ↑ AUMENTADO: labels (días/hrs/min/seg) del countdown */
-.pc-exp-lbl{font-family:var(--font-pixel);font-size:0.2rem;color:var(--muted);margin-top:2px} /* ↑ de 0.14 */
+/* TARJETA — labels del countdown "días", "hrs", "min", "seg" — original 0.14 → v3.2 0.20 → ahora 0.24 */
+.pc-exp-lbl{font-family:var(--font-pixel);font-size:0.24rem;color:var(--muted);margin-top:2px} /* ↑ AUMENTADO — labels "días", "hrs", "min", "seg" del countdown — era 0.20 */
 
 .pc-footer{padding:0 14px 14px;margin-top:auto}
 .pc-price-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 
-/* ↑ AUMENTADO: precio tachado (precio original) */
-.pc-price-old{font-family:var(--font-pixel);font-size:0.34rem;color:var(--muted);text-decoration:line-through} /* ↑ de 0.3 */
+/* TARJETA — precio original tachado — original 0.30 → v3.2 0.34 → ahora 0.40 */
+.pc-price-old{font-family:var(--font-pixel);font-size:0.40rem;color:var(--muted);text-decoration:line-through} /* ↑ AUMENTADO — precio tachado (original antes del descuento) — era 0.34 */
 
-/* ↑ AUMENTADO: precio principal */
-.pc-price{font-family:var(--font-pixel);font-size:0.78rem;color:var(--gold);text-shadow:0 0 10px rgba(245,158,11,0.5)} /* ↑ de 0.64 */
-
+/* TARJETA — precio principal "⟡128" — original 0.64 → v3.2 0.78 → ahora 0.90 */
+.pc-price{font-family:var(--font-pixel);font-size:0.90rem;color:var(--gold);text-shadow:0 0 10px rgba(245,158,11,0.5)} /* ↑ AUMENTADO — precio principal del producto — era 0.78 */
 .pc-price.free-price{color:var(--green);text-shadow:0 0 10px rgba(48,209,88,0.5)}
 .pc-price.code-price{color:#60a5fa}
 
-/* ↑ AUMENTADO: badge de descuento -X% */
-.pc-discount{font-family:var(--font-pixel);font-size:0.32rem;color:var(--red);background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);padding:3px 7px;margin-left:auto} /* ↑ de 0.28 */
+/* TARJETA — badge descuento "-20%" — original 0.28 → v3.2 0.32 → ahora 0.36 */
+.pc-discount{font-family:var(--font-pixel);font-size:0.36rem;color:var(--red);background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);padding:3px 7px;margin-left:auto} /* ↑ AUMENTADO — badge -X% de descuento — era 0.32 */
 
 .pc-stock-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:6px;padding:6px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border)}
 
-/* ↑ AUMENTADO: texto "STOCK" / "AGOTADO" */
-.pc-stock{font-family:var(--font-pixel);font-size:0.34rem;color:var(--muted);display:flex;align-items:center;gap:5px} /* ↑ de 0.3 */
+/* TARJETA — texto "📦 STOCK" / "📦 AGOTADO" / "📦 ∞ ILIMITADO" — original 0.30 → v3.2 0.34 → ahora 0.38 */
+.pc-stock{font-family:var(--font-pixel);font-size:0.38rem;color:var(--muted);display:flex;align-items:center;gap:5px} /* ↑ AUMENTADO — texto STOCK / AGOTADO / ILIMITADO — era 0.34 */
 
-/* ↑ AUMENTADO: número de stock */
-.pc-stock-num{font-size:0.54rem;font-family:var(--font-pixel);color:var(--gold);text-shadow:0 0 8px rgba(245,158,11,0.4)} /* ↑ de 0.48 */
-
+/* TARJETA — número de stock "10", "3", "∞" — original 0.48 → v3.2 0.54 → ahora 0.62 */
+.pc-stock-num{font-size:0.62rem;font-family:var(--font-pixel);color:var(--gold);text-shadow:0 0 8px rgba(245,158,11,0.4)} /* ↑ AUMENTADO — número de stock (10, 3, ∞) — era 0.54 */
 .pc-stock.low-stock .pc-stock-num{color:#f97316;text-shadow:0 0 8px rgba(249,115,22,0.4)}
 .pc-stock.no-stock .pc-stock-num{color:#ef4444;text-shadow:0 0 8px rgba(239,68,68,0.4)}
 
-/* ↑ AUMENTADO: texto de restock (↻ 7d, ↻ 24h, etc.) */
-.pc-restock{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted)} /* ↑ de 0.2, color de --dim a --muted */
+/* TARJETA — texto de restock "↻ 7d" / "↻ 24h" / "↻ 30d" / "Sin restock" — original 0.20 → v3.2 0.28 → ahora 0.32 */
+.pc-restock{font-family:var(--font-pixel);font-size:0.32rem;color:var(--muted)} /* ↑ AUMENTADO — restock ↻ 7d / 24h / 30d — era 0.28 */
 
 .pc-actions{display:flex;gap:6px}
 
-/* ↑ AUMENTADO: botón DETALLES */
-.pc-btn-detail{flex:1;font-family:var(--font-pixel);font-size:0.3rem;padding:9px 0;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--muted);box-shadow:2px 2px 0 #000;transition:0.1s;letter-spacing:0.5px} /* ↑ de 0.26 */
+/* TARJETA — botón "DETALLES" — original 0.26 → v3.2 0.30 → ahora 0.34 */
+.pc-btn-detail{flex:1;font-family:var(--font-pixel);font-size:0.34rem;padding:10px 0;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--muted);box-shadow:2px 2px 0 #000;transition:0.1s;letter-spacing:0.5px} /* ↑ AUMENTADO — botón DETALLES — era 0.30 */
 .pc-btn-detail:hover:not(:disabled){border-color:var(--a);color:var(--a);transform:translate(-1px,-1px)}
 
-/* ↑ AUMENTADO: botón COMPRAR */
-.pc-btn{flex:2;font-family:var(--font-pixel);font-size:0.34rem;padding:11px 0;cursor:pointer;border:2px solid var(--gold);background:var(--a2);color:#000;box-shadow:var(--shadow);transition:0.1s;letter-spacing:1px} /* ↑ de 0.3 */
+/* TARJETA — botón "COMPRAR" — original 0.30 → v3.2 0.34 → ahora 0.40 */
+.pc-btn{flex:2;font-family:var(--font-pixel);font-size:0.40rem;padding:12px 0;cursor:pointer;border:2px solid var(--gold);background:var(--a2);color:#000;box-shadow:var(--shadow);transition:0.1s;letter-spacing:1px} /* ↑ AUMENTADO — botón COMPRAR — era 0.34 */
 .pc-btn:hover:not(:disabled){background:var(--gold);transform:translate(-1px,-1px);box-shadow:5px 5px 0 #000}
 .pc-btn:active:not(:disabled){transform:translate(1px,1px);box-shadow:2px 2px 0 #000}
 .pc-btn:disabled,.pc-btn-detail:disabled{opacity:0.4;cursor:not-allowed}
 
 .product-card::after{content:'';position:absolute;left:0;right:0;height:30%;background:linear-gradient(transparent,rgba(245,158,11,0.04),transparent);animation:scanLine 6s linear infinite;pointer-events:none;z-index:0}
-
 .p-empty{grid-column:1/-1;text-align:center;padding:40px;color:var(--dim);font-family:var(--font-pixel);font-size:0.3rem}
 
 /* ─── NPC FLOTANTE ─── */
-.npc-wrap{
-  position:fixed;bottom:90px;left:14px;z-index:500;pointer-events:none;
-  animation:npcFloat 3s ease-in-out infinite;max-width:240px;
-}
-.npc-bubble{
-  margin-bottom:10px;padding:12px 16px;max-width:240px;
-  background:rgba(10,8,0,0.98);border:3px solid var(--a);
-  box-shadow:4px 4px 0 #000,0 0 18px rgba(245,158,11,0.45);
-  font-family:var(--font-pixel);font-size:0.32rem;
-  color:var(--gold2);line-height:2.2;
-}
-.npc-avatar img{
-  width:80px;height:80px;border:3px solid var(--a);background:#000;
-  image-rendering:pixelated;box-shadow:4px 4px 0 #000,0 0 12px var(--a);
-}
+.npc-wrap{position:fixed;bottom:90px;left:14px;z-index:500;pointer-events:none;animation:npcFloat 3s ease-in-out infinite;max-width:240px}
+.npc-bubble{margin-bottom:10px;padding:12px 16px;max-width:240px;background:rgba(10,8,0,0.98);border:3px solid var(--a);box-shadow:4px 4px 0 #000,0 0 18px rgba(245,158,11,0.45);font-family:var(--font-pixel);font-size:0.32rem;color:var(--gold2);line-height:2.2}
+.npc-avatar img{width:80px;height:80px;border:3px solid var(--a);background:#000;image-rendering:pixelated;box-shadow:4px 4px 0 #000,0 0 12px var(--a)}
 
-/* ─── HISTORIAL DRAWER ─── */
+/* ═══════════════════════════════════════════════════
+   HISTORIAL DRAWER
+═══════════════════════════════════════════════════ */
+
+/* HISTORIAL — botón flotante "📋 HISTORIAL" — original sin referencia → ahora 0.30 */
 .hist-toggle-btn{
   position:fixed;bottom:20px;right:20px;z-index:400;
-  font-family:var(--font-pixel);font-size:0.26rem;padding:10px 16px;
-  background:var(--card);border:2px solid var(--a);color:var(--gold);
-  box-shadow:var(--shadow);cursor:pointer;transition:0.1s;letter-spacing:0.5px;
-  display:flex;align-items:center;gap:7px;
+  font-family:var(--font-pixel);
+  font-size:0.30rem; /* ↑ AUMENTADO — botón flotante "📋 HISTORIAL" — era 0.26 */
+  padding:12px 18px;background:var(--card);border:2px solid var(--a);
+  color:var(--gold);box-shadow:var(--shadow);cursor:pointer;transition:0.1s;
+  letter-spacing:0.5px;display:flex;align-items:center;gap:7px;
 }
 .hist-toggle-btn:hover{background:rgba(245,158,11,0.15);transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000}
+
+/* HISTORIAL — badge número rojo sobre el botón — original 0.20 → ahora 0.26 */
 .hist-badge{
   background:var(--red);color:#fff;font-family:var(--font-pixel);
-  font-size:0.2rem;padding:1px 5px;min-width:18px;text-align:center;
+  font-size:0.26rem; /* ↑ AUMENTADO — número del badge rojo en botón historial — era 0.20 */
+  padding:2px 6px;min-width:20px;text-align:center;
 }
+
 .hist-drawer{
-  position:fixed;right:0;top:0;bottom:0;width:460px;max-width:98vw;
+  position:fixed;right:0;top:0;bottom:0;width:480px;max-width:98vw;
   background:var(--bg2);border-left:3px solid var(--a);
   box-shadow:-8px 0 40px rgba(0,0,0,0.85);z-index:600;
   display:flex;flex-direction:column;
   transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
 }
 .hist-drawer.open{transform:translateX(0)}
+
 .hist-drawer-head{
   display:flex;align-items:center;justify-content:space-between;
-  padding:16px 18px;background:rgba(245,158,11,0.07);
+  padding:18px 20px;background:rgba(245,158,11,0.07);
   border-bottom:2px solid var(--border);flex-shrink:0;gap:10px;
 }
-.hist-title-wrap{display:flex;flex-direction:column;gap:4px}
-.hist-title{font-family:var(--font-pixel);font-size:0.32rem;color:var(--gold);letter-spacing:1px}
-.hist-count{font-family:var(--font-pixel);font-size:0.22rem;color:var(--muted)}
+.hist-title-wrap{display:flex;flex-direction:column;gap:5px}
+
+/* HISTORIAL — título "📋 HISTORIAL" en la cabecera del drawer — original 0.32 → ahora 0.40 */
+.hist-title{font-family:var(--font-pixel);font-size:0.40rem;color:var(--gold);letter-spacing:1px} /* ↑ AUMENTADO — título "HISTORIAL" del drawer — era 0.32 */
+
+/* HISTORIAL — "5 compras · Total: ⟡640" bajo el título — original 0.22 → ahora 0.30 */
+.hist-count{font-family:var(--font-pixel);font-size:0.30rem;color:var(--muted)} /* ↑ AUMENTADO — "X compras · Total: ⟡Y" — era 0.22 */
+
 .hist-actions{display:flex;gap:6px;flex-shrink:0}
-.hist-backdrop{
-  position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:590;
-  display:none;backdrop-filter:blur(3px);
-}
+.hist-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:590;display:none;backdrop-filter:blur(3px)}
 .hist-backdrop.open{display:block}
 
-.purchases-list{
-  flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column;
-  scrollbar-width:thin;scrollbar-color:rgba(245,158,11,0.3) transparent;
-}
+.purchases-list{flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column;scrollbar-width:thin;scrollbar-color:rgba(245,158,11,0.3) transparent}
 .purchases-list::-webkit-scrollbar{width:4px}
 .purchases-list::-webkit-scrollbar-thumb{background:rgba(245,158,11,0.3);border-radius:2px}
-.empty-hist{display:flex;flex-direction:column;align-items:center;gap:12px;padding:50px 20px;opacity:0.5;text-align:center}
-.empty-hist span{font-size:2.5rem}
-.empty-hist p{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted);line-height:2}
-.empty-hist-sub{font-family:var(--font-vt);font-size:0.9rem;color:var(--dim)}
+
+.empty-hist{display:flex;flex-direction:column;align-items:center;gap:14px;padding:50px 20px;opacity:0.5;text-align:center}
+.empty-hist span{font-size:2.8rem}
+
+/* HISTORIAL — "SIN COMPRAS AÚN" — original 0.28 → ahora 0.34 */
+.empty-hist p{font-family:var(--font-pixel);font-size:0.34rem;color:var(--muted);line-height:2} /* ↑ AUMENTADO — texto "SIN COMPRAS AÚN" — era 0.28 */
+.empty-hist-sub{font-family:var(--font-vt);font-size:1.1rem;color:var(--dim)}
+
 .hist-date-section{display:flex;flex-direction:column}
+
 .hist-date-header{
   display:flex;align-items:center;justify-content:space-between;
-  padding:10px 16px 8px;background:rgba(245,158,11,0.05);
-  border-bottom:1px solid rgba(245,158,11,0.15);border-top:2px solid rgba(245,158,11,0.1);
+  padding:12px 18px 10px;background:rgba(245,158,11,0.06);
+  border-bottom:1px solid rgba(245,158,11,0.15);border-top:2px solid rgba(245,158,11,0.12);
   position:sticky;top:0;z-index:10;backdrop-filter:blur(4px);gap:10px;
 }
-.hist-date-label{font-family:var(--font-pixel);font-size:0.26rem;color:var(--a);letter-spacing:1px;display:flex;align-items:center;gap:6px}
-.hist-date-total{font-family:var(--font-pixel);font-size:0.24rem;color:var(--gold2);background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);padding:3px 10px;box-shadow:1px 1px 0 #000;white-space:nowrap}
+
+/* HISTORIAL — label de fecha del grupo "📅 HOY", "📅 AYER", "📅 Lun 20 Ene" — original 0.26 → ahora 0.32 */
+.hist-date-label{font-family:var(--font-pixel);font-size:0.32rem;color:var(--a);letter-spacing:1px;display:flex;align-items:center;gap:6px} /* ↑ AUMENTADO — etiqueta de fecha (HOY, AYER, etc.) — era 0.26 */
+
+/* HISTORIAL — total del grupo "TOTAL: ⟡640" / "TOTAL: GRATIS" — original 0.24 → ahora 0.30 */
+.hist-date-total{font-family:var(--font-pixel);font-size:0.30rem;color:var(--gold2);background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);padding:4px 12px;box-shadow:1px 1px 0 #000;white-space:nowrap} /* ↑ AUMENTADO — "TOTAL: ⟡X" del grupo de día — era 0.24 */
 .hist-date-total.free{color:var(--green);background:rgba(48,209,88,0.1);border-color:rgba(48,209,88,0.3)}
+
 .hist-date-items{display:flex;flex-direction:column;gap:0}
 .purchase-item{display:flex;align-items:stretch;gap:0;background:var(--card);border-bottom:1px solid rgba(245,158,11,0.08);transition:0.12s;overflow:hidden}
-.purchase-item:hover{background:rgba(245,158,11,0.04);border-left:3px solid rgba(245,158,11,0.4)}
-.pi-icon-wrap{display:flex;align-items:center;justify-content:center;width:52px;flex-shrink:0;background:rgba(245,158,11,0.04);border-right:1px solid rgba(245,158,11,0.08);font-size:1.5rem}
-.pi-info{flex:1;padding:10px 12px;overflow:hidden;min-width:0}
-.pi-name{font-family:var(--font-pixel);font-size:0.24rem;color:var(--text);margin-bottom:4px;line-height:1.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pi-detail{font-family:var(--font-vt);font-size:0.9rem;color:var(--muted);margin-bottom:3px}
-.pi-time-row{display:flex;align-items:center;gap:6px}
-.pi-time{font-family:var(--font-pixel);font-size:0.18rem;color:var(--dim)}
-.pi-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:10px 14px;flex-shrink:0;min-width:70px;gap:4px}
-.pi-price{font-family:var(--font-pixel);font-size:0.28rem;color:var(--gold)}
-.pi-price.free{color:var(--green)}
-.pi-disc{font-family:var(--font-pixel);font-size:0.18rem;color:var(--red);background:rgba(239,68,68,0.1);padding:1px 4px;border:1px solid rgba(239,68,68,0.2)}
+.purchase-item:hover{background:rgba(245,158,11,0.05);border-left:3px solid rgba(245,158,11,0.4)}
+.pi-icon-wrap{display:flex;align-items:center;justify-content:center;width:56px;flex-shrink:0;background:rgba(245,158,11,0.04);border-right:1px solid rgba(245,158,11,0.08);font-size:1.7rem}
+.pi-info{flex:1;padding:12px 14px;overflow:hidden;min-width:0}
 
-/* ─── MODAL ─── */
+/* HISTORIAL — nombre del producto en cada fila — original 0.24 → ahora 0.30 */
+.pi-name{font-family:var(--font-pixel);font-size:0.30rem;color:var(--text);margin-bottom:5px;line-height:1.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} /* ↑ AUMENTADO — nombre del ítem en historial — era 0.24 */
+
+/* HISTORIAL — detalle/nota "Rusty -30% → ⟡90" — original VT 0.9rem → ahora 1.1rem */
+.pi-detail{font-family:var(--font-vt);font-size:1.1rem;color:var(--muted);margin-bottom:4px} /* ↑ AUMENTADO — nota/detalle del ítem (ej: Rusty -30% → ⟡90) — era 0.9rem */
+
+.pi-time-row{display:flex;align-items:center;gap:6px}
+
+/* HISTORIAL — hora y tiempo relativo "🕐 14:35 · hace 5m" — original 0.18 → ahora 0.24 */
+.pi-time{font-family:var(--font-pixel);font-size:0.24rem;color:var(--dim)} /* ↑ AUMENTADO — hora y "hace Xm / Xh / Xd" — era 0.18 */
+
+.pi-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:12px 16px;flex-shrink:0;min-width:80px;gap:5px}
+
+/* HISTORIAL — precio pagado "⟡128" / "GRATIS" — original 0.28 → ahora 0.36 */
+.pi-price{font-family:var(--font-pixel);font-size:0.36rem;color:var(--gold)} /* ↑ AUMENTADO — precio en historial (⟡128 / GRATIS) — era 0.28 */
+.pi-price.free{color:var(--green)}
+
+/* HISTORIAL — badge de descuento "-30%" en cada fila — original 0.18 → ahora 0.26 */
+.pi-disc{font-family:var(--font-pixel);font-size:0.26rem;color:var(--red);background:rgba(239,68,68,0.1);padding:2px 5px;border:1px solid rgba(239,68,68,0.2)} /* ↑ AUMENTADO — badge -X% en historial — era 0.18 */
+
+/* ═══════════════════════════════════════════════════
+   MODAL DE DETALLES
+═══════════════════════════════════════════════════ */
 .modal-overlay{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;opacity:0;pointer-events:none;transition:opacity 0.25s ease}
 .modal-overlay[aria-hidden="false"]{opacity:1;pointer-events:auto}
 .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(4px)}
@@ -469,65 +485,57 @@ a:hover{color:var(--gold2)}
 .modal-close:hover{background:var(--red);color:#fff;border-color:var(--red);transform:translate(-1px,-1px)}
 .modal-content h2{font-family:var(--font-pixel);font-size:0.56rem;color:var(--gold);margin-bottom:18px;text-shadow:2px 2px 0 #000,0 0 14px var(--a);line-height:1.8}
 
-/* ─── MODAL DETALLES ─── */
 .mdl-img{height:220px;overflow:hidden;margin-bottom:0;background:#0d0b08;border:2px solid var(--border);border-bottom:none;position:relative}
 .mdl-img img{width:100%;height:100%;object-fit:cover}
 .mdl-img-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(10,8,0,0.9) 100%);display:flex;align-items:flex-end;padding:16px}
 .mdl-quality-inline{font-family:var(--font-pixel);font-size:0.22rem;padding:4px 10px;border:1px solid;display:inline-flex;align-items:center;gap:6px}
 .mdl-body{padding:20px;display:flex;flex-direction:column;gap:14px}
 
-/* ↑ AUMENTADO: nombre grande en modal detalles */
-.mdl-name-big{font-family:var(--font-pixel);font-size:0.6rem;color:var(--text);line-height:1.8;margin-bottom:2px} /* ↑ de 0.5 */
+/* MODAL — nombre grande del producto — original 0.50 → v3.2 0.60 → ahora 0.70 */
+.mdl-name-big{font-family:var(--font-pixel);font-size:0.70rem;color:var(--text);line-height:1.8;margin-bottom:2px} /* ↑ AUMENTADO — nombre del producto en modal detalles — era 0.60 */
 
-/* ↑ AUMENTADO: descripción en modal detalles */
-.mdl-desc{font-family:var(--font-vt);font-size:1.3rem;color:var(--muted);line-height:1.6} /* ↑ de 1.1 */
+/* MODAL — descripción larga — original 1.10 → v3.2 1.30 → ahora 1.45rem */
+.mdl-desc{font-family:var(--font-vt);font-size:1.45rem;color:var(--muted);line-height:1.6} /* ↑ AUMENTADO — descripción en modal detalles — era 1.30rem */
 
 .mdl-divider{height:2px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.3),transparent)}
-
-/* ↑ AUMENTADO: grid de meta-info en modal */
 .mdl-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mdl-meta-item{padding:10px 12px;background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.12);display:flex;flex-direction:column;gap:3px}
 
-/* ↑ AUMENTADO: labels de meta (PRECIO BASE, STOCK, etc.) */
-.mdl-meta-label{font-family:var(--font-pixel);font-size:0.24rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px} /* ↑ de 0.18 */
+/* MODAL — labels "💰 PRECIO BASE", "📦 STOCK", "↻ RESTOCK", "🏷️ SECCIÓN" — original 0.18 → v3.2 0.24 → ahora 0.28 */
+.mdl-meta-label{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px} /* ↑ AUMENTADO — labels de la grid de info (PRECIO BASE, STOCK...) — era 0.24 */
 
-/* ↑ AUMENTADO: valores de meta */
-.mdl-meta-value{font-family:var(--font-pixel);font-size:0.4rem;color:var(--text)} /* ↑ de 0.34 */
-
-/* ↑ AUMENTADO: valores de restock en modal (↻ Cada 7 días, etc.) */
+/* MODAL — valores "⟡128", "10 unidades", "Cada 7 días", "pases" — original 0.34 → v3.2 0.40 → ahora 0.46 */
+.mdl-meta-value{font-family:var(--font-pixel);font-size:0.46rem;color:var(--text)} /* ↑ AUMENTADO — valores en la grid de info del modal — era 0.40 */
 .mdl-meta-value.val-gold{color:var(--gold);text-shadow:0 0 8px rgba(245,158,11,0.3)}
 .mdl-meta-value.val-green{color:var(--green)}
 .mdl-meta-value.val-red{color:var(--red)}
 .mdl-meta-value.val-blue{color:#60a5fa}
 
-/* ↑ AUMENTADO: títulos de sección en modal (LLAVES A RECIBIR, etc.) */
-.mdl-section-title{font-family:var(--font-pixel);font-size:0.34rem;color:var(--a);letter-spacing:1px;display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1px solid rgba(245,158,11,0.15)} /* ↑ de 0.3 */
+/* MODAL — títulos de subsección "🔑 LLAVES A RECIBIR", "⭐ LLAVES DE COFRE", "🎟️ TICKETS" — original 0.30 → v3.2 0.34 → ahora 0.40 */
+.mdl-section-title{font-family:var(--font-pixel);font-size:0.40rem;color:var(--a);letter-spacing:1px;display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1px solid rgba(245,158,11,0.15)} /* ↑ AUMENTADO — títulos de sección en modal (LLAVES A RECIBIR, etc.) — era 0.34 */
 
 .mdl-reward-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(245,158,11,0.04);border:1px solid rgba(245,158,11,0.1);margin-bottom:4px}
-.mdl-reward-ico{font-size:1.4rem;flex-shrink:0}
+.mdl-reward-ico{font-size:1.6rem;flex-shrink:0}
 
-/* ↑ AUMENTADO: nombre de recompensa en modal */
-.mdl-reward-name{font-family:var(--font-pixel);font-size:0.3rem;color:var(--text);flex:1;line-height:1.8} /* ↑ de 0.26 */
+/* MODAL — nombre de la recompensa "Tickets classic", "Llave Normal" — original 0.26 → v3.2 0.30 → ahora 0.36 */
+.mdl-reward-name{font-family:var(--font-pixel);font-size:0.36rem;color:var(--text);flex:1;line-height:1.8} /* ↑ AUMENTADO — nombre de la recompensa en modal — era 0.30 */
 
-/* ↑ AUMENTADO: cantidad de recompensa */
-.mdl-reward-count{font-family:var(--font-pixel);font-size:0.5rem;color:var(--gold)} /* ↑ de 0.42 */
+/* MODAL — cantidad de recompensa "+5", "+1", "+10" — original 0.42 → v3.2 0.50 → ahora 0.58 */
+.mdl-reward-count{font-family:var(--font-pixel);font-size:0.58rem;color:var(--gold)} /* ↑ AUMENTADO — cantidad de recompensa (+5, +1...) — era 0.50 */
 
-/* ↑ AUMENTADO: "Tienes: X" en modal */
-.mdl-reward-owned{font-family:var(--font-pixel);font-size:0.24rem;color:var(--muted);margin-top:2px} /* ↑ de 0.2 */
+/* MODAL — "Tienes: 3" bajo el nombre de recompensa — original 0.20 → v3.2 0.24 → ahora 0.28 */
+.mdl-reward-owned{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted);margin-top:2px} /* ↑ AUMENTADO — "Tienes: X" en el modal — era 0.24 */
 
-/* ↑ AUMENTADO: precio final en modal */
-.mdl-price-final{font-family:var(--font-pixel);font-size:0.82rem;color:var(--gold);text-align:center;text-shadow:0 0 14px rgba(245,158,11,0.4);line-height:1} /* ↑ de 0.7 */
+/* MODAL — precio final grande "⟡128" / "GRATIS" — original 0.70 → v3.2 0.82 → ahora 0.94 */
+.mdl-price-final{font-family:var(--font-pixel);font-size:0.94rem;color:var(--gold);text-align:center;text-shadow:0 0 14px rgba(245,158,11,0.4);line-height:1} /* ↑ AUMENTADO — precio final en modal — era 0.82 */
 
-/* ↑ AUMENTADO: precio original tachado en modal */
-.mdl-price-orig{font-family:var(--font-pixel);font-size:0.32rem;color:var(--muted);text-decoration:line-through;text-align:center} /* ↑ de 0.28 */
+/* MODAL — precio original tachado "⟡160" — original 0.28 → v3.2 0.32 → ahora 0.38 */
+.mdl-price-orig{font-family:var(--font-pixel);font-size:0.38rem;color:var(--muted);text-decoration:line-through;text-align:center} /* ↑ AUMENTADO — precio original tachado en modal — era 0.32 */
 
-/* ↑ AUMENTADO: badge descuento en modal */
-.mdl-price-disc{font-family:var(--font-pixel);font-size:0.32rem;color:var(--red);text-align:center;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);padding:2px 8px;display:inline-block} /* ↑ de 0.28 */
+/* MODAL — badge "-20% DE DESCUENTO" — original 0.28 → v3.2 0.32 → ahora 0.38 */
+.mdl-price-disc{font-family:var(--font-pixel);font-size:0.38rem;color:var(--red);text-align:center;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);padding:2px 8px;display:inline-block} /* ↑ AUMENTADO — badge "-X% DE DESCUENTO" en modal — era 0.32 */
 
 .mdl-footer{display:flex;gap:10px;justify-content:center;padding-top:4px;flex-wrap:wrap}
-
-/* ─── PRÓXIMO RESTOCK en overlay de agotado ─── */
-/* El texto "↻ Restock aprox. XX xxx" está en .pc-overlay-sub, ya aumentado arriba */
 
 /* ─── TOAST ─── */
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);font-family:var(--font-pixel);font-size:0.3rem;background:var(--card);border:2px solid var(--a);color:var(--text);padding:10px 18px;box-shadow:4px 4px 0 #000,0 0 16px rgba(245,158,11,0.3);z-index:3000;opacity:0;visibility:hidden;transition:all 0.3s ease;white-space:nowrap;letter-spacing:0.5px;max-width:90vw;text-align:center}
@@ -565,12 +573,12 @@ a:hover{color:var(--gold2)}
   .cat-btn{font-size:0.22rem;padding:5px 7px}
   .hud-slot:last-child{display:none}
   .sb-grid{grid-template-columns:1fr 1fr}
-  .hist-toggle-btn{right:14px;bottom:14px;font-size:0.22rem;padding:7px 10px}
+  .hist-toggle-btn{right:14px;bottom:14px;font-size:0.24rem;padding:8px 12px}
   .mdl-meta{grid-template-columns:1fr}
 }
 @media(max-width:420px){
   .products-grid{grid-template-columns:1fr}
   .sb-grid{grid-template-columns:1fr}
-  .pc-name{font-size:0.3rem}
-  .pc-price{font-size:0.6rem}
+  .pc-name{font-size:0.36rem}
+  .pc-price{font-size:0.72rem}
 }
