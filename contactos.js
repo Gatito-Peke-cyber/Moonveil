@@ -280,12 +280,30 @@ async function loadFriends() {
     const snaps=await Promise.all(uids.map(uid=>getDoc(doc(db,'users',uid))));
     friendList=snaps.filter(s=>s.exists()).map(s=>mkFriend(s.id,s.data()));
     friendList.forEach(f=>{
+      // ── Listener de presencia
       presenceUnsubs.push(onSnapshot(doc(db,'users',f.uid),snap=>{
         if(!snap.exists()) return;
         const d=snap.data(), idx=friendList.findIndex(x=>x.uid===f.uid); if(idx<0) return;
         Object.assign(friendList[idx],{online:d.presence?.state==='online',lastSeen:d.presence?.lastSeen||null,avatar:d.avatar||friendList[idx].avatar,name:d.nombre||friendList[idx].name,titleId:d.title_active||friendList[idx].titleId});
         renderFriends(); if(currentId===f.id)updateChatHd(friendList[idx]);
       }));
+
+      // ── Listener de mensajes no leídos: escucha mensajes del amigo con read:false
+      const cid=chatId(CU.uid,f.uid);
+      presenceUnsubs.push(onSnapshot(
+        query(collection(db,'chats',cid,'messages'),where('senderId','==',f.uid),where('read','==',false),limit(99)),
+        snap=>{
+          const idx=friendList.findIndex(x=>x.uid===f.uid); if(idx<0) return;
+          // Si el chat está abierto no mostramos badge
+          const count = currentId===friendList[idx].id ? 0 : snap.size;
+          if(friendList[idx].unread===count) return; // sin cambio, no re-render
+          friendList[idx].unread=count;
+          renderFriends();
+          // Si hay nuevos mensajes y el chat no está abierto, notificamos
+          if(count>0 && currentId!==friendList[idx].id) playNotif();
+        },
+        ()=>{} // si falla el query (índice faltante) ignoramos silenciosamente
+      ));
     });
     renderFriends();
   } catch(e){console.warn('loadFriends',e);}
@@ -426,7 +444,13 @@ function selectContact(id){
   const qb=$('#quickBar');qb.innerHTML='';qb.classList.add('hidden');
 
   if(grp){grp.unread=0;renderGroups();currentGroupId=grp.id;openGroupChat(grp);}
-  else if(frn){frn.unread=0;renderFriends();openFriendChat(frn);}
+  else if(frn){
+    frn.unread=0;
+    // Reset también el campo en Firestore para que el listener no vuelva a disparar
+    const fcid=chatId(CU.uid,frn.uid);
+    setDoc(doc(db,'chats',fcid),{[`unread_${CU.uid}`]:0},{merge:true}).catch(()=>{});
+    renderFriends();openFriendChat(frn);
+  }
   else{bot.unread=0;renderBots();openBotChat(bot);}
 
   showChatPanel();
@@ -475,7 +499,11 @@ function openFriendChat(friend){
   const cid=chatId(CU.uid,friend.uid);
   const th=$('#thread');
   th.innerHTML=`<div class="chat-empty"><div class="ce-desc">Cargando...</div></div>`;
+  // Marcar todos los mensajes del amigo como leídos en Firestore
   setDoc(doc(db,'chats',cid),{[`unread_${CU.uid}`]:0},{merge:true}).catch(()=>{});
+  getDocs(query(collection(db,'chats',cid,'messages'),where('senderId','==',friend.uid),where('read','==',false))).then(snap=>{
+    snap.forEach(d=>updateDoc(d.ref,{read:true}).catch(()=>{}));
+  }).catch(()=>{});
   let first=true;
   msgUnsub=onSnapshot(query(collection(db,'chats',cid,'messages'),orderBy('timestamp','asc'),limit(120)),
     snap=>{
@@ -1436,3 +1464,410 @@ window.addEventListener('DOMContentLoaded',()=>{if(localStorage.getItem('music')
 
 /* ── Bot notification sim ── */
 setInterval(()=>{const pool=BOTS.filter(c=>c.id!==currentId);if(!pool.length)return;const c=pool[Math.floor(Math.random()*pool.length)];if(muted.has(c.id)||!getS().badge)return;c.unread=Math.min(99,(c.unread||0)+1);renderBots();},22000+Math.random()*15000);
+
+
+/* =====================================================================
+   contactos_pass_tier.js  v1.0
+   Módulo auxiliar — lógica de TIER DEL PASE para contactos.js
+
+   Puedes importarlo directamente, o copiar sus funciones en contactos.js.
+   ===================================================================== */
+
+/*
+ * DATOS DEL TIER:
+ * ───────────────
+ * Firestore guarda en cada usuario:
+ *   active_pass_tier: {
+ *     tierId:   'stone' | 'iron' | 'gold' | 'emerald' | 'diamond'
+ *     passId:   'pass_s3'
+ *     passName: 'Despertar de la Naturaleza'
+ *     expiresAt: '2026-03-31T23:59:59'  ← ISO string
+ *   }
+ *   o  active_pass_tier: null  (sin pase pagado activo)
+ *
+ * Si expiresAt < ahora → se ignora (pase terminado, color blanco)
+ * Si tierId === 'stone' → también sin medalla (es gratis, no se muestra)
+ */
+
+/* ── Mapeo de tier → estilos ─────────────────────────────────────────
+   color:      color CSS del nombre del amigo en la lista de contactos
+   glow:       sombra de texto sutil
+   medalEmoji: emoji de medalla que aparece junto al nombre
+   medalClass: clase CSS de la medalla (para animaciones)
+   label:      texto corto para tooltip/accesibilidad
+   ─────────────────────────────────────────────────────────────────── */
+export const PASS_TIER_STYLES = {
+  stone: {
+    color:      'var(--white)',   /* Sin cambio: blanco normal */
+    glow:       'none',
+    medalEmoji: null,             /* Sin medalla */
+    medalClass: '',
+    label:      'Pase Piedra',
+  },
+  iron: {
+    color:      '#c0c8d0',
+    glow:       '0 0 6px rgba(180,195,210,0.55)',
+    medalEmoji: '⬛',
+    medalClass: 'pt-medal pt-iron',
+    label:      'Pase Hierro',
+  },
+  gold: {
+    color:      '#f5c518',
+    glow:       '0 0 8px rgba(245,197,24,0.55)',
+    medalEmoji: '🟨',
+    medalClass: 'pt-medal pt-gold',
+    label:      'Pase Oro',
+  },
+  emerald: {
+    color:      '#2eef8a',
+    glow:       '0 0 10px rgba(46,239,138,0.65)',
+    medalEmoji: '🟩',
+    medalClass: 'pt-medal pt-emerald',
+    label:      'Pase Esmeralda',
+  },
+  diamond: {
+    color:      null,             /* Multicolor → ver CSS */
+    glow:       '0 0 12px rgba(103,232,249,0.6)',
+    medalEmoji: '🔷',
+    medalClass: 'pt-medal pt-diamond',
+    label:      'Pase Diamante',
+  },
+};
+
+/* ── Devuelve el tier efectivo de un amigo (o 'stone' si expiró/nulo) ── */
+export function getEffectiveTier(friendData) {
+  const pt = friendData?.active_pass_tier;
+  if (!pt || !pt.tierId || !pt.expiresAt) return 'stone';
+  const now = new Date().toISOString();
+  if (pt.expiresAt < now) return 'stone';   /* Pase terminado */
+  return pt.tierId || 'stone';
+}
+
+/* ── HTML del nombre con color y medalla ────────────────────────────── */
+export function buildNameWithTier(name, tier) {
+  const style = PASS_TIER_STYLES[tier] || PASS_TIER_STYLES.stone;
+  const safeName = name.replace(/[&<>"']/g, m =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])
+  );
+
+  /* Construir el span del nombre */
+  let nameHtml;
+  if (tier === 'diamond') {
+    /* Nombre con gradiente arcoíris animado */
+    nameHtml = `<span class="ci-name-text pt-name-diamond">${safeName}</span>`;
+  } else if (tier !== 'stone' && style.color) {
+    nameHtml = `<span class="ci-name-text" style="color:${style.color};${style.glow !== 'none' ? `text-shadow:${style.glow}` : ''}">${safeName}</span>`;
+  } else {
+    nameHtml = `<span class="ci-name-text">${safeName}</span>`;
+  }
+
+  /* Medalla (solo si no es stone) */
+  const medalHtml = (tier !== 'stone' && style.medalClass)
+    ? `<span class="${style.medalClass}" title="${style.label}"></span>`
+    : '';
+
+  return nameHtml + medalHtml;
+}
+
+/* ── Tooltip del tier ────────────────────────────────────────────────── */
+export function getTierTooltip(friendData) {
+  const pt = friendData?.active_pass_tier;
+  if (!pt || !pt.tierId || pt.tierId === 'stone') return '';
+  const now = new Date().toISOString();
+  if (!pt.expiresAt || pt.expiresAt < now) return '';
+  const style = PASS_TIER_STYLES[pt.tierId];
+  if (!style) return '';
+  const fecha = pt.expiresAt.slice(0, 10);
+  return `${style.label} — ${pt.passName || ''} (hasta ${fecha})`;
+}
+
+
+
+
+
+/* =====================================================================
+   contactos_patch.js  v1.0
+   ─────────────────────────────────────────────────────────────────────
+   Contiene ÚNICAMENTE las funciones de contactos.js que necesitas
+   REEMPLAZAR para añadir el sistema de tier de pase.
+
+   INSTRUCCIONES:
+   1. Pega el bloque de IMPORTS al inicio del archivo contactos.js
+   2. Busca cada función marcada con ── REEMPLAZAR ── y sustitúyela
+   3. Añade los event-listener marcados con ── AÑADIR ──
+   ===================================================================== */
+
+/* ══════════════════════════════════════════════════════
+   PASO 1 — IMPORTS (añadir al principio de contactos.js)
+   ══════════════════════════════════════════════════════ */
+import {
+  getEffectiveTier,
+  buildNameWithTier,
+  getTierTooltip,
+  PASS_TIER_STYLES,
+} from './contactos_pass_tier.js';
+
+
+/* ══════════════════════════════════════════════════════
+   PASO 2 — Helpers internos de tier
+   Añadir en la sección de "Helpers" de contactos.js
+   ══════════════════════════════════════════════════════ */
+
+/**
+ * Extrae el tier efectivo de los datos de un snapshot de Firestore/amigo.
+ * Reutiliza la lógica del módulo auxiliar.
+ */
+const getFriendTier = (friendData) => getEffectiveTier(friendData);
+
+/**
+ * Clases CSS para el borde izquierdo del contact-item según tier.
+ */
+const tierItemClass = (tier) => {
+  if (!tier || tier === 'stone') return '';
+  return `tier-${tier}`;
+};
+
+/**
+ * Badge HTML del tier (junto al badge AMIGO).
+ */
+const tierBadgeHtml = (tier) => {
+  const labels = {
+    iron:    '⬛ HIERRO',
+    gold:    '★ ORO',
+    emerald: '◆ ESMERALDA',
+    diamond: '◈ DIAMANTE',
+  };
+  if (!tier || tier === 'stone' || !labels[tier]) return '';
+  return `<span class="ci-badge tier-${tier}">${labels[tier]}</span>`;
+};
+
+/**
+ * Aplica las clases/estilos de tier a la cabecera del chat derecho.
+ */
+function applyChatHeaderTier(tier) {
+  const pn = $('#peerName');
+  if (!pn) return;
+  /* Limpiar clases anteriores */
+  pn.className = 'chat-peer-name';
+  if (tier && tier !== 'stone') {
+    pn.classList.add(`tier-${tier}`);
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════
+   PASO 3 — Modificar mkFriend
+   ── REEMPLAZAR la función mkFriend completa ──
+   ══════════════════════════════════════════════════════ */
+function mkFriend(uid, d) {
+  return {
+    id:         `fr_${uid}`,
+    uid,
+    type:       'friend',
+    name:       d.nombre || 'Amigo',
+    avatar:     d.avatar || '👤',
+    titleId:    d.title_active || '',
+    online:     d.presence?.state === 'online',
+    lastSeen:   d.presence?.lastSeen || null,
+    playerId:   d.player_id || '',
+    unread:     0,
+    /* ── NUEVO: tier del pase activo ── */
+    passTier:   getEffectiveTier(d),   /* 'stone' | 'iron' | 'gold' | 'emerald' | 'diamond' */
+    passData:   d.active_pass_tier || null,  /* objeto completo para tooltip */
+  };
+}
+
+
+/* ══════════════════════════════════════════════════════
+   PASO 4 — Modificar el listener de presencia en loadFriends
+   ── REEMPLAZAR el bloque del onSnapshot de presencia ──
+
+   Dentro de loadFriends(), busca:
+     presenceUnsubs.push(onSnapshot(doc(db,'users',f.uid), snap => {
+       ...
+       Object.assign(friendList[idx], { online:..., lastSeen:..., avatar:..., name:..., titleId:... });
+       ...
+     }));
+
+   Y reemplázalo por:
+   ══════════════════════════════════════════════════════ */
+presenceUnsubs.push(onSnapshot(doc(db, 'users', f.uid),
+  snap => {
+    if (!snap.exists()) return;
+    const d = snap.data();
+    const idx = friendList.findIndex(x => x.uid === f.uid);
+    if (idx < 0) return;
+    Object.assign(friendList[idx], {
+      online:    d.presence?.state === 'online',
+      lastSeen:  d.presence?.lastSeen || null,
+      avatar:    d.avatar || friendList[idx].avatar,
+      name:      d.nombre || friendList[idx].name,
+      titleId:   d.title_active || friendList[idx].titleId,
+      /* ── NUEVO: actualizar tier en tiempo real ── */
+      passTier:  getEffectiveTier(d),
+      passData:  d.active_pass_tier || null,
+    });
+    renderFriends();
+    if (currentId === f.id) {
+      updateChatHd(friendList[idx]);
+      applyChatHeaderTier(friendList[idx].passTier);
+    }
+  },
+  err => console.warn('[DB] snap err:', err)
+));
+
+
+/* ══════════════════════════════════════════════════════
+   PASO 5 — Reemplazar friendItem completo
+   ── REEMPLAZAR la función friendItem completa ──
+   ══════════════════════════════════════════════════════ */
+function friendItem(c) {
+  const active  = currentId === c.id;
+  const tier    = c.passTier || 'stone';
+  const tierCls = tierItemClass(tier);
+
+  /* Estado online/offline */
+  const sub = c.online
+    ? `<span style="color:var(--primary);font-size:.85rem">● EN LÍNEA</span>`
+    : `<span class="ci-sub">${timeAgo(c.lastSeen)}</span>`;
+
+  /* Título decorativo */
+  const title = titleTag(c.titleId);
+
+  /* Unread badge */
+  const unread = c.unread
+    ? `<span class="ci-unread fr">${c.unread > 99 ? '99+' : c.unread}</span>`
+    : '';
+
+  /* Online dot */
+  const dotCls = c.online ? 'online' : '';
+
+  /* Nombre con color de tier y medalla */
+  const nameWithMedal = buildNameWithTier(c.name, tier);
+
+  /* Badge de tier (solo si no es stone) */
+  const tBadge = tierBadgeHtml(tier);
+
+  /* Tooltip del tier para accesibilidad */
+  const tooltip = getTierTooltip(c);
+  const titleAttr = tooltip ? ` title="${esc(tooltip)}"` : '';
+
+  return `<li class="contact-item friend-t ${tierCls} ${active ? 'active' : ''}"
+            data-id="${esc(c.id)}"${titleAttr}>
+    <div class="ci-av">
+      ${avHTML(c.avatar, 44)}
+      <div class="ci-online-dot ${dotCls}"></div>
+    </div>
+    <div class="ci-meta">
+      <div class="ci-name">
+        ${nameWithMedal}
+        <span class="ci-badge friend">AMIGO</span>
+        ${tBadge}
+      </div>
+      ${title ? `<div>${title}</div>` : ''}
+      ${sub}
+    </div>
+    <div class="ci-extra">${unread}</div>
+  </li>`;
+}
+
+
+/* ══════════════════════════════════════════════════════
+   PASO 6 — Modificar selectContact para aplicar tier
+             al abrir el chat derecho
+   ── Dentro de selectContact, DESPUÉS de updateChatHd(c) ──
+   Añade:
+
+     updateChatHd(c);
+     // ── NUEVO: aplicar color de tier en cabecera ──
+     if (currentType === 'friend') {
+       const frn = friendList.find(x => x.id === id);
+       applyChatHeaderTier(frn?.passTier || 'stone');
+     } else {
+       applyChatHeaderTier('stone');
+     }
+   ══════════════════════════════════════════════════════ */
+
+
+/* ══════════════════════════════════════════════════════
+   PASO 7 — Modificar openFriendInfo para mostrar tier
+   ── REEMPLAZAR openFriendInfo completo ──
+   ══════════════════════════════════════════════════════ */
+function openFriendInfo(c) {
+  const t    = TM[c.titleId];
+  const tier = c.passTier || 'stone';
+  const ts   = PASS_TIER_STYLES[tier] || PASS_TIER_STYLES.stone;
+  const pt   = c.passData;
+  const hasPaidTier = tier !== 'stone';
+
+  /* Bloque de tier del pase */
+  const tierBlock = hasPaidTier ? `
+    <div class="mig-block full">
+      <div class="mig-title">🏆 PASE ACTIVO</div>
+      <div class="mig-row">
+        <span class="pt-medal ${ts.medalClass}" style="display:inline-flex;margin-right:6px;vertical-align:middle"></span>
+        <strong>${ts.label}</strong>
+        ${pt?.passName ? ` · ${esc(pt.passName)}` : ''}
+      </div>
+      ${pt?.expiresAt ? `<div class="mig-row" style="color:var(--muted);font-size:.85rem">Hasta: ${esc(pt.expiresAt.slice(0,10))}</div>` : ''}
+    </div>` : '';
+
+  $('#modalTitle').textContent = c.name.toUpperCase();
+  $('#modalBody').innerHTML = `<div class="modal-info-grid">
+    <div class="mig-block">
+      <div class="mig-title">PERFIL</div>
+      <div style="font-size:2rem;text-align:center;margin:8px 0">${avHTML(c.avatar, 52)}</div>
+      <div class="mig-row"><strong>Nombre:</strong> ${esc(c.name)}</div>
+      <div class="mig-row"><strong>Título:</strong> ${t ? `<span class="ci-title tp-${t.r}">✦${esc(t.n)}✦</span>` : '—'}</div>
+      <div class="mig-row"><strong>ID:</strong> <code style="font-family:var(--fp);font-size:.3rem;color:var(--yellow)">${esc(c.playerId || '—')}</code></div>
+    </div>
+    <div class="mig-block">
+      <div class="mig-title">ESTADO</div>
+      <div class="mig-row">${c.online ? '🟢 EN LÍNEA' : '⚫ DESCONECTADO'}</div>
+      <div class="mig-row"><strong>Visto:</strong> ${c.online ? 'Ahora mismo' : timeAgo(c.lastSeen)}</div>
+    </div>
+    ${tierBlock}
+  </div>`;
+  openModal('#contactModal');
+}
+
+
+/* ══════════════════════════════════════════════════════
+   PASO 8 — Actualizar gsMembers (Group Settings)
+             para mostrar tier de amigos dentro del grupo
+   ── En renderGsMembers, el campo gs-m-title ya existe.
+      Solo añadir el tier badge junto al nombre ──
+
+   Dentro de renderGsMembers, busca:
+     <div class="gs-m-name">${esc(name)}...
+
+   Y añade justo después del nombre:
+     ${tier && tier !== 'stone' ? `<span class="pt-medal ${PASS_TIER_STYLES[tier]?.medalClass||''}" title="${PASS_TIER_STYLES[tier]?.label||''}"></span>` : ''}
+
+   Para obtener el tier de un miembro del grupo:
+     const f = friendList.find(x => x.uid === uid);
+     const tier = f?.passTier || 'stone';
+   ══════════════════════════════════════════════════════ */
+
+
+/* ══════════════════════════════════════════════════════
+   RESUMEN DE CAMBIOS EN contactos.js
+   ══════════════════════════════════════════════════════
+   1. Añadir imports de contactos_pass_tier.js
+   2. Añadir helpers: getFriendTier, tierItemClass,
+      tierBadgeHtml, applyChatHeaderTier
+   3. Reemplazar mkFriend → añadir passTier y passData
+   4. En loadFriends → listener de presencia: añadir
+      passTier y passData en Object.assign, llamar
+      applyChatHeaderTier si es el chat abierto
+   5. Reemplazar friendItem completo
+   6. En selectContact → tras updateChatHd(), llamar
+      applyChatHeaderTier
+   7. Reemplazar openFriendInfo → añadir bloque de tier
+   8. En renderGsMembers → añadir medalla junto al nombre
+
+   ARCHIVOS EXTRA NECESARIOS:
+   · contactos_pass_tier.js  (módulo auxiliar)
+   · contactos_pass_tier.css (añadir al final de contactos.css
+     o con <link> en contactos.html)
+   ══════════════════════════════════════════════════════ */

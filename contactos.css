@@ -593,3 +593,190 @@ img,canvas{display:block;max-width:100%}
   .pix-modal-lg{width:100%}
   .group-icon-row{flex-direction:column}
 }
+
+
+/* ================================================================
+   contactos_pass_tier.css  v1.0
+   Añadir al final de contactos.css (o importar como hoja separada)
+
+   Medallas y colores de nombre según tier del pase activo.
+   Se desactivan automáticamente cuando el pase expira (lógica JS).
+   ================================================================ */
+
+/* ── Animaciones ── */
+@keyframes ironShimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+@keyframes goldShimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: -200% center; }
+}
+@keyframes emeraldPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(46,239,138,0); }
+  50%     { box-shadow: 0 0 0 4px rgba(46,239,138,0.25); }
+}
+@keyframes diamondRainbow {
+  0%   { background-position: 0% center; }
+  100% { background-position: -300% center; }
+}
+@keyframes diamondSpin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.15); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+@keyframes ironGlow {
+  0%,100% { opacity: 0.7; }
+  50%     { opacity: 1; }
+}
+
+/* ── Nombre Diamante — multicolor animado ── */
+.pt-name-diamond {
+  background: linear-gradient(
+    90deg,
+    #00e5ff, #bf5af2, #ff2d78, #f5c518, #30d158, #00e5ff
+  );
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: diamondRainbow 2.5s linear infinite;
+}
+
+/* ── Medalla base ── */
+.pt-medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 0.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+  border-radius: 3px;
+  position: relative;
+  /* Usar ::after para el emoji para poder animar el contenedor */
+}
+
+/* Emoji dentro de la medalla vía data-* o ::before */
+.pt-medal::before {
+  display: block;
+  line-height: 1;
+}
+
+/* ── Hierro ── */
+.pt-iron {
+  background: linear-gradient(135deg, #3a3f45, #7c858e, #3a3f45);
+  background-size: 200% auto;
+  animation: ironShimmer 3s linear infinite;
+  border: 1.5px solid rgba(180,195,210,0.4);
+  box-shadow: 0 0 4px rgba(180,195,210,0.3);
+}
+.pt-iron::before { content: '⬛'; font-size: 0.6rem; }
+
+/* ── Oro ── */
+.pt-gold {
+  background: linear-gradient(
+    90deg,
+    #8a6b00, #f5c518, #ffd700, #ff9500, #f5c518, #8a6b00
+  );
+  background-size: 200% auto;
+  animation: goldShimmer 2s linear infinite;
+  border: 1.5px solid rgba(245,197,24,0.5);
+  box-shadow: 0 0 6px rgba(245,197,24,0.4);
+}
+.pt-gold::before { content: '★'; font-size: 0.65rem; color: #4a3400; }
+
+/* ── Esmeralda ── */
+.pt-emerald {
+  background: linear-gradient(135deg, #0a2a18, #1a5c35, #0a2a18);
+  border: 1.5px solid rgba(46,239,138,0.5);
+  animation: emeraldPulse 2.5s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(46,239,138,0.35);
+}
+.pt-emerald::before { content: '◆'; font-size: 0.65rem; color: #2eef8a; }
+
+/* ── Diamante ── */
+.pt-diamond {
+  background: linear-gradient(
+    90deg,
+    #00e5ff, #bf5af2, #ff2d78, #f5c518, #30d158, #00e5ff
+  );
+  background-size: 300% auto;
+  animation: diamondRainbow 2s linear infinite;
+  border: 1.5px solid rgba(103,232,249,0.6);
+  box-shadow:
+    0 0 6px rgba(0,229,255,0.5),
+    0 0 12px rgba(191,90,242,0.3);
+}
+.pt-diamond::before {
+  content: '◈';
+  font-size: 0.7rem;
+  color: #fff;
+  animation: diamondSpin 4s linear infinite;
+  display: block;
+}
+
+/* ── Integración en la lista de contactos ──
+   Los items de amigos con tier muestran un borde izquierdo de color
+   ── */
+.contact-item.friend-t.tier-iron   { border-left: 3px solid rgba(180,195,210,0.5); }
+.contact-item.friend-t.tier-gold   { border-left: 3px solid rgba(245,197,24,0.6); }
+.contact-item.friend-t.tier-emerald{ border-left: 3px solid rgba(46,239,138,0.55); }
+.contact-item.friend-t.tier-diamond{
+  border-left: 3px solid transparent;
+  border-image: linear-gradient(180deg,#00e5ff,#bf5af2,#ff2d78) 1;
+}
+
+/* En el panel derecho (cabecera del chat) */
+.chat-peer-name.tier-iron    { color: #c0c8d0; text-shadow: 0 0 6px rgba(180,195,210,0.5); }
+.chat-peer-name.tier-gold    {
+  background: linear-gradient(90deg,#8a6b00,#f5c518,#ffd700,#ff9500,#f5c518,#8a6b00);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: goldShimmer 2s linear infinite;
+}
+.chat-peer-name.tier-emerald {
+  color: #2eef8a;
+  text-shadow: 0 0 10px rgba(46,239,138,0.6);
+}
+.chat-peer-name.tier-diamond {
+  background: linear-gradient(
+    90deg,
+    #00e5ff, #bf5af2, #ff2d78, #f5c518, #30d158, #00e5ff
+  );
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: diamondRainbow 2.5s linear infinite;
+}
+
+/* ── Badge de tier en la lista (junto al badge AMIGO) ── */
+.ci-badge.tier-iron    {
+  border-color: rgba(180,195,210,0.5);
+  color: #c0c8d0;
+  background: rgba(180,195,210,0.08);
+  animation: ironGlow 2.5s ease-in-out infinite;
+}
+.ci-badge.tier-gold    {
+  border-color: rgba(245,197,24,0.5);
+  color: #f5c518;
+  background: rgba(245,197,24,0.08);
+}
+.ci-badge.tier-emerald {
+  border-color: rgba(46,239,138,0.5);
+  color: #2eef8a;
+  background: rgba(46,239,138,0.07);
+}
+.ci-badge.tier-diamond {
+  background: linear-gradient(90deg,#00e5ff,#bf5af2,#ff2d78,#f5c518,#30d158,#00e5ff);
+  background-size:300% auto;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  border-color: rgba(103,232,249,0.5);
+  animation: diamondRainbow 2.5s linear infinite;
+}

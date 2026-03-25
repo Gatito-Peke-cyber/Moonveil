@@ -1863,3 +1863,140 @@ document.addEventListener('DOMContentLoaded', () => {
     if (_passUnsub) { _passUnsub(); _passUnsub = null; }
   });
 });
+
+
+
+
+
+/* =====================================================================
+   pases_additions.js — INSTRUCCIONES DE INTEGRACIÓN EN pases.js
+   =====================================================================
+   Este archivo NO se usa directamente. Contiene los fragmentos exactos
+   que debes copiar/reemplazar en pases.js para añadir la sincronización
+   del tier activo con Firestore (visible en contactos).
+
+   PASO 1 ── Añadir el import al principio de pases.js
+   -----------------------------------------------------
+   Junto a los demás imports (primera sección del archivo), añade:
+
+     import { saveActivePassTier } from './database.js';
+
+   También necesitas el UID del usuario autenticado.
+   El archivo ya usa onAuthChange → el uid se guarda en currentUID.
+   No hay que cambiar nada más en los imports.
+
+
+   PASO 2 ── Añadir la función helper que recolecta todos los tiers
+   -----------------------------------------------------------------
+   Pega esta función justo ANTES de la línea:
+     window.activatePassTier = function(passId, tierId) {
+*/
+
+/**
+ * Recolecta el tier actual de CADA pase y llama a saveActivePassTier.
+ * Se invoca siempre que el usuario activa o compra un tier,
+ * y una vez al arrancar para sincronizar el estado.
+ */
+function syncPassTierToFirebase() {
+  if (!currentUID) return;
+  try {
+    const now = new Date().toISOString();
+    const allPassTiers = PASSES.map(p => {
+      const st = getPassState(p.id);
+      return {
+        tierId:    st.tier || 'stone',
+        passId:    p.id,
+        passName:  p.name,
+        expiresAt: p.endDate + 'T23:59:59',   // ISO del último segundo del pase
+      };
+    });
+    /* Llamada async — no bloqueamos la UI */
+    saveActivePassTier(currentUID, allPassTiers).catch(e =>
+      console.warn('[Pases] syncPassTierToFirebase:', e)
+    );
+  } catch (e) {
+    console.warn('[Pases] syncPassTierToFirebase:', e);
+  }
+}
+
+/*
+   PASO 3 ── Reemplazar window.activatePassTier
+   ---------------------------------------------
+   Busca el bloque:
+
+     window.activatePassTier = function(passId, tierId) { ... };
+
+   Y REEMPLÁZALO COMPLETAMENTE por este:
+*/
+
+window.activatePassTier = function(passId, tierId) {
+  const st = getPassState(passId);
+  if (TIER_ORDER.indexOf(tierId) > TIER_ORDER.indexOf(st.tier || 'stone')) {
+    st.tier = tierId;
+    st.shopBought = true;
+    savePassState(passId, st);
+    if (activePassId === passId) {
+      renderMejoras(passId);
+      renderTrack(passId);
+      renderPassHeader(passId);
+      updateHUD(passId);
+      renderMissions(passId);
+    }
+    scheduleSync();
+    /* ── NUEVO: sincronizar tier al Firestore para que contactos lo vea ── */
+    syncPassTierToFirebase();
+  }
+};
+
+/*
+   PASO 4 ── Reemplazar buyTierUpgrade (el que se usa desde dentro de pases.html)
+   ------------------------------------------------------------------------------
+   Busca:
+     function buyTierUpgrade(passId, tierId) { ... }
+
+   Y REEMPLÁZALO por este:
+*/
+
+function buyTierUpgrade(passId, tierId) {
+  const u = TIER_UPGRADES.find(x => x.id === tierId); if (!u) return;
+  const st = getPassState(passId);
+  if (isTierOwned(st, tierId)) { toast('Ya tienes este tier'); return; }
+  if (u.requiresPrev && !isTierOwned(st, u.requiresPrev)) {
+    toast(`⚠️ Necesitas el ${TIER_UPGRADES.find(t=>t.id===u.requiresPrev)?.name||u.requiresPrev} primero`);
+    return;
+  }
+  if (TIER_ORDER.indexOf(tierId) > TIER_ORDER.indexOf(st.tier || 'stone')) {
+    st.tier = tierId;
+    savePassState(passId, st);
+    toast(`✨ ¡${u.name} activado!`);
+    renderMejoras(passId);
+    renderTrack(passId);
+    renderPassHeader(passId);
+    updateHUD(passId);
+    renderMissions(passId);
+    /* ── NUEVO ── */
+    syncPassTierToFirebase();
+  }
+}
+
+/*
+   PASO 5 ── En el DOMContentLoaded, añadir llamada tras cargar Firebase
+   ----------------------------------------------------------------------
+   Dentro del callback de onAuthChange, DESPUÉS de que se llame a
+   loadFromFirebase(user.uid), añade una línea:
+
+     await loadFromFirebase(user.uid);
+     syncPassTierToFirebase();   // <── añadir esta línea
+
+   Así, al entrar al portal, el tier queda sincronizado si el usuario
+   ya tenía un pase activo.
+
+
+   RESUMEN de cambios en pases.js:
+   ────────────────────────────────
+   1. import { saveActivePassTier } from './database.js';
+   2. Añadir función syncPassTierToFirebase() antes de window.activatePassTier
+   3. Reemplazar window.activatePassTier (añadir syncPassTierToFirebase() al final)
+   4. Reemplazar buyTierUpgrade (añadir syncPassTierToFirebase() al final)
+   5. En onAuthChange boot: añadir syncPassTierToFirebase() tras loadFromFirebase
+*/
