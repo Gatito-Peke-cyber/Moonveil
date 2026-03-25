@@ -13,7 +13,7 @@
 
 import { db }           from './firebase.js';
 import { onAuthChange }  from './auth.js';
-import { saveActivePassTier } from './database.js';
+import { saveActivePassTier, syncPassTierOnBoot } from './database.js';
 import {
   doc, getDoc, updateDoc, onSnapshot, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
@@ -1454,24 +1454,27 @@ window.activatePassTier = function(passId, tierId) {
     st.shopBought = true;
     savePassState(passId, st);
     if (activePassId === passId) {
-      renderMejoras(passId);
-      renderTrack(passId);
-      renderPassHeader(passId);
-      updateHUD(passId);
-      renderMissions(passId);
+      renderMejoras(passId); renderTrack(passId);
+      renderPassHeader(passId); updateHUD(passId); renderMissions(passId);
     }
     scheduleSync();
 
-    // ── NUEVO: guardar tier activo en Firestore para contactos ──
-    const pass = PASSES.find(p => p.id === passId);
-    if (pass && currentUID) {
-      const expiresAt = pass.endDate + 'T23:59:59';
-      saveActivePassTier(currentUID, [{
-        tierId:   tierId,
-        passId:   passId,
-        passName: pass.name,
-        expiresAt,
-      }]);
+    if (currentUID) {
+      const nowIso = new Date().toISOString();
+      const allTiers = [];
+      PASSES.forEach(p => {
+        const ps = getPassState(p.id);
+        if (!ps || !ps.tier || ps.tier === 'stone') return;
+        const endIso = p.endDate + 'T23:59:59';
+        if (endIso < nowIso) return;
+        allTiers.push({ tierId: ps.tier, passId: p.id, passName: p.name, expiresAt: endIso });
+      });
+      // asegurar que el nuevo quede incluido
+      const pass = PASSES.find(p => p.id === passId);
+      if (pass && !allTiers.find(t => t.passId === passId)) {
+        allTiers.push({ tierId, passId, passName: pass.name, expiresAt: pass.endDate + 'T23:59:59' });
+      }
+      saveActivePassTier(currentUID, allTiers);
     }
   }
 };
@@ -1870,6 +1873,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     startRealtimeListener(user.uid);
     console.log('✅ Pases Firebase OK + Listener activo:', user.uid);
+
+    // AÑADIR ESTAS DOS LÍNEAS:
+await syncPassTierOnBoot(user.uid, PASSES, getPassState);
+console.log('[Pases] ✅ Boot tier sync completado');
   });
 
   window.addEventListener('beforeunload', () => {
