@@ -13,6 +13,7 @@
 
 import { db }           from './firebase.js';
 import { onAuthChange }  from './auth.js';
+import { saveActivePassTier } from './database.js';
 import {
   doc, getDoc, updateDoc, onSnapshot, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
@@ -1460,6 +1461,18 @@ window.activatePassTier = function(passId, tierId) {
       renderMissions(passId);
     }
     scheduleSync();
+
+    // ── NUEVO: guardar tier activo en Firestore para contactos ──
+    const pass = PASSES.find(p => p.id === passId);
+    if (pass && currentUID) {
+      const expiresAt = pass.endDate + 'T23:59:59';
+      saveActivePassTier(currentUID, [{
+        tierId:   tierId,
+        passId:   passId,
+        passName: pass.name,
+        expiresAt,
+      }]);
+    }
   }
 };
 

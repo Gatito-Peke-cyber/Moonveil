@@ -1,9 +1,10 @@
 /* =====================================================
-   Moonveil Portal — database.js  v2.5
+   Moonveil Portal — database.js  v2.6
    + gacha_inventory sincronizado
    + Tickets de ruleta en Firestore
    + Inventario del perfil muestra tickets gacha
    + active_pass_tier: tier visible en contactos
+   + v2.6: saveActivePassTier mejorado, helper getTierForContacts
    ===================================================== */
 
 import { db } from './firebase.js';
@@ -31,9 +32,13 @@ export const GACHA_INV_KEY    = 'mv_gacha_inventory';
 export const GACHA_TICKETS_KEY = 'mv_gacha_tickets';
 
 /* ── TIER de pase activo (para contactos) ──
-   Estructura en Firestore: active_pass_tier = { tierId, passId, passName, expiresAt }
-   tierId: 'stone' | 'iron' | 'gold' | 'emerald' | 'diamond'
-   expiresAt: ISO string con la fecha de fin del pase activo
+   Estructura en Firestore: active_pass_tier = {
+     tierId,        // 'stone' | 'iron' | 'gold' | 'emerald' | 'diamond'
+     passId,        // e.g. 'pass_s3'
+     passName,      // e.g. 'Despertar de la Naturaleza'
+     expiresAt,     // ISO string con la fecha de fin del pase activo (endDate + 'T23:59:59')
+   }
+   null = sin pase activo / solo piedra (gratis, sin medalla)
 */
 export const PASS_TIER_KEY = 'mv_active_pass_tier';
 
@@ -265,37 +270,51 @@ export async function saveGachaData(uid, { inventory, stats, tickets }) {
 }
 
 /* ══════════════════════════════════════════════════════
-   TIER DEL PASE ACTIVO — visible en contactos
+   TIER DEL PASE ACTIVO — visible en contactos (v2.6)
    ══════════════════════════════════════════════════════
 
-   saveActivePassTier(uid, tierId, passId, passName, expiresAt)
-   ─ Calcula el tier de mayor rango entre TODOS los pases
-     activos (aún no expirados) y lo guarda en Firestore.
+   Diseño de datos en Firestore:
+   active_pass_tier = {
+     tierId:   'iron' | 'gold' | 'emerald' | 'diamond'   ← solo si tiene pase pagado activo
+     passId:   'pass_s3'
+     passName: 'Despertar de la Naturaleza'
+     expiresAt: '2026-03-31T23:59:59'   ← cuando pase este timestamp, la medalla desaparece
+   }
+   o null si sólo tiene stone o no tiene pase activo.
 
-   Se llama desde pases.js cada vez que:
-     · El usuario activa/compra un tier (activatePassTier)
-     · En el boot de pases.js para sincronizar estado actual
+   Reglas:
+   · Si varios pases están activos (no debería pasar pero por si acaso),
+     se muestra el de mayor rango.
+   · Cuando expiresAt < now(), contactos.js ignora la medalla (la pinta como nada).
+   · El campo se actualiza desde pases.js cada vez que:
+       – El usuario compra/activa un tier (activatePassTier)
+       – Al arrancar pases.js (boot) para sincronizar estado actual
 
-   La lógica de "mayor rango gana" está aquí para que
-   contactos.js no necesite conocer la lógica de pases.
    ══════════════════════════════════════════════════════ */
 
 /**
  * Recalcula y guarda el tier de mayor rango activo en Firestore.
- * @param {string} uid  - UID del usuario autenticado
- * @param {Array}  allPassTiers - Array de { tierId, passId, passName, expiresAt }
- *                 Representan TODOS los pases con sus tiers actuales.
- *                 Los que tengan tierId === 'stone' o expiresAt pasado se ignoran
- *                 para la medalla (pero stone sigue siendo el estado base).
+ *
+ * @param {string} uid          UID del usuario autenticado
+ * @param {Array}  allPassTiers Array de objetos:
+ *   { tierId, passId, passName, expiresAt }
+ *   donde expiresAt es un ISO string con la fecha de fin del pase.
+ *   Solo se consideran los no expirados y con tier > 'stone'.
  */
 export async function saveActivePassTier(uid, allPassTiers) {
   try {
-    const now = new Date().toISOString();
-    /* Filtramos solo los no-expirados */
+    const nowIso = new Date().toISOString();
+
+    /* Filtramos pases que no han expirado Y tienen tier pagado */
     const valid = (allPassTiers || []).filter(pt =>
-      pt && pt.expiresAt && pt.expiresAt > now
+      pt &&
+      pt.tierId &&
+      pt.tierId !== 'stone' &&
+      pt.expiresAt &&
+      pt.expiresAt > nowIso
     );
 
+    /* Elegimos el de mayor rango */
     let best = null;
     for (const pt of valid) {
       if (!best) { best = pt; continue; }
@@ -304,18 +323,41 @@ export async function saveActivePassTier(uid, allPassTiers) {
       }
     }
 
-    /* Guardamos en Firestore: null si solo hay stone o nada activo */
-    const toSave = (best && best.tierId !== 'stone') ? best : null;
+    /* null si no hay ningún pase pagado activo */
+    const toSave = best || null;
+
     await updateDoc(userRef(uid), {
       active_pass_tier: toSave,
       updatedAt: serverTimestamp(),
     });
+
+    /* También actualizar localStorage para que contactos.js lo tenga sin esperar snap */
     localStorage.setItem(PASS_TIER_KEY, JSON.stringify(toSave));
+
+    console.log('[DB] ✅ active_pass_tier guardado:', toSave);
     return true;
   } catch (e) {
     console.error('[DB] saveActivePassTier:', e);
     return false;
   }
+}
+
+/**
+ * Helper para leer el tier activo de un usuario dado su uid
+ * (útil en contactos.js para obtener el tier de un amigo desde Firestore).
+ * Devuelve null si no hay pase activo o si ha expirado.
+ *
+ * @param {object} userData  Datos del documento Firestore del usuario
+ * @returns {{ tierId, passId, passName, expiresAt } | null}
+ */
+export function getTierForContacts(userData) {
+  if (!userData) return null;
+  const pt = userData.active_pass_tier;
+  if (!pt || !pt.tierId || pt.tierId === 'stone') return null;
+  /* Verificar que no ha expirado */
+  const nowIso = new Date().toISOString();
+  if (pt.expiresAt && pt.expiresAt < nowIso) return null;
+  return pt;
 }
 
 /* ─── PUSH LOCAL → FIRESTORE (backup completo) ─── */
