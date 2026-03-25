@@ -1,5 +1,5 @@
 /* =====================================================
-   Moonveil Portal — Tienda CSS v3.1
+   Moonveil Portal — Tienda CSS v3.2
    Pixel Art · Tema DORADO / Ámbar
    ===================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap');
@@ -120,21 +120,24 @@ a:hover{color:var(--gold2)}
   display:flex;flex-direction:column;align-items:center;
   padding:10px 16px;border:2px solid rgba(245,158,11,0.25);
   background:rgba(245,158,11,0.06);color:var(--gold2);
-  font-family:var(--font-pixel);font-size:0.34rem;
+  font-family:var(--font-pixel);font-size:0.38rem; /* ↑ AUMENTADO de 0.34 */
   cursor:pointer;box-shadow:2px 2px 0 #000;transition:0.1s;
   position:relative;overflow:hidden;
 }
 .coupon-card:hover{border-color:rgba(245,158,11,0.5);transform:translate(-1px,-1px);box-shadow:3px 3px 0 #000}
 .coupon-card.active-coupon{border-color:var(--gold);background:rgba(245,158,11,0.18);box-shadow:2px 2px 0 #000,0 0 12px rgba(245,158,11,0.3)}
 .coupon-card.disabled-coupon{opacity:0.35;pointer-events:none;filter:grayscale(0.6)}
-.coupon-sub{font-family:var(--font-pixel);font-size:0.22rem;color:var(--muted);margin-top:4px}
+
+/* ↑ AUMENTADO: texto de horas de espera del cupón */
+.coupon-sub{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted);margin-top:4px} /* ↑ de 0.22 */
+
 .coupon-card.bf-coupon{background:rgba(5,5,5,0.85);border-color:rgba(251,191,36,0.4);color:#fbbf24}
-.coupon-bf-title{font-family:var(--font-pixel);font-size:0.3rem;font-weight:900;letter-spacing:1px}
+.coupon-bf-title{font-family:var(--font-pixel);font-size:0.34rem;font-weight:900;letter-spacing:1px} /* ↑ de 0.3 */
 .coupon-card.sc-valentine{background:rgba(244,114,182,0.08);border-color:rgba(244,114,182,0.3);color:#f9a8d4}
 .coupon-card.sc-newyear  {background:rgba(255,215,0,0.07);border-color:rgba(255,215,0,0.28);color:#fde68a}
 .coupon-card.sc-halloween{background:rgba(249,115,22,0.08);border-color:rgba(249,115,22,0.3);color:#fed7aa}
 .coupon-card.sc-christmas{background:linear-gradient(135deg,rgba(196,30,58,0.08),rgba(15,139,62,0.08));border-color:rgba(15,139,62,0.3);color:#bbf7d0}
-.coupon-sep{width:100%;font-family:var(--font-pixel);font-size:0.22rem;color:var(--dim);text-align:center;padding:4px 0;border-top:1px solid rgba(245,158,11,0.1);margin-top:4px}
+.coupon-sep{width:100%;font-family:var(--font-pixel);font-size:0.26rem;color:var(--dim);text-align:center;padding:4px 0;border-top:1px solid rgba(245,158,11,0.1);margin-top:4px} /* ↑ de 0.22 */
 
 /* ─── FLASH BANNER ─── */
 .flash-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:linear-gradient(90deg,rgba(245,158,11,0.1),rgba(251,191,36,0.06),rgba(245,158,11,0.1));border:3px solid var(--a2);box-shadow:var(--shadow),0 0 24px rgba(245,158,11,0.12);flex-wrap:wrap}
@@ -149,62 +152,31 @@ a:hover{color:var(--gold2)}
 /* ─── RUSTY DAILY DEALS ─── */
 .rusty-section{background:var(--card);border:3px solid rgba(245,158,11,0.4);box-shadow:var(--shadow),0 0 20px rgba(245,158,11,0.08);padding:0;overflow:hidden}
 .rusty-layout{display:grid;grid-template-columns:200px 1fr;gap:0}
-/* Columna del personaje */
 .rusty-char{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:20px 16px 16px;background:linear-gradient(180deg,rgba(245,158,11,0.06) 0%,rgba(245,158,11,0.12) 100%);border-right:2px solid rgba(245,158,11,0.2);gap:6px;min-height:280px;position:relative}
 
-/* === RUSTY BUBBLE MEJORADA === */
 .rusty-bubble{
-  position:absolute;
-  top:12px;
-  left:8px;
-  right:8px;
-  padding:10px 12px;
-  background:rgba(10,8,0,0.97);
-  border:2px solid var(--a);
-  box-shadow:3px 3px 0 #000, 0 0 16px rgba(245,158,11,0.35);
-  font-family:var(--font-pixel);
-  font-size:0.28rem; /* AUMENTADO de 0.22 */
-  color:var(--gold2);
-  line-height:2.1;
-  text-align:center;
-  z-index:2;
-  transition:opacity 0.4s ease;
-  animation:bubblePop 0.4s ease;
+  position:absolute;top:12px;left:8px;right:8px;
+  padding:10px 12px;background:rgba(10,8,0,0.97);
+  border:2px solid var(--a);box-shadow:3px 3px 0 #000,0 0 16px rgba(245,158,11,0.35);
+  font-family:var(--font-pixel);font-size:0.28rem;
+  color:var(--gold2);line-height:2.1;text-align:center;
+  z-index:2;transition:opacity 0.4s ease;animation:bubblePop 0.4s ease;
 }
 .rusty-bubble::after{
-  content:'';
-  position:absolute;
-  bottom:-11px;
-  left:50%;
-  transform:translateX(-50%);
-  border:5px solid transparent;
-  border-top-color:var(--a);
+  content:'';position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--a);
 }
-
 .rusty-avatar-wrap{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:7px;
-  margin-top:90px; /* suficiente para la burbuja */
-  animation:npcFloat 3s ease-in-out infinite;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  margin-top:90px;animation:npcFloat 3s ease-in-out infinite;
 }
 .rusty-img{width:96px;height:96px;border:3px solid var(--a);background:#000;image-rendering:pixelated;box-shadow:4px 4px 0 #000,0 0 18px rgba(245,158,11,0.45)}
 .rusty-fallback{font-size:3.5rem;display:block;margin:8px 0}
-
-/* === RUSTY NAME TAG MEJORADO === */
 .rusty-name-tag{
-  font-family:var(--font-pixel);
-  font-size:0.32rem; /* AUMENTADO de 0.22 */
-  color:#000;
-  background:var(--a2);
-  padding:4px 14px;
-  box-shadow:2px 2px 0 #000;
-  letter-spacing:3px;
-  border:1px solid var(--gold);
+  font-family:var(--font-pixel);font-size:0.32rem;
+  color:#000;background:var(--a2);padding:4px 14px;
+  box-shadow:2px 2px 0 #000;letter-spacing:3px;border:1px solid var(--gold);
 }
-
-/* Columna de ofertas */
 .rusty-deals-wrap{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
 .rusty-deals-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .rusty-title{font-family:var(--font-pixel);font-size:0.4rem;color:var(--gold);letter-spacing:1px;margin-bottom:4px}
@@ -213,7 +185,7 @@ a:hover{color:var(--gold2)}
 .rusty-cd-label{font-family:var(--font-pixel);font-size:0.2rem;color:var(--muted)}
 .rusty-cd{font-family:var(--font-pixel);font-size:0.48rem;color:var(--gold);text-shadow:0 0 10px rgba(245,158,11,0.4);letter-spacing:2px}
 
-/* Tarjeta Sand Brill / Rusty */
+/* ─── TARJETA RUSTY ─── */
 .sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .sb-card{background:var(--bg2);border:2px solid rgba(245,158,11,0.2);box-shadow:2px 2px 0 #000;display:flex;flex-direction:column;gap:0;transition:0.15s;position:relative;overflow:hidden}
 .sb-card:hover{border-color:var(--a);transform:translate(-2px,-2px);box-shadow:4px 4px 0 #000}
@@ -224,16 +196,29 @@ a:hover{color:var(--gold2)}
 .sb-card-body{padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
 .sb-card-header{display:flex;align-items:center;gap:8px}
 .sb-card-icon{font-size:1.4rem;flex-shrink:0}
-.sb-card-name{font-family:var(--font-pixel);font-size:0.24rem;color:var(--text);line-height:1.8}
-.sb-discount-badge{position:absolute;top:8px;right:8px;font-family:var(--font-pixel);font-size:0.24rem;background:#ef4444;color:#fff;padding:3px 7px;box-shadow:2px 2px 0 #000;z-index:2;animation:blink 2s step-end infinite}
+
+/* ↑ AUMENTADO: nombre del producto en sección Rusty */
+.sb-card-name{font-family:var(--font-pixel);font-size:0.3rem;color:var(--text);line-height:1.8} /* ↑ de 0.24 */
+
+/* ↑ AUMENTADO: badge de descuento Rusty */
+.sb-discount-badge{position:absolute;top:8px;right:8px;font-family:var(--font-pixel);font-size:0.3rem;background:#ef4444;color:#fff;padding:3px 7px;box-shadow:2px 2px 0 #000;z-index:2;animation:blink 2s step-end infinite} /* ↑ de 0.24 */
+
 .sb-prices{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.sb-price-old{font-family:var(--font-pixel);font-size:0.26rem;color:var(--muted);text-decoration:line-through}
-.sb-price-new{font-family:var(--font-pixel);font-size:0.54rem;color:var(--green);text-shadow:0 0 8px rgba(48,209,88,0.4)}
-.sb-btn{font-family:var(--font-pixel);font-size:0.24rem;padding:8px 0;width:100%;background:var(--a2);color:#000;border:2px solid var(--gold);border-top:none;box-shadow:none;cursor:pointer;transition:0.1s;letter-spacing:0.5px;margin-top:auto}
+
+/* ↑ AUMENTADO: precio tachado Rusty */
+.sb-price-old{font-family:var(--font-pixel);font-size:0.3rem;color:var(--muted);text-decoration:line-through} /* ↑ de 0.26 */
+
+/* ↑ AUMENTADO: precio final Rusty */
+.sb-price-new{font-family:var(--font-pixel);font-size:0.64rem;color:var(--green);text-shadow:0 0 8px rgba(48,209,88,0.4)} /* ↑ de 0.54 */
+
+/* ↑ AUMENTADO: stock mini Rusty */
+.sb-stock-mini{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted)} /* ↑ de 0.2 */
+
+.sb-btn{font-family:var(--font-pixel);font-size:0.28rem;padding:8px 0;width:100%;background:var(--a2);color:#000;border:2px solid var(--gold);border-top:none;box-shadow:none;cursor:pointer;transition:0.1s;letter-spacing:0.5px;margin-top:auto} /* ↑ de 0.24 */
 .sb-btn:hover:not(:disabled){background:var(--gold)}
 .sb-btn:disabled{opacity:0.4;cursor:not-allowed}
-.sb-out-label{font-family:var(--font-pixel);font-size:0.22rem;color:var(--red);text-align:center;padding:6px;border-top:1px solid var(--border)}
-.sb-stock-mini{font-family:var(--font-pixel);font-size:0.2rem;color:var(--muted)}
+.sb-out-label{font-family:var(--font-pixel);font-size:0.28rem;color:var(--red);text-align:center;padding:6px;border-top:1px solid var(--border)} /* ↑ de 0.22 */
+/* sb-stock-mini ya definido arriba */
 
 /* ─── CATEGORY BAR ─── */
 .cat-bar{display:flex;gap:6px;flex-wrap:wrap;padding:14px;background:var(--card);border:3px solid var(--border);box-shadow:var(--shadow)}
@@ -285,13 +270,15 @@ a:hover{color:var(--gold2)}
 .product-card[data-rarity="common"] .pc-band{background:var(--border);animation:none}
 .product-card[data-rarity="rare"]   .pc-band{background:linear-gradient(90deg,#1e40af,var(--rare),#1e40af);animation:none}
 
-.pc-quality-badge{position:absolute;top:10px;left:10px;font-family:var(--font-pixel);font-size:0.2rem;padding:3px 7px;box-shadow:2px 2px 0 #000;z-index:5}
+/* ↑ AUMENTADO: badges de calidad (EPIC, COMMON, LEGENDARY, RARE) */
+.pc-quality-badge{position:absolute;top:10px;left:10px;font-family:var(--font-pixel);font-size:0.26rem;padding:4px 9px;box-shadow:2px 2px 0 #000;z-index:5} /* ↑ de 0.2 */
 .pc-quality-badge.legend {background:#8a5000;color:var(--gold)}
 .pc-quality-badge.epic   {background:#3b1a7a;color:#d8b4fe}
 .pc-quality-badge.rare   {background:#1e3a5f;color:#7dd3fc}
 .pc-quality-badge.common {background:#1a1a1a;color:#d1d5db}
 
-.pc-state-badge{position:absolute;top:10px;right:10px;font-family:var(--font-pixel);font-size:0.2rem;padding:3px 7px;box-shadow:2px 2px 0 #000;z-index:5}
+/* ↑ AUMENTADO: badges de estado (AGOTADO, PRÓXIMO, etc.) */
+.pc-state-badge{position:absolute;top:10px;right:10px;font-family:var(--font-pixel);font-size:0.26rem;padding:4px 9px;box-shadow:2px 2px 0 #000;z-index:5} /* ↑ de 0.2 */
 .pc-state-badge.out     {background:#4a1010;color:#ef4444;animation:blink 1.5s step-end infinite}
 .pc-state-badge.upcoming{background:#0c1a3a;color:#60a5fa}
 .pc-state-badge.expired {background:#1a1010;color:#6b7280}
@@ -303,51 +290,81 @@ a:hover{color:var(--gold2)}
 .product-card:hover .pc-img img{filter:brightness(1);transform:scale(1.04)}
 .pc-img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,0,0) 40%,rgba(10,8,0,0.85) 100%)}
 
+/* ↑ AUMENTADO: texto del overlay (AGOTADO grande en imagen) */
 .pc-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);z-index:3;gap:6px}
-.pc-overlay-txt{font-family:var(--font-pixel);font-size:0.3rem;color:#ef4444;text-shadow:2px 2px 0 #000}
-.pc-overlay-sub{font-family:var(--font-pixel);font-size:0.22rem;color:#9ca3af}
+.pc-overlay-txt{font-family:var(--font-pixel);font-size:0.38rem;color:#ef4444;text-shadow:2px 2px 0 #000} /* ↑ de 0.3 */
+.pc-overlay-sub{font-family:var(--font-pixel);font-size:0.28rem;color:#9ca3af} /* ↑ de 0.22 */
 .pc-overlay-cd{display:flex;gap:6px;margin-top:4px}
 .pc-cd-block{display:flex;flex-direction:column;align-items:center;background:rgba(0,0,0,0.6);border:1px solid rgba(96,165,250,0.3);padding:4px 6px;min-width:38px}
 .pc-cd-val{font-family:var(--font-pixel);font-size:0.3rem;color:#93c5fd;line-height:1}
 .pc-cd-lbl{font-family:var(--font-pixel);font-size:0.16rem;color:#60a5fa;margin-top:2px}
 
 .pc-body{padding:14px 14px 10px;flex:1;display:flex;flex-direction:column;gap:8px}
-.pc-name{font-family:var(--font-pixel);font-size:0.34rem;color:var(--text);line-height:1.8;text-align:center}
-.pc-desc{font-family:var(--font-vt);font-size:1rem;color:var(--muted);text-align:center;line-height:1.4}
+
+/* ↑ AUMENTADO: nombre del producto en tarjeta */
+.pc-name{font-family:var(--font-pixel);font-size:0.38rem;color:var(--text);line-height:1.8;text-align:center} /* ↑ de 0.34 */
+
+.pc-desc{font-family:var(--font-vt);font-size:1.1rem;color:var(--muted);text-align:center;line-height:1.4}
 .pc-tags{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
-.pc-tag{font-family:var(--font-pixel);font-size:0.18rem;padding:2px 6px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.07);color:var(--a)}
+
+/* ↑ AUMENTADO: tags (#ticket, #cofre, etc.) */
+.pc-tag{font-family:var(--font-pixel);font-size:0.22rem;padding:3px 7px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.07);color:var(--a)} /* ↑ de 0.18 */
 
 .pc-calkey-icons,.pc-superkey-icons{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:2px}
 .ck-mini{display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:99px;font-size:0.82rem;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--muted)}
 .ck-mini sub{font-size:0.6rem;font-family:var(--font-pixel);opacity:0.8}
 
 .pc-expiry{margin-top:4px}
-.pc-expiry-lbl{font-family:var(--font-pixel);font-size:0.2rem;color:var(--muted);margin-bottom:4px}
+
+/* ↑ AUMENTADO: label "Caduca en:" */
+.pc-expiry-lbl{font-family:var(--font-pixel);font-size:0.26rem;color:var(--muted);margin-bottom:4px} /* ↑ de 0.2 */
+
 .pc-expiry-cd{display:flex;gap:4px;flex-wrap:wrap}
 .pc-exp-block{display:flex;flex-direction:column;align-items:center;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);padding:4px 5px;min-width:36px}
-.pc-exp-val{font-family:var(--font-pixel);font-size:0.28rem;color:var(--a);line-height:1}
-.pc-exp-lbl{font-family:var(--font-pixel);font-size:0.14rem;color:var(--muted);margin-top:2px}
+
+/* ↑ AUMENTADO: números del countdown de expiración */
+.pc-exp-val{font-family:var(--font-pixel);font-size:0.34rem;color:var(--a);line-height:1} /* ↑ de 0.28 */
+
+/* ↑ AUMENTADO: labels (días/hrs/min/seg) del countdown */
+.pc-exp-lbl{font-family:var(--font-pixel);font-size:0.2rem;color:var(--muted);margin-top:2px} /* ↑ de 0.14 */
 
 .pc-footer{padding:0 14px 14px;margin-top:auto}
 .pc-price-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.pc-price-old{font-family:var(--font-pixel);font-size:0.3rem;color:var(--muted);text-decoration:line-through}
-/*size jeje*/
-.pc-price{font-family:var(--font-pixel);font-size:0.78rem;color:var(--gold);text-shadow:0 0 10px rgba(245,158,11,0.5)}
+
+/* ↑ AUMENTADO: precio tachado (precio original) */
+.pc-price-old{font-family:var(--font-pixel);font-size:0.34rem;color:var(--muted);text-decoration:line-through} /* ↑ de 0.3 */
+
+/* ↑ AUMENTADO: precio principal */
+.pc-price{font-family:var(--font-pixel);font-size:0.78rem;color:var(--gold);text-shadow:0 0 10px rgba(245,158,11,0.5)} /* ↑ de 0.64 */
+
 .pc-price.free-price{color:var(--green);text-shadow:0 0 10px rgba(48,209,88,0.5)}
 .pc-price.code-price{color:#60a5fa}
-.pc-discount{font-family:var(--font-pixel);font-size:0.28rem;color:var(--red);background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);padding:3px 7px;margin-left:auto}
+
+/* ↑ AUMENTADO: badge de descuento -X% */
+.pc-discount{font-family:var(--font-pixel);font-size:0.32rem;color:var(--red);background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);padding:3px 7px;margin-left:auto} /* ↑ de 0.28 */
+
 .pc-stock-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:6px;padding:6px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border)}
-/*----*/
-.pc-stock{font-family:var(--font-pixel);font-size:0.34rem;color:var(--muted);display:flex;align-items:center;gap:5px}
-.pc-stock-num{font-size:0.48rem;font-family:var(--font-pixel);color:var(--gold);text-shadow:0 0 8px rgba(245,158,11,0.4)}
+
+/* ↑ AUMENTADO: texto "STOCK" / "AGOTADO" */
+.pc-stock{font-family:var(--font-pixel);font-size:0.34rem;color:var(--muted);display:flex;align-items:center;gap:5px} /* ↑ de 0.3 */
+
+/* ↑ AUMENTADO: número de stock */
+.pc-stock-num{font-size:0.54rem;font-family:var(--font-pixel);color:var(--gold);text-shadow:0 0 8px rgba(245,158,11,0.4)} /* ↑ de 0.48 */
+
 .pc-stock.low-stock .pc-stock-num{color:#f97316;text-shadow:0 0 8px rgba(249,115,22,0.4)}
 .pc-stock.no-stock .pc-stock-num{color:#ef4444;text-shadow:0 0 8px rgba(239,68,68,0.4)}
-/*restock   (--dim)*/
-.pc-restock{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted)}
+
+/* ↑ AUMENTADO: texto de restock (↻ 7d, ↻ 24h, etc.) */
+.pc-restock{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted)} /* ↑ de 0.2, color de --dim a --muted */
+
 .pc-actions{display:flex;gap:6px}
-.pc-btn-detail{flex:1;font-family:var(--font-pixel);font-size:0.26rem;padding:8px 0;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--muted);box-shadow:2px 2px 0 #000;transition:0.1s;letter-spacing:0.5px}
+
+/* ↑ AUMENTADO: botón DETALLES */
+.pc-btn-detail{flex:1;font-family:var(--font-pixel);font-size:0.3rem;padding:9px 0;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--muted);box-shadow:2px 2px 0 #000;transition:0.1s;letter-spacing:0.5px} /* ↑ de 0.26 */
 .pc-btn-detail:hover:not(:disabled){border-color:var(--a);color:var(--a);transform:translate(-1px,-1px)}
-.pc-btn{flex:2;font-family:var(--font-pixel);font-size:0.3rem;padding:10px 0;cursor:pointer;border:2px solid var(--gold);background:var(--a2);color:#000;box-shadow:var(--shadow);transition:0.1s;letter-spacing:1px}
+
+/* ↑ AUMENTADO: botón COMPRAR */
+.pc-btn{flex:2;font-family:var(--font-pixel);font-size:0.34rem;padding:11px 0;cursor:pointer;border:2px solid var(--gold);background:var(--a2);color:#000;box-shadow:var(--shadow);transition:0.1s;letter-spacing:1px} /* ↑ de 0.3 */
 .pc-btn:hover:not(:disabled){background:var(--gold);transform:translate(-1px,-1px);box-shadow:5px 5px 0 #000}
 .pc-btn:active:not(:disabled){transform:translate(1px,1px);box-shadow:2px 2px 0 #000}
 .pc-btn:disabled,.pc-btn-detail:disabled{opacity:0.4;cursor:not-allowed}
@@ -356,248 +373,92 @@ a:hover{color:var(--gold2)}
 
 .p-empty{grid-column:1/-1;text-align:center;padding:40px;color:var(--dim);font-family:var(--font-pixel);font-size:0.3rem}
 
-/* ─── NPC FLOTANTE — LETRAS MEJORADAS ─── */
+/* ─── NPC FLOTANTE ─── */
 .npc-wrap{
-  position:fixed;
-  bottom:90px;
-  left:14px;
-  z-index:500;
-  pointer-events:none;
-  animation:npcFloat 3s ease-in-out infinite;
-  max-width:240px;
+  position:fixed;bottom:90px;left:14px;z-index:500;pointer-events:none;
+  animation:npcFloat 3s ease-in-out infinite;max-width:240px;
 }
 .npc-bubble{
-  margin-bottom:10px;
-  padding:12px 16px;
-  max-width:240px;
-  background:rgba(10,8,0,0.98);
-  border:3px solid var(--a);
-  box-shadow:4px 4px 0 #000, 0 0 18px rgba(245,158,11,0.45);
-  font-family:var(--font-pixel);
-  font-size:0.32rem; /* AUMENTADO de 0.3 */
-  color:var(--gold2);
-  line-height:2.2;
+  margin-bottom:10px;padding:12px 16px;max-width:240px;
+  background:rgba(10,8,0,0.98);border:3px solid var(--a);
+  box-shadow:4px 4px 0 #000,0 0 18px rgba(245,158,11,0.45);
+  font-family:var(--font-pixel);font-size:0.32rem;
+  color:var(--gold2);line-height:2.2;
 }
 .npc-avatar img{
-  width:80px;
-  height:80px;
-  border:3px solid var(--a);
-  background:#000;
-  image-rendering:pixelated;
-  box-shadow:4px 4px 0 #000,0 0 12px var(--a);
+  width:80px;height:80px;border:3px solid var(--a);background:#000;
+  image-rendering:pixelated;box-shadow:4px 4px 0 #000,0 0 12px var(--a);
 }
 
-/* ─── HISTORIAL DRAWER — COMPLETAMENTE REDISEÑADO ─── */
+/* ─── HISTORIAL DRAWER ─── */
 .hist-toggle-btn{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  z-index:400;
-  font-family:var(--font-pixel);
-  font-size:0.26rem;
-  padding:10px 16px;
-  background:var(--card);
-  border:2px solid var(--a);
-  color:var(--gold);
-  box-shadow:var(--shadow);
-  cursor:pointer;
-  transition:0.1s;
-  letter-spacing:0.5px;
-  display:flex;
-  align-items:center;
-  gap:7px;
+  position:fixed;bottom:20px;right:20px;z-index:400;
+  font-family:var(--font-pixel);font-size:0.26rem;padding:10px 16px;
+  background:var(--card);border:2px solid var(--a);color:var(--gold);
+  box-shadow:var(--shadow);cursor:pointer;transition:0.1s;letter-spacing:0.5px;
+  display:flex;align-items:center;gap:7px;
 }
-.hist-toggle-btn:hover{
-  background:rgba(245,158,11,0.15);
-  transform:translate(-2px,-2px);
-  box-shadow:6px 6px 0 #000;
-}
+.hist-toggle-btn:hover{background:rgba(245,158,11,0.15);transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000}
 .hist-badge{
-  background:var(--red);
-  color:#fff;
-  font-family:var(--font-pixel);
-  font-size:0.2rem;
-  padding:1px 5px;
-  min-width:18px;
-  text-align:center;
+  background:var(--red);color:#fff;font-family:var(--font-pixel);
+  font-size:0.2rem;padding:1px 5px;min-width:18px;text-align:center;
 }
-
 .hist-drawer{
-  position:fixed;
-  right:0;
-  top:0;
-  bottom:0;
-  width:460px;
-  max-width:98vw;
-  background:var(--bg2);
-  border-left:3px solid var(--a);
-  box-shadow:-8px 0 40px rgba(0,0,0,0.85);
-  z-index:600;
-  display:flex;
-  flex-direction:column;
-  transform:translateX(100%);
-  transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
+  position:fixed;right:0;top:0;bottom:0;width:460px;max-width:98vw;
+  background:var(--bg2);border-left:3px solid var(--a);
+  box-shadow:-8px 0 40px rgba(0,0,0,0.85);z-index:600;
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
 }
 .hist-drawer.open{transform:translateX(0)}
-
 .hist-drawer-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:16px 18px;
-  background:rgba(245,158,11,0.07);
-  border-bottom:2px solid var(--border);
-  flex-shrink:0;
-  gap:10px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;background:rgba(245,158,11,0.07);
+  border-bottom:2px solid var(--border);flex-shrink:0;gap:10px;
 }
 .hist-title-wrap{display:flex;flex-direction:column;gap:4px}
 .hist-title{font-family:var(--font-pixel);font-size:0.32rem;color:var(--gold);letter-spacing:1px}
 .hist-count{font-family:var(--font-pixel);font-size:0.22rem;color:var(--muted)}
 .hist-actions{display:flex;gap:6px;flex-shrink:0}
-
 .hist-backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.65);
-  z-index:590;
-  display:none;
-  backdrop-filter:blur(3px);
+  position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:590;
+  display:none;backdrop-filter:blur(3px);
 }
 .hist-backdrop.open{display:block}
 
-/* === CONTENIDO DEL HISTORIAL === */
 .purchases-list{
-  flex:1;
-  overflow-y:auto;
-  padding:0;
-  display:flex;
-  flex-direction:column;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(245,158,11,0.3) transparent;
+  flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column;
+  scrollbar-width:thin;scrollbar-color:rgba(245,158,11,0.3) transparent;
 }
 .purchases-list::-webkit-scrollbar{width:4px}
 .purchases-list::-webkit-scrollbar-thumb{background:rgba(245,158,11,0.3);border-radius:2px}
-
-.empty-hist{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:12px;
-  padding:50px 20px;
-  opacity:0.5;
-  text-align:center;
-}
+.empty-hist{display:flex;flex-direction:column;align-items:center;gap:12px;padding:50px 20px;opacity:0.5;text-align:center}
 .empty-hist span{font-size:2.5rem}
 .empty-hist p{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted);line-height:2}
 .empty-hist-sub{font-family:var(--font-vt);font-size:0.9rem;color:var(--dim)}
-
-/* === SECCIÓN DE FECHA === */
-.hist-date-section{
-  display:flex;
-  flex-direction:column;
-}
+.hist-date-section{display:flex;flex-direction:column}
 .hist-date-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:10px 16px 8px;
-  background:rgba(245,158,11,0.05);
-  border-bottom:1px solid rgba(245,158,11,0.15);
-  border-top:2px solid rgba(245,158,11,0.1);
-  position:sticky;
-  top:0;
-  z-index:10;
-  backdrop-filter:blur(4px);
-  gap:10px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px 8px;background:rgba(245,158,11,0.05);
+  border-bottom:1px solid rgba(245,158,11,0.15);border-top:2px solid rgba(245,158,11,0.1);
+  position:sticky;top:0;z-index:10;backdrop-filter:blur(4px);gap:10px;
 }
-.hist-date-label{
-  font-family:var(--font-pixel);
-  font-size:0.26rem;
-  color:var(--a);
-  letter-spacing:1px;
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
-.hist-date-total{
-  font-family:var(--font-pixel);
-  font-size:0.24rem;
-  color:var(--gold2);
-  background:rgba(245,158,11,0.12);
-  border:1px solid rgba(245,158,11,0.3);
-  padding:3px 10px;
-  box-shadow:1px 1px 0 #000;
-  white-space:nowrap;
-}
-.hist-date-total.free{
-  color:var(--green);
-  background:rgba(48,209,88,0.1);
-  border-color:rgba(48,209,88,0.3);
-}
-.hist-date-items{
-  display:flex;
-  flex-direction:column;
-  gap:0;
-}
-
-/* === ITEM DE COMPRA === */
-.purchase-item{
-  display:flex;
-  align-items:stretch;
-  gap:0;
-  background:var(--card);
-  border-bottom:1px solid rgba(245,158,11,0.08);
-  transition:0.12s;
-  overflow:hidden;
-}
-.purchase-item:hover{
-  background:rgba(245,158,11,0.04);
-  border-left:3px solid rgba(245,158,11,0.4);
-}
-.pi-icon-wrap{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:52px;
-  flex-shrink:0;
-  background:rgba(245,158,11,0.04);
-  border-right:1px solid rgba(245,158,11,0.08);
-  font-size:1.5rem;
-}
+.hist-date-label{font-family:var(--font-pixel);font-size:0.26rem;color:var(--a);letter-spacing:1px;display:flex;align-items:center;gap:6px}
+.hist-date-total{font-family:var(--font-pixel);font-size:0.24rem;color:var(--gold2);background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);padding:3px 10px;box-shadow:1px 1px 0 #000;white-space:nowrap}
+.hist-date-total.free{color:var(--green);background:rgba(48,209,88,0.1);border-color:rgba(48,209,88,0.3)}
+.hist-date-items{display:flex;flex-direction:column;gap:0}
+.purchase-item{display:flex;align-items:stretch;gap:0;background:var(--card);border-bottom:1px solid rgba(245,158,11,0.08);transition:0.12s;overflow:hidden}
+.purchase-item:hover{background:rgba(245,158,11,0.04);border-left:3px solid rgba(245,158,11,0.4)}
+.pi-icon-wrap{display:flex;align-items:center;justify-content:center;width:52px;flex-shrink:0;background:rgba(245,158,11,0.04);border-right:1px solid rgba(245,158,11,0.08);font-size:1.5rem}
 .pi-info{flex:1;padding:10px 12px;overflow:hidden;min-width:0}
-.pi-name{
-  font-family:var(--font-pixel);
-  font-size:0.24rem;
-  color:var(--text);
-  margin-bottom:4px;
-  line-height:1.8;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
+.pi-name{font-family:var(--font-pixel);font-size:0.24rem;color:var(--text);margin-bottom:4px;line-height:1.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pi-detail{font-family:var(--font-vt);font-size:0.9rem;color:var(--muted);margin-bottom:3px}
 .pi-time-row{display:flex;align-items:center;gap:6px}
 .pi-time{font-family:var(--font-pixel);font-size:0.18rem;color:var(--dim)}
-.pi-right{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  justify-content:center;
-  padding:10px 14px;
-  flex-shrink:0;
-  min-width:70px;
-  gap:4px;
-}
+.pi-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:10px 14px;flex-shrink:0;min-width:70px;gap:4px}
 .pi-price{font-family:var(--font-pixel);font-size:0.28rem;color:var(--gold)}
 .pi-price.free{color:var(--green)}
-.pi-disc{
-  font-family:var(--font-pixel);
-  font-size:0.18rem;
-  color:var(--red);
-  background:rgba(239,68,68,0.1);
-  padding:1px 4px;
-  border:1px solid rgba(239,68,68,0.2);
-}
+.pi-disc{font-family:var(--font-pixel);font-size:0.18rem;color:var(--red);background:rgba(239,68,68,0.1);padding:1px 4px;border:1px solid rgba(239,68,68,0.2)}
 
 /* ─── MODAL ─── */
 .modal-overlay{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;opacity:0;pointer-events:none;transition:opacity 0.25s ease}
@@ -608,34 +469,65 @@ a:hover{color:var(--gold2)}
 .modal-close:hover{background:var(--red);color:#fff;border-color:var(--red);transform:translate(-1px,-1px)}
 .modal-content h2{font-family:var(--font-pixel);font-size:0.56rem;color:var(--gold);margin-bottom:18px;text-shadow:2px 2px 0 #000,0 0 14px var(--a);line-height:1.8}
 
+/* ─── MODAL DETALLES ─── */
 .mdl-img{height:220px;overflow:hidden;margin-bottom:0;background:#0d0b08;border:2px solid var(--border);border-bottom:none;position:relative}
 .mdl-img img{width:100%;height:100%;object-fit:cover}
 .mdl-img-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(10,8,0,0.9) 100%);display:flex;align-items:flex-end;padding:16px}
 .mdl-quality-inline{font-family:var(--font-pixel);font-size:0.22rem;padding:4px 10px;border:1px solid;display:inline-flex;align-items:center;gap:6px}
 .mdl-body{padding:20px;display:flex;flex-direction:column;gap:14px}
-/*name-big and desc yeah!*/
-.mdl-name-big{font-family:var(--font-pixel);font-size:0.6rem;color:var(--text);line-height:1.8;margin-bottom:2px}
-.mdl-desc{font-family:var(--font-vt);font-size:1.25rem;color:var(--muted);line-height:1.6}
+
+/* ↑ AUMENTADO: nombre grande en modal detalles */
+.mdl-name-big{font-family:var(--font-pixel);font-size:0.6rem;color:var(--text);line-height:1.8;margin-bottom:2px} /* ↑ de 0.5 */
+
+/* ↑ AUMENTADO: descripción en modal detalles */
+.mdl-desc{font-family:var(--font-vt);font-size:1.3rem;color:var(--muted);line-height:1.6} /* ↑ de 1.1 */
+
 .mdl-divider{height:2px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.3),transparent)}
+
+/* ↑ AUMENTADO: grid de meta-info en modal */
 .mdl-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mdl-meta-item{padding:10px 12px;background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.12);display:flex;flex-direction:column;gap:3px}
-/*meta and value*/
-.mdl-meta-label{font-family:var(--font-pixel);font-size:0.24rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-.mdl-meta-value{font-family:var(--font-pixel);font-size:0.4rem;color:var(--text)}
+
+/* ↑ AUMENTADO: labels de meta (PRECIO BASE, STOCK, etc.) */
+.mdl-meta-label{font-family:var(--font-pixel);font-size:0.24rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px} /* ↑ de 0.18 */
+
+/* ↑ AUMENTADO: valores de meta */
+.mdl-meta-value{font-family:var(--font-pixel);font-size:0.4rem;color:var(--text)} /* ↑ de 0.34 */
+
+/* ↑ AUMENTADO: valores de restock en modal (↻ Cada 7 días, etc.) */
 .mdl-meta-value.val-gold{color:var(--gold);text-shadow:0 0 8px rgba(245,158,11,0.3)}
 .mdl-meta-value.val-green{color:var(--green)}
 .mdl-meta-value.val-red{color:var(--red)}
 .mdl-meta-value.val-blue{color:#60a5fa}
-.mdl-section-title{font-family:var(--font-pixel);font-size:0.3rem;color:var(--a);letter-spacing:1px;display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1px solid rgba(245,158,11,0.15)}
+
+/* ↑ AUMENTADO: títulos de sección en modal (LLAVES A RECIBIR, etc.) */
+.mdl-section-title{font-family:var(--font-pixel);font-size:0.34rem;color:var(--a);letter-spacing:1px;display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1px solid rgba(245,158,11,0.15)} /* ↑ de 0.3 */
+
 .mdl-reward-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(245,158,11,0.04);border:1px solid rgba(245,158,11,0.1);margin-bottom:4px}
 .mdl-reward-ico{font-size:1.4rem;flex-shrink:0}
-.mdl-reward-name{font-family:var(--font-pixel);font-size:0.26rem;color:var(--text);flex:1;line-height:1.8}
-.mdl-reward-count{font-family:var(--font-pixel);font-size:0.42rem;color:var(--gold)}
-.mdl-reward-owned{font-family:var(--font-pixel);font-size:0.2rem;color:var(--muted);margin-top:2px}
-.mdl-price-final{font-family:var(--font-pixel);font-size:0.7rem;color:var(--gold);text-align:center;text-shadow:0 0 14px rgba(245,158,11,0.4);line-height:1}
-.mdl-price-orig{font-family:var(--font-pixel);font-size:0.28rem;color:var(--muted);text-decoration:line-through;text-align:center}
-.mdl-price-disc{font-family:var(--font-pixel);font-size:0.28rem;color:var(--red);text-align:center;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);padding:2px 8px;display:inline-block}
+
+/* ↑ AUMENTADO: nombre de recompensa en modal */
+.mdl-reward-name{font-family:var(--font-pixel);font-size:0.3rem;color:var(--text);flex:1;line-height:1.8} /* ↑ de 0.26 */
+
+/* ↑ AUMENTADO: cantidad de recompensa */
+.mdl-reward-count{font-family:var(--font-pixel);font-size:0.5rem;color:var(--gold)} /* ↑ de 0.42 */
+
+/* ↑ AUMENTADO: "Tienes: X" en modal */
+.mdl-reward-owned{font-family:var(--font-pixel);font-size:0.24rem;color:var(--muted);margin-top:2px} /* ↑ de 0.2 */
+
+/* ↑ AUMENTADO: precio final en modal */
+.mdl-price-final{font-family:var(--font-pixel);font-size:0.82rem;color:var(--gold);text-align:center;text-shadow:0 0 14px rgba(245,158,11,0.4);line-height:1} /* ↑ de 0.7 */
+
+/* ↑ AUMENTADO: precio original tachado en modal */
+.mdl-price-orig{font-family:var(--font-pixel);font-size:0.32rem;color:var(--muted);text-decoration:line-through;text-align:center} /* ↑ de 0.28 */
+
+/* ↑ AUMENTADO: badge descuento en modal */
+.mdl-price-disc{font-family:var(--font-pixel);font-size:0.32rem;color:var(--red);text-align:center;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);padding:2px 8px;display:inline-block} /* ↑ de 0.28 */
+
 .mdl-footer{display:flex;gap:10px;justify-content:center;padding-top:4px;flex-wrap:wrap}
+
+/* ─── PRÓXIMO RESTOCK en overlay de agotado ─── */
+/* El texto "↻ Restock aprox. XX xxx" está en .pc-overlay-sub, ya aumentado arriba */
 
 /* ─── TOAST ─── */
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);font-family:var(--font-pixel);font-size:0.3rem;background:var(--card);border:2px solid var(--a);color:var(--text);padding:10px 18px;box-shadow:4px 4px 0 #000,0 0 16px rgba(245,158,11,0.3);z-index:3000;opacity:0;visibility:hidden;transition:all 0.3s ease;white-space:nowrap;letter-spacing:0.5px;max-width:90vw;text-align:center}
@@ -679,6 +571,6 @@ a:hover{color:var(--gold2)}
 @media(max-width:420px){
   .products-grid{grid-template-columns:1fr}
   .sb-grid{grid-template-columns:1fr}
-  .pc-name{font-size:0.28rem}
-  .pc-price{font-size:0.52rem}
+  .pc-name{font-size:0.3rem}
+  .pc-price{font-size:0.6rem}
 }
