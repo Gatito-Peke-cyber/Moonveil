@@ -1872,11 +1872,8 @@ document.addEventListener('DOMContentLoaded', () => {
       renderMejoras(activePassId);
     }
     startRealtimeListener(user.uid);
-    console.log('✅ Pases Firebase OK + Listener activo:', user.uid);
-
-    // AÑADIR ESTAS DOS LÍNEAS:
-await syncPassTierOnBoot(user.uid, PASSES, getPassState);
-console.log('[Pases] ✅ Boot tier sync completado');
+    await syncPassTierOnBoot(user.uid, PASSES, getPassState);
+    console.log('✅ Pases Firebase OK + Listener activo');
   });
 
   window.addEventListener('beforeunload', () => {
