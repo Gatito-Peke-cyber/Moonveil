@@ -641,6 +641,10 @@ function updateChatHd(c) {
     av.innerHTML = c.iconUrl
       ? `<img src="${esc(c.iconUrl)}" alt="" />`
       : (c.icon && !c.avatar ? `<span>${esc(c.icon)}</span>` : avHTML(c.avatar || c.icon || '👥', 44));
+
+    /* Quitar clases de tier del avatar anteriores */
+    av.classList.remove('tier-iron', 'tier-gold', 'tier-emerald', 'tier-diamond');
+    if (c.type === 'friend' && c.passtierId) av.classList.add(`tier-${c.passtierId}`);
   }
 
   const pn = $('#peerName');
@@ -1231,12 +1235,15 @@ function renderGsMembers(group, isCreator) {
 
     /* Badge de tier del miembro (solo para amigos, no para "Tú") */
     const memberTierBadge = (!isMe && f) ? buildTierBadgeHTML(f.passtierData) : '';
+    const memberTier      = (!isMe && f) ? (f.passtierId || null) : null;
+    const memberAvCls     = memberTier ? `gs-m-av tier-${memberTier}` : 'gs-m-av';
+    const memberNameCls   = memberTier ? `gs-member-name tier-${memberTier}` : 'gs-member-name';
 
     return `<div class="gs-member ${online ? 'online-m' : ''}">
-      <div class="gs-m-av">${avHTML(avatar, 36)}<div class="gs-m-status-dot ${online ? 'online' : ''}"></div></div>
+      <div class="${memberAvCls}">${avHTML(avatar, 36)}<div class="gs-m-status-dot ${online ? 'online' : ''}"></div></div>
       <div class="gs-m-info">
         <div class="gs-m-name" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
-          <span>${esc(name)}${isMe ? ' <span style="color:var(--muted);font-size:.75em">(Tú)</span>' : ''}${isCreatorMember ? '<span class="gs-creator-chip">★ CREADOR</span>' : ''}</span>
+          <span class="${memberNameCls}">${esc(name)}${isMe ? ' <span style="color:var(--muted);font-size:.75em">(Tú)</span>' : ''}${isCreatorMember ? '<span class="gs-creator-chip">★ CREADOR</span>' : ''}</span>
           ${memberTierBadge}
         </div>
         ${t ? `<div class="gs-m-title ci-title tp-${t.r}">✦ ${esc(t.n)} ✦</div>` : ''}

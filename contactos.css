@@ -400,6 +400,32 @@ img,canvas{display:block;max-width:100%}
 .chat-peer-status.online{color:var(--primary)}
 .chat-hd-btns{display:flex;gap:5px;flex-shrink:0}
 
+/* ── CHAT-AV ring con color de tier (header del chat) ── */
+.chat-av.tier-iron    { border-color: var(--tier-iron-color); box-shadow: 3px 3px 0 #000, 0 0 6px var(--tier-iron-glow); }
+.chat-av.tier-gold    { border-color: var(--tier-gold-color); box-shadow: 3px 3px 0 #000, 0 0 8px var(--tier-gold-glow); }
+.chat-av.tier-emerald { border-color: var(--tier-emerald-color); box-shadow: 3px 3px 0 #000, 0 0 10px var(--tier-emerald-glow); animation: emeraldPulse 2.5s ease-in-out infinite; }
+.chat-av.tier-diamond {
+  border-color: var(--tier-diamond-color);
+  box-shadow: 3px 3px 0 #000, 0 0 10px var(--tier-diamond-glow), 0 0 20px rgba(191,90,242,.25);
+}
+
+/* ── GS-M-AV ring con color de tier (miembros del grupo en settings) ── */
+.gs-m-av.tier-iron    { border-color: var(--tier-iron-color); box-shadow: 0 0 6px var(--tier-iron-glow); }
+.gs-m-av.tier-gold    { border-color: var(--tier-gold-color); box-shadow: 0 0 8px var(--tier-gold-glow); }
+.gs-m-av.tier-emerald { border-color: var(--tier-emerald-color); box-shadow: 0 0 10px var(--tier-emerald-glow); animation: emeraldPulse 2.5s ease-in-out infinite; }
+.gs-m-av.tier-diamond { border-color: var(--tier-diamond-color); box-shadow: 0 0 10px var(--tier-diamond-glow), 0 0 20px rgba(191,90,242,.25); }
+
+/* ── Nombre en miembros del grupo con color de tier ── */
+.gs-m-name .gs-member-name.tier-iron    { color: var(--tier-iron-color) !important; }
+.gs-m-name .gs-member-name.tier-gold    { color: var(--tier-gold-color) !important; text-shadow: 0 0 6px rgba(245,197,24,.4); }
+.gs-m-name .gs-member-name.tier-emerald { color: var(--tier-emerald-color) !important; text-shadow: 0 0 6px rgba(52,211,153,.4); }
+.gs-m-name .gs-member-name.tier-diamond {
+  background: linear-gradient(90deg, #00e5ff, #bf5af2, #ff2d78, #00e5ff);
+  background-size: 300% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; animation: diamondRainbow 2.5s linear infinite;
+}
+
 /* ── THREAD ── */
 .chat-thread{
   flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
