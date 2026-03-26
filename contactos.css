@@ -47,14 +47,14 @@ body{
   vertical-align: middle;
 }
 #peerTierBadge .ci-pass-badge {
-  font-size: .15rem;
-  padding: 1px 5px;
+  font-size: .18rem;
+  padding: 2px 6px;
 }
-/* Badge en mensajes de grupo — tamaño reducido */
+/* Badge en mensajes de grupo — tamaño legible */
 .m-sender .ci-pass-badge {
-  font-size: .14rem;
-  padding: 1px 4px;
-  line-height: 1.4;
+  font-size: .16rem;
+  padding: 2px 5px;
+  line-height: 1.5;
 }
 
 a{text-decoration:none;color:inherit}

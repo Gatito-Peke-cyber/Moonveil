@@ -642,17 +642,13 @@ function updateChatHd(c) {
       ? `<img src="${esc(c.iconUrl)}" alt="" />`
       : (c.icon && !c.avatar ? `<span>${esc(c.icon)}</span>` : avHTML(c.avatar || c.icon || '👥', 44));
   }
-  const pn = $('#peerName'); if (pn) pn.textContent = c.name.toUpperCase();
 
-  /* ── Badge de tier en el header (solo para amigos con pase activo) ── */
-  let tierBadgeEl = $('#peerTierBadge');
-  if (!tierBadgeEl) {
-    tierBadgeEl = document.createElement('span');
-    tierBadgeEl.id = 'peerTierBadge';
-    const nameEl = $('#peerName');
-    if (nameEl && nameEl.parentNode) nameEl.parentNode.insertBefore(tierBadgeEl, nameEl.nextSibling);
+  const pn = $('#peerName');
+  if (pn) {
+    const tierBadge = (c.type === 'friend') ? buildTierBadgeHTML(c.passtierData) : '';
+    /* Nombre + badge inline dentro del mismo elemento */
+    pn.innerHTML = `${esc(c.name.toUpperCase())}${tierBadge ? `<span id="peerTierBadge" style="margin-left:6px;vertical-align:middle">${tierBadge}</span>` : ''}`;
   }
-  tierBadgeEl.innerHTML = c.type === 'friend' ? buildTierBadgeHTML(c.passtierData) : '';
 
   const ps = $('#peerStatus');
   if (ps) {
@@ -1224,10 +1220,17 @@ function renderGsMembers(group, isCreator) {
     const t = titleId ? TM[titleId] : null;
     const isCreatorMember = uid === group.createdBy;
     const canKick = isCreator && !isMe && !isCreatorMember;
+
+    /* Badge de tier del miembro (solo para amigos, no para "Tú") */
+    const memberTierBadge = (!isMe && f) ? buildTierBadgeHTML(f.passtierData) : '';
+
     return `<div class="gs-member ${online ? 'online-m' : ''}">
       <div class="gs-m-av">${avHTML(avatar, 36)}<div class="gs-m-status-dot ${online ? 'online' : ''}"></div></div>
       <div class="gs-m-info">
-        <div class="gs-m-name">${esc(name)}${isMe ? ' <span style="color:var(--muted);font-size:.75em">(Tú)</span>' : ''}${isCreatorMember ? '<span class="gs-creator-chip">★ CREADOR</span>' : ''}</div>
+        <div class="gs-m-name" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          <span>${esc(name)}${isMe ? ' <span style="color:var(--muted);font-size:.75em">(Tú)</span>' : ''}${isCreatorMember ? '<span class="gs-creator-chip">★ CREADOR</span>' : ''}</span>
+          ${memberTierBadge}
+        </div>
         ${t ? `<div class="gs-m-title ci-title tp-${t.r}">✦ ${esc(t.n)} ✦</div>` : ''}
         <div class="gs-m-conn ${online ? 'online' : 'offline'}">${online ? '● EN LÍNEA' : '○ DESCONECTADO'}</div>
       </div>
