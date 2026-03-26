@@ -450,7 +450,7 @@ img,canvas{display:block;max-width:100%}
   background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;animation:diamondRainbow 2.5s linear infinite;
 }
-.msg .m-sender .ci-pass-badge{font-size:.60rem;padding:2px 6px;line-height:1.5}
+.msg .m-sender .ci-pass-badge{font-size:.40rem;padding:2px 6px;line-height:1.5}
 
 /* Nombre en header de chat privado con color de tier */
 .chat-peer-name.tier-iron   {color:var(--tier-iron-color)!important;animation:none}
