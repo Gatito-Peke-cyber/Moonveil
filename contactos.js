@@ -643,6 +643,17 @@ function updateChatHd(c) {
       : (c.icon && !c.avatar ? `<span>${esc(c.icon)}</span>` : avHTML(c.avatar || c.icon || '👥', 44));
   }
   const pn = $('#peerName'); if (pn) pn.textContent = c.name.toUpperCase();
+
+  /* ── Badge de tier en el header (solo para amigos con pase activo) ── */
+  let tierBadgeEl = $('#peerTierBadge');
+  if (!tierBadgeEl) {
+    tierBadgeEl = document.createElement('span');
+    tierBadgeEl.id = 'peerTierBadge';
+    const nameEl = $('#peerName');
+    if (nameEl && nameEl.parentNode) nameEl.parentNode.insertBefore(tierBadgeEl, nameEl.nextSibling);
+  }
+  tierBadgeEl.innerHTML = c.type === 'friend' ? buildTierBadgeHTML(c.passtierData) : '';
+
   const ps = $('#peerStatus');
   if (ps) {
     if (c.type === 'friend') {
@@ -822,7 +833,12 @@ function appendMsg(msg, contact, chatType) {
   let senderName = '';
   if (chatType === 'group' && !isMine) {
     const sn = msg.senderName || 'Jugador';
-    senderName = `<div class="m-sender">${esc(sn.toUpperCase())}</div>`;
+    /* Buscar tier del remitente en friendList */
+    const senderFriend = friendList.find(f => f.uid === msg.senderId);
+    const senderTierBadge = senderFriend ? buildTierBadgeHTML(senderFriend.passtierData) : '';
+    senderName = `<div class="m-sender" style="display:flex;align-items:center;gap:5px">
+      <span>${esc(sn.toUpperCase())}</span>${senderTierBadge}
+    </div>`;
   }
 
   let content = '';

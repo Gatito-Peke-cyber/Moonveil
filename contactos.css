@@ -37,6 +37,26 @@ body{
   overscroll-behavior:none;
   -webkit-tap-highlight-color:transparent;
 }
+
+
+/* Badge de tier en el header del chat */
+#peerTierBadge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+#peerTierBadge .ci-pass-badge {
+  font-size: .15rem;
+  padding: 1px 5px;
+}
+/* Badge en mensajes de grupo — tamaño reducido */
+.m-sender .ci-pass-badge {
+  font-size: .14rem;
+  padding: 1px 4px;
+  line-height: 1.4;
+}
+
 a{text-decoration:none;color:inherit}
 button,input,select,textarea{font:inherit;color:inherit;border:none;background:none;cursor:pointer;-webkit-appearance:none;appearance:none}
 img,canvas{display:block;max-width:100%}
