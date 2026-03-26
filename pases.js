@@ -1460,22 +1460,27 @@ window.activatePassTier = function(passId, tierId) {
     scheduleSync();
 
     if (currentUID) {
-      const nowIso = new Date().toISOString();
-      const allTiers = [];
-      PASSES.forEach(p => {
-        const ps = getPassState(p.id);
-        if (!ps || !ps.tier || ps.tier === 'stone') return;
-        const endIso = p.endDate + 'T23:59:59';
-        if (endIso < nowIso) return;
-        allTiers.push({ tierId: ps.tier, passId: p.id, passName: p.name, expiresAt: endIso });
-      });
-      // asegurar que el nuevo quede incluido
-      const pass = PASSES.find(p => p.id === passId);
-      if (pass && !allTiers.find(t => t.passId === passId)) {
-        allTiers.push({ tierId, passId, passName: pass.name, expiresAt: pass.endDate + 'T23:59:59' });
-      }
-      saveActivePassTier(currentUID, allTiers);
-    }
+  const nowIso = new Date().toISOString();
+  const allTiers = [];
+  PASSES.forEach(p => {
+    const ps = getPassState(p.id);
+    if (!ps || !ps.tier || ps.tier === 'stone') return;
+    const endIso = p.endDate + 'T23:59:59';
+    if (endIso < nowIso) return;
+    allTiers.push({
+      tierId: ps.tier, passId: p.id,
+      passName: p.name, expiresAt: endIso,
+    });
+  });
+  const pass = PASSES.find(p => p.id === passId);
+  if (pass && !allTiers.find(t => t.passId === passId)) {
+    allTiers.push({
+      tierId, passId, passName: pass.name,
+      expiresAt: pass.endDate + 'T23:59:59',
+    });
+  }
+  saveActivePassTier(currentUID, allTiers);
+}
   }
 };
 
