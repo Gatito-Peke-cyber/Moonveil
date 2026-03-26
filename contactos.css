@@ -441,7 +441,7 @@ img,canvas{display:block;max-width:100%}
 .msg.group-msg.me .bubble{background:linear-gradient(135deg,rgba(24,14,44,.98),rgba(16,10,34,.98));border-color:rgba(191,90,242,.4);box-shadow:3px 3px 0 rgba(0,0,0,.7),0 0 10px rgba(191,90,242,.1)}
 
 .msg .m-sender{font-family:var(--fp);font-size:.60rem;color:var(--cyan);margin-bottom:5px;letter-spacing:.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.msg .m-sender .sender-name{font-size:.28rem}
+.msg .m-sender .sender-name{font-size:.60rem}
 .msg .m-sender .sender-name.tier-iron   {color:var(--tier-iron-color)!important}
 .msg .m-sender .sender-name.tier-gold   {color:var(--tier-gold-color)!important;text-shadow:0 0 6px rgba(245,197,24,.4)}
 .msg .m-sender .sender-name.tier-emerald{color:var(--tier-emerald-color)!important;text-shadow:0 0 6px rgba(52,211,153,.4)}
