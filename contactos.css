@@ -439,7 +439,29 @@ img,canvas{display:block;max-width:100%}
 .msg.friend-msg.me .bubble{background:linear-gradient(135deg,rgba(10,22,50,.98),rgba(8,16,40,.98));border-color:rgba(0,229,255,.4);box-shadow:3px 3px 0 rgba(0,0,0,.7),0 0 10px rgba(0,229,255,.1)}
 .msg.group-msg.peer .bubble{background:rgba(20,14,30,.95);border-color:rgba(191,90,242,.2)}
 .msg.group-msg.me .bubble{background:linear-gradient(135deg,rgba(24,14,44,.98),rgba(16,10,34,.98));border-color:rgba(191,90,242,.4);box-shadow:3px 3px 0 rgba(0,0,0,.7),0 0 10px rgba(191,90,242,.1)}
-.msg .m-sender{font-family:var(--fp);font-size:.2rem;color:var(--cyan);margin-bottom:4px;letter-spacing:.5px}
+
+.msg .m-sender{font-family:var(--fp);font-size:.28rem;color:var(--cyan);margin-bottom:5px;letter-spacing:.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.msg .m-sender .sender-name{font-size:.28rem}
+.msg .m-sender .sender-name.tier-iron   {color:var(--tier-iron-color)!important}
+.msg .m-sender .sender-name.tier-gold   {color:var(--tier-gold-color)!important;text-shadow:0 0 6px rgba(245,197,24,.4)}
+.msg .m-sender .sender-name.tier-emerald{color:var(--tier-emerald-color)!important;text-shadow:0 0 6px rgba(52,211,153,.4)}
+.msg .m-sender .sender-name.tier-diamond{
+  background:linear-gradient(90deg,#00e5ff,#bf5af2,#ff2d78,#00e5ff);
+  background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;animation:diamondRainbow 2.5s linear infinite;
+}
+.msg .m-sender .ci-pass-badge{font-size:.2rem;padding:2px 6px;line-height:1.5}
+
+/* Nombre en header de chat privado con color de tier */
+.chat-peer-name.tier-iron   {color:var(--tier-iron-color)!important;animation:none}
+.chat-peer-name.tier-gold   {color:var(--tier-gold-color)!important;animation:none;text-shadow:0 0 8px rgba(245,197,24,.5)}
+.chat-peer-name.tier-emerald{color:var(--tier-emerald-color)!important;animation:none;text-shadow:0 0 8px rgba(52,211,153,.5)}
+.chat-peer-name.tier-diamond{
+  background:linear-gradient(90deg,#00e5ff,#bf5af2,#ff2d78,#00e5ff);
+  background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;animation:diamondRainbow 2.5s linear infinite;
+}
+
 .msg.compact .bubble{padding:5px 10px;border-radius:8px}
 .msg .m-text{font-family:var(--fv);font-size:var(--msg-font);line-height:1.4;word-break:break-word;color:var(--white)}
 .msg .m-text a{color:var(--cyan);text-decoration:underline}

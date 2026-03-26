@@ -646,8 +646,15 @@ function updateChatHd(c) {
   const pn = $('#peerName');
   if (pn) {
     const tierBadge = (c.type === 'friend') ? buildTierBadgeHTML(c.passtierData) : '';
-    /* Nombre + badge inline dentro del mismo elemento */
-    pn.innerHTML = `${esc(c.name.toUpperCase())}${tierBadge ? `<span id="peerTierBadge" style="margin-left:6px;vertical-align:middle">${tierBadge}</span>` : ''}`;
+    const tier      = (c.type === 'friend' && c.passtierId) ? c.passtierId : null;
+
+    /* Quitar clases de tier anteriores */
+    pn.classList.remove('tier-iron', 'tier-gold', 'tier-emerald', 'tier-diamond');
+    if (tier) pn.classList.add(`tier-${tier}`);
+
+    pn.innerHTML = `${esc(c.name.toUpperCase())}${tierBadge
+      ? `<span id="peerTierBadge" style="margin-left:7px;vertical-align:middle;font-size:.6em">${tierBadge}</span>`
+      : ''}`;
   }
 
   const ps = $('#peerStatus');
@@ -828,12 +835,13 @@ function appendMsg(msg, contact, chatType) {
 
   let senderName = '';
   if (chatType === 'group' && !isMine) {
-    const sn = msg.senderName || 'Jugador';
-    /* Buscar tier del remitente en friendList */
+    const sn          = msg.senderName || 'Jugador';
     const senderFriend = friendList.find(f => f.uid === msg.senderId);
-    const senderTierBadge = senderFriend ? buildTierBadgeHTML(senderFriend.passtierData) : '';
-    senderName = `<div class="m-sender" style="display:flex;align-items:center;gap:5px">
-      <span>${esc(sn.toUpperCase())}</span>${senderTierBadge}
+    const tierBadge   = senderFriend ? buildTierBadgeHTML(senderFriend.passtierData) : '';
+    const tier        = senderFriend?.passtierId || null;
+    const nameCls     = tier ? `sender-name tier-${tier}` : 'sender-name';
+    senderName = `<div class="m-sender">
+      <span class="${nameCls}">${esc(sn.toUpperCase())}</span>${tierBadge}
     </div>`;
   }
 
