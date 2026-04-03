@@ -11,10 +11,7 @@
 </head>
 <body>
 
-<!-- Fondo escanlines -->
 <div class="scanlines" aria-hidden="true"></div>
-
-<!-- Canvas estrellas y meteoros -->
 <canvas id="stars-canvas" class="stars-canvas" aria-hidden="true"></canvas>
 
 <!-- LOADER -->
@@ -26,26 +23,21 @@
   </div>
 </div>
 
-<!-- ══════════════════════════
-     HEADER  (igual a perfil)
-══════════════════════════════ -->
+<!-- HEADER -->
 <header class="header">
   <div class="container nav-wrap">
 
-    <!-- Brand -->
     <div class="nav-brand">
       <div class="brand-cube-sm"></div>
       <span class="logo">Moon<span>veil</span></span>
     </div>
 
-    <!-- Nav pills -->
     <nav class="nav" id="main-nav">
       <a href="inicio.html"   class="nav-pill np-home">🏠 INICIO</a>
       <a href="events.html"   class="nav-pill np-hub active">🌌 HUB</a>
       <a href="perfiles.html" class="nav-pill np-perfil">👤 PERFIL</a>
     </nav>
 
-    <!-- Zona derecha: info usuario + salir -->
     <div class="nav-cta">
       <div class="nav-user-info" id="nav-user-info">
         <span class="nav-avatar" id="nav-avatar">🌙</span>
@@ -55,7 +47,6 @@
       <button class="btn btn-logout" id="btn-logout">✕ SALIR</button>
     </div>
 
-    <!-- Hamburger mobile -->
     <button class="hamburger" id="hamburger" aria-label="Abrir menú">
       <span></span><span></span><span></span>
     </button>
@@ -63,14 +54,11 @@
   </div>
 </header>
 
-<!-- ══════════════════════════
-     MAIN
-══════════════════════════════ -->
+<!-- MAIN -->
 <main class="hub-main" role="main">
 
   <!-- Hero -->
   <section class="hub-hero">
-    <!-- Destellos decorativos -->
     <div class="hero-stars-deco" aria-hidden="true">
       <span class="hsd-1">✦</span>
       <span class="hsd-2">★</span>
@@ -90,20 +78,16 @@
     </div>
   </section>
 
-  <!-- Tarjetas generadas por events.js -->
+  <!-- Cards -->
   <div class="hub-body" id="hubBody"></div>
 
 </main>
 
-<!-- Footer -->
 <footer class="hub-footer">
   <p>🌌 Moonveil Portal · Hub Central · <span id="footerYear"></span></p>
 </footer>
 
-<!-- Toast -->
 <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-
-<!-- Volver arriba -->
 <button class="back-to-top" id="back-top" title="Volver arriba">▲</button>
 
 <script type="module" src="events.js"></script>
