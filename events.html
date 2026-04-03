@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Moonveil — Hub Central</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23030a1a'/><rect x='4' y='4' width='24' height='24' rx='2' fill='%2300d4ff'/><text x='16' y='22' text-anchor='middle' fill='%23030a1a' font-size='14' font-weight='bold'>M</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2308001a'/><rect x='4' y='4' width='24' height='24' rx='2' fill='%23c026d3'/><text x='16' y='22' text-anchor='middle' fill='%2308001a' font-size='14' font-weight='bold'>M</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap">
   <link rel="stylesheet" href="events.css"/>
@@ -39,8 +39,9 @@
       <div class="nav-user-info" id="nav-user-info">
         <span class="nav-avatar" id="nav-avatar">🌙</span>
         <span class="nav-username" id="nav-username">EXPLORADOR</span>
+        <span class="xp-badge" id="xp-display">⚡ 0 XP</span>
       </div>
-      <span class="xp-badge" id="xp-display">⚡ 0 XP</span>
+      <button class="btn btn-logout" id="btn-logout">✕ SALIR</button>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Abrir menú">
       <span></span><span></span><span></span>
@@ -49,52 +50,53 @@
 </header>
 
 <!-- HERO -->
-<div class="hub-wrap container">
-
-  <section class="hub-hero">
-    <div class="hero-stars-deco" aria-hidden="true">
-      <span class="hsd-1">✦</span>
-      <span class="hsd-2">★</span>
-      <span class="hsd-3">✦</span>
-      <span class="hsd-4">☆</span>
-      <span class="hsd-5">✧</span>
+<section class="hub-hero">
+  <div class="hero-bg-grid" aria-hidden="true"></div>
+  <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
+  <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
+  <div class="hero-sparks" aria-hidden="true">
+    <span class="hs hs-1">✦</span>
+    <span class="hs hs-2">◈</span>
+    <span class="hs hs-3">✦</span>
+    <span class="hs hs-4">◆</span>
+    <span class="hs hs-5">✧</span>
+    <span class="hs hs-6">◈</span>
+  </div>
+  <div class="hero-content container">
+    <div class="hero-kicker">
+      <span class="kicker-line"></span>
+      <span class="kicker-text">PORTAL MOONVEIL</span>
+      <span class="kicker-line"></span>
     </div>
-    <div class="hero-inner">
-      <div class="hero-eyebrow">
-        <span class="eyebrow-dot"></span>
-        <span>PORTAL MOONVEIL</span>
-        <span class="eyebrow-dot"></span>
-      </div>
-      <h1 class="hub-title">
-        <span class="ht-line">HUB</span>
-        <span class="ht-line ht-accent">CENTRAL</span>
-      </h1>
-      <p class="hub-subtitle">▸ TODAS LAS SECCIONES DEL PORTAL ◂</p>
-      <div class="hero-badge">
-        <span class="hero-badge-dot"></span>
-        <span><span id="heroBadgeCount">—</span> secciones activas</span>
-        <span class="hero-badge-dot"></span>
-      </div>
+    <h1 class="hub-title">
+      <span class="ht-row">HUB</span>
+      <span class="ht-row ht-accent">CENTRAL</span>
+    </h1>
+    <p class="hub-sub">▸ TODAS LAS SECCIONES DEL PORTAL ◂</p>
+    <div class="hero-counter">
+      <span class="hc-dot"></span>
+      <span class="hc-num" id="heroBadgeCount">—</span>
+      <span class="hc-label">SECCIONES ACTIVAS</span>
+      <span class="hc-dot"></span>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Body con categorías -->
-  <div class="hub-body" id="hubBody"></div>
-
-</div>
-
-<!-- Footer -->
-<footer class="hub-footer">
+<!-- MAIN HUB -->
+<main class="hub-main">
   <div class="container">
-    <span class="footer-brand">🌌 Moonveil Portal</span>
-    <span class="footer-sep">·</span>
-    <span>Hub Central</span>
-    <span class="footer-sep">·</span>
-    <span id="footerYear"></span>
+    <div class="hub-body" id="hubBody"></div>
+  </div>
+</main>
+
+<footer class="hub-footer">
+  <div class="container footer-inner">
+    <span class="footer-brand">🌌 Moonveil Portal · Hub Central</span>
+    <span class="footer-yr" id="footerYear"></span>
   </div>
 </footer>
 
-<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 <button class="back-to-top" id="back-top" title="Volver arriba">▲</button>
 
 <script type="module" src="events.js"></script>
