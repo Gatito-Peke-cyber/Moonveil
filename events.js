@@ -2,14 +2,13 @@
    Moonveil Portal — Events Hub JS  v5
    + Firebase auth (header usuario)
    + Estrellas fugaces + partículas espaciales
-   + Tarjetas estilo Tienda con colores Space
-   + Banda de color superior · Badge de estado · Barras
-   + Contadores activos/próximamente/terminado conservados
+   + Tarjetas pixel art v5 — diseño nuevo estilo tienda/perfil
+   + Mantiene: horas, próximamente, terminado, barras progreso
+   + Sin botón SALIR en el nav central
    ========================================================= */
 
    import { onAuthChange, logout } from './auth.js';
 
-   /* ── Lectura de localStorage ── */
    const PERFIL_KEY    = 'mv_perfil';
    const INVENTORY_KEY = 'mv_inventory';
    
@@ -136,9 +135,9 @@
    /* ══════════════════════════════════════════
       CUENTA REGRESIVA
    ══════════════════════════════════════════ */
-   function buildCountdown(getValuesFn, colorClass) {
+   function buildCountdown(getValuesFn) {
      const wrap = document.createElement("div");
-     wrap.className = "card-countdown" + (colorClass ? ` card-${colorClass}-cd` : "");
+     wrap.className = "card-countdown";
    
      const PARTS  = ["d","h","m","s"];
      const LABELS = { d:"días", h:"hrs", m:"min", s:"seg" };
@@ -195,7 +194,7 @@
    }
    
    /* ══════════════════════════════════════════
-      CONSTRUIR TARJETA — ESTILO TIENDA
+      CONSTRUIR TARJETA v5
    ══════════════════════════════════════════ */
    function buildCard(item, index, categoryColor) {
      const status = cardStatus(item);
@@ -212,39 +211,7 @@
    
      card.style.setProperty("--card-accent", accent);
    
-     /* ── Banda superior de color (tienda: pc-band) ── */
-     const band = document.createElement("div");
-     band.style.cssText = `
-       position:absolute;top:0;left:0;right:0;height:4px;z-index:3;
-       background:linear-gradient(90deg,${accent}99,${accent},${accent}99);
-       background-size:200%;
-       animation:shimmerBand 2.5s linear infinite;
-       box-shadow:0 0 10px ${accent};
-     `;
-     card.appendChild(band);
-   
-     /* ── Esquina pixel decorativa ── */
-     const corner = document.createElement("div");
-     corner.className = "card-corner";
-     corner.style.cssText = `background:${accent};box-shadow:-8px 0 0 ${accent},0 8px 0 ${accent};`;
-     card.appendChild(corner);
-   
-     /* ── Badge de estado (calidad) — esquina sup-izq ── */
-     const qBadge = document.createElement("div");
-     qBadge.className = "card-quality-badge";
-     if (status === "expired") {
-       qBadge.classList.add("expired");
-       qBadge.textContent = "⌛ TERMINADO";
-     } else if (status === "soon") {
-       qBadge.classList.add("soon");
-       qBadge.textContent = "⏳ PRÓXIMO";
-     } else {
-       qBadge.classList.add("active");
-       qBadge.textContent = "✦ ACTIVO";
-     }
-     card.appendChild(qBadge);
-   
-     /* ── Fondo de imagen ── */
+     /* Fondo de imagen */
      if (item.bg) {
        const bgDiv = document.createElement("div");
        bgDiv.className = "card-bg";
@@ -253,9 +220,14 @@
        const ov = document.createElement("div");
        ov.className = "card-overlay";
        card.appendChild(ov);
+     } else {
+       const glow = document.createElement("div");
+       glow.className = "card-glow";
+       glow.style.cssText = `width:140px;height:140px;top:-40px;right:-30px;background:${accent};opacity:0;`;
+       card.appendChild(glow);
      }
    
-     /* ── Cuerpo ── */
+     /* Cuerpo principal */
      const body = document.createElement("div");
      body.className = "card-body";
    
@@ -279,7 +251,7 @@
      de.textContent = item.desc || "";
      body.appendChild(de);
    
-     /* ── Estado chips + contadores ── */
+     /* Estado / chips y cuenta regresiva */
      if (status === "expired") {
        const chip = document.createElement("span");
        chip.className = "card-chip chip-exp";
@@ -291,14 +263,14 @@
        chip.className = "card-chip chip-soon";
        chip.textContent = "⏳ PRÓXIMAMENTE";
        body.appendChild(chip);
-       body.appendChild(buildCountdown(makeSoonFn(item.startDate), ""));
+       body.appendChild(buildCountdown(makeSoonFn(item.startDate)));
    
      } else if (item.isCalendar) {
        const chip = document.createElement("span");
        chip.className = "card-chip chip-calendar";
        chip.textContent = "📅 RENOV. MENSUAL";
        body.appendChild(chip);
-       body.appendChild(buildCountdown(makeMonthFn(), "month"));
+       body.appendChild(buildCountdown(makeMonthFn()));
    
      } else if (item.expiry) {
        const remaining = daysUntil(parseDate(item.expiry));
@@ -308,46 +280,12 @@
          ? `✅ ACTIVO · TERMINA EN ${remaining}D`
          : "✅ ACTIVO · ¡ÚLTIMO DÍA!";
        body.appendChild(chip);
-       body.appendChild(buildCountdown(makeExpiryFn(item.expiry), "expiry"));
+       body.appendChild(buildCountdown(makeExpiryFn(item.expiry)));
      }
    
      card.appendChild(body);
    
-     /* ── Footer de tarjeta (fila de estado) ── */
-     if (status !== "expired") {
-       const footer = document.createElement("div");
-       footer.className = "card-footer";
-   
-       const statusRow = document.createElement("div");
-       statusRow.className = "card-status-row";
-   
-       const left = document.createElement("span");
-       left.className = "card-status-left";
-   
-       if (item.isCalendar) {
-         const { dayOfMonth, totalDays } = daysLeftInMonth();
-         left.innerHTML = `<span style="color:var(--cyan)">📅</span> Día ${dayOfMonth} de ${totalDays}`;
-       } else if (status === "soon" && item.startDate) {
-         const d = daysUntil(parseDate(item.startDate));
-         left.innerHTML = `<span style="color:var(--yellow)">⏳</span> Disponible en ${d}d`;
-       } else if (item.expiry && status === "active") {
-         const d = daysUntil(parseDate(item.expiry));
-         left.innerHTML = `<span style="color:${accent}">⏱</span> ${d > 0 ? d+'d restantes' : '¡Último día!'}`;
-       } else {
-         left.innerHTML = `<span style="color:var(--primary)">🌌</span> Disponible`;
-       }
-   
-       const right = document.createElement("span");
-       right.className = "card-status-right";
-       right.textContent = item.daysTotal ? `${item.daysTotal}d total` : "—";
-   
-       statusRow.appendChild(left);
-       statusRow.appendChild(right);
-       footer.appendChild(statusRow);
-       card.appendChild(footer);
-     }
-   
-     /* ── Barra de progreso ── */
+     /* Barra de progreso */
      if (status === "active" && item.expiry && item.daysTotal) {
        const end   = parseDate(item.expiry);
        const start = new Date(end);
@@ -357,13 +295,13 @@
    
        const barWrap = document.createElement("div"); barWrap.className = "card-days-bar";
        const fill    = document.createElement("div"); fill.className = "card-days-fill";
-       fill.style.cssText = `width:0%;background:linear-gradient(90deg,${accent}88,${accent})`;
+       fill.style.cssText = `width:0%;background:linear-gradient(90deg,${accent}99,${accent})`;
        barWrap.appendChild(fill);
        card.appendChild(barWrap);
        setTimeout(() => { fill.style.width = remaining + "%"; }, 400 + index*65);
      }
    
-     /* ── Barra del mes ── */
+     /* Barra del mes */
      if (status === "active" && item.isCalendar) {
        const { dayOfMonth, totalDays } = daysLeftInMonth();
        const pct = Math.round((dayOfMonth / totalDays) * 100);
@@ -375,7 +313,40 @@
        setTimeout(() => { fill.style.width = (100-pct) + "%"; }, 400 + index*65);
      }
    
-     /* ── Interacciones bloqueadas ── */
+     /* Footer bar con estado y flecha */
+     const footerBar = document.createElement("div");
+     footerBar.className = "card-footer-bar";
+   
+     const dot = document.createElement("span");
+     if (status === "expired") {
+       dot.className = "cf-status-dot dot-red";
+     } else if (status === "soon") {
+       dot.className = "cf-status-dot dot-yellow";
+     } else {
+       dot.className = "cf-status-dot";
+     }
+     footerBar.appendChild(dot);
+   
+     const cfLabel = document.createElement("span");
+     cfLabel.className = "cf-label";
+     if (status === "expired")     cfLabel.textContent = "CERRADO";
+     else if (status === "soon")   cfLabel.textContent = "PRÓXIMAMENTE";
+     else if (item.isCalendar)     cfLabel.textContent = "ACTIVO · MENSUAL";
+     else if (item.expiry)         cfLabel.textContent = "ACTIVO · CON LÍMITE";
+     else                          cfLabel.textContent = "ACTIVO · PERMANENTE";
+     footerBar.appendChild(cfLabel);
+   
+     if (status === "active" && tag === "a") {
+       const arrow = document.createElement("span");
+       arrow.className = "cf-arrow";
+       arrow.textContent = "▶";
+       arrow.style.color = accent;
+       footerBar.appendChild(arrow);
+     }
+   
+     card.appendChild(footerBar);
+   
+     /* Interacciones bloqueadas */
      if (status === "expired") {
        card.addEventListener("click", e => { e.preventDefault(); toast("🔒 Este evento ya terminó."); });
      }
@@ -399,7 +370,7 @@
        section.className = "category";
        section.style.animationDelay = `${ci * 0.1}s`;
    
-       /* Header de categoría con color propio */
+       /* Header de categoría — igual a perfil/tienda */
        const header = document.createElement("div");
        header.className = "category-header";
        header.style.setProperty("--cat-color", cat.color);
@@ -434,7 +405,7 @@
        if (avatarEl)   avatarEl.textContent   = p.avatar  || "🌙";
        if (usernameEl) usernameEl.textContent = (p.nombre || "EXPLORADOR").toUpperCase();
        if (xpEl)       xpEl.textContent       = `⚡ ${p.xp || 0} XP`;
-     } catch { /* sin datos locales */ }
+     } catch { /* sin datos locales, se muestra el default */ }
    }
    
    /* ══════════════════════════════════════════
@@ -595,17 +566,6 @@
    }
    
    /* ══════════════════════════════════════════
-      LOGOUT
-   ══════════════════════════════════════════ */
-   function initLogout() {
-     document.getElementById("btn-logout")?.addEventListener("click", async () => {
-       if (!confirm("¿Cerrar sesión?")) return;
-       try { await logout(); } catch {}
-       window.location.href = "index.html";
-     });
-   }
-   
-   /* ══════════════════════════════════════════
       BACK TO TOP
    ══════════════════════════════════════════ */
    function initBackToTop() {
@@ -638,10 +598,8 @@
      hideLoader();
      initSpaceCanvas();
      initNav();
-     initLogout();
      initBackToTop();
    
-     /* Verificar sesión con Firebase */
      onAuthChange(user => {
        if (!user) {
          window.location.href = "index.html";
