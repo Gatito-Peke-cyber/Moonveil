@@ -1,8 +1,8 @@
 /* =====================================================
-   Moonveil Portal — Events Hub JS v5
-   ✦ Tarjetas rediseñadas (imagen + cuerpo separados)
-   ✦ Cabecera de categoría nueva (icono panel + body panel)
-   ✦ Todas las funciones de fechas/contadores conservadas
+   Moonveil Portal — Events Hub JS  HYBRID
+   ✦ Hero/Header morado v5
+   ✦ Tarjetas + cabeceras de categoría azul espacial v3
+   ✦ Toda la lógica de fechas / contadores conservada
    ===================================================== */
 
    import { onAuthChange, logout } from './auth.js';
@@ -80,7 +80,7 @@
    ];
    
    /* ══════════════════════════════════════════
-      UTILIDADES DE FECHA (sin cambios)
+      UTILIDADES DE FECHA
    ══════════════════════════════════════════ */
    function today() {
      const d = new Date(); d.setHours(0,0,0,0); return d;
@@ -120,7 +120,7 @@
    }
    
    /* ══════════════════════════════════════════
-      CUENTA REGRESIVA (sin cambios)
+      CUENTA REGRESIVA
    ══════════════════════════════════════════ */
    function buildCountdown(getValuesFn, colorClass) {
      const wrap = document.createElement("div");
@@ -181,61 +181,46 @@
    }
    
    /* ══════════════════════════════════════════
-      CONSTRUIR TARJETA — diseño nuevo
-      ✦ Zona imagen separada arriba
-      ✦ Emoji flotando sobre la imagen
-      ✦ Esquina decorativa pixel
+      CONSTRUIR TARJETA — estilo azul espacial v3
    ══════════════════════════════════════════ */
    function buildCard(item, index, categoryColor) {
      const status = cardStatus(item);
-     const accent = item.accent || categoryColor || "#c026d3";
+     const accent = item.accent || categoryColor || "#00d4ff";
    
      const tag  = (status === "active" && item.url && item.url !== "#") ? "a" : "div";
      const card = document.createElement(tag);
      card.className = "hub-card";
-     card.style.animationDelay = `${index * 0.06}s`;
+     card.style.animationDelay = `${index * 0.07}s`;
      if (tag === "a") card.href = item.url;
    
      if (status === "expired") card.classList.add("card-locked");
      if (status === "soon")    card.classList.add("card-soon");
      card.style.setProperty("--card-accent", accent);
    
-     /* Esquina decorativa pixel */
-     const corner = document.createElement("div");
-     corner.className = "hub-card-corner";
-     corner.style.borderRightColor = accent;
-     card.appendChild(corner);
-   
-     /* ── Zona imagen ── */
-     const imgZone = document.createElement("div");
-     imgZone.className = "card-img-zone";
-   
+     /* Fondo imagen */
      if (item.bg) {
-       const bg = document.createElement("div");
-       bg.className = "card-img-bg";
-       bg.style.backgroundImage = `url('${item.bg}')`;
-       imgZone.appendChild(bg);
+       const bgDiv = document.createElement("div");
+       bgDiv.className = "card-bg";
+       bgDiv.style.backgroundImage = `url('${item.bg}')`;
+       card.appendChild(bgDiv);
+       const ov = document.createElement("div");
+       ov.className = "card-overlay";
+       card.appendChild(ov);
      } else {
-       const ph = document.createElement("div");
-       ph.className = "card-img-placeholder";
-       imgZone.appendChild(ph);
+       const glow = document.createElement("div");
+       glow.className = "card-glow";
+       glow.style.cssText = `width:120px;height:120px;top:-30px;right:-30px;background:${accent};opacity:0;`;
+       card.appendChild(glow);
      }
    
-     const imgOverlay = document.createElement("div");
-     imgOverlay.className = "card-img-overlay";
-     imgZone.appendChild(imgOverlay);
-   
-     /* Emoji sobre la imagen */
-     const emojiEl = document.createElement("div");
-     emojiEl.className = "card-img-emoji";
-     emojiEl.textContent = item.emoji || "📄";
-     imgZone.appendChild(emojiEl);
-   
-     card.appendChild(imgZone);
-   
-     /* ── Cuerpo ── */
+     /* Cuerpo */
      const body = document.createElement("div");
      body.className = "card-body";
+   
+     const em = document.createElement("div");
+     em.className = "card-emoji";
+     em.textContent = item.emoji || "📄";
+     body.appendChild(em);
    
      const ti = document.createElement("div");
      ti.className = "card-title";
@@ -296,10 +281,10 @@
    
        const barWrap = document.createElement("div"); barWrap.className = "card-days-bar";
        const fill    = document.createElement("div"); fill.className = "card-days-fill";
-       fill.style.cssText = `width:0%;background:linear-gradient(90deg,${accent}77,${accent})`;
+       fill.style.cssText = `width:0%;background:linear-gradient(90deg,${accent}99,${accent})`;
        barWrap.appendChild(fill);
        card.appendChild(barWrap);
-       setTimeout(() => { fill.style.width = remaining + "%"; }, 400 + index*60);
+       setTimeout(() => { fill.style.width = remaining + "%"; }, 400 + index*65);
      }
    
      /* Barra del mes */
@@ -311,7 +296,7 @@
        fill.style.width = "0%";
        barWrap.appendChild(fill);
        card.appendChild(barWrap);
-       setTimeout(() => { fill.style.width = (100-pct) + "%"; }, 400 + index*60);
+       setTimeout(() => { fill.style.width = (100-pct) + "%"; }, 400 + index*65);
      }
    
      /* Interacciones bloqueadas */
@@ -326,7 +311,7 @@
    }
    
    /* ══════════════════════════════════════════
-      RENDER HUB — cabecera de categoría nueva
+      RENDER HUB — cabeceras estilo azul espacial v3
    ══════════════════════════════════════════ */
    function render() {
      const hub = document.getElementById("hubBody");
@@ -336,34 +321,17 @@
      CATEGORIES.forEach((cat, ci) => {
        const section = document.createElement("section");
        section.className = "category";
-       section.style.animationDelay = `${ci * 0.09}s`;
+       section.style.animationDelay = `${ci * 0.1}s`;
    
-       /* Cabecera: panel izquierdo (icono) + panel derecho (nombre+count) */
-       const head = document.createElement("div");
-       head.className = "cat-head";
-   
-       const iconPanel = document.createElement("div");
-       iconPanel.className = "cat-head-icon";
-       iconPanel.style.borderColor = cat.color;
-       iconPanel.textContent = cat.icon;
-   
-       const bodyPanel = document.createElement("div");
-       bodyPanel.className = "cat-head-body";
-       bodyPanel.style.setProperty("--cat-color", cat.color);
-   
-       const nameEl = document.createElement("span");
-       nameEl.className = "cat-head-name";
-       nameEl.textContent = cat.name;
-   
-       const countEl = document.createElement("span");
-       countEl.className = "cat-head-count";
-       countEl.textContent = `${cat.items.length} sección${cat.items.length !== 1 ? "es" : ""}`;
-   
-       bodyPanel.appendChild(nameEl);
-       bodyPanel.appendChild(countEl);
-       head.appendChild(iconPanel);
-       head.appendChild(bodyPanel);
-       section.appendChild(head);
+       /* Cabecera azul espacial v3 */
+       const header = document.createElement("div");
+       header.className = "category-header";
+       header.innerHTML = `
+         <span class="category-icon">${cat.icon}</span>
+         <span class="category-name">${cat.name}</span>
+         <span class="category-count">${cat.items.length} sección${cat.items.length !== 1 ? "es" : ""}</span>
+       `;
+       section.appendChild(header);
    
        const grid = document.createElement("div");
        grid.className = "cards-grid";
@@ -391,7 +359,7 @@
    }
    
    /* ══════════════════════════════════════════
-      CANVAS ESPACIAL (estrellas + meteoros)
+      CANVAS ESPACIAL (estrellas + meteoros magenta)
    ══════════════════════════════════════════ */
    function initSpaceCanvas() {
      const c = document.getElementById("stars-canvas");
@@ -400,14 +368,14 @@
      const dpi = Math.max(1, devicePixelRatio || 1);
      let W, H, stars, shootingStars;
    
-     /* Paleta magenta/violeta para partículas */
+     /* Mezcla de colores: magenta del hero + cian de las tarjetas */
      const COLORS = [
        "rgba(192,38,211,",
+       "rgba(0,212,255,",
        "rgba(124,58,237,",
        "rgba(240,171,252,",
-       "rgba(232,121,249,",
-       "rgba(167,139,250,",
-       "rgba(245,230,255,",
+       "rgba(34,211,238,",
+       "rgba(200,224,255,",
      ];
    
      function init() {

@@ -1,36 +1,46 @@
 /* =====================================================
-   Moonveil Portal — Events Hub CSS v5
-   ✦ Color único: Magenta / Violeta Cósmico
-   ✦ Tarjetas grandes con imagen hero + overlay dramático
-   ✦ Layout asimétrico, pixel art maximalista
-   ✦ Nada parecido al diseño anterior
+   Moonveil Portal — Events Hub CSS  HYBRID
+   ✦ HERO / HEADER  →  Magenta / Violeta Cósmico (v5)
+   ✦ TARJETAS / CATEGORÍAS  →  Espacio Azul Cian (v3)
    ===================================================== */
    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Orbitron:wght@400;700;900&display=swap');
 
    :root {
-     /* ── Paleta magenta cósmica (ÚNICA para el hub) ── */
+     /* ── Fondo compartido ── */
      --bg:      #08001a;
-     --bg2:     #0e0022;
-     --card:    #120028;
-     --border:  #2d0050;
+     --bg2:     #060f24;
+     --card:    #0a1530;
+     --border:  #1a3060;
    
-     --P:       #c026d3;   /* magenta principal */
-     --P2:      #86198f;   /* magenta oscuro */
-     --P3:      #f0abfc;   /* magenta claro */
-     --PG:      #e879f9;   /* glow */
+     /* ── Paleta HERO / HEADER — Magenta/Violeta ── */
+     --P:       #c026d3;
+     --P2:      #86198f;
+     --P3:      #f0abfc;
+     --PG:      #e879f9;
+     --acc1:    #7c3aed;
+     --acc3:    #f472b6;
+     --acc4:    #fbbf24;
+     --muted-p: #6b3080;
+     --dim-p:   #2d1040;
    
-     --acc1:    #7c3aed;   /* violeta */
-     --acc2:    #06b6d4;   /* cyan acento */
-     --acc3:    #f472b6;   /* rosa acento */
-     --acc4:    #fbbf24;   /* dorado acento */
-     --acc5:    #34d399;   /* verde acento */
+     /* ── Paleta TARJETAS — Cian Espacial ── */
+     --primary:   #00d4ff;
+     --primary-d: #006e88;
+     --primary-l: #80f0ff;
+     --blue:    #3b82f6;
+     --indigo:  #818cf8;
+     --purple:  #a78bfa;
+     --cyan:    #22d3ee;
+     --yellow:  #fbbf24;
+     --magenta: #f472b6;
+     --red:     #f87171;
+     --green:   #34d399;
    
-     --white:   #f5e6ff;
-     --muted:   #6b3080;
-     --dim:     #2d1040;
+     --white:   #c8e0ff;
+     --muted:   #3d5a80;
    
-     --shadow:      4px 4px 0 #000;
-     --shadow-mag:  4px 4px 0 #000, 0 0 20px rgba(192,38,211,0.4);
+     --shadow:     4px 4px 0 #000;
+     --shadow-mag: 4px 4px 0 #000, 0 0 20px rgba(192,38,211,0.4);
    
      --font-pixel: 'Press Start 2P', monospace;
      --font-vt:    'VT323', monospace;
@@ -60,7 +70,7 @@
    }
    .stars-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
    
-   /* ─── LOADER ─── */
+   /* ─── LOADER (morado) ─── */
    #loader {
      position: fixed; inset: 0; z-index: 9999;
      display: grid; place-items: center;
@@ -68,24 +78,31 @@
    }
    .loader-pixel { text-align: center; }
    .ld-char { font-size: 3.5rem; margin-bottom: 12px; animation: bounce 0.5s ease-in-out infinite alternate; }
-   .ld-text { font-family: var(--font-pixel); font-size: 0.42rem; color: var(--P); margin-bottom: 14px; letter-spacing: 1px; }
+   .ld-text {
+     font-family: var(--font-pixel); font-size: 0.42rem;
+     color: var(--P); margin-bottom: 14px; letter-spacing: 1px;
+   }
    .ld-bar {
      width: 260px; height: 16px;
      background: var(--card); border: 3px solid var(--P);
      overflow: hidden; margin: 0 auto;
      box-shadow: 0 0 18px rgba(192,38,211,0.5);
    }
-   .ld-fill { height: 100%; background: linear-gradient(90deg, var(--P2), var(--P), var(--P3)); width: 0%; transition: width 0.3s; }
+   .ld-fill {
+     height: 100%;
+     background: linear-gradient(90deg, var(--P2), var(--P), var(--P3));
+     width: 0%; transition: width 0.3s;
+   }
    
    /* ─── KEYFRAMES ─── */
    @keyframes bounce      { to { transform: translateY(-14px); } }
-   @keyframes cubeRotate  { to { transform: rotate(360deg); } }
    @keyframes shimmer     { to { background-position: -200% 0; } }
    @keyframes fadeUp      { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
    @keyframes titleUp     { from{opacity:0;transform:translateY(36px) scale(.94)} to{opacity:1;transform:none} }
-   @keyframes cardIn      { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
+   @keyframes cardIn      { from{opacity:0;transform:translateY(28px) scale(.95)} to{opacity:1;transform:none} }
    @keyframes dotPulse    { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.8);opacity:.3} }
    @keyframes magGlow     { 0%,100%{box-shadow:var(--shadow),0 0 14px rgba(192,38,211,0.35)} 50%{box-shadow:var(--shadow),0 0 34px rgba(192,38,211,0.8)} }
+   @keyframes glowPulse   { 0%,100%{box-shadow:var(--shadow),0 0 12px rgba(0,212,255,0.3)} 50%{box-shadow:var(--shadow),0 0 28px rgba(0,212,255,0.7)} }
    @keyframes gradShift   { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
    @keyframes orb1        { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(40px,-30px) scale(1.1)} }
    @keyframes orb2        { 0%,100%{transform:translate(0,0) scale(1.05)} 50%{transform:translate(-30px,20px) scale(.95)} }
@@ -95,20 +112,18 @@
    @keyframes spark4      { 0%,100%{opacity:.2;transform:scale(1)} 60%{opacity:1;transform:scale(1.6)} }
    @keyframes spark5      { 0%,100%{opacity:.4;transform:rotate(0)} 40%{opacity:1;transform:rotate(50deg)} }
    @keyframes spark6      { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.4) rotate(15deg)} }
-   @keyframes scanLine    { 0%{top:-100%} 100%{top:200%} }
-   @keyframes bandMove    { 0%{background-position:0%} 100%{background-position:200%} }
-   @keyframes imgZoom     { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
    @keyframes heroGrid    { 0%{opacity:.4} 100%{opacity:.9} }
    @keyframes kickerLine  { from{width:0} to{width:80px} }
-   @keyframes blink       { 0%,100%{opacity:1} 50%{opacity:0} }
+   @keyframes cubeRotate  { to { transform: rotate(360deg); } }
+   @keyframes colorCycle  { 0%{color:var(--primary)} 25%{color:var(--indigo)} 50%{color:var(--cyan)} 75%{color:var(--blue)} 100%{color:var(--primary)} }
    
    /* ══════════════════════
-      HEADER
+      HEADER — morado
    ══════════════════════ */
    .header {
      position: sticky; top: 0; z-index: 1000;
      background: rgba(8,0,26,0.97);
-     border-bottom: 3px solid var(--border);
+     border-bottom: 3px solid rgba(45,0,80,0.9);
      box-shadow: 0 4px 0 #000, 0 0 28px rgba(192,38,211,0.08);
    }
    .nav-wrap {
@@ -145,8 +160,7 @@
      display: flex; align-items: center; gap: 7px;
      background: rgba(192,38,211,0.07);
      border: 2px solid rgba(192,38,211,0.25);
-     padding: 4px 10px;
-     box-shadow: 2px 2px 0 #000;
+     padding: 4px 10px; box-shadow: 2px 2px 0 #000;
    }
    .nav-avatar  { font-size: 1.2rem; }
    .nav-username {
@@ -178,16 +192,15 @@
    .hamburger span { display: block; width: 20px; height: 2px; background: var(--P); margin: 4px 0; }
    
    /* ══════════════════════
-      HERO — pantalla completa dramática
+      HERO — morado v5
    ══════════════════════ */
    .hub-hero {
      min-height: 50vh;
      display: flex; align-items: center;
      position: relative; overflow: hidden;
-     border-bottom: 3px solid var(--border);
+     border-bottom: 3px solid rgba(45,0,80,0.6);
    }
    
-   /* Grid de fondo animado */
    .hero-bg-grid {
      position: absolute; inset: 0;
      background-image:
@@ -198,7 +211,6 @@
      pointer-events: none;
    }
    
-   /* Orbes de luz de fondo */
    .hero-orb {
      position: absolute; border-radius: 50%;
      pointer-events: none; filter: blur(90px);
@@ -216,7 +228,6 @@
      animation: orb2 9s ease-in-out infinite;
    }
    
-   /* Destellos decorativos */
    .hero-sparks { position: absolute; inset: 0; pointer-events: none; }
    .hs {
      position: absolute; font-size: 1.1rem;
@@ -239,7 +250,7 @@
    .hero-kicker {
      display: flex; align-items: center; gap: 14px;
      font-family: var(--font-pixel); font-size: 0.26rem;
-     color: var(--muted); letter-spacing: 4px;
+     color: var(--muted-p); letter-spacing: 4px;
    }
    .kicker-line {
      height: 2px; width: 0;
@@ -271,7 +282,7 @@
    
    .hub-sub {
      font-family: var(--font-pixel); font-size: clamp(0.28rem, 1.4vw, 0.44rem);
-     color: var(--muted); letter-spacing: 3px;
+     color: var(--muted-p); letter-spacing: 3px;
      animation: fadeUp .9s cubic-bezier(.22,.61,.36,1) .3s backwards;
    }
    
@@ -294,257 +305,212 @@
    }
    .hc-label {
      font-family: var(--font-pixel); font-size: 0.28rem;
-     color: var(--muted); letter-spacing: 2px;
+     color: var(--muted-p); letter-spacing: 2px;
    }
    
    /* ══════════════════════
-      MAIN
+      MAIN — tarjetas espaciales
    ══════════════════════ */
    .hub-main {
      position: relative; z-index: 1;
      padding: 40px 0 80px;
+     width: min(1400px, 96%);
+     margin-inline: auto;
    }
-   .hub-body { display: flex; flex-direction: column; gap: 56px; }
+   .hub-body { display: flex; flex-direction: column; gap: 70px; padding: 0 8px; }
    
    /* ══════════════════════
-      CABECERA DE CATEGORÍA
-      — estilo bloque sólido premium
+      CABECERA DE CATEGORÍA — azul espacial v3
    ══════════════════════ */
-   .category { animation: fadeUp .6s cubic-bezier(.22,.61,.36,1) backwards; }
+   .category { animation: fadeUp .7s cubic-bezier(.22,.61,.36,1) backwards; }
    
-   .cat-head {
-     display: flex; align-items: stretch;
-     margin-bottom: 22px;
-     position: relative;
-     overflow: hidden;
+   .category-header {
+     display: flex; align-items: center; gap: 14px;
+     margin: 0 0 26px; padding-bottom: 16px; position: relative;
    }
-   
-   /* Panel izquierdo: icono grande */
-   .cat-head-icon {
-     width: 72px; flex-shrink: 0;
-     background: var(--card);
-     border: 3px solid var(--border);
-     border-right: none;
-     display: flex; align-items: center; justify-content: center;
+   .category-header::after {
+     content: "";
+     position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+     background: linear-gradient(90deg, var(--primary), rgba(59,130,246,0.4), transparent);
+   }
+   .category-icon {
      font-size: 2rem;
-     box-shadow: var(--shadow);
-     position: relative;
+     filter: drop-shadow(0 0 10px rgba(0,212,255,0.6));
+     flex-shrink: 0;
    }
-   .cat-head-icon::after {
-     content: '';
-     position: absolute; inset: 0;
-     background: linear-gradient(135deg, rgba(192,38,211,0.12) 0%, transparent 60%);
-     pointer-events: none;
-   }
-   
-   /* Panel derecho: nombre + count */
-   .cat-head-body {
-     flex: 1;
-     background: var(--card);
-     border: 3px solid var(--border);
-     padding: 14px 18px;
-     box-shadow: var(--shadow);
-     display: flex; align-items: center; justify-content: space-between;
-     gap: 12px; position: relative; overflow: hidden;
-   }
-   
-   /* Banda superior de color */
-   .cat-head-body::before {
-     content: '';
-     position: absolute; top: 0; left: 0; right: 0; height: 3px;
-     background: var(--cat-color, var(--P));
-     box-shadow: 0 0 12px var(--cat-color, var(--P));
-   }
-   /* Brillo de fondo sutil */
-   .cat-head-body::after {
-     content: '';
-     position: absolute; inset: 0;
-     background: linear-gradient(90deg, rgba(192,38,211,0.05) 0%, transparent 50%);
-     pointer-events: none;
-   }
-   
-   .cat-head-name {
-     font-family: var(--font-pixel); font-size: clamp(0.5rem, 2vw, 0.85rem);
+   .category-name {
+     font-family: var(--font-pixel); font-size: clamp(0.7rem, 2.5vw, 1.1rem);
      color: var(--white); letter-spacing: 1px;
-     text-shadow: 2px 2px 0 #000;
-     position: relative; z-index: 1;
+     text-shadow: 2px 2px 0 #000, 0 0 20px rgba(0,212,255,0.3);
    }
-   .cat-head-count {
-     font-family: var(--font-pixel); font-size: 0.26rem;
-     color: var(--P3);
-     background: rgba(192,38,211,0.12);
-     border: 2px solid rgba(192,38,211,0.35);
-     padding: 4px 12px; box-shadow: 2px 2px 0 #000;
-     position: relative; z-index: 1; white-space: nowrap;
+   .category-count {
+     margin-left: auto;
+     font-family: var(--font-pixel); font-size: 0.28rem;
+     color: var(--primary); background: rgba(0,212,255,0.1);
+     border: 2px solid rgba(0,212,255,0.3); padding: 4px 12px;
+     box-shadow: 2px 2px 0 #000; letter-spacing: 0.5px;
    }
    
    /* ══════════════════════
-      GRID DE TARJETAS
-      — 3 columnas, tarjetas más altas
+      GRID
    ══════════════════════ */
    .cards-grid {
      display: grid;
-     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
      gap: 18px;
    }
    
-   /* ══════════════════════════════════════════
-      TARJETA — diseño completamente nuevo
-      ✦ Imagen ocupa 55% de la altura
-      ✦ Info en panel inferior con glassmorphism
-      ✦ Acento de color en borde izquierdo
-   ══════════════════════════════════════════ */
+   /* ══════════════════════
+      TARJETA — azul espacial v3
+   ══════════════════════ */
    .hub-card {
      position: relative;
-     background: var(--card);
      border: 3px solid var(--border);
+     background: var(--card);
      box-shadow: var(--shadow);
      cursor: pointer;
      text-decoration: none;
      color: var(--white);
      display: flex; flex-direction: column;
-     min-height: 240px;
-     animation: cardIn .5s cubic-bezier(.22,.61,.36,1) backwards;
-     transition: transform .18s, box-shadow .18s, border-color .18s;
+     min-height: 190px;
+     animation: cardIn .55s cubic-bezier(.22,.61,.36,1) backwards;
+     transition: transform .2s, box-shadow .2s, border-color .2s;
      overflow: hidden;
    }
    
-   /* Borde izquierdo de acento */
+   /* Línea de color superior */
    .hub-card::before {
-     content: '';
-     position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-     background: var(--card-accent, var(--P));
-     box-shadow: 0 0 14px var(--card-accent, var(--P));
-     z-index: 5;
+     content: "";
+     position: absolute; top: 0; left: 0; right: 0; height: 3px;
+     background: var(--card-accent, var(--primary));
+     box-shadow: 0 0 10px var(--card-accent, var(--primary));
+     z-index: 3;
    }
    
    /* Esquina decorativa pixel */
-   .hub-card-corner {
-     position: absolute; top: 0; right: 0; z-index: 6;
-     width: 0; height: 0;
-     border-style: solid;
-     border-width: 0 28px 28px 0;
-     border-color: transparent var(--card-accent, var(--P)) transparent transparent;
-     transition: border-color .18s;
+   .hub-card::after {
+     content: "";
+     position: absolute; top: 3px; right: 3px;
+     width: 8px; height: 8px;
+     background: var(--card-accent, var(--primary));
+     box-shadow:
+       -8px 0 0 var(--card-accent, var(--primary)),
+        0 8px 0 var(--card-accent, var(--primary));
+     z-index: 4;
    }
    
    /* Hover */
    .hub-card:not(.card-locked):not(.card-soon):hover {
      transform: translate(-4px, -4px);
-     box-shadow: 8px 8px 0 #000, 0 0 28px rgba(192,38,211,0.22);
-     border-color: var(--card-accent, var(--P));
+     box-shadow: 8px 8px 0 #000, 0 0 20px rgba(0,212,255,0.2);
+     border-color: var(--card-accent, var(--primary));
      text-decoration: none;
    }
    
-   /* ── Zona imagen (parte superior, altura fija) ── */
-   .card-img-zone {
-     position: relative;
-     height: 130px;
-     flex-shrink: 0;
-     overflow: hidden;
-     background: var(--bg2);
-   }
-   .card-img-bg {
-     position: absolute; inset: 0;
+   /* Fondo imagen */
+   .card-bg {
+     position: absolute; inset: 0; z-index: 0;
      background-size: cover; background-position: center;
-     filter: brightness(.45) saturate(.8);
+     filter: brightness(.2) saturate(.7);
      transition: transform .6s, filter .4s;
    }
-   .hub-card:not(.card-locked):hover .card-img-bg {
-     transform: scale(1.08);
-     filter: brightness(.65) saturate(1.1);
+   .hub-card:not(.card-locked):hover .card-bg {
+     transform: scale(1.06);
+     filter: brightness(.32) saturate(1);
    }
-   /* Sin imagen: placeholder con patrón */
-   .card-img-placeholder {
-     position: absolute; inset: 0;
-     background:
-       repeating-linear-gradient(45deg,
-         rgba(192,38,211,0.04) 0px, rgba(192,38,211,0.04) 2px,
-         transparent 2px, transparent 12px
-       );
-     display: flex; align-items: center; justify-content: center;
-   }
-   .card-img-overlay {
-     position: absolute; inset: 0;
-     background: linear-gradient(180deg, transparent 30%, var(--card) 100%);
-   }
-   /* Emoji grande flotando sobre la imagen */
-   .card-img-emoji {
-     position: absolute; bottom: -4px; left: 14px;
-     font-size: 2.8rem; line-height: 1;
-     filter: drop-shadow(2px 2px 0 #000) drop-shadow(0 0 14px var(--card-accent, var(--P)));
-     z-index: 4;
-     transition: filter .3s, transform .3s;
-   }
-   .hub-card:not(.card-locked):not(.card-soon):hover .card-img-emoji {
-     transform: scale(1.12) translateY(-4px);
-     filter: drop-shadow(2px 2px 0 #000) drop-shadow(0 0 22px var(--card-accent, var(--P)));
+   .card-overlay {
+     position: absolute; inset: 0; z-index: 1;
+     background: linear-gradient(
+       175deg,
+       rgba(6,15,36,.05) 0%,
+       rgba(6,15,36,.5)  40%,
+       rgba(6,15,36,.94) 75%,
+       rgba(6,15,36,.99) 100%
+     );
    }
    
-   /* ── Cuerpo inferior ── */
+   .card-glow {
+     position: absolute; z-index: 1;
+     border-radius: 50%; pointer-events: none;
+     filter: blur(40px); opacity: 0;
+     transition: opacity .4s;
+   }
+   .hub-card:not(.card-locked):not(.card-soon):hover .card-glow { opacity: 1; }
+   
+   /* Cuerpo */
    .card-body {
      position: relative; z-index: 2;
-     padding: 12px 14px 14px 18px;
-     display: flex; flex-direction: column; flex: 1; gap: 4px;
+     padding: 20px 18px 16px;
+     display: flex; flex-direction: column; flex: 1; gap: 5px;
+   }
+   
+   .card-emoji {
+     font-size: 2.2rem; line-height: 1; margin-bottom: 6px;
+     display: inline-block;
+     filter: drop-shadow(2px 2px 0 #000);
+     transition: filter .3s;
+   }
+   .hub-card:not(.card-locked):not(.card-soon):hover .card-emoji {
+     filter: drop-shadow(0 0 12px var(--card-accent, var(--primary)));
    }
    
    .card-title {
-     font-family: var(--font-pixel); font-size: 0.5rem;
-     color: var(--white); line-height: 1.8; letter-spacing: 0.5px;
+     font-family: var(--font-pixel); font-size: 0.55rem;
+     color: var(--white); line-height: 1.7; letter-spacing: 0.5px;
      text-shadow: 2px 2px 0 #000;
-     transition: color .18s;
+     transition: color .2s;
    }
    .hub-card:not(.card-locked):not(.card-soon):hover .card-title {
-     color: var(--card-accent, var(--P3));
+     color: var(--primary);
    }
    
    .card-divider {
-     width: 28px; height: 3px; margin: 4px 0 5px;
-     background: var(--card-accent, var(--P));
+     width: 32px; height: 3px;
+     margin: 4px 0 5px;
+     background: var(--card-accent, var(--primary));
      box-shadow: 1px 1px 0 #000;
-     flex-shrink: 0;
    }
    
    .card-desc {
-     font-family: var(--font-vt); font-size: 1.05rem;
+     font-family: var(--font-vt); font-size: 1rem;
      color: var(--muted); line-height: 1.4; flex: 1;
    }
    
-   /* ── Chips de estado ── */
+   /* Chips de estado */
    .card-chip {
      align-self: flex-start;
      display: inline-flex; align-items: center; gap: 5px;
-     font-family: var(--font-pixel); font-size: 0.23rem;
+     font-family: var(--font-pixel); font-size: 0.26rem;
      padding: 4px 10px; letter-spacing: 0.5px;
      text-transform: uppercase; margin-top: 8px;
      border: 2px solid; box-shadow: 2px 2px 0 #000;
    }
    .chip-ok {
-     background: rgba(192,38,211,0.1); color: var(--P3);
-     border-color: var(--P);
-     animation: magGlow 2s ease-in-out infinite;
+     background: rgba(0,212,255,0.1); color: var(--primary);
+     border-color: var(--primary);
+     animation: glowPulse 2s ease-in-out infinite;
    }
    .chip-soon {
-     background: rgba(251,191,36,0.08); color: #fbbf24;
-     border-color: #fbbf24;
+     background: rgba(251,191,36,0.1); color: var(--yellow);
+     border-color: var(--yellow);
    }
    .chip-exp {
-     background: rgba(248,113,113,0.08); color: #f87171;
-     border-color: #f87171;
+     background: rgba(248,113,113,0.1); color: var(--red);
+     border-color: var(--red);
    }
    .chip-calendar {
-     background: rgba(6,182,212,0.08); color: #06b6d4;
-     border-color: #06b6d4;
+     background: rgba(34,211,238,0.1); color: var(--cyan);
+     border-color: var(--cyan);
    }
    
-   /* ── Bloqueada ── */
+   /* Bloqueada */
    .card-locked {
      cursor: not-allowed;
-     filter: grayscale(.85) opacity(.4);
+     filter: grayscale(.8) opacity(.5);
    }
    .card-locked:hover { transform: none!important; box-shadow: var(--shadow)!important; }
    .card-locked .card-body::after {
-     content: '';
+     content: "";
      position: absolute; inset: 0; z-index: 10;
      background: repeating-linear-gradient(
        -55deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 10px,
@@ -553,62 +519,57 @@
      pointer-events: none;
    }
    
-   /* ── Próximamente ── */
-   .card-soon { cursor: default; border-color: rgba(251,191,36,.18); }
+   /* Próximamente */
+   .card-soon { cursor: default; border-color: rgba(251,191,36,.25); }
    .card-soon:hover { transform: none!important; }
    
-   /* ══════════════════════
-      CUENTA REGRESIVA
-      — bloques compactos en fila
-   ══════════════════════ */
+   /* Cuenta regresiva */
    .card-countdown,
    .card-expiry-cd,
    .card-month-cd {
-     display: flex; gap: 4px; flex-wrap: wrap; margin-top: 9px;
+     display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px;
    }
    .cd-block {
      display: flex; flex-direction: column; align-items: center;
-     background: rgba(192,38,211,0.07);
-     border: 2px solid rgba(192,38,211,0.25);
-     padding: 5px 7px; min-width: 42px;
+     background: rgba(0,212,255,.07);
+     border: 2px solid rgba(0,212,255,.25);
+     padding: 5px 7px; min-width: 46px;
      box-shadow: 2px 2px 0 #000;
    }
    .cd-value {
-     font-family: var(--font-pixel); font-size: 0.56rem;
-     color: var(--P3); line-height: 1;
-     text-shadow: 0 0 12px rgba(192,38,211,0.6);
+     font-family: var(--font-pixel); font-size: 0.6rem;
+     color: var(--primary); line-height: 1;
+     text-shadow: 0 0 10px rgba(0,212,255,.5);
    }
    .cd-label {
-     font-family: var(--font-pixel); font-size: 0.17rem;
+     font-family: var(--font-pixel); font-size: 0.2rem;
      color: var(--muted); margin-top: 2px; letter-spacing: 0.5px;
    }
-   /* Expiry */
-   .card-expiry-cd .cd-block { background:rgba(6,182,212,0.07); border-color:rgba(6,182,212,0.28); }
-   .card-expiry-cd .cd-value { color:#67e8f9; text-shadow:0 0 10px rgba(6,182,212,0.5); }
-   /* Month */
-   .card-month-cd .cd-block  { background:rgba(6,182,212,0.06); border-color:rgba(6,182,212,0.22); }
-   .card-month-cd .cd-value  { color:#67e8f9; }
+   .card-expiry-cd .cd-block { background:rgba(0,212,255,.08); border-color:rgba(0,212,255,.3); }
+   .card-expiry-cd .cd-value { color:var(--cyan); text-shadow:0 0 10px rgba(34,211,238,.4); }
+   .card-month-cd .cd-block  { background:rgba(34,211,238,.07); border-color:rgba(34,211,238,.25); }
+   .card-month-cd .cd-value  { color:var(--cyan); text-shadow:0 0 10px rgba(34,211,238,.4); }
    
-   /* ── Barra de progreso ── */
+   /* Barra de progreso */
    .card-days-bar {
-     height: 5px;
-     background: rgba(255,255,255,.04);
+     position: relative; z-index: 2; height: 5px;
+     background: rgba(255,255,255,.05);
      border-top: 1px solid var(--border);
-     flex-shrink: 0;
    }
    .card-days-fill {
      height: 100%;
+     background: linear-gradient(90deg, var(--primary-d), var(--primary));
      transition: width 1s cubic-bezier(.22,.61,.36,1);
      position: relative; overflow: hidden;
    }
    .card-days-fill::after {
-     content: '';
+     content: "";
      position: absolute; inset: 0;
-     background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);
+     background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
      animation: shimmer 2.5s infinite;
    }
    .card-days-fill.month-fill {
-     background: linear-gradient(90deg, #0e4a5a, #06b6d4);
+     background: linear-gradient(90deg, #006e88, var(--cyan));
    }
    
    /* ══════════════════════
@@ -616,7 +577,7 @@
    ══════════════════════ */
    .hub-footer {
      padding: 24px 0;
-     border-top: 3px solid var(--border);
+     border-top: 3px solid rgba(26,48,96,0.8);
      font-family: var(--font-pixel); font-size: 0.28rem;
      color: var(--muted); position: relative; z-index: 1;
    }
@@ -625,9 +586,9 @@
      flex-wrap: wrap; gap: 10px;
    }
    .footer-brand { color: var(--P3); }
-   .footer-yr { color: var(--dim); }
+   .footer-yr    { color: var(--dim-p); }
    
-   /* ── Toast ── */
+   /* Toast */
    .toast {
      position: fixed; bottom: 24px; left: 50%;
      transform: translateX(-50%) translateY(40px);
@@ -640,7 +601,7 @@
    }
    .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
    
-   /* ── Back to top ── */
+   /* Back to top */
    .back-to-top {
      position: fixed; right: 16px; bottom: 16px;
      background: var(--P); color: #fff; border: none;
@@ -661,25 +622,24 @@
      .nav {
        position: absolute; inset: 54px 0 auto 0;
        flex-direction: column; gap: 4px;
-       background: var(--bg2); border-bottom: 3px solid var(--P);
+       background: rgba(8,0,26,0.98); border-bottom: 3px solid var(--P);
        transform: translateY(-200%); transition: .25s;
        padding: 12px 14px; z-index: 999;
      }
      .nav.open { transform: translateY(0); }
      .hamburger { display: block; }
      .nav-user-info { display: none; }
-     .cards-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+     .cards-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
    }
    @media (max-width: 600px) {
      .hub-title { font-size: 1.6rem; }
      .cards-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-     .card-img-zone { height: 100px; }
-     .card-body { padding: 10px 10px 12px 14px; }
-     .card-title { font-size: 0.42rem; }
-     .card-img-emoji { font-size: 2.2rem; }
-     .cat-head-icon { width: 54px; font-size: 1.6rem; }
+     .card-body { padding: 14px 12px; }
+     .card-title { font-size: 0.45rem; }
+     .card-emoji { font-size: 1.8rem; }
+     .category-name { font-size: 0.7rem; }
    }
-   @media (max-width: 420px) {
+   @media (max-width: 400px) {
      .cards-grid { grid-template-columns: 1fr; }
    }
    @media (prefers-reduced-motion: reduce) {
